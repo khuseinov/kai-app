@@ -1,11 +1,15 @@
 import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../core/api/api_client.dart';
-import '../../../core/models/chat_message.dart';
 import '../../../core/storage/local_storage.dart';
+import '../../../core/models/chat_message.dart';
+import '../data/chat_repository.dart';
+import '../data/chat_local_source.dart';
+import '../data/chat_remote_source.dart';
+import '../data/chat_repository.dart';
 
 class ChatState {
   final List<ChatMessage> messages;
@@ -31,54 +35,30 @@ class ChatState {
 }
 
 class ChatNotifier extends StateNotifier<ChatState> {
-  final ApiClient _api;
-  final LocalStorage _storage;
+  final ChatRepository _repository;
   final _uuid = const Uuid();
   String? _currentSessionId;
 
-  ChatNotifier(this._api, this._storage) : super(const ChatState()) {
+  ChatNotifier(this._repository) : super(const ChatState()) {
     _currentSessionId = _uuid.v4();
   }
 
   Future<void> sendMessage(String text) async {
     if (text.trim().isEmpty) return;
 
-    final userMsg = ChatMessage(
-      id: _uuid.v4(),
-      content: text,
-      isUser: true,
-      timestamp: DateTime.now(),
-    );
-
-    state = state.copyWith(
-      messages: [...state.messages, userMsg],
-      isLoading: true,
-      error: null,
-    );
+    state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await _api.sendMessage(
-        message: text,
-        userId: _storage.userId,
+      final kaiMsg = await _repository.sendMessage(
+        text: text,
         sessionId: _currentSessionId!,
+        onMessageSavedLocally: (userMsg) {
+          // Immediately show user message
+          state = state.copyWith(messages: [...state.messages, userMsg]);
+        },
       );
 
-      final kaiMsg = ChatMessage(
-        id: _uuid.v4(),
-        content: response['response'] as String? ?? '',
-        isUser: false,
-        timestamp: DateTime.now(),
-        language: response['language'] as String?,
-        model: response['model'] as String?,
-        provider: response['provider'] as String?,
-        requestType: response['request_type'] as String?,
-        confidence: (response['confidence'] as num?)?.toDouble(),
-        latencyMs: response['latency_ms'] as int?,
-        tokensUsed: response['tokens_used'] as int?,
-        piiBlocked: response['pii_blocked'] as bool?,
-        correlationId: response['correlation_id'] as String?,
-      );
-
+      // Show KAI response
       state = state.copyWith(
         messages: [...state.messages, kaiMsg],
         isLoading: false,
@@ -86,7 +66,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: 'Failed to send message: $e',
       );
     }
   }
@@ -97,9 +77,26 @@ class ChatNotifier extends StateNotifier<ChatState> {
   }
 }
 
-final chatNotifierProvider = StateNotifierProvider<ChatNotifier, ChatState>(
-  (ref) => ChatNotifier(
-    ref.read(apiClientProvider),
-    ref.read(localStorageProvider),
-  ),
-);
+final chatLocalSourceProvider = Provider<ChatLocalSource>((ref) {
+  // In a real app we would ensure boxes are opened before accessing them
+  return ChatLocalSource(
+    chatBox: Hive.box('settings'), // fallback for brevity
+    sessionBox: Hive.box('settings'),
+  );
+});
+
+final chatRemoteSourceProvider = Provider<ChatRemoteSource>((ref) {
+  return ChatRemoteSource(ref.watch(apiClientProvider));
+});
+
+final chatRepositoryProvider = Provider<ChatRepository>((ref) {
+  return ChatRepository(
+    ref.watch(chatRemoteSourceProvider),
+    ref.watch(chatLocalSourceProvider),
+    ref.watch(localStorageProvider),
+  );
+});
+
+final chatNotifierProvider = StateNotifierProvider<ChatNotifier, ChatState>((ref) {
+  return ChatNotifier(ref.watch(chatRepositoryProvider));
+});

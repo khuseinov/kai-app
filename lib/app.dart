@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'core/theme/app_theme.dart';
+import 'core/design/theme/app_theme.dart';
 import 'core/providers/router_provider.dart';
 
 class KaiApp extends ConsumerWidget {
