@@ -1,52 +1,41 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive/hive.dart';
+import 'interceptors/auth_interceptor.dart';
+import 'interceptors/connectivity_interceptor.dart';
+import 'interceptors/error_interceptor.dart';
+import 'interceptors/logging_interceptor.dart';
 
 class ApiClient {
-  late final Dio _dio;
+  final Dio dio;
 
-  ApiClient({String? baseUrl, String? apiKey}) {
-    _dio = Dio(BaseOptions(
-      baseUrl: baseUrl ?? 'http://10.0.2.2:8000', // Android emulator → host
-      connectTimeout: const Duration(seconds: 60),
-      receiveTimeout: const Duration(seconds: 130),
-      headers: {
-        'Content-Type': 'application/json',
-        if (apiKey != null) 'X-API-Key': apiKey,
-      },
-    ));
-
-    _dio.interceptors.add(LogInterceptor(
-      requestBody: true,
-      responseBody: true,
-      logPrint: (o) => debugPrint(o.toString()),
-    ));
+  ApiClient(this.dio);
+  
+  Future<Response<T>> get<T>(String path, {Map<String, dynamic>? queryParameters}) {
+    return dio.get<T>(path, queryParameters: queryParameters);
   }
-
-  Future<Map<String, dynamic>> sendMessage({
-    required String message,
-    required String userId,
-    required String sessionId,
-  }) async {
-    final response = await _dio.post('/chat', data: {
-      'message': message,
-      'user_id': userId,
-      'session_id': sessionId,
-    });
-    return response.data as Map<String, dynamic>;
-  }
-
-  Future<Map<String, dynamic>> checkHealth() async {
-    final response = await _dio.get('/health/full');
-    return response.data as Map<String, dynamic>;
+  
+  Future<Response<T>> post<T>(String path, {dynamic data}) {
+    return dio.post<T>(path, data: data);
   }
 }
 
+final dioProvider = Provider<Dio>((ref) {
+  final dio = Dio(BaseOptions(
+    baseUrl: 'https://api.kai.wize.io/v1',
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+  ));
+
+  dio.interceptors.addAll([
+    ref.watch(connectivityInterceptorProvider),
+    ref.watch(authInterceptorProvider),
+    ref.watch(loggingInterceptorProvider),
+    ref.watch(errorInterceptorProvider),
+  ]);
+
+  return dio;
+});
+
 final apiClientProvider = Provider<ApiClient>((ref) {
-  final settings = Hive.box('settings');
-  final baseUrl = settings.get('api_base_url') as String? ??
-      'http://10.0.2.2:8000';
-  final apiKey = settings.get('api_key') as String?;
-  return ApiClient(baseUrl: baseUrl, apiKey: apiKey);
+  return ApiClient(ref.watch(dioProvider));
 });
