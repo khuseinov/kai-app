@@ -1,0 +1,63 @@
+name: kai_app
+description: KAI — автономный travel-компаньон от Wize
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.5.1
+
+  # Navigation
+  go_router: ^14.2.0
+
+  # Network
+  dio: ^5.4.3+1
+
+  # Storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  flutter_secure_storage: ^9.2.2
+
+  # Models
+  freezed_annotation: ^2.4.3
+  json_annotation: ^4.9.0
+
+  # UI
+  flutter_markdown: ^0.7.3
+  shimmer: ^3.0.0
+
+  # Utils
+  intl: ^0.20.2
+  uuid: ^4.4.0
+  logger: ^2.4.0
+
+  # Gate 3 — uncomment when needed:
+  # record: ^5.1.0
+  # just_audio: ^0.9.39
+  # firebase_core: ^3.3.0
+  # firebase_messaging: ^15.1.0
+
+  # Gate 4 — uncomment when needed:
+  # syncfusion_flutter_pdfviewer: ^33.1.47
+  # fl_chart: ^0.69.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.11
+  freezed: ^2.5.6
+  json_serializable: ^6.8.0
+  mockito: ^5.4.4
+
+flutter:
+  uses-material-design: true
+  generate: true

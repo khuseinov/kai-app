@@ -1,0 +1,69 @@
+workflows:
+  ios-release:
+    name: KAI iOS Release
+    max_build_duration: 30
+    instance_type: mac_mini_m2
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.wize.kai
+      vars:
+        FLUTTER_VERSION: stable
+      groups:
+        - kai-secrets
+    scripts:
+      - name: Set up Flutter
+        script: |
+          git clone https://github.com/flutter/flutter.git -b $FLUTTER_VERSION --depth 1
+          export PATH="$HOME/flutter/bin:$PATH"
+          flutter precache
+      - name: Get dependencies
+        script: flutter pub get
+      - name: Analyze
+        script: flutter analyze --no-fatal-infos
+      - name: Run tests
+        script: flutter test
+      - name: Build iOS
+        script: |
+          flutter build ios --release \
+            --export-method app-store-connect
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth:
+          key_id: $APP_STORE_KEY_ID
+          issuer_id: $APP_STORE_ISSUER_ID
+          key: $APP_STORE_PRIVATE_KEY
+        submit_to_testflight: true
+
+  android-release:
+    name: KAI Android Release
+    max_build_duration: 30
+    instance_type: linux
+    environment:
+      android_signing:
+        keystore_reference: KAI_KEYSTORE
+        keystore_alias: $KEYSTORE_ALIAS
+      vars:
+        FLUTTER_VERSION: stable
+      groups:
+        - kai-secrets
+    scripts:
+      - name: Set up Flutter
+        script: |
+          git clone https://github.com/flutter/flutter.git -b $FLUTTER_VERSION --depth 1
+          export PATH="$HOME/flutter/bin:$PATH"
+          flutter precache
+      - name: Get dependencies
+        script: flutter pub get
+      - name: Analyze
+        script: flutter analyze --no-fatal-infos
+      - name: Run tests
+        script: flutter test
+      - name: Build Android
+        script: |
+          flutter build apk --release
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
