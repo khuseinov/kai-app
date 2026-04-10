@@ -4,6 +4,7 @@ import 'package:flutter/scheduler.dart';
 import '../../../../core/design/tokens/kai_spacing.dart';
 import '../../../../core/models/chat_message.dart';
 import 'message_bubble.dart';
+import 'message_metadata_row.dart';
 import 'typing_indicator.dart';
 
 class MessageList extends StatefulWidget {
@@ -84,11 +85,18 @@ class _MessageListState extends State<MessageList> {
           );
         }
         final message = widget.messages[index];
-        return MessageBubble(
-          message: message,
-          onRetry: widget.onRetry != null
-              ? () => widget.onRetry!(message.id)
-              : null,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            MessageBubble(
+              message: message,
+              onRetry: widget.onRetry != null
+                  ? () => widget.onRetry!(message.id)
+                  : null,
+            ),
+            MessageMetadataRow(message: message),
+          ],
         );
       },
     );

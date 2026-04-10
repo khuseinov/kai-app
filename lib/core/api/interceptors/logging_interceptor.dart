@@ -14,13 +14,25 @@ class LoggingInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    developer.log('<-- ${response.statusCode} ${response.requestOptions.uri}', name: 'API');
+    final correlationId = response.headers.value('x-correlation-id') ??
+        response.requestOptions.headers['x-correlation-id'] ??
+        '-';
+    developer.log(
+      '<-- ${response.statusCode} ${response.requestOptions.uri} [corr=$correlationId]',
+      name: 'API',
+    );
     handler.next(response);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    developer.log('<-- Error ${err.message} ${err.requestOptions.uri}', name: 'API', error: err.error);
+    final correlationId =
+        err.requestOptions.headers['x-correlation-id'] ?? '-';
+    developer.log(
+      '<-- Error [corr=$correlationId] ${err.response?.statusCode} ${err.requestOptions.uri}: ${err.message}',
+      name: 'API',
+      error: err.error,
+    );
     handler.next(err);
   }
 }

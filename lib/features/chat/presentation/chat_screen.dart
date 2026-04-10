@@ -12,6 +12,7 @@ import 'widgets/chat_input_bar.dart';
 import 'widgets/message_list.dart';
 import 'widgets/offline_banner.dart';
 import 'widgets/session_drawer.dart';
+import '../../health/presentation/health_indicator.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -70,7 +71,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             // Offline banner
             OfflineBanner(isOffline: isOffline),
 
-            // App bar with menu button
+            // QW-4: Typed error banner
+            if (chatState.error != null)
+              _ErrorBanner(
+                error: chatState.error!,
+                errorType: chatState.errorType,
+              ),
+
+            // App bar — menu button + QW-1: HealthIndicator (dot)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: KaiSpacing.xs),
               child: Row(
@@ -79,6 +87,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     icon: Icon(Icons.menu, color: colors.textPrimary, size: 24),
                     onPressed: () => Scaffold.of(context).openDrawer(),
                   ),
+                  const Spacer(),
+                  // QW-1: server health dot — green/yellow/red
+                  const HealthIndicator(),
+                  const SizedBox(width: KaiSpacing.s),
                 ],
               ),
             ),
@@ -125,6 +137,55 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// QW-4: Error banner with contextual icon + color per error type.
+class _ErrorBanner extends StatelessWidget {
+  final String error;
+  final ChatErrorType? errorType;
+
+  const _ErrorBanner({required this.error, this.errorType});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.kaiColors;
+    final typography = context.kaiTypography;
+
+    final (icon, color) = switch (errorType) {
+      ChatErrorType.rateLimited        => (Icons.hourglass_empty, colors.warning),
+      ChatErrorType.serviceUnavailable => (Icons.cloud_off_outlined, colors.error),
+      ChatErrorType.network            => (Icons.wifi_off_rounded, colors.warning),
+      _                                => (Icons.error_outline, colors.error),
+    };
+
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: KaiSpacing.screenPadding,
+        vertical: KaiSpacing.xxs,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: KaiSpacing.m,
+        vertical: KaiSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: color.withAlpha(26),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withAlpha(77)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: KaiSpacing.xs),
+          Expanded(
+            child: Text(
+              error,
+              style: typography.labelMedium.copyWith(color: color),
+            ),
+          ),
+        ],
       ),
     );
   }

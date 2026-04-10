@@ -38,3 +38,16 @@ class UnknownException extends KaiApiException {
 class CircuitBreakerException extends KaiApiException {
   const CircuitBreakerException(super.message);
 }
+
+/// HTTP 429 — Rate limit exceeded.
+/// [retryAfterSeconds] is parsed from the server's Retry-After header when available.
+class RateLimitException extends KaiApiException {
+  final int? retryAfterSeconds;
+  const RateLimitException(super.message, {this.retryAfterSeconds});
+}
+
+/// HTTP 503 / 504 — Kai backend is temporarily down or overloaded.
+class ServiceUnavailableException extends KaiApiException {
+  const ServiceUnavailableException(super.message);
+}
+

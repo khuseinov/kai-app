@@ -13,26 +13,36 @@ import '../data/chat_local_source.dart';
 import '../data/chat_remote_source.dart';
 import '../data/chat_repository.dart';
 
+enum ChatErrorType { rateLimited, serviceUnavailable, network, unknown }
+
 class ChatState {
   final List<ChatMessage> messages;
   final bool isLoading;
   final String? error;
+  final ChatErrorType? errorType;
+  final int? rateLimitRetryAfter; // seconds until retry allowed
 
   const ChatState({
     this.messages = const [],
     this.isLoading = false,
     this.error,
+    this.errorType,
+    this.rateLimitRetryAfter,
   });
 
   ChatState copyWith({
     List<ChatMessage>? messages,
     bool? isLoading,
     String? error,
+    ChatErrorType? errorType,
+    int? rateLimitRetryAfter,
   }) =>
       ChatState(
         messages: messages ?? this.messages,
         isLoading: isLoading ?? this.isLoading,
         error: error,
+        errorType: errorType,
+        rateLimitRetryAfter: rateLimitRetryAfter,
       );
 }
 
@@ -103,12 +113,34 @@ class ChatNotifier extends StateNotifier<ChatState> {
         isLoading: false,
       );
     } on OfflineException {
-      // Message was queued — stop loading, don't show error
+      // Message was queued — stop loading, no error shown
       state = state.copyWith(isLoading: false);
+    } on RateLimitException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.retryAfterSeconds != null
+            ? 'Too many messages — try again in ${e.retryAfterSeconds}s'
+            : 'Too many messages — please slow down',
+        errorType: ChatErrorType.rateLimited,
+        rateLimitRetryAfter: e.retryAfterSeconds,
+      );
+    } on ServiceUnavailableException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.message,
+        errorType: ChatErrorType.serviceUnavailable,
+      );
+    } on NetworkException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.message,
+        errorType: ChatErrorType.network,
+      );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Failed to send message: $e',
+        error: 'Something went wrong. Please try again.',
+        errorType: ChatErrorType.unknown,
       );
     }
   }
