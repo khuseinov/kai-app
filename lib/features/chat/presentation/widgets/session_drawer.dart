@@ -8,6 +8,8 @@ import '../../../../core/design/tokens/kai_radii.dart';
 import '../../domain/chat_session.dart';
 import '../../logic/session_notifier.dart';
 import '../../logic/chat_notifier.dart';
+import '../../../health/presentation/health_dashboard_screen.dart';
+import '../../../health/data/health_repository.dart';
 
 class SessionDrawer extends ConsumerWidget {
   const SessionDrawer({super.key});
@@ -15,15 +17,22 @@ class SessionDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sessionState = ref.watch(sessionNotifierProvider);
+    final healthStatus = ref.watch(healthStatusProvider);
     final colors = context.kaiColors;
     final typography = context.kaiTypography;
+
+    final healthDotColor = switch (healthStatus) {
+      HealthStatus.healthy   => colors.success,
+      HealthStatus.unhealthy => colors.error,
+      HealthStatus.checking  => colors.warning,
+    };
 
     return Drawer(
       backgroundColor: colors.background,
       child: SafeArea(
         child: Column(
           children: [
-            // Header
+            // Header — New session button
             Padding(
               padding: const EdgeInsets.all(KaiSpacing.m),
               child: SizedBox(
@@ -46,6 +55,7 @@ class SessionDrawer extends ConsumerWidget {
               ),
             ),
             Divider(color: colors.textTertiary.withValues(alpha: 0.2)),
+
             // Session list
             Expanded(
               child: sessionState.isLoading
@@ -81,6 +91,62 @@ class SessionDrawer extends ConsumerWidget {
                             );
                           },
                         ),
+            ),
+
+            // Footer
+            Divider(color: colors.textTertiary.withValues(alpha: 0.2)),
+            InkWell(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => const HealthDashboardScreen(),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: KaiSpacing.m,
+                  vertical: KaiSpacing.s,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: healthDotColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: KaiSpacing.xs),
+                    Text(
+                      'System Status',
+                      style: typography.bodySmall.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 16,
+                      color: colors.textTertiary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                left: KaiSpacing.m,
+                right: KaiSpacing.m,
+                bottom: KaiSpacing.s,
+              ),
+              child: Text(
+                'Kai v0.1.0 · staging',
+                style: typography.labelSmall.copyWith(
+                  color: colors.textTertiary,
+                  fontSize: 10,
+                ),
+              ),
             ),
           ],
         ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/theme/theme_extensions.dart';
 import '../data/health_repository.dart';
+import 'health_dashboard_screen.dart';
 
 class HealthIndicator extends ConsumerWidget {
   const HealthIndicator({super.key});
@@ -12,24 +13,31 @@ class HealthIndicator extends ConsumerWidget {
     final status = ref.watch(healthStatusProvider);
     final colors = context.kaiColors;
 
-    final Color dotColor;
-    switch (status) {
-      case HealthStatus.healthy:
-        dotColor = colors.success;
-      case HealthStatus.unhealthy:
-        dotColor = colors.error;
-      case HealthStatus.checking:
-        dotColor = colors.warning;
-    }
+    final (dotColor, label) = switch (status) {
+      HealthStatus.healthy   => (colors.success, 'All systems operational'),
+      HealthStatus.unhealthy => (colors.error,   'Server unreachable'),
+      HealthStatus.checking  => (colors.warning,  'Checking...'),
+    };
 
     return Tooltip(
-      message: status.name,
-      child: Container(
-        width: 8,
-        height: 8,
-        decoration: BoxDecoration(
-          color: dotColor,
-          shape: BoxShape.circle,
+      message: label,
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) => const HealthDashboardScreen(),
+          ),
+        ),
+        child: Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: dotColor,
+            shape: BoxShape.circle,
+            boxShadow: status == HealthStatus.healthy
+                ? [BoxShadow(color: dotColor.withAlpha(100), blurRadius: 6, spreadRadius: 1)]
+                : null,
+          ),
         ),
       ),
     );

@@ -12,6 +12,7 @@ import '../../../core/models/chat_message.dart';
 import '../data/chat_local_source.dart';
 import '../data/chat_remote_source.dart';
 import '../data/chat_repository.dart';
+import 'session_notifier.dart';
 
 enum ChatErrorType { rateLimited, serviceUnavailable, network, unknown }
 
@@ -49,10 +50,13 @@ class ChatState {
 class ChatNotifier extends StateNotifier<ChatState> {
   final ChatRepository _repository;
   final OfflineQueue? _offlineQueue;
+  final SessionNotifier? _sessionNotifier;
   final _uuid = const Uuid();
   String? _currentSessionId;
+  // Track if this session already has a title (first message sets it)
+  bool _sessionTitled = false;
 
-  ChatNotifier(this._repository, [this._offlineQueue])
+  ChatNotifier(this._repository, [this._offlineQueue, this._sessionNotifier])
       : super(const ChatState()) {
     _currentSessionId = _uuid.v4();
     _setupOfflineQueue();
@@ -80,7 +84,10 @@ class ChatNotifier extends StateNotifier<ChatState> {
   void setSession(String sessionId) {
     if (_currentSessionId != sessionId) {
       _currentSessionId = sessionId;
+      _sessionTitled = false; // reset — new session may not have a title yet
       final messages = _repository.getMessagesForSession(sessionId);
+      // If session already has messages, it already has a title
+      if (messages.isNotEmpty) _sessionTitled = true;
       state = ChatState(messages: messages);
     }
   }
@@ -105,6 +112,12 @@ class ChatNotifier extends StateNotifier<ChatState> {
         sessionId: _currentSessionId!,
         onMessageSavedLocally: (userMsg) {
           state = state.copyWith(messages: [...state.messages, userMsg]);
+          // Auto-name session on first message
+          if (!_sessionTitled && _currentSessionId != null) {
+            _sessionTitled = true;
+            final title = text.length > 40 ? '${text.substring(0, 40)}…' : text;
+            _sessionNotifier?.updateTitle(_currentSessionId!, title);
+          }
         },
       );
 
@@ -176,5 +189,6 @@ final chatNotifierProvider = StateNotifierProvider<ChatNotifier, ChatState>((ref
   return ChatNotifier(
     ref.watch(chatRepositoryProvider),
     ref.watch(offlineQueueProvider),
+    ref.read(sessionNotifierProvider.notifier),
   );
 });
