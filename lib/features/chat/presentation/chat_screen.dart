@@ -12,7 +12,6 @@ import 'widgets/chat_input_bar.dart';
 import 'widgets/message_list.dart';
 import 'widgets/offline_banner.dart';
 import 'widgets/session_drawer.dart';
-import '../../health/presentation/health_indicator.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -78,7 +77,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 errorType: chatState.errorType,
               ),
 
-            // App bar — menu button + QW-1: HealthIndicator (dot)
+            // App bar with menu
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: KaiSpacing.xs),
               child: Row(
@@ -87,10 +86,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     icon: Icon(Icons.menu, color: colors.textPrimary, size: 24),
                     onPressed: () => Scaffold.of(context).openDrawer(),
                   ),
-                  const Spacer(),
-                  // QW-1: server health dot — green/yellow/red
-                  const HealthIndicator(),
-                  const SizedBox(width: KaiSpacing.s),
                 ],
               ),
             ),
