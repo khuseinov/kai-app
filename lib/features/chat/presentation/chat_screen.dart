@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/design/theme/theme_extensions.dart';
 
 import '../../../core/design/components/kai_hologram.dart';
+import '../../../core/design/theme/theme_extensions.dart';
+import '../../../core/design/tokens/kai_spacing.dart';
+import '../../../core/providers/connectivity_status_provider.dart';
+import '../logic/chat_notifier.dart';
+import '../logic/session_notifier.dart';
+import 'widgets/chat_empty_state.dart';
+import 'widgets/chat_input_bar.dart';
+import 'widgets/message_list.dart';
+import 'widgets/offline_banner.dart';
+import 'widgets/session_drawer.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -12,62 +21,107 @@ class ChatScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
-  KaiHologramState _hologramState = KaiHologramState.idle;
+  final _textController = TextEditingController();
 
-  void _handleTap() {
-    setState(() {
-      // Toggle between idle and listening for demonstration
-      if (_hologramState == KaiHologramState.idle) {
-        _hologramState = KaiHologramState.listening;
-      } else {
-        _hologramState = KaiHologramState.idle;
-      }
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initSession();
     });
+  }
 
-    // TODO: Hook into real speech-to-text here
+  void _initSession() {
+    final sessionState = ref.read(sessionNotifierProvider);
+    final chatNotifier = ref.read(chatNotifierProvider.notifier);
+
+    if (sessionState.activeSessionId != null) {
+      chatNotifier.setSession(sessionState.activeSessionId!);
+    } else {
+      chatNotifier.initSession();
+    }
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  KaiHologramState _hologramStateFromChat(ChatState state) {
+    if (state.isLoading) return KaiHologramState.thinking;
+    if (state.messages.isNotEmpty) return KaiHologramState.speaking;
+    return KaiHologramState.idle;
   }
 
   @override
   Widget build(BuildContext context) {
+    final chatState = ref.watch(chatNotifierProvider);
     final colors = context.kaiColors;
-    final typography = context.kaiTypography;
-    final isListening = _hologramState == KaiHologramState.listening;
+    final isOfflineAsync = ref.watch(isOnlineProvider);
+    final isOffline = !(isOfflineAsync.valueOrNull ?? true);
 
     return Scaffold(
       backgroundColor: colors.background,
-      body: GestureDetector(
-        onTap: _handleTap,
-        behavior: HitTestBehavior.opaque,
-        child: Stack(
+      drawer: const SessionDrawer(),
+      body: SafeArea(
+        child: Column(
           children: [
-            // Holographic Entity
-            Center(
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                child: KaiHologram(state: _hologramState),
+            // Offline banner
+            OfflineBanner(isOffline: isOffline),
+
+            // App bar with menu button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: KaiSpacing.xs),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.menu, color: colors.textPrimary, size: 24),
+                    onPressed: () => Scaffold.of(context).openDrawer(),
+                  ),
+                ],
               ),
             ),
-            
-            // Minimal text prompt
-            SafeArea(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 60.0),
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: Text(
-                      isListening ? 'Слушаю...' : 'Коснитесь любой точки, чтобы разбудить',
-                      key: ValueKey<bool>(isListening),
-                      style: typography.titleLarge.copyWith(
-                        color: isListening ? colors.stateListening : colors.textTertiary,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                ),
+
+            // Compact hologram header (120px)
+            SizedBox(
+              height: 120,
+              child: Stack(
+                children: [
+                  KaiHologram(state: _hologramStateFromChat(chatState)),
+                ],
               ),
+            ),
+
+            // Messages or empty state
+            Expanded(
+              child: chatState.messages.isEmpty && !chatState.isLoading
+                  ? ChatEmptyState(
+                      onPromptTapped: (text) {
+                        ref.read(chatNotifierProvider.notifier).sendMessage(text);
+                      },
+                    )
+                  : MessageList(
+                      messages: chatState.messages,
+                      isLoading: chatState.isLoading,
+                      onRetry: (messageId) {
+                        final failedMsg = chatState.messages.firstWhere(
+                          (m) => m.id == messageId,
+                        );
+                        ref
+                            .read(chatNotifierProvider.notifier)
+                            .sendMessage(failedMsg.content);
+                      },
+                    ),
+            ),
+
+            // Input bar
+            ChatInputBar(
+              controller: _textController,
+              isLoading: chatState.isLoading,
+              onSend: (text) {
+                ref.read(chatNotifierProvider.notifier).sendMessage(text);
+              },
             ),
           ],
         ),
@@ -75,4 +129,3 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 }
-

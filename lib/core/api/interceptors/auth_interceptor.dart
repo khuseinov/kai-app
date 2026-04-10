@@ -9,9 +9,14 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    final apiKey = await _secureStorage.readApiKey();
-    if (apiKey != null && apiKey.isNotEmpty) {
-      options.headers['Authorization'] = 'Bearer $apiKey';
+    final tokens = await _secureStorage.readTokens();
+    if (tokens != null) {
+      options.headers['Authorization'] = 'Bearer ${tokens.access}';
+    } else {
+      final apiKey = await _secureStorage.readApiKey();
+      if (apiKey != null && apiKey.isNotEmpty) {
+        options.headers['Authorization'] = 'Bearer $apiKey';
+      }
     }
     handler.next(options);
   }

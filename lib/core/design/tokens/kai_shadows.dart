@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'kai_colors.dart';
 
 class KaiShadows extends ThemeExtension<KaiShadows> {
   final List<BoxShadow> soft;

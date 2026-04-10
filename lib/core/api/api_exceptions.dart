@@ -34,3 +34,7 @@ class CacheException extends KaiApiException {
 class UnknownException extends KaiApiException {
   const UnknownException(super.message);
 }
+
+class CircuitBreakerException extends KaiApiException {
+  const CircuitBreakerException(super.message);
+}

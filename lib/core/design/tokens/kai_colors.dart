@@ -21,6 +21,9 @@ class KaiColors extends ThemeExtension<KaiColors> {
   final Color textSecondary;
   final Color textTertiary;
 
+  // Glassmorphism
+  final Color glassBorder;
+
   // Semantic
   final Color success;
   final Color warning;
@@ -38,6 +41,7 @@ class KaiColors extends ThemeExtension<KaiColors> {
     required this.textPrimary,
     required this.textSecondary,
     required this.textTertiary,
+    required this.glassBorder,
     required this.success,
     required this.warning,
     required this.error,
@@ -57,6 +61,7 @@ class KaiColors extends ThemeExtension<KaiColors> {
       textPrimary: Color(0xFF111827), // Near black
       textSecondary: Color(0xFF4B5563), // Medium gray
       textTertiary: Color(0xFF9CA3AF),  // Light gray
+      glassBorder: Color(0x1A000000), // 10% black for subtle glass border
       success: Color(0xFF10B981),
       warning: Color(0xFFF59E0B),
       error: Color(0xFFEF4444),
@@ -68,7 +73,7 @@ class KaiColors extends ThemeExtension<KaiColors> {
     return const KaiColors(
       primary: Color(0xFFFFFFFF), // Pure white for high contrast
       onPrimary: Color(0xFF000000),
-      stateListening: Color(0xFF22D3EE), 
+      stateListening: Color(0xFF22D3EE),
       stateThinking: Color(0xFFA78BFA),
       stateSpeaking: Color(0xFF2DD4BF),
       background: Color(0xFF000000), // Pure black canvas (OLED friendly)
@@ -77,6 +82,7 @@ class KaiColors extends ThemeExtension<KaiColors> {
       textPrimary: Color(0xFFF9FAFB),
       textSecondary: Color(0xFF9CA3AF),
       textTertiary: Color(0xFF4B5563),
+      glassBorder: Color(0x1AFFFFFF), // 10% white for subtle glass border
       success: Color(0xFF34D399),
       warning: Color(0xFFFBBF24),
       error: Color(0xFFF87171),
@@ -96,6 +102,7 @@ class KaiColors extends ThemeExtension<KaiColors> {
     Color? textPrimary,
     Color? textSecondary,
     Color? textTertiary,
+    Color? glassBorder,
     Color? success,
     Color? warning,
     Color? error,
@@ -112,6 +119,7 @@ class KaiColors extends ThemeExtension<KaiColors> {
       textPrimary: textPrimary ?? this.textPrimary,
       textSecondary: textSecondary ?? this.textSecondary,
       textTertiary: textTertiary ?? this.textTertiary,
+      glassBorder: glassBorder ?? this.glassBorder,
       success: success ?? this.success,
       warning: warning ?? this.warning,
       error: error ?? this.error,
@@ -138,6 +146,7 @@ class KaiColors extends ThemeExtension<KaiColors> {
       textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       textTertiary: Color.lerp(textTertiary, other.textTertiary, t)!,
+      glassBorder: Color.lerp(glassBorder, other.glassBorder, t)!,
       success: Color.lerp(success, other.success, t)!,
       warning: Color.lerp(warning, other.warning, t)!,
       error: Color.lerp(error, other.error, t)!,

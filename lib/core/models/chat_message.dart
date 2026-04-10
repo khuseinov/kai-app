@@ -10,6 +10,8 @@ class ChatMessage with _$ChatMessage {
     required String content,
     required bool isUser,
     required DateTime timestamp,
+    String? sessionId,
+    @Default('sent') String status,
     String? language,
     String? model,
     String? provider,

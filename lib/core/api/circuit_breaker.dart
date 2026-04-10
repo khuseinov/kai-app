@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'api_exceptions.dart';
 
 enum CircuitState { closed, open, halfOpen }
@@ -6,7 +7,7 @@ enum CircuitState { closed, open, halfOpen }
 class CircuitBreaker {
   final int failureThreshold;
   final Duration resetTimeout;
-  
+
   CircuitState _state = CircuitState.closed;
   int _failureCount = 0;
   DateTime? _lastFailureTime;
@@ -27,7 +28,7 @@ class CircuitBreaker {
 
   Future<T> execute<T>(Future<T> Function() action) async {
     final currentState = state;
-    
+
     if (currentState == CircuitState.open) {
       throw const CircuitBreakerException('Circuit breaker is OPEN. Failing fast to protect backend.');
     }
@@ -55,3 +56,10 @@ class CircuitBreaker {
     }
   }
 }
+
+final circuitBreakerProvider = Provider<CircuitBreaker>((ref) {
+  return CircuitBreaker(
+    failureThreshold: 3,
+    resetTimeout: const Duration(seconds: 30),
+  );
+});

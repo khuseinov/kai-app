@@ -9,6 +9,7 @@ Future<ProviderContainer> bootstrap() async {
     Hive.openBox('chat_history'),
     Hive.openBox('sessions'),
     Hive.openBox('pending_messages'),
+    Hive.openBox('cache'),
   ]);
 
   final container = ProviderContainer();

@@ -18,8 +18,7 @@ class ChatLocalSource {
   List<ChatMessage> getMessagesForSession(String sessionId) {
     return _chatBox.values
         .map((e) => ChatMessage.fromJson(Map<String, dynamic>.from(e)))
-        // Assuming we would filter by sessionId in a full implementation.
-        // For now, returning all or limiting to session if message has sessionId.
+        .where((m) => m.sessionId == sessionId)
         .toList();
   }
 
@@ -32,5 +31,32 @@ class ChatLocalSource {
     final data = _sessionBox.get(id);
     if (data == null) return null;
     return ChatSession.fromJson(Map<String, dynamic>.from(data));
+  }
+
+  List<ChatSession> getAllSessions() {
+    return _sessionBox.values
+        .map((e) => ChatSession.fromJson(Map<String, dynamic>.from(e)))
+        .toList()
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+  }
+
+  Future<void> deleteSession(String sessionId) async {
+    await _sessionBox.delete(sessionId);
+    final messageKeys = _chatBox.keys.where((key) {
+      final data = _chatBox.get(key);
+      if (data == null) return false;
+      final map = Map<String, dynamic>.from(data);
+      return map['session_id'] == sessionId;
+    }).toList();
+    for (final key in messageKeys) {
+      await _chatBox.delete(key);
+    }
+  }
+
+  Future<void> updateSessionTitle(String sessionId, String title) async {
+    final session = getSession(sessionId);
+    if (session != null) {
+      await saveSession(session.copyWith(title: title, updatedAt: DateTime.now()));
+    }
   }
 }

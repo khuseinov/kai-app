@@ -4,7 +4,7 @@ enum Environment { dev, staging, prod }
 
 /// VPS IP address — no domain yet.
 /// Phase 3: replace with wize.travel when domain purchased.
-const String _vpsIp = '100.127.146.71';
+const String _vpsIp = '78.17.13.214';
 
 class EnvConfig {
   static const _env = String.fromEnvironment(

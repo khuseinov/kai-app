@@ -190,3 +190,5 @@ Rate limits: 30/min per IP, 10/min per user.
 - [ ] iOS Simulator: full chat flow
 - [ ] Dark/light theme toggle
 - [ ] Offline → online: queue flushes
+
+dontTouch=M4tLYO28K0xgm5a2vH

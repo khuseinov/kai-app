@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/providers/settings_provider.dart';
 import '../../../core/storage/local_storage.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -18,9 +19,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    final storage = ref.read(localStorageProvider);
-    _urlController = TextEditingController(text: storage.apiBaseUrl);
-    _keyController = TextEditingController(text: storage.apiKey ?? '');
+    final settings = ref.read(settingsProvider);
+    _urlController = TextEditingController(text: settings.apiBaseUrl);
+    _keyController = TextEditingController(text: settings.apiKey ?? '');
   }
 
   @override
@@ -30,21 +31,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     super.dispose();
   }
 
-  void _save() {
-    final storage = ref.read(localStorageProvider);
-    storage.apiBaseUrl = _urlController.text.trim().isNotEmpty
-        ? _urlController.text.trim()
-        : null;
-    storage.apiKey =
-        _keyController.text.trim().isNotEmpty ? _keyController.text.trim() : null;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Settings saved')),
-    );
+  Future<void> _save() async {
+    final notifier = ref.read(settingsProvider.notifier);
+    await notifier.setApiBaseUrl(_urlController.text);
+    await notifier.setApiKey(_keyController.text);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Settings saved')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final storage = ref.watch(localStorageProvider);
+    final settings = ref.watch(settingsProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -79,12 +79,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ListTile(
             leading: const Icon(Icons.language),
             title: const Text('Language'),
-            subtitle: Text(storage.language?.toUpperCase() ?? 'EN'),
+            subtitle: Text(settings.language?.toUpperCase() ?? 'EN'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // Toggle between en/ru for now
-              storage.language = storage.language == 'ru' ? 'en' : 'ru';
-              setState(() {});
+              final notifier = ref.read(settingsProvider.notifier);
+              notifier.setLanguage(settings.language == 'ru' ? 'en' : 'ru');
             },
           ),
           const SizedBox(height: 24),
@@ -111,7 +110,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               );
               if (confirmed == true) {
-                await storage.clearHistory();
+                await ref.read(localStorageProvider).clearHistory();
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('History cleared')),

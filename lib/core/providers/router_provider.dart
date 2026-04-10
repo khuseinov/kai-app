@@ -1,18 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hive/hive.dart';
 
+import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/presentation/register_screen.dart';
 import '../../features/chat/presentation/chat_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/companion/presentation/companion_placeholder_screen.dart';
+import 'settings_provider.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final settings = Hive.box('settings');
-  final isOnboarded = settings.get('onboarded') as bool? ?? false;
+  final settings = ref.watch(settingsProvider);
 
   return GoRouter(
-    initialLocation: isOnboarded ? '/chat' : '/onboarding',
+    initialLocation: settings.isOnboarded ? '/chat' : '/onboarding',
     routes: [
       GoRoute(
         path: '/onboarding',
@@ -29,6 +30,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/companion',
         builder: (context, state) => const CompanionPlaceholderScreen(),
+      ),
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterScreen(),
       ),
     ],
   );
