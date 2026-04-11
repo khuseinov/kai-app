@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../../../../core/design/theme/theme_extensions.dart';
@@ -39,26 +38,7 @@ class MessageBubble extends StatelessWidget {
           children: [
             // Bubble
             GestureDetector(
-              onLongPress: () {
-                Clipboard.setData(ClipboardData(text: message.content));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Скопировано в буфер обмена'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
-              onTap: isUser
-                  ? onRetry
-                  : () {
-                      Clipboard.setData(ClipboardData(text: message.content));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Ответ скопирован!'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    },
+              onTap: message.status == 'failed' ? onRetry : null,
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: MediaQuery.of(context).size.width * 0.75,
