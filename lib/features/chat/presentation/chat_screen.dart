@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/config/feature_flags.dart';
 import '../../../../core/design/components/kai_gemini_wave.dart';
 import '../../../../core/design/theme/theme_extensions.dart';
 import '../../../core/design/tokens/kai_spacing.dart';
@@ -109,6 +108,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             setState(() {
               _isListening = !_isListening;
             });
+          },
+          onVerticalDragEnd: (details) {
+            if ((details.primaryVelocity ?? 0) < -300) {
+              HapticFeedback.lightImpact();
+              _showInputSheet();
+            }
           },
           child: SafeArea(
             child: Column(
