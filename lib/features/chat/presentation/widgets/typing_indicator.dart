@@ -57,10 +57,10 @@ class _TypingIndicatorState extends State<TypingIndicator>
               mainAxisSize: MainAxisSize.min,
               children: List.generate(3, (index) {
                 // Stagger each dot by 0.3 seconds (200ms offset)
-                final double offset = index * 0.2;
+                final offset = index * 0.2;
                 // Each dot fades in and out over its portion of the cycle
-                final double t = (_controller.value - offset) % 1.0;
-                final double opacity = (t < 0.5)
+                final t = (_controller.value - offset) % 1.0;
+                final opacity = (t < 0.5)
                     ? (t / 0.5).clamp(0.0, 1.0)
                     : (1.0 - (t - 0.5) / 0.5).clamp(0.0, 1.0);
 

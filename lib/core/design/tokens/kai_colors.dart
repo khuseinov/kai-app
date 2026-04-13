@@ -1,40 +1,63 @@
 import 'package:flutter/material.dart';
 
-/// Define semantic color tokens for Kai App
 class KaiColors extends ThemeExtension<KaiColors> {
-  // Brand / Accents
-  final Color primary;
-  final Color onPrimary;
-  
-  // Voice & 3D Visualizer States (For Canvas Background)
+  // Brand Colors (Kai Ocean)
+  final Color oceanPrimary;
+  final Color oceanLight;
+  final Color oceanDark;
+
+  // Neutral Scales (Anthropic)
+  final Color slateDark;
+  final Color slateMedium;
+  final Color slateLight;
+
+  final Color cloudDark;
+  final Color cloudMedium;
+  final Color cloudLight;
+
+  final Color ivoryDark;
+  final Color ivoryMedium;
+  final Color ivoryLight;
+
+  // Semantic & State Colors
   final Color stateListening;
   final Color stateThinking;
   final Color stateSpeaking;
-  
-  // Backgrounds (Pure Minimalism)
-  final Color background;
-  final Color surface;
-  final Color surfaceContainer;
-  
-  // Text
-  final Color textPrimary;
-  final Color textSecondary;
-  final Color textTertiary;
 
-  // Glassmorphism
-  final Color glassBorder;
-
-  // Semantic
   final Color success;
   final Color warning;
   final Color error;
 
+  // Theme Mapping
+  final Color background;
+  final Color surface;
+  final Color surfaceContainer;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textTertiary;
+  final Color glassBorder;
+  final Color primary;
+  final Color onPrimary;
+
   const KaiColors({
-    required this.primary,
-    required this.onPrimary,
+    required this.oceanPrimary,
+    required this.oceanLight,
+    required this.oceanDark,
+    required this.slateDark,
+    required this.slateMedium,
+    required this.slateLight,
+    required this.cloudDark,
+    required this.cloudMedium,
+    required this.cloudLight,
+    required this.ivoryDark,
+    required this.ivoryMedium,
+    required this.ivoryLight,
     required this.stateListening,
     required this.stateThinking,
     required this.stateSpeaking,
+    required this.success,
+    required this.warning,
+    required this.error,
     required this.background,
     required this.surface,
     required this.surfaceContainer,
@@ -42,60 +65,136 @@ class KaiColors extends ThemeExtension<KaiColors> {
     required this.textSecondary,
     required this.textTertiary,
     required this.glassBorder,
-    required this.success,
-    required this.warning,
-    required this.error,
+    required this.primary,
+    required this.onPrimary,
   });
 
-  /// Light Theme Implementation
   factory KaiColors.light() {
+    const oceanPrimary = Color(0xFF0284C7);
+    const oceanLight = Color(0xFFE0F2FE);
+    const oceanDark = Color(0xFF0C4A6E);
+
+    const slateDark = Color(0xFF191919);
+    const slateMedium = Color(0xFF262625);
+    const slateLight = Color(0xFF40403E);
+
+    const cloudDark = Color(0xFF666663);
+    const cloudMedium = Color(0xFF91918D);
+    const cloudLight = Color(0xFFBFBFBA);
+
+    const ivoryDark = Color(0xFFE5E4DF);
+    const ivoryMedium = Color(0xFFF0F0EB);
+    const ivoryLight = Color(0xFFFAFAF7);
+
     return const KaiColors(
-      primary: Color(0xFF0F172A), // Almost black for high contrast elements
-      onPrimary: Color(0xFFFFFFFF),
+      oceanPrimary: oceanPrimary,
+      oceanLight: oceanLight,
+      oceanDark: oceanDark,
+      slateDark: slateDark,
+      slateMedium: slateMedium,
+      slateLight: slateLight,
+      cloudDark: cloudDark,
+      cloudMedium: cloudMedium,
+      cloudLight: cloudLight,
+      ivoryDark: ivoryDark,
+      ivoryMedium: ivoryMedium,
+      ivoryLight: ivoryLight,
+
       stateListening: Color(0xFF06B6D4), // Cyan
       stateThinking: Color(0xFF8B5CF6), // Violet
       stateSpeaking: Color(0xFF14B8A6), // Teal
-      background: Color(0xFFFFFFFF), // Pure white canvas
-      surface: Color(0xFFFFFFFF),    // Pure white components
-      surfaceContainer: Color(0xFFF3F4F6), // Very light gray for bottom sheets
-      textPrimary: Color(0xFF111827), // Near black
-      textSecondary: Color(0xFF4B5563), // Medium gray
-      textTertiary: Color(0xFF9CA3AF),  // Light gray
-      glassBorder: Color(0x1A000000), // 10% black for subtle glass border
-      success: Color(0xFF10B981),
+
+      success: Color(0xFF10B981), // Emerald
       warning: Color(0xFFF59E0B),
-      error: Color(0xFFEF4444),
+      error: Color(0xFFBF4D43), // Figma Error
+
+      background: ivoryMedium,
+      surface: ivoryLight,
+      surfaceContainer: ivoryDark,
+
+      textPrimary: slateDark,
+      textSecondary: slateMedium,
+      textTertiary: cloudDark,
+
+      glassBorder: Color(0x1A191919), // 10% slate dark
+      primary: oceanPrimary,
+      onPrimary: ivoryLight,
     );
   }
 
-  /// Dark Theme Implementation
   factory KaiColors.dark() {
+    const oceanPrimary = Color(0xFF0EA5E9);
+    const oceanLight = Color(0xFFE0F2FE);
+    const oceanDark = Color(0xFF0C4A6E);
+
+    const slateDark = Color(0xFF191919);
+    const slateMedium = Color(0xFF262625);
+    const slateLight = Color(0xFF40403E);
+
+    const cloudDark = Color(0xFF666663);
+    const cloudMedium = Color(0xFF91918D);
+    const cloudLight = Color(0xFFBFBFBA);
+
+    const ivoryDark = Color(0xFFE5E4DF);
+    const ivoryMedium = Color(0xFFF0F0EB);
+    const ivoryLight = Color(0xFFFAFAF7);
+
     return const KaiColors(
-      primary: Color(0xFFFFFFFF), // Pure white for high contrast
-      onPrimary: Color(0xFF000000),
+      oceanPrimary: oceanPrimary,
+      oceanLight: oceanLight,
+      oceanDark: oceanDark,
+      slateDark: slateDark,
+      slateMedium: slateMedium,
+      slateLight: slateLight,
+      cloudDark: cloudDark,
+      cloudMedium: cloudMedium,
+      cloudLight: cloudLight,
+      ivoryDark: ivoryDark,
+      ivoryMedium: ivoryMedium,
+      ivoryLight: ivoryLight,
+
       stateListening: Color(0xFF22D3EE),
       stateThinking: Color(0xFFA78BFA),
       stateSpeaking: Color(0xFF2DD4BF),
-      background: Color(0xFF000000), // Pure black canvas (OLED friendly)
-      surface: Color(0xFF000000),    // Pure black components
-      surfaceContainer: Color(0xFF131314), // Dark gray for sheets (Gemini style)
-      textPrimary: Color(0xFFF9FAFB),
-      textSecondary: Color(0xFF9CA3AF),
-      textTertiary: Color(0xFF4B5563),
-      glassBorder: Color(0x1AFFFFFF), // 10% white for subtle glass border
+
       success: Color(0xFF34D399),
       warning: Color(0xFFFBBF24),
-      error: Color(0xFFF87171),
+      error: Color(0xFFBF4D43),
+
+      background: slateDark,
+      surface: slateMedium,
+      surfaceContainer: slateLight,
+
+      textPrimary: ivoryLight,
+      textSecondary: ivoryMedium,
+      textTertiary: cloudLight,
+
+      glassBorder: Color(0x1AFAFAF7), // 10% ivory light
+      primary: oceanPrimary,
+      onPrimary: slateDark,
     );
   }
 
   @override
   ThemeExtension<KaiColors> copyWith({
-    Color? primary,
-    Color? onPrimary,
+    Color? oceanPrimary,
+    Color? oceanLight,
+    Color? oceanDark,
+    Color? slateDark,
+    Color? slateMedium,
+    Color? slateLight,
+    Color? cloudDark,
+    Color? cloudMedium,
+    Color? cloudLight,
+    Color? ivoryDark,
+    Color? ivoryMedium,
+    Color? ivoryLight,
     Color? stateListening,
     Color? stateThinking,
     Color? stateSpeaking,
+    Color? success,
+    Color? warning,
+    Color? error,
     Color? background,
     Color? surface,
     Color? surfaceContainer,
@@ -103,16 +202,28 @@ class KaiColors extends ThemeExtension<KaiColors> {
     Color? textSecondary,
     Color? textTertiary,
     Color? glassBorder,
-    Color? success,
-    Color? warning,
-    Color? error,
+    Color? primary,
+    Color? onPrimary,
   }) {
     return KaiColors(
-      primary: primary ?? this.primary,
-      onPrimary: onPrimary ?? this.onPrimary,
+      oceanPrimary: oceanPrimary ?? this.oceanPrimary,
+      oceanLight: oceanLight ?? this.oceanLight,
+      oceanDark: oceanDark ?? this.oceanDark,
+      slateDark: slateDark ?? this.slateDark,
+      slateMedium: slateMedium ?? this.slateMedium,
+      slateLight: slateLight ?? this.slateLight,
+      cloudDark: cloudDark ?? this.cloudDark,
+      cloudMedium: cloudMedium ?? this.cloudMedium,
+      cloudLight: cloudLight ?? this.cloudLight,
+      ivoryDark: ivoryDark ?? this.ivoryDark,
+      ivoryMedium: ivoryMedium ?? this.ivoryMedium,
+      ivoryLight: ivoryLight ?? this.ivoryLight,
       stateListening: stateListening ?? this.stateListening,
       stateThinking: stateThinking ?? this.stateThinking,
       stateSpeaking: stateSpeaking ?? this.stateSpeaking,
+      success: success ?? this.success,
+      warning: warning ?? this.warning,
+      error: error ?? this.error,
       background: background ?? this.background,
       surface: surface ?? this.surface,
       surfaceContainer: surfaceContainer ?? this.surfaceContainer,
@@ -120,36 +231,43 @@ class KaiColors extends ThemeExtension<KaiColors> {
       textSecondary: textSecondary ?? this.textSecondary,
       textTertiary: textTertiary ?? this.textTertiary,
       glassBorder: glassBorder ?? this.glassBorder,
-      success: success ?? this.success,
-      warning: warning ?? this.warning,
-      error: error ?? this.error,
+      primary: primary ?? this.primary,
+      onPrimary: onPrimary ?? this.onPrimary,
     );
   }
 
   @override
-  ThemeExtension<KaiColors> lerp(
-    covariant ThemeExtension<KaiColors>? other,
-    double t,
-  ) {
-    if (other is! KaiColors) {
-      return this;
-    }
+  ThemeExtension<KaiColors> lerp(ThemeExtension<KaiColors>? other, double t) {
+    if (other is! KaiColors) return this;
     return KaiColors(
-      primary: Color.lerp(primary, other.primary, t)!,
-      onPrimary: Color.lerp(onPrimary, other.onPrimary, t)!,
+      oceanPrimary: Color.lerp(oceanPrimary, other.oceanPrimary, t)!,
+      oceanLight: Color.lerp(oceanLight, other.oceanLight, t)!,
+      oceanDark: Color.lerp(oceanDark, other.oceanDark, t)!,
+      slateDark: Color.lerp(slateDark, other.slateDark, t)!,
+      slateMedium: Color.lerp(slateMedium, other.slateMedium, t)!,
+      slateLight: Color.lerp(slateLight, other.slateLight, t)!,
+      cloudDark: Color.lerp(cloudDark, other.cloudDark, t)!,
+      cloudMedium: Color.lerp(cloudMedium, other.cloudMedium, t)!,
+      cloudLight: Color.lerp(cloudLight, other.cloudLight, t)!,
+      ivoryDark: Color.lerp(ivoryDark, other.ivoryDark, t)!,
+      ivoryMedium: Color.lerp(ivoryMedium, other.ivoryMedium, t)!,
+      ivoryLight: Color.lerp(ivoryLight, other.ivoryLight, t)!,
       stateListening: Color.lerp(stateListening, other.stateListening, t)!,
       stateThinking: Color.lerp(stateThinking, other.stateThinking, t)!,
       stateSpeaking: Color.lerp(stateSpeaking, other.stateSpeaking, t)!,
+      success: Color.lerp(success, other.success, t)!,
+      warning: Color.lerp(warning, other.warning, t)!,
+      error: Color.lerp(error, other.error, t)!,
       background: Color.lerp(background, other.background, t)!,
       surface: Color.lerp(surface, other.surface, t)!,
-      surfaceContainer: Color.lerp(surfaceContainer, other.surfaceContainer, t)!,
+      surfaceContainer:
+          Color.lerp(surfaceContainer, other.surfaceContainer, t)!,
       textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       textTertiary: Color.lerp(textTertiary, other.textTertiary, t)!,
       glassBorder: Color.lerp(glassBorder, other.glassBorder, t)!,
-      success: Color.lerp(success, other.success, t)!,
-      warning: Color.lerp(warning, other.warning, t)!,
-      error: Color.lerp(error, other.error, t)!,
+      primary: Color.lerp(primary, other.primary, t)!,
+      onPrimary: Color.lerp(onPrimary, other.onPrimary, t)!,
     );
   }
 }

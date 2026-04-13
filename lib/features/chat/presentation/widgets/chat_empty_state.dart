@@ -1,93 +1,48 @@
 import 'package:flutter/material.dart';
 import '../../../../core/design/theme/theme_extensions.dart';
-import '../../../../core/design/tokens/kai_radii.dart';
-import '../../../../core/design/tokens/kai_spacing.dart';
-import '../../../../core/design/components/kai_empty_state.dart';
+import '../../../../core/design/components/kai_gemini_wave.dart';
 
-/// A chat-specific empty state with suggested travel prompts.
 class ChatEmptyState extends StatelessWidget {
   final ValueChanged<String> onPromptTapped;
+  final KaiVoiceState voiceState;
 
   const ChatEmptyState({
     super.key,
     required this.onPromptTapped,
+    required this.voiceState,
   });
-
-  static const _suggestions = [
-    _Suggestion(
-      text: 'Нужна ли виза в Японию?',
-      icon: Icons.description,
-    ),
-    _Suggestion(
-      text: 'Построй маршрут по Италии на 7 дней',
-      icon: Icons.map,
-    ),
-    _Suggestion(
-      text: 'Насколько безопасен Таиланд?',
-      icon: Icons.shield,
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
     final colors = context.kaiColors;
+    final typography = context.kaiTypography;
 
-    return KaiEmptyState(
-      icon: Icons.travel_explore,
-      title: 'Привет! Я KAI, ваш travel-компаньон',
-      subtitle: 'Задайте вопрос о путешествии или выберите тему:',
-      action: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: _suggestions.map((suggestion) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: KaiSpacing.xs),
-            child: GestureDetector(
-              onTap: () => onPromptTapped(suggestion.text),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: KaiSpacing.m,
-                  vertical: KaiSpacing.s,
-                ),
-                decoration: BoxDecoration(
-                  color: colors.surfaceContainer,
-                  borderRadius: KaiRadii.pill,
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      suggestion.icon,
-                      size: 20.0,
-                      color: colors.primary,
-                    ),
-                    const SizedBox(width: KaiSpacing.xs),
-                    Expanded(
-                      child: Text(
-                        suggestion.text,
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.w500,
-                          color: colors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }).toList(),
+    String displayText;
+    switch (voiceState) {
+      case KaiVoiceState.idle:
+        displayText = 'Как я могу\nпомочь вам?';
+        break;
+      case KaiVoiceState.listening:
+        displayText = 'Слушаю вас...';
+        break;
+      case KaiVoiceState.thinking:
+        displayText = 'Анализирую...';
+        break;
+      case KaiVoiceState.speaking:
+        displayText = '...';
+        break;
+    }
+
+    return Center(
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: Text(
+          displayText,
+          key: ValueKey<String>(displayText),
+          textAlign: TextAlign.center,
+          style: typography.displaySmall.copyWith(color: colors.textSecondary),
+        ),
       ),
     );
   }
-}
-
-class _Suggestion {
-  final String text;
-  final IconData icon;
-
-  const _Suggestion({
-    required this.text,
-    required this.icon,
-  });
 }

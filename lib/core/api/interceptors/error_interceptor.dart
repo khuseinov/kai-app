@@ -6,7 +6,7 @@ class ErrorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     KaiApiException exception;
-    
+
     if (err.error is KaiApiException) {
       exception = err.error as KaiApiException;
     } else {
@@ -24,7 +24,8 @@ class ErrorInterceptor extends Interceptor {
             final retryAfter = err.response?.headers.value('retry-after');
             exception = RateLimitException(
               'Too many requests — slow down',
-              retryAfterSeconds: retryAfter != null ? int.tryParse(retryAfter) : null,
+              retryAfterSeconds:
+                  retryAfter != null ? int.tryParse(retryAfter) : null,
             );
           } else if (statusCode == 503 || statusCode == 504) {
             exception = const ServiceUnavailableException(
@@ -43,7 +44,7 @@ class ErrorInterceptor extends Interceptor {
           exception = UnknownException(err.message ?? 'Unknown error');
       }
     }
-    
+
     return handler.reject(
       DioException(
         requestOptions: err.requestOptions,

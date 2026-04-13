@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-// Define typography tokens for Kai App following Google Minimalism
+// Define typography tokens for Kai App following Anthropic Foundation
 class KaiTypography extends ThemeExtension<KaiTypography> {
-  static const String _fontFamily = 'Google Sans'; // Standard Google AI font
-
   final TextStyle displayLarge;
   final TextStyle displayMedium;
   final TextStyle displaySmall;
@@ -39,36 +38,84 @@ class KaiTypography extends ThemeExtension<KaiTypography> {
   });
 
   factory KaiTypography.regular(Color textPrimary, Color textSecondary) {
-    // We use default system font (SF Pro on iOS, Roboto on Android)
-    // but customized weights and letter spacing for premium look.
     return KaiTypography(
-      displayLarge: TextStyle(fontSize: 57, fontWeight: FontWeight.w400, letterSpacing: -0.25, color: textPrimary),
-      displayMedium: TextStyle(fontSize: 45, fontWeight: FontWeight.w400, color: textPrimary),
-      displaySmall: TextStyle(fontSize: 36, fontWeight: FontWeight.w400, color: textPrimary),
-      headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w500, color: textPrimary),
-      headlineMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w500, color: textPrimary),
-      headlineSmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w500, color: textPrimary),
-      titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: textPrimary),
-      titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 0.15, color: textPrimary),
-      titleSmall: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.1, color: textPrimary),
-      bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0.15, color: textSecondary),
-      bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, color: textSecondary),
-      bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: 0.4, color: textSecondary),
-      labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.1, color: textPrimary),
-      labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: 0.5, color: textPrimary),
-      labelSmall: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, letterSpacing: 0.5, color: textPrimary),
+      // Display: Copernicus Fallback (Playfair Display)
+      displayLarge: GoogleFonts.playfairDisplay(
+          fontSize: 57,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.25,
+          color: textPrimary),
+      displayMedium: GoogleFonts.playfairDisplay(
+          fontSize: 45, fontWeight: FontWeight.w400, color: textPrimary),
+      displaySmall: GoogleFonts.playfairDisplay(
+          fontSize: 36, fontWeight: FontWeight.w400, color: textPrimary),
+
+      // Headline: Tiempos Fallback (Merriweather)
+      headlineLarge: GoogleFonts.merriweather(
+          fontSize: 32, fontWeight: FontWeight.w500, color: textPrimary),
+      headlineMedium: GoogleFonts.merriweather(
+          fontSize: 28, fontWeight: FontWeight.w500, color: textPrimary),
+      headlineSmall: GoogleFonts.merriweather(
+          fontSize: 24, fontWeight: FontWeight.w500, color: textPrimary),
+
+      // Title: Tiempos Fallback (Merriweather)
+      titleLarge: GoogleFonts.merriweather(
+          fontSize: 22, fontWeight: FontWeight.w600, color: textPrimary),
+      titleMedium: GoogleFonts.merriweather(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.15,
+          color: textPrimary),
+      titleSmall: GoogleFonts.merriweather(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.1,
+          color: textPrimary),
+
+      // Body: Styrene Fallback (Inter)
+      bodyLarge: GoogleFonts.inter(
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.15,
+          color: textSecondary),
+      bodyMedium: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.25,
+          color: textSecondary),
+      bodySmall: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.4,
+          color: textSecondary),
+
+      // Label: Styrene Fallback (Inter)
+      labelLarge: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+          color: textPrimary),
+      labelMedium: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5,
+          color: textPrimary),
+      labelSmall: GoogleFonts.inter(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5,
+          color: textPrimary),
     );
   }
 
   @override
   ThemeExtension<KaiTypography> copyWith() {
-    // Typically typography varies by text color, size etc. handled in a complete system
-    // but simplistic copyWith can just return self for now.
     return this;
   }
 
   @override
-  ThemeExtension<KaiTypography> lerp(ThemeExtension<KaiTypography>? other, double t) {
+  ThemeExtension<KaiTypography> lerp(
+      ThemeExtension<KaiTypography>? other, double t) {
     if (other is! KaiTypography) {
       return this;
     }

@@ -6,7 +6,8 @@ class LoggingInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (!options.headers.containsKey('x-correlation-id')) {
-      options.headers['x-correlation-id'] = DateTime.now().millisecondsSinceEpoch.toString();
+      options.headers['x-correlation-id'] =
+          DateTime.now().millisecondsSinceEpoch.toString();
     }
     developer.log('--> ${options.method} ${options.uri}', name: 'API');
     handler.next(options);
@@ -26,8 +27,7 @@ class LoggingInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    final correlationId =
-        err.requestOptions.headers['x-correlation-id'] ?? '-';
+    final correlationId = err.requestOptions.headers['x-correlation-id'] ?? '-';
     developer.log(
       '<-- Error [corr=$correlationId] ${err.response?.statusCode} ${err.requestOptions.uri}: ${err.message}',
       name: 'API',

@@ -50,4 +50,3 @@ class RateLimitException extends KaiApiException {
 class ServiceUnavailableException extends KaiApiException {
   const ServiceUnavailableException(super.message);
 }
-

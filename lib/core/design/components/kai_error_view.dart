@@ -45,8 +45,8 @@ class KaiErrorView extends StatelessWidget {
           if (onRetry != null) ...[
             const SizedBox(height: KaiSpacing.l),
             KaiButton(
-              label: retryLabel ?? 'Попробовать снова',
-              type: KaiButtonType.secondary,
+              text: retryLabel ?? 'Попробовать снова',
+              variant: KaiButtonVariant.secondary,
               onPressed: onRetry!,
             ),
           ],

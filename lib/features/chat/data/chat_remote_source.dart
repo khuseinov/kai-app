@@ -8,12 +8,12 @@ class ChatRemoteSource {
   ChatRemoteSource(this._apiClient);
 
   Future<ChatResponseDto> sendMessage(ChatRequestDto request) async {
-    final Map<String, dynamic> response = await _apiClient.sendMessage(
+    final response = await _apiClient.sendMessage(
       message: request.message,
       userId: request.userId,
       sessionId: request.sessionId,
     );
-    
+
     return ChatResponseDto.fromJson(response);
   }
 }

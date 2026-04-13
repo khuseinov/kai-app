@@ -61,7 +61,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: KaiSpacing.screenPadding),
+            padding: const EdgeInsets.symmetric(
+                horizontal: KaiSpacing.screenPadding),
             child: Form(
               key: _formKey,
               child: Column(
@@ -82,7 +83,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: KaiSpacing.xxs),
                   Text(
                     'Войдите в аккаунт, чтобы продолжить',
-                    style: typography.bodyLarge.copyWith(color: colors.textSecondary),
+                    style: typography.bodyLarge
+                        .copyWith(color: colors.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: KaiSpacing.xxl),
@@ -100,7 +102,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                       ),
                       onPressed: () {
                         setState(() => _obscurePassword = !_obscurePassword);
@@ -110,7 +114,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: KaiSpacing.xl),
                   KaiButton(
-                    label: 'Войти',
+                    text: 'Войти',
                     onPressed: _submit,
                     isLoading: isLoading,
                   ),
@@ -119,7 +123,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: () => context.go('/register'),
                     child: Text(
                       'Нет аккаунта? Зарегистрироваться',
-                      style: typography.bodyMedium.copyWith(color: colors.textSecondary),
+                      style: typography.bodyMedium
+                          .copyWith(color: colors.textSecondary),
                     ),
                   ),
                 ],

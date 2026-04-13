@@ -18,5 +18,6 @@ class ChatResponseDto with _$ChatResponseDto {
     @JsonKey(name: 'correlation_id') String? correlationId,
   }) = _ChatResponseDto;
 
-  factory ChatResponseDto.fromJson(Map<String, dynamic> json) => _$ChatResponseDtoFromJson(json);
+  factory ChatResponseDto.fromJson(Map<String, dynamic> json) =>
+      _$ChatResponseDtoFromJson(json);
 }

@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/design/components/kai_button.dart';
 import '../../../../core/design/theme/theme_extensions.dart';
 import '../../../../core/design/tokens/kai_spacing.dart';
-import '../../../../core/design/tokens/kai_radii.dart';
 import '../../domain/chat_session.dart';
 import '../../logic/session_notifier.dart';
 import '../../logic/chat_notifier.dart';
@@ -29,8 +28,8 @@ class SessionDrawer extends ConsumerWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: KaiButton(
-                  label: 'Новый разговор',
-                  icon: Icons.add,
+                  text: 'Новый разговор',
+                  icon: const Icon(Icons.add),
                   onPressed: () {
                     final sessionNotifier =
                         ref.read(sessionNotifierProvider.notifier);
@@ -41,7 +40,7 @@ class SessionDrawer extends ConsumerWidget {
                     chatNotifier.setSession(newId);
                     Navigator.pop(context);
                   },
-                  type: KaiButtonType.primary,
+                  variant: KaiButtonVariant.primary,
                 ),
               ),
             ),
@@ -52,7 +51,8 @@ class SessionDrawer extends ConsumerWidget {
               child: sessionState.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : sessionState.sessions.isEmpty
-                      ? _DrawerEmptyState(colors: colors, typography: typography)
+                      ? _DrawerEmptyState(
+                          colors: colors, typography: typography)
                       : ListView.builder(
                           itemCount: sessionState.sessions.length,
                           padding: const EdgeInsets.symmetric(
@@ -211,9 +211,8 @@ class _SessionTile extends StatelessWidget {
                           color: isActive
                               ? colors.textPrimary
                               : colors.textSecondary,
-                          fontWeight: isActive
-                              ? FontWeight.w600
-                              : FontWeight.w400,
+                          fontWeight:
+                              isActive ? FontWeight.w600 : FontWeight.w400,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

@@ -49,6 +49,7 @@ class ChatState {
 
 class ChatNotifier extends StateNotifier<ChatState> {
   final ChatRepository _repository;
+  final LocalStorage _localStorage;
   final OfflineQueue? _offlineQueue;
   final SessionNotifier? _sessionNotifier;
   final _uuid = const Uuid();
@@ -56,7 +57,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   // Track if this session already has a title (first message sets it)
   bool _sessionTitled = false;
 
-  ChatNotifier(this._repository, [this._offlineQueue, this._sessionNotifier])
+  ChatNotifier(this._repository, this._localStorage, [this._offlineQueue, this._sessionNotifier])
       : super(const ChatState()) {
     _currentSessionId = _uuid.v4();
     _setupOfflineQueue();
@@ -66,7 +67,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   void _setupOfflineQueue() {
     if (_offlineQueue != null) {
-      _offlineQueue!.onFlushMessage = (msg) async {
+      _offlineQueue.onFlushMessage = (msg) async {
         try {
           final kaiMsg = await _repository.sendMessage(
             text: msg.text,
@@ -93,17 +94,50 @@ class ChatNotifier extends StateNotifier<ChatState> {
   }
 
   void initSession() {
-    if (_currentSessionId == null) {
-      _currentSessionId = _uuid.v4();
+    _currentSessionId ??= _uuid.v4();
+    
+    // Onboarding logic: If not onboarded, add welcome message
+    if (!_localStorage.isOnboarded) {
+      final welcomeMessage = ChatMessage(
+        id: _uuid.v4(),
+        content: 'Привет! Я Kai, ваш компаньон. Как мне к вам обращаться?',
+        isUser: false,
+        timestamp: DateTime.now(),
+        sessionId: _currentSessionId,
+      );
+      state = state.copyWith(messages: [welcomeMessage]);
     }
   }
 
   Future<void> sendMessage(String text) async {
     if (text.trim().isEmpty) return;
-    if (_currentSessionId == null) {
-      _currentSessionId = _uuid.v4();
+
+    // Handle onboarding flow if not yet completed
+    if (!_localStorage.isOnboarded) {
+      final userMsg = ChatMessage(
+        id: _uuid.v4(),
+        content: text,
+        isUser: true,
+        timestamp: DateTime.now(),
+        sessionId: _currentSessionId,
+      );
+      state = state.copyWith(messages: [...state.messages, userMsg]);
+
+      _localStorage.userName = text;
+      _localStorage.isOnboarded = true;
+
+      final kaiMsg = ChatMessage(
+        id: _uuid.v4(),
+        content: 'Приятно познакомиться, $text! Чем я могу вам помочь сегодня?',
+        isUser: false,
+        timestamp: DateTime.now(),
+        sessionId: _currentSessionId,
+      );
+      state = state.copyWith(messages: [...state.messages, kaiMsg]);
+      return;
     }
 
+    _currentSessionId ??= _uuid.v4();
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -185,9 +219,11 @@ final chatRepositoryProvider = Provider<ChatRepository>((ref) {
   );
 });
 
-final chatNotifierProvider = StateNotifierProvider<ChatNotifier, ChatState>((ref) {
+final chatNotifierProvider =
+    StateNotifierProvider<ChatNotifier, ChatState>((ref) {
   return ChatNotifier(
     ref.watch(chatRepositoryProvider),
+    ref.watch(localStorageProvider),
     ref.watch(offlineQueueProvider),
     ref.read(sessionNotifierProvider.notifier),
   );

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
+import 'package:kai_app/core/api/api_client.dart';
 import 'package:kai_app/core/api/api_exceptions.dart';
 import 'package:kai_app/core/api/circuit_breaker.dart';
 import 'package:kai_app/core/models/chat_message.dart';
@@ -27,7 +28,7 @@ class FakeRemoteSource extends ChatRemoteSource {
   }
 }
 
-class _FakeApiClient {
+class _FakeApiClient extends Fake implements ApiClient {
   // Placeholder — FakeRemoteSource overrides sendMessage
 }
 

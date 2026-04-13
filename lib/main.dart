@@ -5,9 +5,9 @@ import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   final container = await bootstrap();
-  
+
   runApp(
     UncontrolledProviderScope(
       container: container,

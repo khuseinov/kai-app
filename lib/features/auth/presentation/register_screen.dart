@@ -66,7 +66,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: KaiSpacing.screenPadding),
+            padding: const EdgeInsets.symmetric(
+                horizontal: KaiSpacing.screenPadding),
             child: Form(
               key: _formKey,
               child: Column(
@@ -87,7 +88,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: KaiSpacing.xxs),
                   Text(
                     'Начните путешествовать с KAI',
-                    style: typography.bodyLarge.copyWith(color: colors.textSecondary),
+                    style: typography.bodyLarge
+                        .copyWith(color: colors.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: KaiSpacing.xxl),
@@ -112,7 +114,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                       ),
                       onPressed: () {
                         setState(() => _obscurePassword = !_obscurePassword);
@@ -122,7 +126,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(height: KaiSpacing.xl),
                   KaiButton(
-                    label: 'Зарегистрироваться',
+                    text: 'Зарегистрироваться',
                     onPressed: _submit,
                     isLoading: isLoading,
                   ),
@@ -131,7 +135,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     onPressed: () => context.go('/login'),
                     child: Text(
                       'Уже есть аккаунт? Войти',
-                      style: typography.bodyMedium.copyWith(color: colors.textSecondary),
+                      style: typography.bodyMedium
+                          .copyWith(color: colors.textSecondary),
                     ),
                   ),
                 ],

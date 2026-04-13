@@ -42,13 +42,15 @@ class ChatRepository {
     onMessageSavedLocally?.call(userMessage);
 
     // 2. Check if offline — enqueue
-    if (_offlineQueue != null && !_offlineQueue!.isOnline) {
-      await _offlineQueue!.enqueue(PendingMessage(
-        id: userMessage.id,
-        text: text,
-        sessionId: sessionId,
-        queuedAt: DateTime.now(),
-      ));
+    if (_offlineQueue != null && !_offlineQueue.isOnline) {
+      await _offlineQueue.enqueue(
+        PendingMessage(
+          id: userMessage.id,
+          text: text,
+          sessionId: sessionId,
+          queuedAt: DateTime.now(),
+        ),
+      );
       throw const OfflineException();
     }
 

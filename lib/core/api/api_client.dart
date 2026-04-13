@@ -13,7 +13,8 @@ class ApiClient {
 
   ApiClient(this.dio);
 
-  Future<Response<T>> get<T>(String path, {Map<String, dynamic>? queryParameters}) {
+  Future<Response<T>> get<T>(String path,
+      {Map<String, dynamic>? queryParameters}) {
     return dio.get<T>(path, queryParameters: queryParameters);
   }
 
@@ -41,11 +42,13 @@ class ApiClient {
 final dioProvider = Provider<Dio>((ref) {
   final settings = ref.watch(settingsProvider);
 
-  final dio = Dio(BaseOptions(
-    baseUrl: settings.apiBaseUrl,
-    connectTimeout: EnvConfig.connectTimeout,
-    receiveTimeout: EnvConfig.receiveTimeout,
-  ));
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: settings.apiBaseUrl,
+      connectTimeout: EnvConfig.connectTimeout,
+      receiveTimeout: EnvConfig.receiveTimeout,
+    ),
+  );
 
   dio.interceptors.addAll([
     ref.watch(connectivityInterceptorProvider),

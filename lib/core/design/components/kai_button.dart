@@ -1,85 +1,186 @@
 import 'package:flutter/material.dart';
 import '../theme/theme_extensions.dart';
-import '../tokens/kai_radii.dart';
 
-enum KaiButtonType { primary, secondary, ghost }
+enum KaiButtonVariant {
+  primary,
+  secondary,
+  outline,
+  ghost,
+}
+
+enum KaiButtonSize {
+  small,
+  medium,
+  large,
+}
 
 class KaiButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onPressed;
-  final KaiButtonType type;
+  final String text;
+  final VoidCallback? onPressed;
+  final KaiButtonVariant variant;
+  final KaiButtonSize size;
+  final Widget? icon;
   final bool isLoading;
-  final IconData? icon;
 
   const KaiButton({
     super.key,
-    required this.label,
-    required this.onPressed,
-    this.type = KaiButtonType.primary,
-    this.isLoading = false,
+    required this.text,
+    this.onPressed,
+    this.variant = KaiButtonVariant.primary,
+    this.size = KaiButtonSize.medium,
     this.icon,
+    this.isLoading = false,
   });
+
+  const KaiButton.primary({
+    super.key,
+    required this.text,
+    this.onPressed,
+    this.size = KaiButtonSize.medium,
+    this.icon,
+    this.isLoading = false,
+  }) : variant = KaiButtonVariant.primary;
+
+  const KaiButton.secondary({
+    super.key,
+    required this.text,
+    this.onPressed,
+    this.size = KaiButtonSize.medium,
+    this.icon,
+    this.isLoading = false,
+  }) : variant = KaiButtonVariant.secondary;
+
+  const KaiButton.outline({
+    super.key,
+    required this.text,
+    this.onPressed,
+    this.size = KaiButtonSize.medium,
+    this.icon,
+    this.isLoading = false,
+  }) : variant = KaiButtonVariant.outline;
+
+  const KaiButton.ghost({
+    super.key,
+    required this.text,
+    this.onPressed,
+    this.size = KaiButtonSize.medium,
+    this.icon,
+    this.isLoading = false,
+  }) : variant = KaiButtonVariant.ghost;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.kaiColors;
     final typography = context.kaiTypography;
 
-    Color backgroundColor;
-    Color textColor;
-    BorderSide? border;
+    // Determine padding and font size based on size
+    EdgeInsetsGeometry padding;
+    TextStyle textStyle;
+    double iconSize;
 
-    switch (type) {
-      case KaiButtonType.primary:
-        backgroundColor = colors.primary;
-        textColor = Colors.white;
+    switch (size) {
+      case KaiButtonSize.small:
+        padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8);
+        textStyle = typography.labelSmall;
+        iconSize = 14;
         break;
-      case KaiButtonType.secondary:
-        backgroundColor = colors.surface;
-        textColor = colors.textPrimary;
-        border = BorderSide(color: colors.glassBorder);
+      case KaiButtonSize.medium:
+        padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 12);
+        textStyle = typography.labelMedium;
+        iconSize = 18;
         break;
-      case KaiButtonType.ghost:
-        backgroundColor = Colors.transparent;
-        textColor = colors.primary;
+      case KaiButtonSize.large:
+        padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 16);
+        textStyle = typography.labelLarge;
+        iconSize = 20;
         break;
     }
 
-    return Semantics(
-      button: true,
-      label: label,
-      child: Material(
-        color: backgroundColor,
-        borderRadius: KaiRadii.button,
-        shape: border != null ? RoundedRectangleBorder(borderRadius: KaiRadii.button, side: border) : null,
-        child: InkWell(
-          onTap: isLoading ? null : onPressed,
-          borderRadius: KaiRadii.button,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            alignment: Alignment.center,
-            child: isLoading
-                ? SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: textColor),
-                  )
-                : Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (icon != null) ...[
-                        Icon(icon, color: textColor, size: 20),
-                        const SizedBox(width: 8),
-                      ],
-                      Text(
-                        label,
-                        style: typography.labelLarge.copyWith(color: textColor),
-                      ),
-                    ],
-                  ),
+    // Common child content
+    final child = isLoading
+        ? SizedBox(
+            width: iconSize,
+            height: iconSize,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: variant == KaiButtonVariant.primary
+                  ? colors.onPrimary
+                  : colors.primary,
+            ),
+          )
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon != null) ...[
+                IconTheme(
+                  data: IconThemeData(size: iconSize),
+                  child: icon!,
+                ),
+                const SizedBox(width: 8),
+              ],
+              Text(
+                text,
+                style: textStyle.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          );
+
+    // Build specific button variant
+    switch (variant) {
+      case KaiButtonVariant.primary:
+        return ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: colors.primary,
+            foregroundColor: colors.onPrimary,
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            padding: padding,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
           ),
-        ),
-      ),
-    );
+          child: child,
+        );
+      case KaiButtonVariant.secondary:
+        return ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: colors.surfaceContainer,
+            foregroundColor: colors.textPrimary,
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            padding: padding,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
+              side: BorderSide(color: colors.cloudLight),
+            ),
+          ),
+          child: child,
+        );
+      case KaiButtonVariant.outline:
+        return OutlinedButton(
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: colors.textPrimary,
+            padding: padding,
+            side: BorderSide(color: colors.cloudLight),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          ),
+          child: child,
+        );
+      case KaiButtonVariant.ghost:
+        return TextButton(
+          onPressed: onPressed,
+          style: TextButton.styleFrom(
+            foregroundColor: colors.textSecondary,
+            padding: padding,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          ),
+          child: child,
+        );
+    }
   }
 }

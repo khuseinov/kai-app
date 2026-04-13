@@ -23,6 +23,7 @@ class ConnectivityInterceptor extends Interceptor {
   }
 }
 
-final connectivityInterceptorProvider = Provider<ConnectivityInterceptor>((ref) {
+final connectivityInterceptorProvider =
+    Provider<ConnectivityInterceptor>((ref) {
   return ConnectivityInterceptor(ref.watch(connectivityServiceProvider));
 });

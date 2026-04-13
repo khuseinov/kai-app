@@ -13,12 +13,13 @@ class SecureStorage {
   Future<String?> readApiKey() async {
     return await _storage.read(key: 'api_key');
   }
-  
+
   Future<void> deleteApiKey() async {
     await _storage.delete(key: 'api_key');
   }
 
-  Future<void> writeTokens({required String accessToken, String? refreshToken}) async {
+  Future<void> writeTokens(
+      {required String accessToken, String? refreshToken}) async {
     await _storage.write(key: 'access_token', value: accessToken);
     if (refreshToken != null) {
       await _storage.write(key: 'refresh_token', value: refreshToken);

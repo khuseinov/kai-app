@@ -51,7 +51,8 @@ class SessionNotifier extends StateNotifier<SessionState> {
         isLoading: false,
       );
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: 'Failed to load sessions: $e');
+      state = state.copyWith(
+          isLoading: false, error: 'Failed to load sessions: $e');
     }
   }
 

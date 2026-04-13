@@ -18,17 +18,17 @@ void main() {
 
   group('SecureStorage', () {
     test('writeApiKey does not throw', () async {
-      final storage = SecureStorage(FlutterSecureStorage());
+      const storage = SecureStorage(FlutterSecureStorage());
       expect(() => storage.writeApiKey('test-key'), returnsNormally);
     });
 
     test('deleteApiKey does not throw', () async {
-      final storage = SecureStorage(FlutterSecureStorage());
+      const storage = SecureStorage(FlutterSecureStorage());
       expect(() => storage.deleteApiKey(), returnsNormally);
     });
 
     test('readApiKey returns null when nothing stored', () async {
-      final storage = SecureStorage(FlutterSecureStorage());
+      const storage = SecureStorage(FlutterSecureStorage());
       final result = await storage.readApiKey();
       expect(result, isNull);
     });

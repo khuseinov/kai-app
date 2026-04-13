@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/design/theme/theme_extensions.dart';
-import '../../../../core/design/tokens/kai_radii.dart';
 import '../../../../core/design/tokens/kai_spacing.dart';
 
 class ChatInputBar extends StatelessWidget {
@@ -18,7 +17,7 @@ class ChatInputBar extends StatelessWidget {
 
   void _handleSubmit() {
     final text = controller.text.trim();
-    if (text.isEmpty || isLoading) return;
+    if (text.isEmpty) return; // Allow sending even if isLoading is true
     onSend(text);
     controller.clear();
   }
@@ -29,48 +28,50 @@ class ChatInputBar extends StatelessWidget {
     final typography = context.kaiTypography;
 
     return Container(
-      padding: const EdgeInsets.all(KaiSpacing.s),
+      margin: const EdgeInsets.all(KaiSpacing.m), // Island effect
+      padding: const EdgeInsets.symmetric(
+          horizontal: KaiSpacing.s, vertical: KaiSpacing.xs),
       decoration: BoxDecoration(
         color: colors.surfaceContainer,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(KaiRadii.xlRaw)),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: colors.cloudLight),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
+        bottom: false,
         child: Row(
           children: [
             // Text field
             Expanded(
               child: TextField(
                 controller: controller,
-                maxLines: 1,
+                maxLines: 4,
+                minLines: 1,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => _handleSubmit(),
                 style: typography.bodyLarge.copyWith(
                   color: colors.textPrimary,
                 ),
                 decoration: InputDecoration(
-                  hintText: '\u0421\u043F\u0440\u043E\u0441\u0438\u0442\u0435 KAI \u043E \u043F\u0443\u0442\u0435\u0448\u0435\u0441\u0442\u0432\u0438\u044F\u0445...',
+                  hintText: 'Спросите Kai...',
                   hintStyle: typography.bodyLarge.copyWith(
                     color: colors.textTertiary,
                   ),
-                  filled: true,
-                  fillColor: colors.surface,
+                  filled: false,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: KaiSpacing.m,
-                    vertical: KaiSpacing.s,
+                    vertical: KaiSpacing.m,
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: KaiRadii.xl,
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: KaiRadii.xl,
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: KaiRadii.xl,
-                    borderSide: BorderSide(color: colors.primary, width: 1.5),
-                  ),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
                 ),
               ),
             ),
@@ -79,18 +80,19 @@ class ChatInputBar extends StatelessWidget {
             ValueListenableBuilder<TextEditingValue>(
               valueListenable: controller,
               builder: (context, value, child) {
-                final canSend = value.text.trim().isNotEmpty && !isLoading;
-                return IconButton(
-                  onPressed: canSend ? _handleSubmit : null,
-                  icon: Icon(
-                    Icons.send,
-                    color: canSend ? colors.primary : colors.textTertiary,
+                final canSend = value.text.trim().isNotEmpty; // Allow sending while loading
+                return Container(
+                  margin: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: canSend ? colors.primary : colors.surface,
+                    shape: BoxShape.circle,
                   ),
-                  style: IconButton.styleFrom(
-                    backgroundColor: canSend
-                        ? colors.surfaceContainer
-                        : Colors.transparent,
-                    padding: const EdgeInsets.all(KaiSpacing.s),
+                  child: IconButton(
+                    onPressed: canSend ? _handleSubmit : null,
+                    icon: Icon(
+                      Icons.arrow_upward_rounded,
+                      color: canSend ? colors.onPrimary : colors.textTertiary,
+                    ),
                   ),
                 );
               },

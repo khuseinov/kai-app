@@ -56,7 +56,8 @@ class ChatLocalSource {
   Future<void> updateSessionTitle(String sessionId, String title) async {
     final session = getSession(sessionId);
     if (session != null) {
-      await saveSession(session.copyWith(title: title, updatedAt: DateTime.now()));
+      await saveSession(
+          session.copyWith(title: title, updatedAt: DateTime.now()));
     }
   }
 }

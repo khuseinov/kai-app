@@ -44,7 +44,8 @@ class KaiEmptyState extends StatelessWidget {
             const SizedBox(height: KaiSpacing.xs),
             Text(
               subtitle!,
-              style: typography.bodyMedium.copyWith(color: colors.textSecondary),
+              style:
+                  typography.bodyMedium.copyWith(color: colors.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],

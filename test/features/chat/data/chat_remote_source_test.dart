@@ -46,7 +46,7 @@ void main() {
       'provider': 'openai',
     });
 
-    final request = ChatRequestDto(
+    const request = ChatRequestDto(
       message: 'Tell me about Paris',
       userId: 'user-1',
       sessionId: 'sess-1',
@@ -65,7 +65,7 @@ void main() {
       'response': 'Simple answer',
     });
 
-    final request = ChatRequestDto(
+    const request = ChatRequestDto(
       message: 'Hi',
       userId: 'user-1',
       sessionId: 'sess-1',
@@ -82,7 +82,7 @@ void main() {
   test('sendMessage throws when apiClient throws', () async {
     apiClient.setSendMessageError(Exception('Connection refused'));
 
-    final request = ChatRequestDto(
+    const request = ChatRequestDto(
       message: 'Hi',
       userId: 'user-1',
       sessionId: 'sess-1',

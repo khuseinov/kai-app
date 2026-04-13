@@ -30,7 +30,8 @@ class CircuitBreaker {
     final currentState = state;
 
     if (currentState == CircuitState.open) {
-      throw const CircuitBreakerException('Circuit breaker is OPEN. Failing fast to protect backend.');
+      throw const CircuitBreakerException(
+          'Circuit breaker is OPEN. Failing fast to protect backend.');
     }
 
     try {

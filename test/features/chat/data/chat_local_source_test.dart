@@ -45,20 +45,24 @@ void main() {
       final sessionBox = await Hive.openBox('sessions');
       final source = ChatLocalSource(chatBox: chatBox, sessionBox: sessionBox);
 
-      await source.saveMessage(ChatMessage(
-        id: 'msg-1',
-        content: 'Session 1 message',
-        isUser: true,
-        timestamp: DateTime(2024, 1, 1),
-        sessionId: 'sess-1',
-      ));
-      await source.saveMessage(ChatMessage(
-        id: 'msg-2',
-        content: 'Session 2 message',
-        isUser: true,
-        timestamp: DateTime(2024, 1, 1),
-        sessionId: 'sess-2',
-      ));
+      await source.saveMessage(
+        ChatMessage(
+          id: 'msg-1',
+          content: 'Session 1 message',
+          isUser: true,
+          timestamp: DateTime(2024, 1, 1),
+          sessionId: 'sess-1',
+        ),
+      );
+      await source.saveMessage(
+        ChatMessage(
+          id: 'msg-2',
+          content: 'Session 2 message',
+          isUser: true,
+          timestamp: DateTime(2024, 1, 1),
+          sessionId: 'sess-2',
+        ),
+      );
 
       final result = source.getMessagesForSession('sess-1');
       expect(result.length, 1);

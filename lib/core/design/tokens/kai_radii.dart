@@ -19,5 +19,6 @@ class KaiRadii {
   // Semantic
   static const BorderRadius card = BorderRadius.all(Radius.circular(24.0));
   static const BorderRadius button = BorderRadius.all(Radius.circular(16.0));
-  static const BorderRadius bottomSheet = BorderRadius.vertical(top: Radius.circular(32.0));
+  static const BorderRadius bottomSheet =
+      BorderRadius.vertical(top: Radius.circular(32.0));
 }

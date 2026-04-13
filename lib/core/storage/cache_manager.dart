@@ -8,9 +8,11 @@ class CacheManager {
 
   static const _ttlSuffix = '_ttl';
 
-  Future<void> set(String key, dynamic value, {Duration ttl = const Duration(minutes: 30)}) async {
+  Future<void> set(String key, dynamic value,
+      {Duration ttl = const Duration(minutes: 30)}) async {
     await _box.put(key, value);
-    await _box.put('$key$_ttlSuffix', DateTime.now().add(ttl).millisecondsSinceEpoch);
+    await _box.put(
+        '$key$_ttlSuffix', DateTime.now().add(ttl).millisecondsSinceEpoch);
   }
 
   T? get<T>(String key) {

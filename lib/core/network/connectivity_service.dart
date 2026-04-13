@@ -6,13 +6,14 @@ class ConnectivityService {
   bool _isOnline = true;
 
   ConnectivityService(this._connectivity) {
-    _connectivity.onConnectivityChanged.listen((List<ConnectivityResult> results) {
+    _connectivity.onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
       _isOnline = !results.contains(ConnectivityResult.none);
     });
   }
 
   bool get isOnline => _isOnline;
-  
+
   Stream<bool> get onConnectivityChanged => _connectivity.onConnectivityChanged
       .map((results) => !results.contains(ConnectivityResult.none));
 

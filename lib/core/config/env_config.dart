@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 
 enum Environment { dev, staging, prod }
 
@@ -23,9 +24,13 @@ class EnvConfig {
   /// Platform-aware local host.
   /// - Web: localhost (browser same-machine)
   /// - Android emulator: 10.0.2.2 (loopback through AVD NAT)
-  /// - iOS simulator: 127.0.0.1
+  /// - Desktop/iOS simulator: localhost / 127.0.0.1
   /// - Physical device: use VPS IP directly (_vpsIp)
-  static String get _localHost => kIsWeb ? 'localhost' : '10.0.2.2';
+  static String get _localHost {
+    if (kIsWeb) return 'localhost';
+    if (defaultTargetPlatform == TargetPlatform.android) return '10.0.2.2';
+    return 'localhost';
+  }
 
   /// Base URL routing:
   ///   dev     → local machine Nginx (port 80)
@@ -35,22 +40,23 @@ class EnvConfig {
   /// IMPORTANT: always point to Nginx (port 80), never direct to kai-core:8000.
   /// Nginx provides: rate limiting, security headers, CORS.
   static String get apiBaseUrl => switch (current) {
-    Environment.dev     => 'http://$_localHost:80',
-    Environment.staging => 'http://$_vpsIp:80',
-    // Phase 3: uncomment when wize.travel is purchased + TLS configured
-    // Environment.prod    => 'https://wize.travel',
-    Environment.prod    => 'http://$_vpsIp:80',
-  };
+        // Since backend is running on VPS, pointing dev to VPS as well.
+        Environment.dev => 'http://$_vpsIp:80',
+        Environment.staging => 'http://$_vpsIp:80',
+        // Phase 3: uncomment when wize.travel is purchased + TLS configured
+        // Environment.prod    => 'https://wize.travel',
+        Environment.prod => 'http://$_vpsIp:80',
+      };
 
   static Duration get connectTimeout => switch (current) {
-    Environment.dev => const Duration(seconds: 60),
-    _               => const Duration(seconds: 30),
-  };
+        Environment.dev => const Duration(seconds: 60),
+        _ => const Duration(seconds: 30),
+      };
 
   static Duration get receiveTimeout => switch (current) {
-    Environment.dev => const Duration(seconds: 130),
-    _               => const Duration(seconds: 90),
-  };
+        Environment.dev => const Duration(seconds: 130),
+        _ => const Duration(seconds: 90),
+      };
 
   static bool get enableLogging => current != Environment.prod;
 

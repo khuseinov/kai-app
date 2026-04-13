@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design/components/kai_hologram.dart';
-import '../../../core/design/theme/theme_extensions.dart';
+import '../../../../core/config/feature_flags.dart';
+import '../../../../core/design/components/kai_gemini_wave.dart';
+import '../../../../core/design/theme/theme_extensions.dart';
 import '../../../core/design/tokens/kai_spacing.dart';
 import '../../../core/providers/connectivity_status_provider.dart';
 import '../logic/chat_notifier.dart';
@@ -11,7 +13,7 @@ import 'widgets/chat_empty_state.dart';
 import 'widgets/chat_input_bar.dart';
 import 'widgets/message_list.dart';
 import 'widgets/offline_banner.dart';
-import 'widgets/session_drawer.dart';
+import '../../settings/presentation/widgets/settings_top_sheet.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -22,6 +24,7 @@ class ChatScreen extends ConsumerStatefulWidget {
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _textController = TextEditingController();
+  bool _isListening = false; // Local state to test the aura
 
   @override
   void initState() {
@@ -48,89 +51,119 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.dispose();
   }
 
-  KaiHologramState _hologramStateFromChat(ChatState state) {
-    if (state.isLoading) return KaiHologramState.thinking;
-    if (state.messages.isNotEmpty) return KaiHologramState.speaking;
-    return KaiHologramState.idle;
+  KaiVoiceState _voiceStateFromChat(ChatState state) {
+    if (_isListening) {
+      if (state.isLoading) return KaiVoiceState.thinking;
+      return KaiVoiceState.listening;
+    }
+    return KaiVoiceState.idle;
+  }
+
+  void _showInputSheet() {
+    if (_isListening) {
+      setState(() {
+        _isListening = false;
+      });
+    }
+
+    final chatState = ref.read(chatNotifierProvider);
+    final colors = context.kaiColors;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: colors.background,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: ChatInputBar(
+          controller: _textController,
+          isLoading: chatState.isLoading,
+          onSend: (text) {
+            setState(() => _isListening = false);
+            ref.read(chatNotifierProvider.notifier).sendMessage(text);
+            Navigator.pop(context);
+          },
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<ChatState>(chatNotifierProvider, (previous, next) {
+      // Auto-reset listening mode ONLY when transitioning to loading or a new error
+      final startedLoading = (previous?.isLoading == false) && next.isLoading;
+      final newError = (previous?.error != next.error) && next.error != null;
+      
+      if (startedLoading || newError) {
+        if (_isListening) {
+          setState(() => _isListening = false);
+        }
+      }
+    });
+
     final chatState = ref.watch(chatNotifierProvider);
     final colors = context.kaiColors;
     final isOfflineAsync = ref.watch(isOnlineProvider);
     final isOffline = !(isOfflineAsync.valueOrNull ?? true);
 
+    final voiceState = _voiceStateFromChat(chatState);
+
     return Scaffold(
       backgroundColor: colors.background,
-      drawer: const SessionDrawer(),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Offline banner
-            OfflineBanner(isOffline: isOffline),
+      body: KaiGeminiWave(
+        state: voiceState,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            HapticFeedback.lightImpact();
+            // Just toggle listening mode for the UI interaction tests
+            setState(() {
+              _isListening = !_isListening;
+            });
+          },
+          child: SafeArea(
+            child: Column(
+              children: [
+                // Offline banner
+                OfflineBanner(isOffline: isOffline),
 
-            // QW-4: Typed error banner
-            if (chatState.error != null)
-              _ErrorBanner(
-                error: chatState.error!,
-                errorType: chatState.errorType,
-              ),
-
-            // App bar with menu
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: KaiSpacing.xs),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.menu, color: colors.textPrimary, size: 24),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
+                // QW-4: Typed error banner
+                if (chatState.error != null)
+                  _ErrorBanner(
+                    error: chatState.error!,
+                    errorType: chatState.errorType,
                   ),
-                ],
-              ),
-            ),
 
-            // Compact hologram header (120px)
-            SizedBox(
-              height: 120,
-              child: Stack(
-                children: [
-                  KaiHologram(state: _hologramStateFromChat(chatState)),
-                ],
-              ),
+                // Messages or empty state
+                Expanded(
+                  child: chatState.messages.isEmpty && !chatState.isLoading
+                      ? ChatEmptyState(
+                          voiceState: voiceState,
+                          onPromptTapped: (text) {
+                            ref
+                                .read(chatNotifierProvider.notifier)
+                                .sendMessage(text);
+                          },
+                        )
+                      : MessageList(
+                          messages: chatState.messages,
+                          isLoading: chatState.isLoading,
+                          onRetry: (messageId) {
+                            final failedMsg = chatState.messages.firstWhere(
+                              (m) => m.id == messageId,
+                            );
+                            ref
+                                .read(chatNotifierProvider.notifier)
+                                .sendMessage(failedMsg.content);
+                          },
+                        ),
+                ),
+              ],
             ),
-
-            // Messages or empty state
-            Expanded(
-              child: chatState.messages.isEmpty && !chatState.isLoading
-                  ? ChatEmptyState(
-                      onPromptTapped: (text) {
-                        ref.read(chatNotifierProvider.notifier).sendMessage(text);
-                      },
-                    )
-                  : MessageList(
-                      messages: chatState.messages,
-                      isLoading: chatState.isLoading,
-                      onRetry: (messageId) {
-                        final failedMsg = chatState.messages.firstWhere(
-                          (m) => m.id == messageId,
-                        );
-                        ref
-                            .read(chatNotifierProvider.notifier)
-                            .sendMessage(failedMsg.content);
-                      },
-                    ),
-            ),
-
-            // Input bar
-            ChatInputBar(
-              controller: _textController,
-              isLoading: chatState.isLoading,
-              onSend: (text) {
-                ref.read(chatNotifierProvider.notifier).sendMessage(text);
-              },
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -150,10 +183,13 @@ class _ErrorBanner extends StatelessWidget {
     final typography = context.kaiTypography;
 
     final (icon, color) = switch (errorType) {
-      ChatErrorType.rateLimited        => (Icons.hourglass_empty, colors.warning),
-      ChatErrorType.serviceUnavailable => (Icons.cloud_off_outlined, colors.error),
-      ChatErrorType.network            => (Icons.wifi_off_rounded, colors.warning),
-      _                                => (Icons.error_outline, colors.error),
+      ChatErrorType.rateLimited => (Icons.hourglass_empty, colors.warning),
+      ChatErrorType.serviceUnavailable => (
+          Icons.cloud_off_outlined,
+          colors.error
+        ),
+      ChatErrorType.network => (Icons.wifi_off_rounded, colors.warning),
+      _ => (Icons.error_outline, colors.error),
     };
 
     return Container(

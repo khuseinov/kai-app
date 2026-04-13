@@ -11,5 +11,6 @@ class ChatRequestDto with _$ChatRequestDto {
     @JsonKey(name: 'session_id') required String sessionId,
   }) = _ChatRequestDto;
 
-  factory ChatRequestDto.fromJson(Map<String, dynamic> json) => _$ChatRequestDtoFromJson(json);
+  factory ChatRequestDto.fromJson(Map<String, dynamic> json) =>
+      _$ChatRequestDtoFromJson(json);
 }

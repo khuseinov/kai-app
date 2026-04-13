@@ -13,5 +13,6 @@ class ChatSession with _$ChatSession {
     @Default([]) List<String> messageIds,
   }) = _ChatSession;
 
-  factory ChatSession.fromJson(Map<String, dynamic> json) => _$ChatSessionFromJson(json);
+  factory ChatSession.fromJson(Map<String, dynamic> json) =>
+      _$ChatSessionFromJson(json);
 }

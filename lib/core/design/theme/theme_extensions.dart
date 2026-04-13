@@ -10,9 +10,12 @@ extension KaiThemeExtensions on ThemeData {
 }
 
 class KaiContextExtensions {
-  static KaiColors colorsOf(BuildContext context) => Theme.of(context).extension<KaiColors>()!;
-  static KaiTypography typographyOf(BuildContext context) => Theme.of(context).extension<KaiTypography>()!;
-  static KaiShadows shadowsOf(BuildContext context) => Theme.of(context).extension<KaiShadows>()!;
+  static KaiColors colorsOf(BuildContext context) =>
+      Theme.of(context).extension<KaiColors>()!;
+  static KaiTypography typographyOf(BuildContext context) =>
+      Theme.of(context).extension<KaiTypography>()!;
+  static KaiShadows shadowsOf(BuildContext context) =>
+      Theme.of(context).extension<KaiShadows>()!;
 }
 
 extension BuildContextKaiTheme on BuildContext {

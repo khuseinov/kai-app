@@ -13,9 +13,9 @@ Future<ProviderContainer> bootstrap() async {
   ]);
 
   final container = ProviderContainer();
-  
+
   final connectivityService = container.read(connectivityServiceProvider);
   await connectivityService.init();
-  
+
   return container;
 }

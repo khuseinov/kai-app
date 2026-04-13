@@ -14,12 +14,13 @@ class RetryInterceptor extends Interceptor {
     final retries = extra['retries'] ?? 0;
 
     if (_shouldRetry(err) && retries < maxRetries) {
-      _logger.w('Retrying request: ${err.requestOptions.uri} (Attempt ${retries + 1})');
-      
+      _logger.w(
+          'Retrying request: ${err.requestOptions.uri} (Attempt ${retries + 1})');
+
       err.requestOptions.extra['retries'] = retries + 1;
 
       // Exponential backoff
-      final int delayMs = (1000 * (retries + 1)).toInt();
+      final delayMs = (1000 * (retries + 1)).toInt();
       final delay = Duration(milliseconds: delayMs);
       await Future.delayed(delay);
 
@@ -30,15 +31,15 @@ class RetryInterceptor extends Interceptor {
         return handler.next(e as DioException);
       }
     }
-    
+
     return handler.next(err);
   }
 
   bool _shouldRetry(DioException err) {
     return err.type == DioExceptionType.connectionTimeout ||
-           err.type == DioExceptionType.sendTimeout ||
-           err.type == DioExceptionType.receiveTimeout ||
-           err.type == DioExceptionType.connectionError ||
-           (err.response?.statusCode != null && err.response!.statusCode! >= 500);
+        err.type == DioExceptionType.sendTimeout ||
+        err.type == DioExceptionType.receiveTimeout ||
+        err.type == DioExceptionType.connectionError ||
+        (err.response?.statusCode != null && err.response!.statusCode! >= 500);
   }
 }
