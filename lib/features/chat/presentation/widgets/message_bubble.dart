@@ -18,6 +18,17 @@ class MessageBubble extends StatelessWidget {
     final typography = context.kaiTypography;
     final isUser = message.isUser;
 
+    // Cache styles to avoid recreation during build
+    final bodyStyle = typography.bodyLarge.copyWith(
+      color: colors.textPrimary,
+      height: 1.5,
+    );
+    final labelStyle = typography.labelMedium.copyWith(
+      color: isUser ? colors.textTertiary : colors.primary,
+      fontWeight: FontWeight.bold,
+      letterSpacing: 1.2,
+    );
+
     if (isUser) {
       return Padding(
         padding: const EdgeInsets.only(bottom: KaiSpacing.m, left: KaiSpacing.xxl),

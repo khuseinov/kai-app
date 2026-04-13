@@ -92,18 +92,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<ChatState>(chatNotifierProvider, (previous, next) {
-      // Auto-reset listening mode ONLY when transitioning to loading or a new error
-      final startedLoading = (previous?.isLoading == false) && next.isLoading;
-      final newError = (previous?.error != next.error) && next.error != null;
-      
-      if (startedLoading || newError) {
-        if (_isListening) {
-          setState(() => _isListening = false);
-        }
-      }
-    });
-
     final chatState = ref.watch(chatNotifierProvider);
     final colors = context.kaiColors;
     final isOfflineAsync = ref.watch(isOnlineProvider);
@@ -119,7 +107,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           behavior: HitTestBehavior.opaque,
           onTap: () {
             HapticFeedback.lightImpact();
-            // Just toggle listening mode for the UI interaction tests
             setState(() {
               _isListening = !_isListening;
             });
@@ -127,17 +114,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           child: SafeArea(
             child: Column(
               children: [
-                // Offline banner
                 OfflineBanner(isOffline: isOffline),
 
-                // QW-4: Typed error banner
                 if (chatState.error != null)
                   _ErrorBanner(
                     error: chatState.error!,
                     errorType: chatState.errorType,
                   ),
 
-                // Messages or empty state
                 Expanded(
                   child: chatState.messages.isEmpty && !chatState.isLoading
                       ? ChatEmptyState(
