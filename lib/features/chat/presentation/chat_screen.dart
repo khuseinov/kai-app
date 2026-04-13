@@ -13,7 +13,6 @@ import 'widgets/chat_empty_state.dart';
 import 'widgets/chat_input_bar.dart';
 import 'widgets/message_list.dart';
 import 'widgets/offline_banner.dart';
-import '../../settings/presentation/widgets/settings_top_sheet.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
