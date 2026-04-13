@@ -21,7 +21,8 @@ class ChatState {
   final bool isLoading;
   final String? error;
   final ChatErrorType? errorType;
-  final int? rateLimitRetryAfter; // seconds until retry allowed
+  final int? rateLimitRetryAfter;
+  final String? targetMessageId;
 
   const ChatState({
     this.messages = const [],
@@ -29,6 +30,7 @@ class ChatState {
     this.error,
     this.errorType,
     this.rateLimitRetryAfter,
+    this.targetMessageId,
   });
 
   ChatState copyWith({
@@ -37,6 +39,7 @@ class ChatState {
     String? error,
     ChatErrorType? errorType,
     int? rateLimitRetryAfter,
+    String? targetMessageId,
   }) =>
       ChatState(
         messages: messages ?? this.messages,
@@ -44,6 +47,7 @@ class ChatState {
         error: error,
         errorType: errorType,
         rateLimitRetryAfter: rateLimitRetryAfter,
+        targetMessageId: targetMessageId ?? this.targetMessageId,
       );
 }
 
@@ -85,12 +89,16 @@ class ChatNotifier extends StateNotifier<ChatState> {
   void setSession(String sessionId) {
     if (_currentSessionId != sessionId) {
       _currentSessionId = sessionId;
-      _sessionTitled = false; // reset — new session may not have a title yet
+      _sessionTitled = false; // reset вЂ” new session may not have a title yet
       final messages = _repository.getMessagesForSession(sessionId);
       // If session already has messages, it already has a title
       if (messages.isNotEmpty) _sessionTitled = true;
       state = ChatState(messages: messages);
     }
+  }
+
+  void setTargetMessage(String id) {
+    state = state.copyWith(targetMessageId: id);
   }
 
   void initSession() {
@@ -107,6 +115,13 @@ class ChatNotifier extends StateNotifier<ChatState> {
       );
       state = state.copyWith(messages: [welcomeMessage]);
     }
+  }
+
+  void _updateMessageStatus(String messageId, String status) {
+    final updated = state.messages
+        .map((m) => m.id == messageId ? m.copyWith(status: status) : m)
+        .toList();
+    state = state.copyWith(messages: updated);
   }
 
   Future<void> sendMessage(String text) async {
@@ -140,11 +155,14 @@ class ChatNotifier extends StateNotifier<ChatState> {
     _currentSessionId ??= _uuid.v4();
     state = state.copyWith(isLoading: true, error: null);
 
+    String? userMsgId;
+
     try {
       final kaiMsg = await _repository.sendMessage(
         text: text,
         sessionId: _currentSessionId!,
         onMessageSavedLocally: (userMsg) {
+          userMsgId = userMsg.id;
           state = state.copyWith(messages: [...state.messages, userMsg]);
           // Auto-name session on first message
           if (!_sessionTitled && _currentSessionId != null) {
@@ -155,14 +173,16 @@ class ChatNotifier extends StateNotifier<ChatState> {
         },
       );
 
+      if (userMsgId != null) _updateMessageStatus(userMsgId!, 'sent');
       state = state.copyWith(
         messages: [...state.messages, kaiMsg],
         isLoading: false,
       );
     } on OfflineException {
-      // Message was queued — stop loading, no error shown
+      if (userMsgId != null) _updateMessageStatus(userMsgId!, 'queued');
       state = state.copyWith(isLoading: false);
     } on RateLimitException catch (e) {
+      if (userMsgId != null) _updateMessageStatus(userMsgId!, 'failed');
       state = state.copyWith(
         isLoading: false,
         error: e.retryAfterSeconds != null
@@ -172,18 +192,21 @@ class ChatNotifier extends StateNotifier<ChatState> {
         rateLimitRetryAfter: e.retryAfterSeconds,
       );
     } on ServiceUnavailableException catch (e) {
+      if (userMsgId != null) _updateMessageStatus(userMsgId!, 'failed');
       state = state.copyWith(
         isLoading: false,
         error: e.message,
         errorType: ChatErrorType.serviceUnavailable,
       );
     } on NetworkException catch (e) {
+      if (userMsgId != null) _updateMessageStatus(userMsgId!, 'failed');
       state = state.copyWith(
         isLoading: false,
         error: e.message,
         errorType: ChatErrorType.network,
       );
     } catch (e) {
+      if (userMsgId != null) _updateMessageStatus(userMsgId!, 'failed');
       state = state.copyWith(
         isLoading: false,
         error: 'Something went wrong. Please try again.',

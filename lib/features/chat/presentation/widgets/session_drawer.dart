@@ -9,7 +9,9 @@ import '../../logic/session_notifier.dart';
 import '../../logic/chat_notifier.dart';
 
 class SessionDrawer extends ConsumerWidget {
-  const SessionDrawer({super.key});
+  final VoidCallback? onClose;
+
+  const SessionDrawer({super.key, this.onClose});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,8 +19,8 @@ class SessionDrawer extends ConsumerWidget {
     final colors = context.kaiColors;
     final typography = context.kaiTypography;
 
-    return Drawer(
-      backgroundColor: colors.background,
+    return Material(
+      color: colors.background,
       child: SafeArea(
         child: Column(
           children: [
@@ -38,7 +40,7 @@ class SessionDrawer extends ConsumerWidget {
                     final newId = sessionNotifier.createSession();
                     chatNotifier.newSession();
                     chatNotifier.setSession(newId);
-                    Navigator.pop(context);
+                    onClose?.call();
                   },
                   variant: KaiButtonVariant.primary,
                 ),
@@ -72,7 +74,7 @@ class SessionDrawer extends ConsumerWidget {
                                 ref
                                     .read(chatNotifierProvider.notifier)
                                     .setSession(session.id);
-                                Navigator.pop(context);
+                                onClose?.call();
                               },
                               onDelete: () {
                                 ref

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/models/chat_message.dart';
 import '../../../../core/design/tokens/kai_spacing.dart';
+import '../../logic/chat_notifier.dart';
 import 'message_bubble.dart';
 import 'chat_loading_indicator.dart';
 
-class MessageList extends StatelessWidget {
+class MessageList extends ConsumerStatefulWidget {
   final List<ChatMessage> messages;
   final bool isLoading;
   final Function(String) onRetry;
@@ -17,8 +19,36 @@ class MessageList extends StatelessWidget {
   });
 
   @override
+  ConsumerState<MessageList> createState() => _MessageListState();
+}
+
+class _MessageListState extends ConsumerState<MessageList> {
+  final Map<String, GlobalKey> _messageKeys = {};
+
+  @override
+  void initState() {
+    super.initState();
+    ref.listenManual<String?>(chatNotifierProvider.select((s) => s.targetMessageId), (prev, next) {
+      if (next != null) {
+        _scrollToMessage(next);
+      }
+    });
+  }
+
+  void _scrollToMessage(String id) {
+    final key = _messageKeys[id];
+    if (key?.currentContext != null) {
+      Scrollable.ensureVisible(
+        key!.currentContext!,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final itemCount = messages.length + (isLoading ? 1 : 0);
+    final itemCount = widget.messages.length + (widget.isLoading ? 1 : 0);
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(
@@ -27,12 +57,17 @@ class MessageList extends StatelessWidget {
       ),
       itemCount: itemCount,
       itemBuilder: (context, index) {
-        if (index == messages.length && isLoading) {
+        if (index == widget.messages.length && widget.isLoading) {
           return const ChatLoadingIndicator();
         }
 
-        final message = messages[index];
-        return MessageBubble(message: message);
+        final message = widget.messages[index];
+        final key = _messageKeys.putIfAbsent(message.id, () => GlobalKey());
+        
+        return MessageBubble(
+          key: key,
+          message: message,
+        );
       },
     );
   }
