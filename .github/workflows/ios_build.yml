@@ -1,5 +1,8 @@
 name: iOS Build (Unsigned)
 
+# Produces an unsigned IPA for personal sideloading via Sideloadly + cable.
+# DO NOT change the signing setup without reading the notes below.
+
 on:
   push:
     branches: [ "master", "main" ]
@@ -12,30 +15,36 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          
+
       - name: Install dependencies
         run: flutter pub get
 
+      # *.g.dart and *.freezed.dart are gitignored — must be generated on CI.
       - name: Generate code (build_runner)
         run: dart run build_runner build --delete-conflicting-outputs
 
+      # SIGNING NOTES (do not remove these env vars):
+      # Flutter 3.x validates DEVELOPMENT_TEAM even with --no-codesign.
+      # The project.pbxproj Runner target has DEVELOPMENT_TEAM=PLACEHOLDER +
+      # CODE_SIGN_STYLE=Manual so Xcode never contacts Apple servers.
+      # These env vars are a belt-and-suspenders safeguard on top of that.
       - name: Build iOS (Unsigned)
         env:
           CODE_SIGNING_REQUIRED: "NO"
           CODE_SIGNING_ALLOWED: "NO"
         run: flutter build ios --release --no-codesign
-        
+
       - name: Package to IPA
         run: |
           mkdir -p Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
           zip -qq -r app.ipa Payload
-          
+
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
