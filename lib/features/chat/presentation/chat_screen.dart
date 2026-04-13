@@ -22,7 +22,8 @@ class ChatScreen extends ConsumerStatefulWidget {
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _textController = TextEditingController();
-  bool _isListening = false; // Local state to test the aura
+  bool _isListening = false;
+  bool _isScrolling = false;
 
   @override
   void initState() {
@@ -110,7 +111,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             });
           },
           onVerticalDragEnd: (details) {
-            if ((details.primaryVelocity ?? 0) < -300) {
+            if (!_isScrolling && (details.primaryVelocity ?? 0) < -300) {
               HapticFeedback.lightImpact();
               _showInputSheet();
             }
@@ -136,17 +137,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 .sendMessage(text);
                           },
                         )
-                      : MessageList(
-                          messages: chatState.messages,
-                          isLoading: chatState.isLoading,
-                          onRetry: (messageId) {
-                            final failedMsg = chatState.messages.firstWhere(
-                              (m) => m.id == messageId,
-                            );
-                            ref
-                                .read(chatNotifierProvider.notifier)
-                                .sendMessage(failedMsg.content);
+                      : NotificationListener<ScrollNotification>(
+                          onNotification: (notification) {
+                            if (notification is ScrollStartNotification) {
+                              setState(() => _isScrolling = true);
+                            } else if (notification is ScrollEndNotification) {
+                              setState(() => _isScrolling = false);
+                            }
+                            return false;
                           },
+                          child: MessageList(
+                            messages: chatState.messages,
+                            isLoading: chatState.isLoading,
+                            onRetry: (messageId) {
+                              final failedMsg = chatState.messages.firstWhere(
+                                (m) => m.id == messageId,
+                              );
+                              ref
+                                  .read(chatNotifierProvider.notifier)
+                                  .sendMessage(failedMsg.content);
+                            },
+                          ),
                         ),
                 ),
               ],
