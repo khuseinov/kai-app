@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +13,7 @@ import 'widgets/chat_empty_state.dart';
 import 'widgets/chat_input_bar.dart';
 import 'widgets/message_list.dart';
 import 'widgets/offline_banner.dart';
+import 'widgets/session_drawer.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -20,17 +22,43 @@ class ChatScreen extends ConsumerStatefulWidget {
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends ConsumerState<ChatScreen> {
+class _ChatScreenState extends ConsumerState<ChatScreen>
+    with SingleTickerProviderStateMixin {
   final _textController = TextEditingController();
   bool _isListening = false;
-  bool _isScrolling = false;
+
+  // Full-screen drawer state
+  AnimationController? _drawerController;
+  Animation<double>? _drawerAnimation;
+  bool _drawerOpen = false;
 
   @override
   void initState() {
     super.initState();
+    _drawerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _drawerAnimation = CurvedAnimation(
+      parent: _drawerController!,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initSession();
     });
+  }
+
+  void _openDrawer() {
+    if (_drawerOpen || _drawerController == null) return;
+    _drawerOpen = true;
+    _drawerController!.forward();
+  }
+
+  void _closeDrawer() {
+    if (!_drawerOpen || _drawerController == null) return;
+    _drawerOpen = false;
+    _drawerController!.reverse();
   }
 
   void _initSession() {
@@ -47,6 +75,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   void dispose() {
     _textController.dispose();
+    _drawerController?.dispose();
     super.dispose();
   }
 
@@ -100,70 +129,164 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     return Scaffold(
       backgroundColor: colors.background,
-      body: KaiGeminiWave(
-        state: voiceState,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            HapticFeedback.lightImpact();
-            setState(() {
-              _isListening = !_isListening;
-            });
-          },
-          onVerticalDragEnd: (details) {
-            if (!_isScrolling && (details.primaryVelocity ?? 0) < -300) {
-              HapticFeedback.lightImpact();
-              _showInputSheet();
-            }
-          },
-          child: SafeArea(
-            child: Column(
-              children: [
-                OfflineBanner(isOffline: isOffline),
-
-                if (chatState.error != null)
-                  _ErrorBanner(
-                    error: chatState.error!,
-                    errorType: chatState.errorType,
-                  ),
-
-                Expanded(
-                  child: chatState.messages.isEmpty && !chatState.isLoading
-                      ? ChatEmptyState(
-                          voiceState: voiceState,
-                          onPromptTapped: (text) {
-                            ref
-                                .read(chatNotifierProvider.notifier)
-                                .sendMessage(text);
-                          },
-                        )
-                      : NotificationListener<ScrollNotification>(
-                          onNotification: (notification) {
-                            if (notification is ScrollStartNotification) {
-                              setState(() => _isScrolling = true);
-                            } else if (notification is ScrollEndNotification) {
-                              setState(() => _isScrolling = false);
-                            }
-                            return false;
-                          },
-                          child: MessageList(
-                            messages: chatState.messages,
-                            isLoading: chatState.isLoading,
-                            onRetry: (messageId) {
-                              final failedMsg = chatState.messages.firstWhere(
-                                (m) => m.id == messageId,
-                              );
-                              ref
-                                  .read(chatNotifierProvider.notifier)
-                                  .sendMessage(failedMsg.content);
-                            },
-                          ),
-                        ),
+      body: Stack(
+        children: [
+          // Main chat content with gesture handling
+          // RawGestureDetector separates tap and horizontal drag into
+          // independent recognizers so they don't compete in the arena.
+          // This prevents the horizontal drag from being blocked by the
+          // tap recognizer's hold-during-disambiguation behavior.
+          KaiGeminiWave(
+            state: voiceState,
+            child: RawGestureDetector(
+              behavior: HitTestBehavior.translucent,
+              gestures: {
+                TapGestureRecognizer:
+                    GestureRecognizerFactoryWithHandlers<
+                        TapGestureRecognizer>(
+                  () => TapGestureRecognizer(),
+                  (instance) {
+                    instance.onTapDown = (_) {
+                      if (_drawerOpen) {
+                        _closeDrawer();
+                        return;
+                      }
+                      HapticFeedback.lightImpact();
+                      setState(() {
+                        _isListening = !_isListening;
+                      });
+                    };
+                  },
                 ),
-              ],
+                HorizontalDragGestureRecognizer:
+                    GestureRecognizerFactoryWithHandlers<
+                        HorizontalDragGestureRecognizer>(
+                  () => HorizontalDragGestureRecognizer(),
+                  (instance) {
+                    instance.onEnd = (details) {
+                      // Swipe right -> open drawer
+                      if (!_drawerOpen &&
+                          (details.primaryVelocity ?? 0) > 300) {
+                        _openDrawer();
+                      }
+                      // Swipe left -> close drawer
+                      if (_drawerOpen &&
+                          (details.primaryVelocity ?? 0) < -300) {
+                        _closeDrawer();
+                      }
+                    };
+                  },
+                ),
+              },
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    OfflineBanner(isOffline: isOffline),
+
+                    if (chatState.error != null)
+                      _ErrorBanner(
+                        error: chatState.error!,
+                        errorType: chatState.errorType,
+                      ),
+
+                    Expanded(
+                      child: chatState.messages.isEmpty &&
+                              !chatState.isLoading
+                          ? ChatEmptyState(
+                                voiceState: voiceState,
+                                onPromptTapped: (text) {
+                                  ref
+                                      .read(chatNotifierProvider.notifier)
+                                      .sendMessage(text);
+                                },
+                              )
+                          : MessageList(
+                                messages: chatState.messages,
+                                isLoading: chatState.isLoading,
+                                onRetry: (messageId) {
+                                  final failedMsg =
+                                      chatState.messages.firstWhere(
+                                    (m) => m.id == messageId,
+                                  );
+                                  ref
+                                      .read(chatNotifierProvider.notifier)
+                                      .sendMessage(failedMsg.content);
+                                },
+                              ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
+
+          // Swipe-up zone at bottom edge to show text input
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 48,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onVerticalDragEnd: (details) {
+                if ((details.primaryVelocity ?? 0) < -300) {
+                  HapticFeedback.lightImpact();
+                  _showInputSheet();
+                }
+              },
+              child: const SizedBox.expand(),
+            ),
+          ),
+
+          // Full-screen drawer overlay
+          if (_drawerAnimation != null)
+            AnimatedBuilder(
+              animation: _drawerAnimation!,
+              builder: (context, child) {
+                if (_drawerAnimation!.value == 0 && !_drawerOpen) {
+                  return const SizedBox.shrink();
+                }
+                return Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _closeDrawer,
+                    onHorizontalDragEnd: (details) {
+                      if ((details.primaryVelocity ?? 0) < -300) {
+                        _closeDrawer();
+                      }
+                    },
+                    child: Container(
+                      color: Colors.black.withValues(
+                          alpha: 0.5 * _drawerAnimation!.value),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: FractionalTranslation(
+                          translation: Offset(
+                              -1.0 + _drawerAnimation!.value, 0.0),
+                          child: FractionallySizedBox(
+                            widthFactor: 1.0,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {},
+                              onHorizontalDragEnd: (details) {
+                                if ((details.primaryVelocity ?? 0) <
+                                    -300) {
+                                  _closeDrawer();
+                                }
+                              },
+                              child: SessionDrawer(
+                                onClose: _closeDrawer,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
       ),
     );
   }
