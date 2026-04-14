@@ -103,18 +103,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   void initSession() {
     _currentSessionId ??= _uuid.v4();
-    
-    // Onboarding logic: If not onboarded, add welcome message
-    if (!_localStorage.isOnboarded) {
-      final welcomeMessage = ChatMessage(
-        id: _uuid.v4(),
-        content: 'Привет! Я Kai, ваш компаньон. Как мне к вам обращаться?',
-        isUser: false,
-        timestamp: DateTime.now(),
-        sessionId: _currentSessionId,
-      );
-      state = state.copyWith(messages: [welcomeMessage]);
-    }
   }
 
   void _updateMessageStatus(String messageId, String status) {
@@ -126,31 +114,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   Future<void> sendMessage(String text) async {
     if (text.trim().isEmpty) return;
-
-    // Handle onboarding flow if not yet completed
-    if (!_localStorage.isOnboarded) {
-      final userMsg = ChatMessage(
-        id: _uuid.v4(),
-        content: text,
-        isUser: true,
-        timestamp: DateTime.now(),
-        sessionId: _currentSessionId,
-      );
-      state = state.copyWith(messages: [...state.messages, userMsg]);
-
-      _localStorage.userName = text;
-      _localStorage.isOnboarded = true;
-
-      final kaiMsg = ChatMessage(
-        id: _uuid.v4(),
-        content: 'Приятно познакомиться, $text! Чем я могу вам помочь сегодня?',
-        isUser: false,
-        timestamp: DateTime.now(),
-        sessionId: _currentSessionId,
-      );
-      state = state.copyWith(messages: [...state.messages, kaiMsg]);
-      return;
-    }
 
     _currentSessionId ??= _uuid.v4();
     state = state.copyWith(isLoading: true, error: null);

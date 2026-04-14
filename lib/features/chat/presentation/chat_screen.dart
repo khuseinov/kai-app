@@ -23,7 +23,7 @@ class ChatScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatScreenState extends ConsumerState<ChatScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final _textController = TextEditingController();
   bool _isListening = false;
 
@@ -131,11 +131,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       backgroundColor: colors.background,
       body: Stack(
         children: [
-          // Main chat content with gesture handling
-          // RawGestureDetector separates tap and horizontal drag into
-          // independent recognizers so they don't compete in the arena.
-          // This prevents the horizontal drag from being blocked by the
-          // tap recognizer's hold-during-disambiguation behavior.
+          // Main chat content with tap-only gesture handling.
+          // Horizontal drag is handled by a separate edge zone (below)
+          // to avoid accidental drawer opens from swiping anywhere.
           KaiGeminiWave(
             state: voiceState,
             child: RawGestureDetector(
@@ -146,7 +144,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                         TapGestureRecognizer>(
                   () => TapGestureRecognizer(),
                   (instance) {
-                    instance.onTapDown = (_) {
+                    instance.onTapUp = (_) {
                       if (_drawerOpen) {
                         _closeDrawer();
                         return;
@@ -155,25 +153,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                       setState(() {
                         _isListening = !_isListening;
                       });
-                    };
-                  },
-                ),
-                HorizontalDragGestureRecognizer:
-                    GestureRecognizerFactoryWithHandlers<
-                        HorizontalDragGestureRecognizer>(
-                  () => HorizontalDragGestureRecognizer(),
-                  (instance) {
-                    instance.onEnd = (details) {
-                      // Swipe right -> open drawer
-                      if (!_drawerOpen &&
-                          (details.primaryVelocity ?? 0) > 300) {
-                        _openDrawer();
-                      }
-                      // Swipe left -> close drawer
-                      if (_drawerOpen &&
-                          (details.primaryVelocity ?? 0) < -300) {
-                        _closeDrawer();
-                      }
                     };
                   },
                 ),
@@ -220,23 +199,51 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
             ),
           ),
 
-          // Swipe-up zone at bottom edge to show text input
+          // Left edge swipe zone — only area that triggers drawer open.
+          // 20px strip along the left edge so center/right swipes are ignored.
           Positioned(
             left: 0,
-            right: 0,
+            top: 0,
             bottom: 0,
-            height: 48,
+            width: 20,
             child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onVerticalDragEnd: (details) {
-                if ((details.primaryVelocity ?? 0) < -300) {
-                  HapticFeedback.lightImpact();
-                  _showInputSheet();
+              behavior: HitTestBehavior.opaque,
+              onHorizontalDragStart: (_) {},
+              onHorizontalDragEnd: (details) {
+                // Swipe right from left edge -> open drawer
+                if (!_drawerOpen &&
+                    (details.primaryVelocity ?? 0) > 500) {
+                  _openDrawer();
                 }
               },
               child: const SizedBox.expand(),
             ),
           ),
+
+          // Visual affordance: tappable pill handle + swipe-up to open input
+          if (!_isListening)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 32,
+              height: 56,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  _showInputSheet();
+                },
+                onVerticalDragEnd: (details) {
+                  if ((details.primaryVelocity ?? 0) < -400) {
+                    HapticFeedback.lightImpact();
+                    _showInputSheet();
+                  }
+                },
+                child: Center(
+                  child: _AnimatedPill(colors: colors),
+                ),
+              ),
+            ),
 
           // Full-screen drawer overlay
           if (_drawerAnimation != null)
@@ -265,17 +272,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                               -1.0 + _drawerAnimation!.value, 0.0),
                           child: FractionallySizedBox(
                             widthFactor: 1.0,
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () {},
-                              onHorizontalDragEnd: (details) {
-                                if ((details.primaryVelocity ?? 0) <
-                                    -300) {
-                                  _closeDrawer();
-                                }
-                              },
-                              child: SessionDrawer(
-                                onClose: _closeDrawer,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.3),
+                                    blurRadius: 16,
+                                    offset: const Offset(4, 0),
+                                  ),
+                                ],
+                              ),
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {},
+                                onHorizontalDragEnd: (details) {
+                                  if ((details.primaryVelocity ?? 0) <
+                                      -300) {
+                                    _closeDrawer();
+                                  }
+                                },
+                                child: SessionDrawer(
+                                  onClose: _closeDrawer,
+                                ),
                               ),
                             ),
                           ),
@@ -339,6 +357,68 @@ class _ErrorBanner extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Animated pill handle that gently pulses to invite interaction.
+class _AnimatedPill extends StatefulWidget {
+  final dynamic colors;
+  const _AnimatedPill({required this.colors});
+
+  @override
+  State<_AnimatedPill> createState() => _AnimatedPillState();
+}
+
+class _AnimatedPillState extends State<_AnimatedPill>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _opacityAnim;
+  late final Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+
+    _opacityAnim = Tween<double>(begin: 0.3, end: 0.7).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+    _scaleAnim = Tween<double>(begin: 1.0, end: 1.15).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _opacityAnim.value,
+          child: Transform.scale(
+            scale: _scaleAnim.value,
+            child: child,
+          ),
+        );
+      },
+      child: Container(
+        width: 40,
+        height: 4,
+        decoration: BoxDecoration(
+          color: widget.colors.textTertiary,
+          borderRadius: BorderRadius.circular(2),
+        ),
       ),
     );
   }

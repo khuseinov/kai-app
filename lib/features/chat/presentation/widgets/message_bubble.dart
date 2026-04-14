@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -154,7 +155,7 @@ class MessageBubble extends StatelessWidget {
                   const SizedBox(height: 4),
                   MarkdownBody(
                     data: message.content,
-                    selectable: true,
+                    selectable: !kIsWeb,
                     styleSheet: MarkdownStyleSheet(
                       p: typography.bodyLarge.copyWith(
                         color: colors.textPrimary,
