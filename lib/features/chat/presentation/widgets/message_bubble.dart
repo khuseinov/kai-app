@@ -153,28 +153,33 @@ class MessageBubble extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  MarkdownBody(
-                    data: message.content,
-                    selectable: !kIsWeb,
-                    styleSheet: MarkdownStyleSheet(
-                      p: typography.bodyLarge.copyWith(
-                        color: colors.textPrimary,
-                        height: 1.5,
-                      ),
-                      h1: typography.headlineLarge.copyWith(color: colors.textPrimary),
-                      h2: typography.headlineMedium.copyWith(color: colors.textPrimary),
-                      h3: typography.headlineSmall.copyWith(color: colors.textPrimary),
-                      code: typography.bodyMedium.copyWith(
-                        backgroundColor: colors.surfaceContainer,
-                        color: colors.oceanPrimary,
-                        fontFamily: 'monospace',
-                      ),
-                      codeblockDecoration: BoxDecoration(
-                        color: colors.surfaceContainer,
-                        borderRadius: BorderRadius.circular(8),
+                  if (message.thinking != null && message.thinking!.isNotEmpty) ...[
+                    _ThinkingBlock(thinking: message.thinking!),
+                    const SizedBox(height: 8),
+                  ],
+                  if (message.content.isNotEmpty)
+                    MarkdownBody(
+                      data: message.content,
+                      selectable: !kIsWeb,
+                      styleSheet: MarkdownStyleSheet(
+                        p: typography.bodyLarge.copyWith(
+                          color: colors.textPrimary,
+                          height: 1.5,
+                        ),
+                        h1: typography.headlineLarge.copyWith(color: colors.textPrimary),
+                        h2: typography.headlineMedium.copyWith(color: colors.textPrimary),
+                        h3: typography.headlineSmall.copyWith(color: colors.textPrimary),
+                        code: typography.bodyMedium.copyWith(
+                          backgroundColor: colors.surfaceContainer,
+                          color: colors.oceanPrimary,
+                          fontFamily: 'monospace',
+                        ),
+                        codeblockDecoration: BoxDecoration(
+                          color: colors.surfaceContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -183,6 +188,81 @@ class MessageBubble extends StatelessWidget {
       ),
       );
     }
+  }
+}
+
+class _ThinkingBlock extends StatefulWidget {
+  final String thinking;
+  const _ThinkingBlock({required this.thinking});
+
+  @override
+  State<_ThinkingBlock> createState() => _ThinkingBlockState();
+}
+
+class _ThinkingBlockState extends State<_ThinkingBlock> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.kaiColors;
+    final typography = context.kaiTypography;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainer.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.divider.withOpacity(0.1)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: () => setState(() => _isExpanded = !_isExpanded),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.psychology_outlined,
+                    size: 16,
+                    color: colors.textTertiary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Размышления',
+                    style: typography.labelMedium.copyWith(
+                      color: colors.textTertiary,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    _isExpanded ? Icons.expand_less : Icons.expand_more,
+                    size: 16,
+                    color: colors.textTertiary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_isExpanded)
+            Padding(
+              padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
+              child: MarkdownBody(
+                data: widget.thinking,
+                styleSheet: MarkdownStyleSheet(
+                  p: typography.bodyMedium.copyWith(
+                    color: colors.textSecondary.withOpacity(0.8),
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 

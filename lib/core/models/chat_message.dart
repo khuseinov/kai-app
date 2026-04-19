@@ -20,6 +20,7 @@ class ChatMessage with _$ChatMessage {
     int? latencyMs,
     int? tokensUsed,
     bool? piiBlocked,
+    String? thinking,
     String? correlationId,
   }) = _ChatMessage;
 

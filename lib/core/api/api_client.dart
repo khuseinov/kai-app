@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/env_config.dart';
@@ -36,6 +37,33 @@ class ApiClient {
       },
     );
     return response.data!;
+  }
+
+  Stream<String> streamMessage({
+    required String message,
+    required String userId,
+    required String sessionId,
+  }) async* {
+    final response = await dio.post<ResponseBody>(
+      '/chat/stream',
+      data: {
+        'message': message,
+        'user_id': userId,
+        'session_id': sessionId,
+      },
+      options: Options(responseType: ResponseType.stream),
+    );
+
+    final stream = response.data!.stream
+        .cast<List<int>>()
+        .transform(utf8.decoder)
+        .transform(const LineSplitter());
+
+    await for (final line in stream) {
+      if (line.isNotEmpty) {
+        yield line;
+      }
+    }
   }
 }
 

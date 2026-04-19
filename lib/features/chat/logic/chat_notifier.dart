@@ -121,28 +121,33 @@ class ChatNotifier extends StateNotifier<ChatState> {
     String? userMsgId;
 
     try {
-      final kaiMsg = await _repository.sendMessage(
+      await _repository.streamMessage(
         text: text,
         sessionId: _currentSessionId!,
-        onMessageSavedLocally: (userMsg) {
-          userMsgId = userMsg.id;
-          state = state.copyWith(messages: [...state.messages, userMsg]);
-          // Auto-name session on first message
-          if (!_sessionTitled && _currentSessionId != null) {
-            _sessionTitled = true;
-            final title = text.length > 40 ? '${text.substring(0, 40)}…' : text;
-            _sessionNotifier?.updateTitle(_currentSessionId!, title);
+        onUpdate: (updatedMsg) {
+          final exists = state.messages.any((m) => m.id == updatedMsg.id);
+          
+          if (!exists) {
+            state = state.copyWith(
+              messages: [...state.messages, updatedMsg],
+            );
+            
+            // Auto-name session on first message
+            if (updatedMsg.isUser && !_sessionTitled && _currentSessionId != null) {
+              _sessionTitled = true;
+              final title = text.length > 40 ? '${text.substring(0, 40)}…' : text;
+              _sessionNotifier?.updateTitle(_currentSessionId!, title);
+            }
+          } else {
+            final updatedList = state.messages.map((m) {
+              return m.id == updatedMsg.id ? updatedMsg : m;
+            }).toList();
+            state = state.copyWith(messages: updatedList);
           }
         },
       );
-
-      if (userMsgId != null) _updateMessageStatus(userMsgId!, 'sent');
-      state = state.copyWith(
-        messages: [...state.messages, kaiMsg],
-        isLoading: false,
-      );
+      state = state.copyWith(isLoading: false);
     } on OfflineException {
-      if (userMsgId != null) _updateMessageStatus(userMsgId!, 'queued');
       state = state.copyWith(isLoading: false);
     } on RateLimitException catch (e) {
       if (userMsgId != null) _updateMessageStatus(userMsgId!, 'failed');
