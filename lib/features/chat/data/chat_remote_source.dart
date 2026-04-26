@@ -34,19 +34,52 @@ class ChatRemoteSource {
       } else if (line.startsWith('data: ')) {
         final data = line.substring(6).trim();
 
-        if (data == '[DONE]') {
+        if (data == '[DONE]' || currentEvent == 'done') {
           yield const ChatStreamEvent.done();
+          continue;
+        }
+
+        if (currentEvent == 'error') {
+          yield ChatStreamEvent.error(data);
           continue;
         }
 
         try {
           final json = jsonDecode(data);
-          final content = json['choices'][0]['delta']['content'] as String? ?? '';
 
-          if (currentEvent == 'thinking') {
-            yield ChatStreamEvent.thinking(content);
-          } else if (currentEvent == 'message') {
+          if (currentEvent == 'message') {
+            final content =
+                json['choices'][0]['delta']['content'] as String? ?? '';
             yield ChatStreamEvent.message(content);
+          } else if (currentEvent == 'thinking') {
+            // Raw reasoning is not user-visible in kai-app. Backend should not
+            // emit it, but older streams are ignored defensively.
+            continue;
+          } else if (currentEvent == 'state') {
+            yield ChatStreamEvent.state(
+              step: json['step'] as String? ?? '',
+              label: json['label'] as String? ?? '',
+            );
+          } else if (currentEvent == 'metadata') {
+            yield ChatStreamEvent.metadata(
+              correlationId: json['correlation_id'] as String? ?? '',
+              language: json['language'] as String?,
+              requestType: json['request_type'] as String?,
+              model: json['model'] as String?,
+              provider: json['provider'] as String?,
+              latencyMs: (json['latency_ms'] as num?)?.toInt(),
+              tokensUsed: (json['tokens_used'] as num?)?.toInt(),
+              confidence: (json['confidence'] as num?)?.toDouble(),
+              piiBlocked: json['pii_blocked'] as bool?,
+            );
+          } else if (currentEvent == 'approval') {
+            yield ChatStreamEvent.approval(
+              requiresHumanApproval:
+                  json['requires_human_approval'] as bool? ?? false,
+              pendingConfirmation:
+                  json['pending_confirmation'] as bool? ?? false,
+              confirmationType: json['confirmation_type'] as String?,
+            );
           }
         } catch (e) {
           yield ChatStreamEvent.error(e.toString());

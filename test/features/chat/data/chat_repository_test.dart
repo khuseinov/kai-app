@@ -11,20 +11,30 @@ import 'package:kai_app/features/chat/data/chat_remote_source.dart';
 import 'package:kai_app/features/chat/data/chat_repository.dart';
 import 'package:kai_app/features/chat/data/dto/chat_request_dto.dart';
 import 'package:kai_app/features/chat/data/dto/chat_response_dto.dart';
+import 'package:kai_app/features/chat/data/dto/chat_stream_event.dart';
 
 class FakeRemoteSource extends ChatRemoteSource {
   ChatResponseDto? _response;
   Object? _error;
+  List<ChatStreamEvent> _streamEvents = const [];
 
   FakeRemoteSource() : super(_FakeApiClient());
 
   void setResponse(ChatResponseDto response) => _response = response;
   void setError(Object error) => _error = error;
+  void setStreamEvents(List<ChatStreamEvent> events) => _streamEvents = events;
 
   @override
   Future<ChatResponseDto> sendMessage(ChatRequestDto request) async {
     if (_error != null) throw _error!;
     return _response!;
+  }
+
+  @override
+  Stream<ChatStreamEvent> streamMessage(ChatRequestDto request) async* {
+    for (final event in _streamEvents) {
+      yield event;
+    }
   }
 }
 
@@ -204,5 +214,60 @@ void main() {
       ),
       throwsA(isA<CircuitBreakerException>()),
     );
+  });
+
+  test('streamMessage applies state metadata and approval to Kai message',
+      () async {
+    remoteSource.setStreamEvents([
+      const ChatStreamEvent.state(step: 'E', label: 'enacting'),
+      const ChatStreamEvent.message('Simulation ready. Proceed?'),
+      const ChatStreamEvent.metadata(
+        correlationId: 'corr-stream',
+        language: 'en',
+        requestType: 'fast',
+        model: 'qwen3.5-9b',
+        provider: 'kai_ft',
+        latencyMs: 140,
+        tokensUsed: 11,
+        confidence: 0.81,
+        piiBlocked: false,
+      ),
+      const ChatStreamEvent.approval(
+        requiresHumanApproval: true,
+        pendingConfirmation: true,
+        confirmationType: 'simulation',
+      ),
+      const ChatStreamEvent.done(),
+    ]);
+
+    ChatMessage? latestKaiMessage;
+
+    await repository.streamMessage(
+      text: '/s risk Japan',
+      sessionId: 'sess-1',
+      onUpdate: (message) {
+        if (!message.isUser) latestKaiMessage = message;
+      },
+    );
+
+    expect(latestKaiMessage, isNotNull);
+    expect(latestKaiMessage!.status, 'sent');
+    expect(latestKaiMessage!.content, 'Simulation ready. Proceed?');
+    expect(latestKaiMessage!.currentStep, 'E');
+    expect(latestKaiMessage!.cognitiveStatus, 'enacting');
+    expect(latestKaiMessage!.model, 'qwen3.5-9b');
+    expect(latestKaiMessage!.provider, 'kai_ft');
+    expect(latestKaiMessage!.latencyMs, 140);
+    expect(latestKaiMessage!.tokensUsed, 11);
+    expect(latestKaiMessage!.correlationId, 'corr-stream');
+    expect(latestKaiMessage!.requiresHumanApproval, isTrue);
+    expect(latestKaiMessage!.pendingConfirmation, isTrue);
+    expect(latestKaiMessage!.confirmationType, 'simulation');
+    expect(
+        localSource.savedMessages
+            .where((message) => !message.isUser)
+            .single
+            .status,
+        'sent');
   });
 }

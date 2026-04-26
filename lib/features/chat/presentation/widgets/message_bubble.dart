@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import '../../../../core/design/components/kai_cognitive_status.dart';
 import '../../../../core/design/theme/theme_extensions.dart';
 import '../../../../core/design/tokens/kai_spacing.dart';
 import '../../../../core/models/chat_message.dart';
@@ -55,7 +56,8 @@ class MessageBubble extends StatelessWidget {
                 Icon(Icons.copy_rounded, size: 18, color: colors.textSecondary),
                 const SizedBox(width: 10),
                 Text('Копировать',
-                    style: typography.bodyLarge.copyWith(color: colors.textPrimary)),
+                    style: typography.bodyLarge
+                        .copyWith(color: colors.textPrimary)),
               ],
             ),
           ),
@@ -64,10 +66,12 @@ class MessageBubble extends StatelessWidget {
               value: _MessageAction.retry,
               child: Row(
                 children: [
-                  Icon(Icons.refresh_rounded, size: 18, color: colors.textSecondary),
+                  Icon(Icons.refresh_rounded,
+                      size: 18, color: colors.textSecondary),
                   const SizedBox(width: 10),
                   Text('Повторить',
-                      style: typography.bodyLarge.copyWith(color: colors.textPrimary)),
+                      style: typography.bodyLarge
+                          .copyWith(color: colors.textPrimary)),
                 ],
               ),
             ),
@@ -80,7 +84,8 @@ class MessageBubble extends StatelessWidget {
 
     if (isUser) {
       return Padding(
-        padding: const EdgeInsets.only(bottom: KaiSpacing.m, left: KaiSpacing.xxl),
+        padding:
+            const EdgeInsets.only(bottom: KaiSpacing.m, left: KaiSpacing.xxl),
         child: Align(
           alignment: Alignment.centerRight,
           child: GestureDetector(
@@ -102,7 +107,8 @@ class MessageBubble extends StatelessWidget {
                 children: [
                   Text(
                     message.content,
-                    style: typography.bodyLarge.copyWith(color: colors.textPrimary),
+                    style: typography.bodyLarge
+                        .copyWith(color: colors.textPrimary),
                   ),
                   const SizedBox(height: 2),
                   _StatusIcon(status: message.status),
@@ -116,150 +122,124 @@ class MessageBubble extends StatelessWidget {
       return GestureDetector(
         onLongPressStart: (d) => showMessageActions(d.globalPosition),
         child: Padding(
-        padding: const EdgeInsets.only(bottom: KaiSpacing.l, right: KaiSpacing.l),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Minimal AI Avatar
-            Container(
-              margin: const EdgeInsets.only(right: KaiSpacing.s, top: 4),
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [
-                    colors.oceanPrimary,
-                    colors.stateThinking,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+          padding:
+              const EdgeInsets.only(bottom: KaiSpacing.l, right: KaiSpacing.l),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Minimal AI Avatar
+              Container(
+                margin: const EdgeInsets.only(right: KaiSpacing.s, top: 4),
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      colors.oceanPrimary,
+                      colors.stateThinking,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Icon(
+                  Icons.insights,
+                  size: 14,
+                  color: colors.onPrimary,
                 ),
               ),
-              child: Icon(
-                Icons.insights,
-                size: 14,
-                color: colors.onPrimary,
-              ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Kai',
-                    style: typography.labelMedium.copyWith(
-                      color: colors.textSecondary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  if (message.thinking != null && message.thinking!.isNotEmpty) ...[
-                    _ThinkingBlock(thinking: message.thinking!),
-                    const SizedBox(height: 8),
-                  ],
-                  if (message.content.isNotEmpty)
-                    MarkdownBody(
-                      data: message.content,
-                      selectable: !kIsWeb,
-                      styleSheet: MarkdownStyleSheet(
-                        p: typography.bodyLarge.copyWith(
-                          color: colors.textPrimary,
-                          height: 1.5,
-                        ),
-                        h1: typography.headlineLarge.copyWith(color: colors.textPrimary),
-                        h2: typography.headlineMedium.copyWith(color: colors.textPrimary),
-                        h3: typography.headlineSmall.copyWith(color: colors.textPrimary),
-                        code: typography.bodyMedium.copyWith(
-                          backgroundColor: colors.surfaceContainer,
-                          color: colors.oceanPrimary,
-                          fontFamily: 'monospace',
-                        ),
-                        codeblockDecoration: BoxDecoration(
-                          color: colors.surfaceContainer,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Kai',
+                      style: typography.labelMedium.copyWith(
+                        color: colors.textSecondary,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                ],
+                    const SizedBox(height: 4),
+                    if (message.cognitiveStatus != null &&
+                        message.cognitiveStatus!.isNotEmpty &&
+                        message.status == 'typing') ...[
+                      KaiCognitiveStatus(
+                        currentStep: message.cognitiveStatus!,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    if (message.pendingConfirmation == true) ...[
+                      _ApprovalNotice(type: message.confirmationType),
+                      const SizedBox(height: 8),
+                    ],
+                    if (message.content.isNotEmpty)
+                      MarkdownBody(
+                        data: message.content,
+                        selectable: !kIsWeb,
+                        styleSheet: MarkdownStyleSheet(
+                          p: typography.bodyLarge.copyWith(
+                            color: colors.textPrimary,
+                            height: 1.5,
+                          ),
+                          h1: typography.headlineLarge
+                              .copyWith(color: colors.textPrimary),
+                          h2: typography.headlineMedium
+                              .copyWith(color: colors.textPrimary),
+                          h3: typography.headlineSmall
+                              .copyWith(color: colors.textPrimary),
+                          code: typography.bodyMedium.copyWith(
+                            backgroundColor: colors.surfaceContainer,
+                            color: colors.oceanPrimary,
+                            fontFamily: 'monospace',
+                          ),
+                          codeblockDecoration: BoxDecoration(
+                            color: colors.surfaceContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       );
     }
   }
 }
 
-class _ThinkingBlock extends StatefulWidget {
-  final String thinking;
-  const _ThinkingBlock({required this.thinking});
+class _ApprovalNotice extends StatelessWidget {
+  final String? type;
 
-  @override
-  State<_ThinkingBlock> createState() => _ThinkingBlockState();
-}
-
-class _ThinkingBlockState extends State<_ThinkingBlock> {
-  bool _isExpanded = false;
+  const _ApprovalNotice({this.type});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.kaiColors;
     final typography = context.kaiTypography;
+    final label = type == 'simulation'
+        ? 'Требуется подтверждение симуляции'
+        : 'Требуется подтверждение';
 
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: colors.surfaceContainer.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.divider.withOpacity(0.1)),
+        color: colors.warning.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: colors.warning.withValues(alpha: 0.35)),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          InkWell(
-            onTap: () => setState(() => _isExpanded = !_isExpanded),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.psychology_outlined,
-                    size: 16,
-                    color: colors.textTertiary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Размышления',
-                    style: typography.labelMedium.copyWith(
-                      color: colors.textTertiary,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    _isExpanded ? Icons.expand_less : Icons.expand_more,
-                    size: 16,
-                    color: colors.textTertiary,
-                  ),
-                ],
-              ),
+          Icon(Icons.verified_user_outlined, size: 14, color: colors.warning),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              style: typography.labelMedium.copyWith(color: colors.warning),
             ),
           ),
-          if (_isExpanded)
-            Padding(
-              padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
-              child: MarkdownBody(
-                data: widget.thinking,
-                styleSheet: MarkdownStyleSheet(
-                  p: typography.bodyMedium.copyWith(
-                    color: colors.textSecondary.withOpacity(0.8),
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -277,10 +257,10 @@ class _StatusIcon extends StatelessWidget {
     final colors = context.kaiColors;
 
     final (icon, color) = switch (status) {
-      'queued'  => (Icons.schedule_rounded,       colors.textTertiary),
+      'queued' => (Icons.schedule_rounded, colors.textTertiary),
       'sending' => (Icons.radio_button_unchecked, colors.textTertiary),
-      'failed'  => (Icons.error_outline_rounded,  colors.error),
-      _         => (Icons.done_rounded,           colors.textTertiary),
+      'failed' => (Icons.error_outline_rounded, colors.error),
+      _ => (Icons.done_rounded, colors.textTertiary),
     };
 
     return Icon(icon, size: 12, color: color);

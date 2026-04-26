@@ -22,6 +22,11 @@ class ChatMessage with _$ChatMessage {
     bool? piiBlocked,
     String? thinking,
     String? correlationId,
+    String? currentStep,
+    String? cognitiveStatus,
+    bool? requiresHumanApproval,
+    bool? pendingConfirmation,
+    String? confirmationType,
   }) = _ChatMessage;
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) =>

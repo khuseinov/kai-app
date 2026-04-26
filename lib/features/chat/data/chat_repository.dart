@@ -7,7 +7,6 @@ import '../../../core/storage/local_storage.dart';
 import 'chat_local_source.dart';
 import 'chat_remote_source.dart';
 import 'dto/chat_request_dto.dart';
-import 'dto/chat_stream_event.dart';
 
 class ChatRepository {
   final ChatRemoteSource _remoteSource;
@@ -133,37 +132,79 @@ class ChatRepository {
     // 4. Listen to stream
     try {
       final stream = _remoteSource.streamMessage(request);
-      
+
       await for (final event in stream) {
-        event.when(
-          message: (content) {
+        await event.when<Future<void>>(
+          message: (content) async {
             responseMessage = responseMessage.copyWith(
               content: responseMessage.content + content,
             );
             onUpdate(responseMessage);
           },
-          thinking: (thinking) {
+          thinking: (thinking) async {
+            // Raw reasoning is intentionally not surfaced in kai-app.
+          },
+          state: (step, label) async {
             responseMessage = responseMessage.copyWith(
-              thinking: (responseMessage.thinking ?? '') + thinking,
+              currentStep: step,
+              cognitiveStatus: label,
+            );
+            onUpdate(responseMessage);
+          },
+          metadata: (
+            correlationId,
+            language,
+            requestType,
+            model,
+            provider,
+            latencyMs,
+            tokensUsed,
+            confidence,
+            piiBlocked,
+          ) async {
+            responseMessage = responseMessage.copyWith(
+              correlationId: correlationId,
+              language: language,
+              requestType: requestType,
+              model: model,
+              provider: provider,
+              latencyMs: latencyMs,
+              tokensUsed: tokensUsed,
+              confidence: confidence,
+              piiBlocked: piiBlocked,
+            );
+            onUpdate(responseMessage);
+          },
+          approval: (
+            requiresHumanApproval,
+            pendingConfirmation,
+            confirmationType,
+          ) async {
+            responseMessage = responseMessage.copyWith(
+              requiresHumanApproval: requiresHumanApproval,
+              pendingConfirmation: pendingConfirmation,
+              confirmationType: confirmationType,
             );
             onUpdate(responseMessage);
           },
           done: () async {
             responseMessage = responseMessage.copyWith(status: 'sent');
             await _localSource.saveMessage(responseMessage);
-            
+
             final updatedUserMessage = userMessage.copyWith(status: 'sent');
             await _localSource.saveMessage(updatedUserMessage);
             onUpdate(responseMessage);
           },
-          error: (error) {
-            responseMessage = responseMessage.copyWith(status: 'error', content: 'Error: $error');
+          error: (error) async {
+            responseMessage = responseMessage.copyWith(
+                status: 'error', content: 'Error: $error');
             onUpdate(responseMessage);
           },
         );
       }
     } catch (e) {
-      responseMessage = responseMessage.copyWith(status: 'error', content: 'Connection Error: $e');
+      responseMessage = responseMessage.copyWith(
+          status: 'error', content: 'Connection Error: $e');
       onUpdate(responseMessage);
     }
   }
