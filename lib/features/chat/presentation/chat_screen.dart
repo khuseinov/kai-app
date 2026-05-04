@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/design/components/kai_gemini_wave.dart';
 import '../../../../core/design/theme/theme_extensions.dart';
+import '../../../core/design/components/kai_connectivity_pill.dart';
 import '../../../core/design/tokens/kai_spacing.dart';
+import '../../../core/providers/backend_health_provider.dart';
 import '../../../core/providers/connectivity_status_provider.dart';
 import '../logic/chat_notifier.dart';
 import '../logic/session_notifier.dart';
@@ -194,6 +196,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                               ),
                     ),
                   ],
+                ),
+              ),
+            ),
+          ),
+
+          // Connectivity pill — top-right corner inside safe area.
+          // Combines device network state with backend /health probe so the
+          // user can distinguish "phone offline" from "Kai backend down".
+          Positioned(
+            top: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(top: KaiSpacing.s),
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    final state = ref.watch(connectivityPillStateProvider);
+                    return KaiConnectivityPill(state: state);
+                  },
                 ),
               ),
             ),
