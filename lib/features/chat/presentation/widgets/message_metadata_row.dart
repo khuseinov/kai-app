@@ -4,8 +4,17 @@ import '../../../../core/design/theme/theme_extensions.dart';
 import '../../../../core/design/tokens/kai_spacing.dart';
 import '../../../../core/models/chat_message.dart';
 
-/// QW-3: Message metadata footer — shown under every Kai response bubble.
-/// Displays: model name · latency · confidence · language badge · PII shield.
+/// QW-3: Message metadata footer — shown under Kai responses when there is
+/// something meaningful to surface to the user.
+///
+/// Shows only user-relevant signals:
+///   • autonomous mode (когда Kai вышел за рамки стандарта)
+///   • executed tool calls (что Kai вызвал)
+///   • knowledge graph usage (база знаний)
+///   • revision signal (Kai перепроверил ответ)
+///
+/// Dev-only signals (provider, model, tokens, latency, confidence, PII,
+/// language) intentionally excluded — visible in server logs, not in UI.
 class MessageMetadataRow extends StatelessWidget {
   final ChatMessage message;
 
@@ -13,20 +22,14 @@ class MessageMetadataRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Only show for Kai responses that have metadata
     if (message.isUser) return const SizedBox.shrink();
 
-    final hasAnyMeta = message.model != null ||
-        message.latencyMs != null ||
-        message.confidence != null ||
-        message.language != null ||
-        message.piiBlocked == true ||
-        _autonomousModeChip(message.requestType, context.kaiColors) != null ||
+    final modeChip = _autonomousModeChip(message.requestType, context.kaiColors);
+
+    final hasAnyMeta = modeChip != null ||
         message.executedToolCalls.isNotEmpty ||
         (message.worldModelUsed == true && (message.kgNodesQueried ?? 0) > 0) ||
-        (message.revisionCount ?? 0) > 0 ||
-        (message.provider != null && message.provider!.isNotEmpty) ||
-        (message.tokensUsed != null && message.tokensUsed! > 0);
+        (message.revisionCount ?? 0) > 0;
 
     if (!hasAnyMeta) return const SizedBox.shrink();
 
@@ -37,23 +40,19 @@ class MessageMetadataRow extends StatelessWidget {
       fontSize: 10,
     );
 
-    final modeChip = _autonomousModeChip(message.requestType, colors);
-
     return Padding(
       padding: const EdgeInsets.only(
         top: KaiSpacing.xxxs,
         left: KaiSpacing.screenPadding,
         right: KaiSpacing.screenPadding,
+        bottom: KaiSpacing.xxs,
       ),
       child: Wrap(
         spacing: KaiSpacing.xs,
         runSpacing: 2,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          // Autonomous depth signal: Kai itself picks request_type via
-          // classify_request_type (kai-core/src/cognitive/action/classifier.py).
-          // Only render when Kai escalated past the default — silent for
-          // fast/standard so the metadata row stays uncluttered.
+          // Autonomous mode — only shown when Kai escalated past fast/standard.
           if (modeChip != null)
             _ColoredMetaChip(
               icon: modeChip.icon,
@@ -62,26 +61,26 @@ class MessageMetadataRow extends StatelessWidget {
               baseStyle: textStyle,
             ),
 
-          // BE-AUT-1: Tool calls — show which tools Kai actually fired
+          // Tool calls — which tools Kai fired.
           for (final tool in message.executedToolCalls)
             _ColoredMetaChip(
               icon: Icons.handyman_outlined,
-              label: tool.replaceAll('_', ' '),
+              label: _toolLabel(tool),
               color: colors.oceanPrimary,
               baseStyle: textStyle,
             ),
 
-          // BE-AUT-2: World model grounding — KG nodes fetched in P-step
+          // Knowledge graph — grounded answer from world model.
           if (message.worldModelUsed == true &&
               (message.kgNodesQueried ?? 0) > 0)
             _MetaChip(
               icon: Icons.travel_explore_outlined,
-              label: 'база знаний (${message.kgNodesQueried})',
+              label: 'база знаний',
               textStyle: textStyle,
               colors: colors,
             ),
 
-          // BE-AUT-3: Revision — Kai re-checked its answer after critique failure
+          // Revision — Kai re-checked after critique failure.
           if ((message.revisionCount ?? 0) > 0)
             _MetaChip(
               icon: Icons.verified_outlined,
@@ -89,83 +88,13 @@ class MessageMetadataRow extends StatelessWidget {
               textStyle: textStyle,
               colors: colors,
             ),
-
-          // QW-6: Language badge
-          if (message.language != null && message.language!.isNotEmpty)
-            _MetaChip(
-              icon: Icons.language,
-              label: message.language!.toUpperCase(),
-              textStyle: textStyle,
-              colors: colors,
-            ),
-
-          // APP-PROVIDER-CHIP-1: LLM provider (DSK / KAI)
-          if (message.provider != null && message.provider!.isNotEmpty)
-            _MetaChip(
-              icon: Icons.hub_outlined,
-              label: _shortProviderName(message.provider!),
-              textStyle: textStyle,
-              colors: colors,
-            ),
-
-          // APP-PROVIDER-CHIP-1: Token count
-          if (message.tokensUsed != null && message.tokensUsed! > 0)
-            _MetaChip(
-              icon: Icons.tag_outlined,
-              label: '${message.tokensUsed} tok',
-              textStyle: textStyle,
-              colors: colors,
-            ),
-
-          // Model name (abbreviated)
-          if (message.model != null)
-            _MetaChip(
-              icon: Icons.memory_outlined,
-              label: _shortModelName(message.model!),
-              textStyle: textStyle,
-              colors: colors,
-            ),
-
-          // Latency
-          if (message.latencyMs != null)
-            _MetaChip(
-              icon: Icons.timer_outlined,
-              label: _formatLatency(message.latencyMs!),
-              textStyle: textStyle,
-              colors: colors,
-            ),
-
-          // Confidence
-          if (message.confidence != null)
-            _MetaChip(
-              icon: Icons.bar_chart_rounded,
-              label: '${(message.confidence! * 100).toStringAsFixed(0)}%',
-              textStyle: textStyle,
-              colors: colors,
-            ),
-
-          // QW-2: PII blocked shield
-          if (message.piiBlocked == true)
-            Tooltip(
-              message: 'Personal data was detected and protected',
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.shield_outlined, size: 10, color: colors.warning),
-                  const SizedBox(width: 2),
-                  Text('PII', style: textStyle.copyWith(color: colors.warning)),
-                ],
-              ),
-            ),
         ],
       ),
     );
   }
 
-  /// Maps Kai's autonomous request_type pick to a small icon+label chip.
-  /// Returns null for the default tiers (fast/standard) so the row stays
-  /// uncluttered — Kai escalating to ORCHESTRATOR/REASONING/HEAVY/SENSITIVE
-  /// is the interesting signal worth surfacing.
+  /// Maps request_type to a user-readable mode badge.
+  /// Returns null for fast/standard (default path — no badge needed).
   static _ModeBadge? _autonomousModeChip(String? type, dynamic colors) {
     if (type == null || type.isEmpty) return null;
     switch (type.toLowerCase()) {
@@ -194,29 +123,25 @@ class MessageMetadataRow extends StatelessWidget {
           label: 'мультимодально',
           color: colors.oceanPrimary as Color,
         );
-      // fast / standard — default path, no chip.
       default:
         return null;
     }
   }
 
-  String _shortProviderName(String provider) {
-    if (provider.contains('deepseek')) return 'DSK';
-    if (provider.contains('kai') || provider.contains('llama')) return 'KAI';
-    return provider.split('_').first.toUpperCase();
-  }
-
-  String _shortModelName(String model) {
-    // kai-ft → KAI-FT, glm-4-flash → GLM-4
-    if (model.contains('kai')) return 'KAI-FT';
-    if (model.contains('glm')) return 'GLM';
-    if (model.contains('deepseek')) return 'DSK';
-    return model.split('-').take(2).join('-').toUpperCase();
-  }
-
-  String _formatLatency(int ms) {
-    if (ms >= 1000) return '${(ms / 1000).toStringAsFixed(1)}s';
-    return '${ms}ms';
+  /// Human-readable tool name for the chip label.
+  static String _toolLabel(String tool) {
+    const labels = {
+      'visa_checker': 'виза',
+      'risk_assessment': 'риски',
+      'route_planner': 'маршрут',
+      'cost_estimator': 'стоимость',
+      'health_requirements': 'здоровье',
+      'emergency_contacts': 'экстренная связь',
+      'web_search_sandboxed': 'поиск',
+      'cross_source_verify': 'проверка',
+      'news_search': 'новости',
+    };
+    return labels[tool] ?? tool.replaceAll('_', ' ');
   }
 }
 

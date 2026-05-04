@@ -4,6 +4,7 @@ import '../../../../core/models/chat_message.dart';
 import '../../../../core/design/tokens/kai_spacing.dart';
 import '../../logic/chat_notifier.dart';
 import 'message_bubble.dart';
+import 'message_metadata_row.dart';
 import 'chat_loading_indicator.dart';
 
 class MessageList extends ConsumerStatefulWidget {
@@ -64,9 +65,13 @@ class _MessageListState extends ConsumerState<MessageList> {
         final message = widget.messages[index];
         final key = _messageKeys.putIfAbsent(message.id, () => GlobalKey());
         
-        return MessageBubble(
+        return Column(
           key: key,
-          message: message,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            MessageBubble(message: message),
+            MessageMetadataRow(message: message),
+          ],
         );
       },
     );
