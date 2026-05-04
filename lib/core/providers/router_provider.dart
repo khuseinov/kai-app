@@ -4,12 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/chat/presentation/chat_screen.dart';
-import 'settings_provider.dart';
+import '../../features/settings/presentation/settings_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  // Read settings without triggering a rebuild on changes
-  // We don't watch it anymore since we always start at /chat
-  
+  // Always start at /chat. Settings reachable via gear icon.
   return GoRouter(
     initialLocation: '/chat',
     routes: [
@@ -24,6 +22,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );
