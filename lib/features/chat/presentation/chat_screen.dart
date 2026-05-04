@@ -2,10 +2,13 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/design/components/kai_gemini_wave.dart';
 import '../../../../core/design/theme/theme_extensions.dart';
+import '../../../core/design/components/kai_connectivity_pill.dart';
 import '../../../core/design/tokens/kai_spacing.dart';
+import '../../../core/providers/backend_health_provider.dart';
 import '../../../core/providers/connectivity_status_provider.dart';
 import '../logic/chat_notifier.dart';
 import '../logic/session_notifier.dart';
@@ -192,6 +195,40 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                                       .sendMessage(failedMsg.content);
                                 },
                               ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Top-right cluster: connectivity pill + settings gear icon.
+          // Chat screen is an immersive Stack (no AppBar), so we mount
+          // these affordances as Positioned widgets inside the safe area.
+          Positioned(
+            top: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(top: KaiSpacing.xxs),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final state =
+                            ref.watch(connectivityPillStateProvider);
+                        return KaiConnectivityPill(state: state);
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.settings_outlined,
+                        color: colors.textSecondary,
+                      ),
+                      tooltip: 'Настройки',
+                      onPressed: () =>
+                          GoRouter.of(context).push('/settings'),
                     ),
                   ],
                 ),

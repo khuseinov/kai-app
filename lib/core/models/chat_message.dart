@@ -27,6 +27,14 @@ class ChatMessage with _$ChatMessage {
     bool? requiresHumanApproval,
     bool? pendingConfirmation,
     String? confirmationType,
+    // Autonomous decision signals (APP-A-BE-2)
+    String? specialMode,
+    @Default([]) List<String> executedToolCalls,
+    bool? worldModelUsed,
+    int? kgNodesQueried,
+    int? revisionCount,
+    bool? crisisDetected,
+    String? crisisCategory,
   }) = _ChatMessage;
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) =>

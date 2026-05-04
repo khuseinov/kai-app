@@ -2,12 +2,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/design/components/kai_cognitive_status.dart';
 import '../../../../core/design/theme/theme_extensions.dart';
 import '../../../../core/design/tokens/kai_spacing.dart';
 import '../../../../core/models/chat_message.dart';
+import '../../logic/chat_notifier.dart';
+import 'approval_actions.dart';
 
-class MessageBubble extends StatelessWidget {
+class MessageBubble extends ConsumerWidget {
   final ChatMessage message;
   final VoidCallback? onRetry;
 
@@ -18,7 +21,7 @@ class MessageBubble extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.kaiColors;
     final typography = context.kaiTypography;
     final isUser = message.isUser;
@@ -170,8 +173,45 @@ class MessageBubble extends StatelessWidget {
                     ],
                     if (message.pendingConfirmation == true) ...[
                       _ApprovalNotice(type: message.confirmationType),
+                      Builder(builder: (_) {
+                        // Stale-button guard: hide actions unless this Kai
+                        // message is the latest in the current session AND
+                        // the message's session matches the active one.
+                        // This prevents users from re-firing approve/reject
+                        // on historical bubbles after navigation or restart.
+                        final chatState = ref.watch(chatNotifierProvider);
+                        final notifier =
+                            ref.read(chatNotifierProvider.notifier);
+                        final isLatest = chatState.messages.isNotEmpty &&
+                            chatState.messages.last.id == message.id;
+                        final sameSession = message.sessionId == null ||
+                            message.sessionId == notifier.currentSessionId;
+                        if (!isLatest || !sameSession) {
+                          return const SizedBox.shrink();
+                        }
+                        return ApprovalActions(
+                          confirmationType: message.confirmationType,
+                          isBusy: chatState.isLoading,
+                          onApprove: () => _sendConfirmation(ref, true),
+                          onReject: () => _sendConfirmation(ref, false),
+                        );
+                      }),
                       const SizedBox(height: 8),
                     ],
+                    // BE-AUT-4: Crisis banner — P0 SAFETY.
+                    // Rendered before the response text so users see the
+                    // helpline notice even before they read the answer.
+                    if (message.crisisDetected == true)
+                      _CrisisBanner(category: message.crisisCategory),
+
+                    // BE-AUT-5: Special mode pill — Kai autonomously entered
+                    // a special cognitive mode (S/M/D/X).
+                    if (message.specialMode != null &&
+                        message.specialMode!.isNotEmpty) ...[
+                      _SpecialModePill(mode: message.specialMode!),
+                      const SizedBox(height: 6),
+                    ],
+
                     if (message.content.isNotEmpty)
                       MarkdownBody(
                         data: message.content,
@@ -239,6 +279,136 @@ class _ApprovalNotice extends StatelessWidget {
               label,
               style: typography.labelMedium.copyWith(color: colors.warning),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+void _sendConfirmation(WidgetRef ref, bool approve) {
+  final notifier = ref.read(chatNotifierProvider.notifier);
+  // Backend `_CONFIRM_YES_RE` (services/kai-core/src/api/security_scan.py)
+  // matches `\b(yes|allow|ok|proceed|legitimate|да|разреши|продолжи|легитимно)\b`.
+  // "да" matches → simulation/injection_pending_confirmation is consumed as approval.
+  // "отмена" deliberately does NOT match → backend falls through to denial branch.
+  final text = approve ? 'да' : 'отмена';
+  notifier.sendMessage(text);
+}
+
+// BE-AUT-4 ────────────────────────────────────────────────────────────────────
+
+/// Full-width crisis banner. Shown when Kai's crisis-detection protocol
+/// (B-14, Constitution §12) fires — before the response text, always visible.
+class _CrisisBanner extends StatelessWidget {
+  final String? category;
+
+  const _CrisisBanner({this.category});
+
+  static String _categoryLabel(String cat) => switch (cat.toLowerCase()) {
+        'suicidal_ideation' => 'Суицидальные мысли',
+        'self_harm' => 'Самоповреждение',
+        'abuse' => 'Насилие / абьюз',
+        'crisis' => 'Кризисная ситуация',
+        _ => cat,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.kaiColors;
+    final typography = context.kaiTypography;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: colors.error.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: colors.error.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.emergency_outlined, size: 16, color: colors.error),
+              const SizedBox(width: 6),
+              Text(
+                'Экстренная поддержка',
+                style: typography.labelMedium
+                    .copyWith(color: colors.error, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          if (category != null && category!.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              _categoryLabel(category!),
+              style: typography.labelSmall.copyWith(
+                color: colors.textTertiary,
+                fontSize: 10,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+          const SizedBox(height: 6),
+          Text(
+            'Телефон доверия: 8-800-2000-122 (бесплатно)\n'
+            'Международная линия: +7 495 988-44-34',
+            style: typography.bodySmall.copyWith(color: colors.error),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// BE-AUT-5 ────────────────────────────────────────────────────────────────────
+
+/// Small pill shown when Kai autonomously entered a special cognitive mode.
+/// Rendered above the answer text so the user understands WHY the response
+/// looks different (preview-only, memory saved, explanation mode, etc.).
+class _SpecialModePill extends StatelessWidget {
+  final String mode;
+
+  const _SpecialModePill({required this.mode});
+
+  static const _labels = {
+    'S': ('Симуляция', Icons.science_outlined),
+    's': ('Симуляция', Icons.science_outlined),
+    'M': ('Запомнил', Icons.bookmark_outlined),
+    'm': ('Запомнил', Icons.bookmark_outlined),
+    'D': ('Делегирую', Icons.fork_right_outlined),
+    'd': ('Делегирую', Icons.fork_right_outlined),
+    'X': ('Объясняю', Icons.auto_stories_outlined),
+    'x': ('Объясняю', Icons.auto_stories_outlined),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.kaiColors;
+    final typography = context.kaiTypography;
+    final entry = _labels[mode];
+    if (entry == null) return const SizedBox.shrink();
+    final (label, icon) = entry;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colors.stateThinking.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colors.stateThinking.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: colors.stateThinking),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: typography.labelSmall
+                .copyWith(color: colors.stateThinking, fontSize: 11),
           ),
         ],
       ),

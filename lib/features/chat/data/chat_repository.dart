@@ -83,6 +83,13 @@ class ChatRepository {
       tokensUsed: responseDto.tokensUsed,
       piiBlocked: responseDto.piiBlocked,
       correlationId: responseDto.correlationId,
+      specialMode: responseDto.specialMode,
+      executedToolCalls: responseDto.executedToolCalls,
+      worldModelUsed: responseDto.worldModelUsed,
+      kgNodesQueried: responseDto.kgNodesQueried,
+      revisionCount: responseDto.revisionCount,
+      crisisDetected: responseDto.crisisDetected,
+      crisisCategory: responseDto.crisisCategory,
     );
 
     await _localSource.saveMessage(kaiMessage);
@@ -161,6 +168,13 @@ class ChatRepository {
             tokensUsed,
             confidence,
             piiBlocked,
+            specialMode,
+            executedToolCalls,
+            worldModelUsed,
+            kgNodesQueried,
+            revisionCount,
+            crisisDetected,
+            crisisCategory,
           ) async {
             responseMessage = responseMessage.copyWith(
               correlationId: correlationId,
@@ -172,6 +186,13 @@ class ChatRepository {
               tokensUsed: tokensUsed,
               confidence: confidence,
               piiBlocked: piiBlocked,
+              specialMode: specialMode,
+              executedToolCalls: executedToolCalls,
+              worldModelUsed: worldModelUsed,
+              kgNodesQueried: kgNodesQueried,
+              revisionCount: revisionCount,
+              crisisDetected: crisisDetected,
+              crisisCategory: crisisCategory,
             );
             onUpdate(responseMessage);
           },

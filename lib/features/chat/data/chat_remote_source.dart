@@ -71,6 +71,15 @@ class ChatRemoteSource {
               tokensUsed: (json['tokens_used'] as num?)?.toInt(),
               confidence: (json['confidence'] as num?)?.toDouble(),
               piiBlocked: json['pii_blocked'] as bool?,
+              specialMode: json['special_mode'] as String?,
+              executedToolCalls: (json['executed_tool_calls'] as List<dynamic>?)
+                      ?.cast<String>() ??
+                  [],
+              worldModelUsed: json['world_model_used'] as bool?,
+              kgNodesQueried: (json['kg_nodes_queried'] as num?)?.toInt(),
+              revisionCount: (json['revision_count'] as num?)?.toInt(),
+              crisisDetected: json['crisis_detected'] as bool?,
+              crisisCategory: json['crisis_category'] as String?,
             );
           } else if (currentEvent == 'approval') {
             yield ChatStreamEvent.approval(

@@ -20,6 +20,14 @@ class ChatStreamEvent with _$ChatStreamEvent {
     int? tokensUsed,
     double? confidence,
     bool? piiBlocked,
+    // Autonomous decision signals (APP-A-BE-2)
+    String? specialMode,
+    @Default([]) List<String> executedToolCalls,
+    bool? worldModelUsed,
+    int? kgNodesQueried,
+    int? revisionCount,
+    bool? crisisDetected,
+    String? crisisCategory,
   }) = _EventMetadata;
   const factory ChatStreamEvent.approval({
     required bool requiresHumanApproval,
