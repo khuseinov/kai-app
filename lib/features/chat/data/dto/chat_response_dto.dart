@@ -16,6 +16,14 @@ class ChatResponseDto with _$ChatResponseDto {
     @JsonKey(name: 'tokens_used') int? tokensUsed,
     @JsonKey(name: 'pii_blocked') bool? piiBlocked,
     @JsonKey(name: 'correlation_id') String? correlationId,
+    // Autonomous decision signals (APP-A-BE-2)
+    @JsonKey(name: 'special_mode') String? specialMode,
+    @JsonKey(name: 'executed_tool_calls') @Default([]) List<String> executedToolCalls,
+    @JsonKey(name: 'world_model_used') bool? worldModelUsed,
+    @JsonKey(name: 'kg_nodes_queried') int? kgNodesQueried,
+    @JsonKey(name: 'revision_count') int? revisionCount,
+    @JsonKey(name: 'crisis_detected') bool? crisisDetected,
+    @JsonKey(name: 'crisis_category') String? crisisCategory,
   }) = _ChatResponseDto;
 
   factory ChatResponseDto.fromJson(Map<String, dynamic> json) =>

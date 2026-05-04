@@ -21,7 +21,10 @@ class MessageMetadataRow extends StatelessWidget {
         message.confidence != null ||
         message.language != null ||
         message.piiBlocked == true ||
-        _autonomousModeChip(message.requestType, context.kaiColors) != null;
+        _autonomousModeChip(message.requestType, context.kaiColors) != null ||
+        message.executedToolCalls.isNotEmpty ||
+        (message.worldModelUsed == true && (message.kgNodesQueried ?? 0) > 0) ||
+        (message.revisionCount ?? 0) > 0;
 
     if (!hasAnyMeta) return const SizedBox.shrink();
 
@@ -55,6 +58,34 @@ class MessageMetadataRow extends StatelessWidget {
               label: modeChip.label,
               color: modeChip.color,
               baseStyle: textStyle,
+            ),
+
+          // BE-AUT-1: Tool calls — show which tools Kai actually fired
+          for (final tool in message.executedToolCalls)
+            _ColoredMetaChip(
+              icon: Icons.handyman_outlined,
+              label: tool.replaceAll('_', ' '),
+              color: colors.oceanPrimary,
+              baseStyle: textStyle,
+            ),
+
+          // BE-AUT-2: World model grounding — KG nodes fetched in P-step
+          if (message.worldModelUsed == true &&
+              (message.kgNodesQueried ?? 0) > 0)
+            _MetaChip(
+              icon: Icons.travel_explore_outlined,
+              label: 'база знаний (${message.kgNodesQueried})',
+              textStyle: textStyle,
+              colors: colors,
+            ),
+
+          // BE-AUT-3: Revision — Kai re-checked its answer after critique failure
+          if ((message.revisionCount ?? 0) > 0)
+            _MetaChip(
+              icon: Icons.verified_outlined,
+              label: 'перепроверено',
+              textStyle: textStyle,
+              colors: colors,
             ),
 
           // QW-6: Language badge
