@@ -20,7 +20,8 @@ class MessageMetadataRow extends StatelessWidget {
         message.latencyMs != null ||
         message.confidence != null ||
         message.language != null ||
-        message.piiBlocked == true;
+        message.piiBlocked == true ||
+        _autonomousModeChip(message.requestType, context.kaiColors) != null;
 
     if (!hasAnyMeta) return const SizedBox.shrink();
 
@@ -30,6 +31,8 @@ class MessageMetadataRow extends StatelessWidget {
       color: colors.textTertiary,
       fontSize: 10,
     );
+
+    final modeChip = _autonomousModeChip(message.requestType, colors);
 
     return Padding(
       padding: const EdgeInsets.only(
@@ -42,6 +45,18 @@ class MessageMetadataRow extends StatelessWidget {
         runSpacing: 2,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
+          // Autonomous depth signal: Kai itself picks request_type via
+          // classify_request_type (kai-core/src/cognitive/action/classifier.py).
+          // Only render when Kai escalated past the default — silent for
+          // fast/standard so the metadata row stays uncluttered.
+          if (modeChip != null)
+            _ColoredMetaChip(
+              icon: modeChip.icon,
+              label: modeChip.label,
+              color: modeChip.color,
+              baseStyle: textStyle,
+            ),
+
           // QW-6: Language badge
           if (message.language != null && message.language!.isNotEmpty)
             _MetaChip(
@@ -96,6 +111,44 @@ class MessageMetadataRow extends StatelessWidget {
     );
   }
 
+  /// Maps Kai's autonomous request_type pick to a small icon+label chip.
+  /// Returns null for the default tiers (fast/standard) so the row stays
+  /// uncluttered — Kai escalating to ORCHESTRATOR/REASONING/HEAVY/SENSITIVE
+  /// is the interesting signal worth surfacing.
+  static _ModeBadge? _autonomousModeChip(String? type, dynamic colors) {
+    if (type == null || type.isEmpty) return null;
+    switch (type.toLowerCase()) {
+      case 'orchestrator':
+        return _ModeBadge(
+          icon: Icons.handyman_outlined,
+          label: 'инструменты',
+          color: colors.oceanPrimary as Color,
+        );
+      case 'reasoning':
+      case 'heavy':
+        return _ModeBadge(
+          icon: Icons.psychology_alt_outlined,
+          label: 'глубокий разбор',
+          color: colors.stateThinking as Color,
+        );
+      case 'sensitive':
+        return _ModeBadge(
+          icon: Icons.shield_moon_outlined,
+          label: 'безопасный режим',
+          color: colors.warning as Color,
+        );
+      case 'multimodal':
+        return _ModeBadge(
+          icon: Icons.image_outlined,
+          label: 'мультимодально',
+          color: colors.oceanPrimary as Color,
+        );
+      // fast / standard — default path, no chip.
+      default:
+        return null;
+    }
+  }
+
   String _shortModelName(String model) {
     // kai-ft → KAI-FT, glm-4-flash → GLM-4
     if (model.contains('kai')) return 'KAI-FT';
@@ -131,6 +184,44 @@ class _MetaChip extends StatelessWidget {
         Icon(icon, size: 10, color: colors.textTertiary),
         const SizedBox(width: 2),
         Text(label, style: textStyle),
+      ],
+    );
+  }
+}
+
+class _ModeBadge {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _ModeBadge({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+}
+
+class _ColoredMetaChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final TextStyle baseStyle;
+
+  const _ColoredMetaChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.baseStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 10, color: color),
+        const SizedBox(width: 2),
+        Text(label, style: baseStyle.copyWith(color: color)),
       ],
     );
   }
