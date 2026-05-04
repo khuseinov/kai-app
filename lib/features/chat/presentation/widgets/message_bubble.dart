@@ -2,12 +2,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/design/components/kai_cognitive_status.dart';
 import '../../../../core/design/theme/theme_extensions.dart';
 import '../../../../core/design/tokens/kai_spacing.dart';
 import '../../../../core/models/chat_message.dart';
+import '../../logic/chat_notifier.dart';
+import 'approval_actions.dart';
 
-class MessageBubble extends StatelessWidget {
+class MessageBubble extends ConsumerWidget {
   final ChatMessage message;
   final VoidCallback? onRetry;
 
@@ -18,7 +21,7 @@ class MessageBubble extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.kaiColors;
     final typography = context.kaiTypography;
     final isUser = message.isUser;
@@ -170,6 +173,29 @@ class MessageBubble extends StatelessWidget {
                     ],
                     if (message.pendingConfirmation == true) ...[
                       _ApprovalNotice(type: message.confirmationType),
+                      Builder(builder: (_) {
+                        // Stale-button guard: hide actions unless this Kai
+                        // message is the latest in the current session AND
+                        // the message's session matches the active one.
+                        // This prevents users from re-firing approve/reject
+                        // on historical bubbles after navigation or restart.
+                        final chatState = ref.watch(chatNotifierProvider);
+                        final notifier =
+                            ref.read(chatNotifierProvider.notifier);
+                        final isLatest = chatState.messages.isNotEmpty &&
+                            chatState.messages.last.id == message.id;
+                        final sameSession = message.sessionId == null ||
+                            message.sessionId == notifier.currentSessionId;
+                        if (!isLatest || !sameSession) {
+                          return const SizedBox.shrink();
+                        }
+                        return ApprovalActions(
+                          confirmationType: message.confirmationType,
+                          isBusy: chatState.isLoading,
+                          onApprove: () => _sendConfirmation(ref, true),
+                          onReject: () => _sendConfirmation(ref, false),
+                        );
+                      }),
                       const SizedBox(height: 8),
                     ],
                     if (message.content.isNotEmpty)
@@ -244,6 +270,16 @@ class _ApprovalNotice extends StatelessWidget {
       ),
     );
   }
+}
+
+void _sendConfirmation(WidgetRef ref, bool approve) {
+  final notifier = ref.read(chatNotifierProvider.notifier);
+  // Backend `_CONFIRM_YES_RE` (services/kai-core/src/api/security_scan.py)
+  // matches `\b(yes|allow|ok|proceed|legitimate|да|разреши|продолжи|легитимно)\b`.
+  // "да" matches → simulation/injection_pending_confirmation is consumed as approval.
+  // "отмена" deliberately does NOT match → backend falls through to denial branch.
+  final text = approve ? 'да' : 'отмена';
+  notifier.sendMessage(text);
 }
 
 enum _MessageAction { copy, retry }
