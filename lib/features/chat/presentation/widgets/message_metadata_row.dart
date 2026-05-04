@@ -24,7 +24,9 @@ class MessageMetadataRow extends StatelessWidget {
         _autonomousModeChip(message.requestType, context.kaiColors) != null ||
         message.executedToolCalls.isNotEmpty ||
         (message.worldModelUsed == true && (message.kgNodesQueried ?? 0) > 0) ||
-        (message.revisionCount ?? 0) > 0;
+        (message.revisionCount ?? 0) > 0 ||
+        (message.provider != null && message.provider!.isNotEmpty) ||
+        (message.tokensUsed != null && message.tokensUsed! > 0);
 
     if (!hasAnyMeta) return const SizedBox.shrink();
 
@@ -93,6 +95,24 @@ class MessageMetadataRow extends StatelessWidget {
             _MetaChip(
               icon: Icons.language,
               label: message.language!.toUpperCase(),
+              textStyle: textStyle,
+              colors: colors,
+            ),
+
+          // APP-PROVIDER-CHIP-1: LLM provider (DSK / KAI)
+          if (message.provider != null && message.provider!.isNotEmpty)
+            _MetaChip(
+              icon: Icons.hub_outlined,
+              label: _shortProviderName(message.provider!),
+              textStyle: textStyle,
+              colors: colors,
+            ),
+
+          // APP-PROVIDER-CHIP-1: Token count
+          if (message.tokensUsed != null && message.tokensUsed! > 0)
+            _MetaChip(
+              icon: Icons.tag_outlined,
+              label: '${message.tokensUsed} tok',
               textStyle: textStyle,
               colors: colors,
             ),
@@ -178,6 +198,12 @@ class MessageMetadataRow extends StatelessWidget {
       default:
         return null;
     }
+  }
+
+  String _shortProviderName(String provider) {
+    if (provider.contains('deepseek')) return 'DSK';
+    if (provider.contains('kai') || provider.contains('llama')) return 'KAI';
+    return provider.split('_').first.toUpperCase();
   }
 
   String _shortModelName(String model) {

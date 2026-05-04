@@ -305,6 +305,14 @@ class _CrisisBanner extends StatelessWidget {
 
   const _CrisisBanner({this.category});
 
+  static String _categoryLabel(String cat) => switch (cat.toLowerCase()) {
+        'suicidal_ideation' => 'Суицидальные мысли',
+        'self_harm' => 'Самоповреждение',
+        'abuse' => 'Насилие / абьюз',
+        'crisis' => 'Кризисная ситуация',
+        _ => cat,
+      };
+
   @override
   Widget build(BuildContext context) {
     final colors = context.kaiColors;
@@ -333,6 +341,17 @@ class _CrisisBanner extends StatelessWidget {
               ),
             ],
           ),
+          if (category != null && category!.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              _categoryLabel(category!),
+              style: typography.labelSmall.copyWith(
+                color: colors.textTertiary,
+                fontSize: 10,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
           const SizedBox(height: 6),
           Text(
             'Телефон доверия: 8-800-2000-122 (бесплатно)\n'
