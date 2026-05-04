@@ -53,8 +53,7 @@ class SessionDrawer extends ConsumerWidget {
               child: sessionState.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : sessionState.sessions.isEmpty
-                      ? _DrawerEmptyState(
-                          colors: colors, typography: typography)
+                      ? const _DrawerEmptyState()
                       : ListView.builder(
                           itemCount: sessionState.sessions.length,
                           padding: const EdgeInsets.symmetric(
@@ -86,20 +85,28 @@ class SessionDrawer extends ConsumerWidget {
                         ),
             ),
 
-            // Footer
-            const SizedBox(height: KaiSpacing.xs),
+            // Footer — version info
+            Divider(color: colors.textTertiary.withValues(alpha: 0.2)),
             Padding(
-              padding: const EdgeInsets.only(
-                left: KaiSpacing.m,
-                right: KaiSpacing.m,
-                bottom: KaiSpacing.s,
+              padding: const EdgeInsets.symmetric(
+                horizontal: KaiSpacing.m,
+                vertical: KaiSpacing.s,
               ),
-              child: Text(
-                'Kai v0.1.0 · staging',
-                style: typography.labelSmall.copyWith(
-                  color: colors.textTertiary,
-                  fontSize: 10,
-                ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 14,
+                    color: colors.textTertiary,
+                  ),
+                  const SizedBox(width: KaiSpacing.xs),
+                  Text(
+                    'Kai · v0.1.0',
+                    style: typography.bodySmall.copyWith(
+                      color: colors.textTertiary,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -110,13 +117,7 @@ class SessionDrawer extends ConsumerWidget {
 }
 
 class _DrawerEmptyState extends StatelessWidget {
-  const _DrawerEmptyState({
-    required this.colors,
-    required this.typography,
-  });
-
-  final dynamic colors;
-  final dynamic typography;
+  const _DrawerEmptyState();
 
   @override
   Widget build(BuildContext context) {
