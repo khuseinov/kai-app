@@ -25,11 +25,15 @@ class MessageMetadataRow extends StatelessWidget {
     if (message.isUser) return const SizedBox.shrink();
 
     final modeChip = _autonomousModeChip(message.requestType, context.kaiColors);
+    final scopeCategories = message.scopeEscalationCategories;
+    final hasScopeSignal = (message.scopeEscalationDetected ?? false) &&
+        scopeCategories.isNotEmpty;
 
     final hasAnyMeta = modeChip != null ||
         message.executedToolCalls.isNotEmpty ||
         (message.worldModelUsed == true && (message.kgNodesQueried ?? 0) > 0) ||
-        (message.revisionCount ?? 0) > 0;
+        (message.revisionCount ?? 0) > 0 ||
+        hasScopeSignal;
 
     if (!hasAnyMeta) return const SizedBox.shrink();
 
@@ -87,6 +91,19 @@ class MessageMetadataRow extends StatelessWidget {
               label: 'перепроверено',
               textStyle: textStyle,
               colors: colors,
+            ),
+
+          // Scope escalation — soft signal: Kai proposed actions in a category
+          // the user has not explicitly consented to in the recent turn.
+          // Backend: alignment/scope.py check_scope_boundary (B-16/H-9).
+          if (hasScopeSignal)
+            _ColoredMetaChip(
+              icon: (message.scopeInheritanceViolation ?? false)
+                  ? Icons.swap_horiz_outlined
+                  : Icons.fence_outlined,
+              label: 'нужно подтверждение: ${scopeCategories.join(", ")}',
+              color: colors.warning,
+              baseStyle: textStyle,
             ),
         ],
       ),

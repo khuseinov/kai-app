@@ -24,6 +24,16 @@ class ChatResponseDto with _$ChatResponseDto {
     @JsonKey(name: 'revision_count') int? revisionCount,
     @JsonKey(name: 'crisis_detected') bool? crisisDetected,
     @JsonKey(name: 'crisis_category') String? crisisCategory,
+    // Scope escalation signals (API-SCOPE-ESC-1; backend: alignment/scope.py)
+    @JsonKey(name: 'scope_escalation_detected') bool? scopeEscalationDetected,
+    @JsonKey(name: 'scope_escalation_categories')
+    @Default([])
+    List<String> scopeEscalationCategories,
+    @JsonKey(name: 'scope_inheritance_violation')
+    bool? scopeInheritanceViolation,
+    // Injection transparency (API-INJ-SIGNALS-1; backend: cognitive/critique/critique.py B-12)
+    @JsonKey(name: 'injection_fragment') String? injectionFragment,
+    @JsonKey(name: 'injection_source') String? injectionSource,
   }) = _ChatResponseDto;
 
   factory ChatResponseDto.fromJson(Map<String, dynamic> json) =>

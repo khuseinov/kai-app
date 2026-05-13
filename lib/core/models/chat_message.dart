@@ -35,6 +35,13 @@ class ChatMessage with _$ChatMessage {
     int? revisionCount,
     bool? crisisDetected,
     String? crisisCategory,
+    // Scope escalation signals (API-SCOPE-ESC-1)
+    bool? scopeEscalationDetected,
+    @Default([]) List<String> scopeEscalationCategories,
+    bool? scopeInheritanceViolation,
+    // Injection transparency (API-INJ-SIGNALS-1)
+    String? injectionFragment,
+    String? injectionSource,
   }) = _ChatMessage;
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) =>

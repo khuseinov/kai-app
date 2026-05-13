@@ -80,6 +80,16 @@ class ChatRemoteSource {
               revisionCount: (json['revision_count'] as num?)?.toInt(),
               crisisDetected: json['crisis_detected'] as bool?,
               crisisCategory: json['crisis_category'] as String?,
+              scopeEscalationDetected:
+                  json['scope_escalation_detected'] as bool?,
+              scopeEscalationCategories:
+                  (json['scope_escalation_categories'] as List<dynamic>?)
+                          ?.cast<String>() ??
+                      const [],
+              scopeInheritanceViolation:
+                  json['scope_inheritance_violation'] as bool?,
+              injectionFragment: json['injection_fragment'] as String?,
+              injectionSource: json['injection_source'] as String?,
             );
           } else if (currentEvent == 'approval') {
             yield ChatStreamEvent.approval(

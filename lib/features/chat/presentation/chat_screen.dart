@@ -13,6 +13,7 @@ import 'widgets/chat_empty_state.dart';
 import 'widgets/chat_input_bar.dart';
 import 'widgets/message_list.dart';
 import 'widgets/offline_banner.dart';
+import 'widgets/safety_block_banner.dart';
 import 'widgets/session_drawer.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -161,6 +162,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                 child: Column(
                   children: [
                     OfflineBanner(isOffline: isOffline),
+
+                    SafetyBlockBanner(
+                      latestMessage: chatState.messages.isEmpty
+                          ? null
+                          : chatState.messages.lastWhere(
+                              (m) => !m.isUser,
+                              orElse: () => chatState.messages.last,
+                            ),
+                    ),
 
                     if (chatState.error != null)
                       _ErrorBanner(

@@ -90,6 +90,11 @@ class ChatRepository {
       revisionCount: responseDto.revisionCount,
       crisisDetected: responseDto.crisisDetected,
       crisisCategory: responseDto.crisisCategory,
+      scopeEscalationDetected: responseDto.scopeEscalationDetected,
+      scopeEscalationCategories: responseDto.scopeEscalationCategories,
+      scopeInheritanceViolation: responseDto.scopeInheritanceViolation,
+      injectionFragment: responseDto.injectionFragment,
+      injectionSource: responseDto.injectionSource,
     );
 
     await _localSource.saveMessage(kaiMessage);
@@ -175,6 +180,11 @@ class ChatRepository {
             revisionCount,
             crisisDetected,
             crisisCategory,
+            scopeEscalationDetected,
+            scopeEscalationCategories,
+            scopeInheritanceViolation,
+            injectionFragment,
+            injectionSource,
           ) async {
             responseMessage = responseMessage.copyWith(
               correlationId: correlationId,
@@ -193,6 +203,11 @@ class ChatRepository {
               revisionCount: revisionCount,
               crisisDetected: crisisDetected,
               crisisCategory: crisisCategory,
+              scopeEscalationDetected: scopeEscalationDetected,
+              scopeEscalationCategories: scopeEscalationCategories,
+              scopeInheritanceViolation: scopeInheritanceViolation,
+              injectionFragment: injectionFragment,
+              injectionSource: injectionSource,
             );
             onUpdate(responseMessage);
           },
