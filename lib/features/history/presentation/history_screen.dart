@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/design/components/kai_card.dart';
+import '../../../core/design/components/kai_empty_state.dart';
+import '../../../core/design/components/kai_error_view.dart';
 import '../../../core/design/theme/theme_extensions.dart';
 import '../../../core/design/tokens/kai_spacing.dart';
 import '../../chat/logic/chat_notifier.dart';
@@ -32,62 +35,43 @@ class HistoryScreen extends ConsumerWidget {
       ),
       body: state.selectedSessionId != null
           ? _MessagesView(sessionId: state.selectedSessionId!)
-          : _SessionListView(state: state),
+          : _SessionListView(
+              state: state,
+              onRetry: () => ref.read(historyNotifierProvider.notifier).loadSessions(),
+            ),
     );
   }
 }
 
 class _SessionListView extends StatelessWidget {
   final HistoryState state;
+  final VoidCallback onRetry;
 
-  const _SessionListView({required this.state});
+  const _SessionListView({required this.state, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.kaiColors;
-    final typography = context.kaiTypography;
-
     if (state.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
     if (state.error != null) {
       return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(KaiSpacing.m),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.cloud_off_outlined, size: 48, color: colors.textTertiary),
-              const SizedBox(height: KaiSpacing.s),
-              Text(
-                state.error!,
-                style: typography.bodyMedium.copyWith(color: colors.textSecondary),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+        child: KaiErrorView(
+          message: state.error!,
+          icon: Icons.cloud_off_outlined,
+          onRetry: onRetry,
+          retryLabel: 'Повторить',
         ),
       );
     }
 
     if (state.sessions.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.history, size: 48, color: colors.textTertiary),
-            const SizedBox(height: KaiSpacing.s),
-            Text(
-              'История пуста',
-              style: typography.titleMedium.copyWith(color: colors.textSecondary),
-            ),
-            const SizedBox(height: KaiSpacing.xxs),
-            Text(
-              'Ваши разговоры появятся здесь',
-              style: typography.bodySmall.copyWith(color: colors.textTertiary),
-            ),
-          ],
+      return const Center(
+        child: KaiEmptyState(
+          icon: Icons.history,
+          title: 'История пуста',
+          subtitle: 'Ваши разговоры появятся здесь',
         ),
       );
     }
@@ -96,7 +80,7 @@ class _SessionListView extends StatelessWidget {
       builder: (context, ref, _) => ListView.separated(
         itemCount: state.sessions.length,
         separatorBuilder: (_, __) =>
-            Divider(color: colors.glassBorder, height: 1),
+            Divider(color: context.kaiColors.glassBorder, height: 1),
         itemBuilder: (context, index) {
           final session = state.sessions[index];
           return _SessionTile(
@@ -290,25 +274,23 @@ class _MessageBubbleSimple extends StatelessWidget {
 
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
+      child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
-        margin: const EdgeInsets.only(bottom: KaiSpacing.s),
-        padding: const EdgeInsets.symmetric(
-          horizontal: KaiSpacing.s,
-          vertical: KaiSpacing.xs,
-        ),
-        decoration: BoxDecoration(
-          color: isUser
-              ? colors.oceanPrimary.withValues(alpha: 0.12)
-              : colors.surfaceContainer,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: colors.glassBorder),
-        ),
-        child: Text(
-          message.content,
-          style: typography.bodySmall.copyWith(color: colors.textPrimary),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: KaiSpacing.s),
+          child: KaiCard(
+            padding: const EdgeInsets.symmetric(
+              horizontal: KaiSpacing.s,
+              vertical: KaiSpacing.xs,
+            ),
+            highlighted: isUser,
+            child: Text(
+              message.content,
+              style: typography.bodySmall.copyWith(color: colors.textPrimary),
+            ),
+          ),
         ),
       ),
     );
