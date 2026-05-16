@@ -202,6 +202,7 @@ class MessageBubble extends ConsumerWidget {
                         message.status != 'sent') ...[
                       KaiCognitiveStatus(
                         currentStep: message.cognitiveStatus!,
+                        step: message.currentStep,
                       ),
                       const SizedBox(height: 8),
                     ],
