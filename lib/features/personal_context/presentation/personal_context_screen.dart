@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/design/components/kai_empty_state.dart';
+import '../../../core/design/components/kai_error_view.dart';
 import '../../../core/design/theme/theme_extensions.dart';
 import '../../../core/design/tokens/kai_spacing.dart';
 import '../data/profile_remote_source.dart';
@@ -66,30 +68,16 @@ class _PersonalContextScreenState
                 const SizedBox(height: KaiSpacing.l),
 
                 if (state.error != null) ...[
-                  _ErrorChip(message: state.error!),
+                  KaiErrorView(message: state.error!),
                   const SizedBox(height: KaiSpacing.m),
                 ],
 
                 if (state.items.isEmpty && !state.isLoading)
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: KaiSpacing.xxl),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.person_outline,
-                            size: 48,
-                            color: colors.textTertiary,
-                          ),
-                          const SizedBox(height: KaiSpacing.s),
-                          Text(
-                            'Kai ещё не запомнил\nваши предпочтения',
-                            textAlign: TextAlign.center,
-                            style: typography.bodyMedium
-                                .copyWith(color: colors.textTertiary),
-                          ),
-                        ],
-                      ),
+                  const Center(
+                    child: KaiEmptyState(
+                      icon: Icons.person_outline,
+                      title: 'Нет инструкций',
+                      subtitle: 'Добавьте инструкции, чтобы Kai лучше вас понимал',
                     ),
                   )
                 else
@@ -288,39 +276,6 @@ class _ProfileChip extends StatelessWidget {
                   typography.bodySmall.copyWith(color: colors.textSecondary),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ErrorChip extends StatelessWidget {
-  final String message;
-
-  const _ErrorChip({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.kaiColors;
-    final typography = context.kaiTypography;
-
-    return Container(
-      padding: const EdgeInsets.all(KaiSpacing.s),
-      decoration: BoxDecoration(
-        color: colors.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: colors.error.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, size: 16, color: colors.error),
-          const SizedBox(width: KaiSpacing.xs),
-          Expanded(
-            child: Text(
-              message,
-              style: typography.bodySmall.copyWith(color: colors.error),
             ),
           ),
         ],
