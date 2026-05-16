@@ -12,7 +12,15 @@ class ChatLocalSource {
 
   // Messages
   Future<void> saveMessage(ChatMessage message) async {
-    await _chatBox.put(message.id, message.toJson());
+    // BUG-HIVE-TOOLSOURCE-1 (2026-05-16): json_serializable generated
+    // _$ChatMessageImplToJson serializes `sources` as the raw List<ToolSource>
+    // instead of List<Map>. Hive then sees `_$ToolSourceImpl` and throws
+    // "Cannot write, unknown type: _$ToolSourceImpl". Until build_runner is
+    // rerun with explicit_to_json enabled, force-flatten nested Freezed
+    // lists here before persisting.
+    final raw = Map<String, dynamic>.from(message.toJson());
+    raw['sources'] = message.sources.map((s) => s.toJson()).toList();
+    await _chatBox.put(message.id, raw);
   }
 
   List<ChatMessage> getMessagesForSession(String sessionId) {
