@@ -6,6 +6,8 @@ import '../../features/auth/presentation/register_screen.dart';
 import '../../features/chat/presentation/chat_screen.dart';
 import '../../features/country/presentation/country_picker_screen.dart';
 import '../../features/country/presentation/country_detail_screen.dart';
+import '../../features/history/presentation/history_screen.dart';
+import '../../features/personal_context/presentation/personal_context_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -40,6 +42,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => CountryDetailScreen(
           iso2: state.pathParameters['iso2']!.toUpperCase(),
         ),
+      ),
+      // APP-C1 + APP-C2: Personal context + custom instructions
+      GoRoute(
+        path: '/personal-context',
+        builder: (context, state) => const PersonalContextScreen(),
+      ),
+      // APP-E1 + APP-E2: Server-side history + session resume
+      GoRoute(
+        path: '/history',
+        builder: (context, state) => const HistoryScreen(),
       ),
     ],
   );

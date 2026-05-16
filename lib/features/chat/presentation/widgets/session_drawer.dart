@@ -97,6 +97,22 @@ class SessionDrawer extends ConsumerWidget {
               },
             ),
             _DrawerNavItem(
+              icon: Icons.history_outlined,
+              label: 'История',
+              onTap: () {
+                onClose?.call();
+                context.push('/history');
+              },
+            ),
+            _DrawerNavItem(
+              icon: Icons.person_outline,
+              label: 'Мой контекст',
+              onTap: () {
+                onClose?.call();
+                context.push('/personal-context');
+              },
+            ),
+            _DrawerNavItem(
               icon: Icons.settings_outlined,
               label: 'Настройки',
               onTap: () {

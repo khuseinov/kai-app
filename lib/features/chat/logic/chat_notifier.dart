@@ -289,6 +289,15 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
   }
 
+  /// APP-E2: load messages from server-side history session.
+  void loadFromHistory(String sessionId, List<ChatMessage> messages) {
+    _streamCancelToken?.cancel();
+    _streamCancelToken = null;
+    _currentSessionId = sessionId;
+    _sessionTitled = true;
+    state = ChatState(messages: messages);
+  }
+
   void newSession() {
     _streamCancelToken?.cancel();
     _streamCancelToken = null;
