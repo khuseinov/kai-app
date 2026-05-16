@@ -1,247 +1,427 @@
-# KAI 2026 — Companion Redesign & Dechroming
+# KAI 2026 — Zero-UI / Kai-Centric Redesign
 
-> **Дата:** 2026-05-17 | **Автор:** khuseinov (с помощью Claude) | **Статус:** Дизайн на ревью
+> **Дата:** 2026-05-17 (REV2 — переписано под Zero-UI идеологию пользователя) | **Автор:** khuseinov + Claude | **Статус:** Дизайн на ревью
 
-## Цель
+## Главная идея (от пользователя)
 
-Превратить KAI из «backend в семи бейджах» в спокойный AI-companion 2026 года. Убрать ~70% chrome'а с пузырей Kai, удалить дубликаты экранов и виджетов, ввести единый протокол подтверждения, добавить недостающие 2026-affordances (видимый mic, экран памяти, crisis-card).
+> **Kai — это AI. Вокруг ИИ всё делается. Сам ИИ вызывает интерфейсы. Юзер вызывает интерфейсы либо через Kai (голос/чат), либо через жесты.**
 
-## Источник истины — что подтверждено
+Это **Zero-UI** философия. На экране нет постоянного chrome. Все интерфейсы **скрыты по умолчанию** и появляются только когда:
 
-- 3 параллельных ревью (UX critic, architecture critic, kill-advocate) сошлись на одних и тех же 25 поверхностях, которые нужно убрать или объединить.
-- WebSearch (mei 2026) подтвердил направление: ChatGPT/Claude/Gemini в 2026 переходят на centered greeting + единая prompt-pill + collapsed reasoning + memory transparency.
-- Recent commits самого репозитория (онбординг удалён, knowledge-graph chip удалён, connectivity pill удалена, country feature удалена, source/tool chips дедуплицированы) подтверждают, что направление взято верно — это спецификация финального broad-strokes redesign'а.
+1. **Юзер их вызвал** — жестом (свайп) или попросив Kai (голосом/текстом)
+2. **Kai сам решил их показать** — автономно, когда это релевантно (подтверждение, кризис, карта, память, async-прогресс)
+
+Kai — единственная постоянная сущность на экране. Всё остальное — эфемерные surfaces, которые «всплывают» только когда нужно, и исчезают, как только их роль исполнена.
+
+---
 
 ## Принципы
 
-1. **Calm interface.** Каждый элемент должен зарабатывать своё место. Дефолт — тишина, детали — по запросу.
-2. **Прогрессивное раскрытие.** Detail Sheet (long-press) — единый дом для всей метаданной.
-3. **Один протокол подтверждения.** Не три разных, не regex по чату.
-4. **Память видимая.** Экран «Что Kai обо мне знает» с per-item edit / delete.
-5. **Голос — first-class.** Mic-кнопка всегда видна, не спрятана за тапом по фону.
-6. **Crisis = full-bleed card.** Никаких chips/banners в кризисе.
-7. **Liquid Glass** на iOS 26+, Material You на Android. Calm palette.
+1. **Один экран — `KaiScreen`.** Никаких "main screens" с навигацией. Только Kai (анимированная волна/сфера) на фоне.
+2. **Нет постоянного chrome.** Никакой видимой input bar, никаких кнопок, никаких top/bottom-таб. Всё спрятано.
+3. **Kai — оркестратор UI.** Когда Kai видит, что нужен интерфейс — он вызывает его сам (например, ApprovalSurface, CrisisCard, Map preview, Memory toast).
+4. **Юзер вызывает интерфейсы двумя путями:**
+   - **Жестом** — свайпы / тап / long-press
+   - **Через Kai** — «открой настройки», «покажи мою память», «вернись к разговору с прошлой недели»
+5. **Удаляется всё, что для разработчика.** Mode badge, tool chips с внутренними именами, provider, tokens, XAI block, revision count, advisor badge, scope chip, language setting, debug API URL — всё это либо удалено, либо спрятано за 7-tap easter egg.
+6. **Остаётся только то, что нужно юзеру.** Чат, голос, сессии, память, кризисная помощь, подтверждение действий.
 
 ---
 
-## Архитектура
+## Главный экран (KaiScreen)
 
-### Экраны: было 6 → стало 3
+### Пустое состояние (empty session)
 
-| Было | Стало |
-|---|---|
-| Chat | **Chat** (главный, единственный «контентный») |
-| Login | **Auth** (Login + Register, неизменно) |
-| Register | (в Auth) |
-| Settings | **Settings** (минимальные — см. ниже) |
-| History | **DELETE** — drawer выполняет ту же функцию |
-| Personal Context | **MERGE** → теперь экран «Память» доступен из drawer |
+```
+┌─────────────────────────────────────────┐
+│                                         │
+│                                         │
+│                                         │
+│                                         │
+│              ╭─────────╮                │
+│             │    Kai    │ ←  Дышащая   │
+│             │  (волна)  │     сфера —  │
+│              ╰─────────╯     единственный
+│                                 visible  │
+│                                 element  │
+│                                         │
+│                                         │
+│                                         │
+│                   ─                     │ ← очень subtle
+│                                         │    handle (3px)
+└─────────────────────────────────────────┘
+```
 
-### Навигация
+- **Видно только:** анимированная Kai-сфера (KaiGeminiWave) + опционально время/дата overlay в верхнем углу очень subtle
+- **НЕТ:** входной строки, кнопок, меню, badges, suggested-prompts (это против философии)
+- Опционально (по согласованию): тонкая надпись «Скажите или коснитесь Kai» один раз для нового юзера, потом исчезает навсегда
 
-- **Drawer слева (swipe от левого края)** — единственная навигационная primitive
-  - `+ Новый разговор`
-  - Список сессий (то, что сейчас в `SessionDrawer`)
-  - Разделитель
-  - → `Память` (Kai обо мне)
-  - → `Настройки`
-- **Detail Sheet (long-press на Kai-ответе)** — все скрытые метаданные собраны здесь:
-  - Источники (URL, fetched-at, freshness)
-  - Тулзы (внутренние имена — для curious users)
-  - Размышление (XAI: Intents/Critique/Goal — collapsed by default)
-  - Mode (request_type) + provider + tokens — для power users
-  - «Почему этот ответ?» — основная подача reasoning
+### В разговоре (есть сообщения)
+
+```
+┌─────────────────────────────────────────┐
+│                                         │
+│                    [Kai в фоне subtly,  │
+│                     полупрозрачно]      │
+│                                         │
+│  ─── 17 мая ────                        │
+│                                         │
+│              Расскажи про визу в Японию │
+│                                       → │
+│                                         │
+│  Гражданам РФ нужна виза в Японию [1].  │
+│  Срок 4 раб. дня через визовый центр.   │
+│                                         │
+│  ✓ 3 источника        👍  👎            │
+│                                         │
+│                                         │
+│                  ─                      │
+└─────────────────────────────────────────┘
+```
+
+- **Сообщения** — чистый текст с inline-цитатами `[1][2]`
+- **Kai** в фоне становится полупрозрачным когда есть сообщения
+- **Под ответом** — только: `✓ N источников` + 👍 / 👎
+- **НЕТ:** mode chip, tool chips, provider, tokens, XAI, revision, advisor, scope chip — всё это в Detail Sheet по long-press
 
 ---
 
-## Kill-list (финальный)
+## Жесты (User-invoked surfaces)
 
-### DELETE — мёртвый код / неиспользуемые виджеты
-
-| Файл | Причина |
+| Жест | Что вызывает |
 |---|---|
-| `lib/features/chat/presentation/widgets/typing_indicator.dart` | Никто не импортирует. Используется `ChatLoadingIndicator` |
+| **Tap по фону / Kai-сфере** | Активировать voice listening (мик включается, Kai переходит в listening-state) |
+| **Свайп вверх от низа** | `InputSheet` — text-ввод + кнопка mic + кнопка Send |
+| **Свайп вправо от ЛЕВОГО края (20px зона)** | `Drawer` — единая точка для всего скрытого: + Новый разговор / История / Память / Настройки / Выход |
+| **Свайп вниз от верхнего края** | `QuickActionsSheet` — быстрые actions (новая сессия, тема, забыть всё) |
+| **Long-press по сообщению Kai** | `MessageDetailSheet` — источники, reasoning, тулзы, provider/tokens (для curious users) |
+| **Long-press по сообщению юзера** | Context menu: Copy / Edit / Delete |
+| **Swipe-back по сессии в drawer** | Delete с confirmation |
+
+### Detail (что в каждом sheet)
+
+#### `InputSheet` (свайп вверх)
+```
+┌──────────────────────────────────────┐
+│ ─                                    │ ← handle
+│                                      │
+│ ┌──────────────────────────────┬───┐ │
+│ │ Напишите Kai…                │ 🎤│ │
+│ └──────────────────────────────┴───┘ │
+│                                      │
+│ [Send когда есть текст]              │
+└──────────────────────────────────────┘
+```
+- Text field
+- Mic button справа (long-press = push-to-talk, tap = voice mode)
+- Кнопка Send появляется только когда есть text
+
+#### `Drawer` (свайп вправо)
+```
+┌──────────────────────┐
+│ +  Новый разговор    │
+│ ─────────────────    │
+│ • Визы в Японию      │ ← подсвечен — активная
+│   Маршрут в Турцию   │
+│   Что съесть в Токио │
+│   ⋯                  │
+│ ─────────────────    │
+│ 🧠  Память           │
+│ ⚙️   Настройки         │
+│ ↩️   Выйти             │
+└──────────────────────┘
+```
+
+#### `QuickActionsSheet` (свайп вниз сверху)
+```
+┌──────────────────────────────────────┐
+│ ─                                    │
+│                                      │
+│  🆕 Начать новую сессию              │
+│  🌙 Тема (Auto/Light/Dark)           │
+│  🗑 Очистить эту сессию              │
+│                                      │
+└──────────────────────────────────────┘
+```
+*Опционально — можно убрать если избыточно к drawer.*
+
+#### `MessageDetailSheet` (long-press по Kai-message)
+```
+┌──────────────────────────────────────┐
+│ ─                                    │
+│                                      │
+│ Источники                            │
+│  [1] visa.gov — 12:34 ✓              │
+│  [2] timatic.iata.org — 12:35 ⚠ 5d  │
+│  [3] embassy.jp — 11:52 ✓            │
+│                                      │
+│ Почему этот ответ?                   │
+│  [XAI: Intent | Goal | Critique]     │
+│  (collapsed by default)              │
+│                                      │
+│ Детали                               │
+│  Модель: claude-sonnet-4-6           │
+│  Время: 2.3s                         │
+│                                      │
+│ ─────────────                        │
+│ [Поделиться] [Скопировать]           │
+│ [Переспросить]                       │
+└──────────────────────────────────────┘
+```
+
+---
+
+## Kai-invoked surfaces (Kai вызывает сам)
+
+Это интерфейсы, которые **Kai автономно вызывает**, когда контекст диалога этого требует. Юзер их не вызывает явно — они появляются как часть работы AI.
+
+| Surface | Когда Kai вызывает | Поведение |
+|---|---|---|
+| **`ApprovalSurface`** | Юзер просит сделать что-то требующее consent (бронь, оплата, отправка) | Модальный overlay поверх чата с описанием действия и кнопками «Отмена / Подтвердить». **Single mechanism** — заменяет HITL / scope-escalation / injection (3 → 1) |
+| **`CrisisCard`** | Backend возвращает `crisisCategory + severity >= medium` | **Full-bleed карточка**, заменяет обычный ответ Kai. Heart icon, empathetic text, 1-tap «📞 112», 1-tap «💬 Телефон доверия». Подробности — в spec |
+| **`MemoryToast`** | Kai запомнил новый факт о юзере | Краткий toast снизу: «Запомнил: предпочитаете street food. [Открыть память]». Auto-dismiss через 4с |
+| **`InlineRichCard`** | Юзер спросил карту / погоду / курс / маршрут | Inline в bubble — preview-карточка (например, map snippet, weather chip), tap → expand. Kai сам решает, когда это уместно |
+| **`StopGeneratingButton`** | Активный stream | Subtle pill «■ Стоп» в нижней части экрана, видимая только пока стримит |
+| **`SubtleStreamingIndicator`** | Идёт стрим / async-task | Kai-сфера тонко пульсирует красивее (без отдельного spinner widget). `AsyncProgressCard` удаляется |
+| **`ScrollToLatestButton`** | Юзер скроллит вверх, а Kai отвечает внизу | Появляется fab «↓ К последнему» |
+
+### Голосовое управление интерфейсами через Kai
+
+Юзер может сказать (или написать) Kai:
+- «Открой настройки» → Kai открывает `Drawer` → подсвечивает «Настройки»
+- «Покажи мою память» → Kai открывает Memory sheet
+- «Вернись к разговору про визы» → Kai находит сессию и переключает
+- «Удали мои данные» → Kai открывает confirmation для GDPR delete
+- «Покажи источники» → Kai открывает `MessageDetailSheet` последнего ответа
+
+Это реализуется как набор **tool_calls** на бэкенде типа `ui_navigate(target)`, которые фронт интерпретирует и анимирует переход.
+
+---
+
+## Что удаляется (агрессивный CUT — всё, что для разработчика)
+
+### KILL — DEV-noise на пузыре Kai
+
+| Поверхность | Файл | Почему |
+|---|---|---|
+| **Mode badge** «инструменты/глубокий разбор/безопасный режим/мультимодально» | `message_metadata_row.dart` | Backend routing leak. Юзер не моделирует Kai как router |
+| **Tool execution chips** (visa/risk/route/cost/health/emergency/search/verify/news) | `message_metadata_row.dart` | Внутренние имена тулз. Заменяется одним `✓ N источников` |
+| **Revision count** «перепроверено» | `message_metadata_row.dart` | Отрицательный сигнал (намекает на ошибку) |
+| **Scope escalation chip** «нужно подтверждение: [cats]» | `message_metadata_row.dart` | Дублирует ApprovalSurface |
+| **Advisor trigger badge** «Kai уточнил ответ ✓» | `message_metadata_row.dart` | Self-congratulatory |
+| **Provider chip + token count** | `message_metadata_row.dart` | Дев-телеметрия |
+| **Crisis chip** | `message_bubble.dart:_CrisisBanner` | Заменяется full-bleed CrisisCard |
+| **XAI block inline** (Intents/Critique/Goal) | `message_bubble.dart:_XAIBlock` | Alignment research instrumentation. Прячется в Detail Sheet |
+| **`_SpecialModePill` «Запомлил»** | `message_bubble.dart` | Дубль с `_MemorizeChip` |
+| **`_MemorizeChip` «Предпочтение сохранено»** | `message_bubble.dart` | Заменяется MemoryToast |
+| **BiasTipCard** | `bias_tip_card.dart` | Performative epistemics; никто не разворачивает |
+| **VerifyWarningCard** | `verify_warning_card.dart` | Заменяется `SystemMessage` (унифицированный inline warning) |
+| **`SafetyBlockBanner`** (4 sub-варианта) | `safety_block_banner.dart` | Заменяется `SystemMessage` |
+| **Snackbar «Kai проверяет источники»** | `chat_screen.dart:131-152` | Шум; tool-status уже виден inline |
+| **`OfflineBanner` always-on** | `offline_banner.dart` | Заменяется snackbar только при ошибке send |
+
+### KILL — DEV-noise в навигации и фоне
+
+| Поверхность | Почему |
+|---|---|
+| **`_AnimatedPill` 40×4 pulsing** | Невидимая affordance — заменяется на subtle 24×3 handle |
+| **`_toolsSeenInSessionProvider`** | Ephemeral UI hint, не нужен |
+| **`KaiCognitiveStatus` в виде отдельного widget'а** | Заменяется dynamic анимацией самой Kai-сферы (states: idle/thinking/speaking) |
+
+### DELETE — мёртвый код
+
+| Файл / символ | Причина |
+|---|---|
+| `lib/features/chat/presentation/widgets/typing_indicator.dart` | Никто не импортирует |
 | `lib/core/design/components/kai_connectivity_pill.dart` | Никто не импортирует |
-| `lib/core/providers/backend_health_provider.dart` | Нет ни одного `ref.watch` — провайдер не активен |
-| `lib/core/network/health_poller.dart` | Сирота после удаления pill |
-| `lib/features/settings/presentation/sections/language_section.dart` | Backend `ChatRequest` не имеет поля `language` — preference broken |
-| `lib/features/history/` (вся папка) | Drawer выполняет ту же функцию |
-| `lib/features/chat/data/chat_repository.dart` — non-stream `sendMessage` ветка | Используется только в offline-queue flush; перевести на reuse `streamMessage` |
-| `FeatureFlags.voiceEnabled`, `FeatureFlags.pushNotificationsEnabled` | Никто не проверяет — мёртвые флаги |
-| `_toolsSeenInSessionProvider` + snackbar «Kai проверяет источники» | Tool-status уже виден inline в стриме |
-| `AppSettings.language`, `SettingsNotifier.setLanguage` | Связанный с удалённой language secton |
+| `lib/core/providers/backend_health_provider.dart` | Никто не watch'ает; поллер активно не работает |
+| `lib/core/network/health_poller.dart` | Сирота |
+| `lib/features/settings/presentation/sections/language_section.dart` | Backend игнорирует язык — preference broken |
+| `lib/features/settings/presentation/sections/api_url_section.dart` | Перенесено за 7-tap easter egg |
+| **Вся папка `lib/features/history/`** | Drawer выполняет ту же функцию |
+| `lib/features/chat/data/chat_repository.dart` non-stream branch | Не вызывается на streaming-пути |
+| `FeatureFlags.voiceEnabled`, `FeatureFlags.pushNotificationsEnabled` | Мёртвые флаги |
+| `AppSettings.language`, `SettingsNotifier.setLanguage` | Связанные с broken language section |
+| `ChatLoadingIndicator`, `TypingIndicator` | Заменяются единой анимацией Kai-сферы |
 
-### KILL — UI-поверхности убрать с пузыря Kai
-
-| Поверхность | Причина |
-|---|---|
-| Mode badge (4 варианта: инструменты/глубокий разбор/безопасный режим/мультимодально) | Backend routing leakage; пользователь не моделирует Kai как router |
-| Tool execution chips (9 типов: visa/risk/route/cost/...) | Internal subsystem labels; заменяется одним `✓ Проверено в N источниках` |
-| Revision count «перепроверено» | Implies first answer was wrong — отрицательный сигнал |
-| Scope escalation chip («нужно подтверждение: [cats]») | Если Kai нужно подтверждение — он **спрашивает** через ApprovalSurface, не штампует |
-| Advisor trigger badge «Kai уточнил ответ ✓» | Self-congratulatory metadata |
-| `_SpecialModePill` «Запомнил» + `_MemorizeChip` «Предпочтение сохранено» | Один и тот же event, дважды, на расстоянии 200px |
-| BiasTipCard (expandable) | Performative epistemics; никто не разворачивает |
-| OfflineBanner (always-on top) | Заменяется snackbar только при ошибке send |
-| `_AnimatedPill` (40×4 pulsing line) | Невидимый input affordance — заменяется видимой input bar |
-
-### HIDE — переносим в Detail Sheet (long-press)
-
-| Поверхность | Куда |
-|---|---|
-| Source chips с fetched-at / freshness color | Detail Sheet → секция «Источники» |
-| Provider chip + token count | Detail Sheet → секция «Детали» |
-| XAI block (Intents/Critique/Goal) | Detail Sheet → «Почему этот ответ?» |
-| DEBUG API URL section | Settings → 7-tap по version tile |
-
-### MERGE — объединяем
-
-| Что | Во что |
-|---|---|
-| `_ApprovalNotice` + `_InjectionWarningCard` + `_ScopeEscalationBanner` + `ApprovalActions` | **`ApprovalSurface(kind, reason, fragment?)`** — один widget, один protocol, кнопки «Отмена / Подтвердить» |
-| `SafetyBlockBanner` (4 sub-варианта) | **`SystemMessage(severity, body)`** — один inline component |
-| `VerifyWarningCard` | **`SystemMessage`** ↑ той же системы |
-| `AsyncProgressCard` | merge в typing indicator с elapsed time |
-| `KaiCard` (unused) + 30+ inline `Container(decoration: BoxDecoration(border…))` | Все bordered surfaces используют **только `KaiCard`** |
-| `KaiEmptyState` (unused) + 3 bespoke empty states | Все используют **только `KaiEmptyState`** |
-| `KaiErrorView` (unused) + `_ErrorBanner` + `_ErrorChip` + bespoke в History | Все используют **только `KaiErrorView`** |
-
-### REDESIGN — полная перестройка UX
+### MERGE — три механизма → один
 
 | Было | Стало |
 |---|---|
-| `_CrisisBanner` (chip-style сверху bubble) | **Full-bleed CrisisCard**, заменяет ответ целиком (см. mock ниже) |
-| `personal_context_screen.dart` | **MemoryScreen** «Что Kai обо мне знает» — group by category, per-item edit/delete, master toggle |
-| Invisible 40×4 pill bottom input affordance | **Видимая input bar** в нижней части + видимая mic-кнопка справа |
-| Three approval mechanisms (HITL/scope/injection) | **Один `ApprovalSurface`** с typed backend endpoint `POST /chat/confirm` |
-| Two clicks of «approval»: regex-matching на «да» и кнопки | Только typed endpoint; кнопки → POST `/chat/confirm {action: approve|reject, message_id}` |
+| `_ApprovalNotice` + `_InjectionWarningCard` + `_ScopeEscalationBanner` + `ApprovalActions` (3 separate banners + 1 widget) | **`ApprovalSurface(kind, reason, fragment?)`** — единый widget, единый backend endpoint `POST /chat/confirm` |
+| `SafetyBlockBanner` (4 sub) + `VerifyWarningCard` + inline error notices | **`SystemMessage(severity, body)`** |
+| 3 loading indicators (`TypingIndicator`, `ChatLoadingIndicator`, `KaiGeminiWave`) | **Только `KaiGeminiWave`** с динамическими states |
+| 3 bespoke empty states + неиспользуемый `KaiEmptyState` | **Только `KaiEmptyState`** (но в основном экране — нет empty state, только Kai-сфера) |
+| 3 bespoke error views + неиспользуемый `KaiErrorView` | **Только `KaiErrorView`** |
+| 30+ inline `Container(decoration: BoxDecoration(border…))` + неиспользуемый `KaiCard` | **Только `KaiCard`** |
 
-### SPLIT — разбираем большие файлы
+---
 
-| Файл | На |
+## Что остаётся — user-facing features
+
+### Чат
+- ✅ Отправка сообщения (через InputSheet)
+- ✅ Streaming response с inline-цитатами `[1][2]`
+- ✅ **Stop generating** (новое — Kai-invoked button)
+- ✅ Async tasks с возможностью cancel
+- ✅ Retry на failed message (long-press)
+- ✅ Copy message (long-press)
+- ✅ 👍 / 👎 реакции (новое)
+
+### Голос
+- ✅ Tap по Kai-сфере → начать listening
+- ✅ Visible mic в InputSheet (long-press = push-to-talk)
+- ✅ Voice mode full-screen с animation Kai-волны
+
+### Сессии (через Drawer)
+- ✅ Новая сессия
+- ✅ Переключение сессии
+- ✅ Удаление сессии (swipe + confirm)
+- ✅ История прошлых сообщений в сессии (= drill-down в drawer)
+
+### Память (через Drawer → Память)
+- ✅ Список фактов сгруппированных по type
+- ✅ Per-item edit (open bottom sheet)
+- ✅ Per-item delete (с confirm)
+- ✅ Master toggle «Память Kai включена»
+- ✅ «Забыть всё» (= GDPR delete trajectory)
+- ✅ Auto-toast `MemoryToast` когда Kai запомнил новое — с deep-link «Открыть память»
+
+### Настройки (через Drawer → Настройки)
+Минимальный набор:
+- ✅ Тема (Auto / Light / Dark)
+- ✅ Reduce motion
+- ✅ Голос (вкл / выкл)
+- ✅ Аккаунт (email + Logout)
+- ✅ **Удалить мои данные** (GDPR)
+- ✅ Версия (7-tap → скрытая dev-секция с API URL)
+
+### Crisis (Kai-invoked)
+- ✅ Full-bleed CrisisCard когда Kai детектирует кризис
+- ✅ 1-tap «📞 112» / «💬 Телефон доверия» / (опц.) embassy
+- ✅ Никаких chip/badge — full screen takeover
+
+### Approval (Kai-invoked)
+- ✅ Единый `ApprovalSurface` modal для всех типов consent
+- ✅ Backend `POST /chat/confirm` с typed `action: approve|reject`
+
+### Auth
+- ✅ Login / Register (без изменений)
+- ✅ Refresh token
+- ✅ Logout (из Drawer → Настройки)
+
+---
+
+## Что добавляется (user convenience)
+
+| Фича | Зачем |
 |---|---|
-| `message_bubble.dart` (1054 LOC, 11 widget classes) | `message_bubble.dart` (≤250) + `widgets/inline/crisis_card.dart`, `xai_block.dart`, `simulation_card.dart`, `system_message.dart`, `approval_surface.dart`, `_StatusIcon` |
-| `chat_screen.dart` (461 LOC) | `chat_screen.dart` (≤200) + `chat_drawer_overlay.dart` + `chat_voice_gesture.dart` |
-| `chat_notifier.dart` (345 LOC) | `chat_notifier.dart` (≤200) + `async_chat_notifier.dart` (polling loop) |
+| **MemoryToast** | Видимая обратная связь «Kai запомнил X» → доверие |
+| **Stop generating button** | Standard 2026 chat affordance — мid-stream interruption |
+| **InlineRichCard** (map / weather / currency preview) | Kai сам решает показать структурированную информацию |
+| **`ui_navigate` tool на бэкенде** | Юзер может голосом «открой настройки» / «покажи память» |
+| **Share-as-PDF (trip plan export)** | Kai может предложить «хотите сохранить план?» → share-sheet |
+| **Reactions 👍👎** | Feedback loop для улучшения Kai |
+| **Suggested prompts через Kai** | Когда пустая сессия, Kai первым шлёт «Чем могу помочь? Я могу проверить визы, спланировать маршрут…» — не как UI chip, а как обычное сообщение от Kai |
+| **Numbered inline citations** `[1][2]` | Perplexity-style — single tap expands source preview |
 
 ---
 
-## Новый chat-bubble — спецификация
-
-### Поведение
-
-- **Streaming.** Текст рендерится токен-за-токеном с консистентным темпом.
-- **Tool calls во время стрима.** Если Kai вызывает тулзу, в bubble появляется ephemeral line «🔍 Ищу визовые правила…» — она исчезает, когда tool возвращает результат.
-- **Reasoning (XAI / cognitive status).** Сворачиваемый блок «Думает…» с count токенов. **Collapsed by default.** Авто-разворачивается **только во время стрима**, сворачивается обратно при `done`.
-- **Финальный ответ.** Чистый текст с инлайн-цитатами `[1] [2]` (numbered footnotes, tap → expand source preview, как в Perplexity).
-- **Tap-targets под ответом.** Только: `✓ Проверено в N источниках` (если есть tools) + 👍👎 + (long-press) меню copy/regen/share.
-
-### Что НЕ показывается inline
-
-- Mode badge
-- Tool chips
-- Revision count
-- Scope chip
-- Advisor badge
-- Provider/tokens
-- Memorize chip
-- Bias tip
-- Verify warning (если это просто warning без блокирующего действия)
-- Fetched-at timestamps
-
-Всё это собирается в **Detail Sheet** при long-press по bubble.
-
-### Detail Sheet — структура
+## Архитектура — 1 экран
 
 ```
-┌────────────────────────────────────────┐
-│ ─────                                  │ ← handle
-│                                        │
-│ Почему этот ответ?                     │
-│   [XAI: Intent / Goal / Critique]      │
-│                                        │
-│ Источники                              │
-│   [1] visa.gov — 12:34 ✓               │
-│   [2] timatic.iata.org — 12:35 ⚠ 5d   │
-│   [3] embassy.jp — 11:52 ✓             │
-│                                        │
-│ Что Kai использовал                    │
-│   visa_checker, web_search             │
-│                                        │
-│ Детали                                 │
-│   Модель: claude-sonnet-4-6            │
-│   Токены: 1,234                        │
-│   Время: 2.3s                          │
-│                                        │
-│ ──────────────────────                 │
-│ [Поделиться]  [Скопировать]            │
-│ [Переспросить]                         │
-└────────────────────────────────────────┘
+KaiScreen (единственный)
+│
+├── Background: KaiGeminiWave (states: idle/listening/thinking/speaking)
+│
+├── Foreground (когда есть messages):
+│   └── MessageList (без chrome)
+│       └── MessageBubble × N (clean — text + [n] citations + reactions)
+│
+├── User-invoked surfaces (gestures):
+│   ├── InputSheet (swipe up)
+│   ├── Drawer (swipe right from edge)
+│   │   ├── SessionList
+│   │   ├── MemoryScreen
+│   │   ├── SettingsScreen
+│   │   └── AuthActions (logout)
+│   ├── QuickActionsSheet (swipe down)
+│   └── MessageDetailSheet (long-press response)
+│
+└── Kai-invoked surfaces (autonomous):
+    ├── ApprovalSurface (modal)
+    ├── CrisisCard (full-bleed)
+    ├── MemoryToast (snackbar)
+    ├── InlineRichCard (inline в bubble)
+    ├── StopGeneratingButton (subtle pill)
+    └── ScrollToLatestButton (fab)
 ```
+
+Auth — отдельный flow вне KaiScreen, как и раньше (login/register screens перед входом).
 
 ---
 
-## Новый главный экран
+## Confirmation Protocol (Kai-invoked → backend-coordinated)
 
-### Empty state (нет сообщений)
-
+### Backend endpoint (новый)
 ```
-┌─────────────────────────────────────────┐
-│ ☰                              Kai      │
-│                                         │
-│                                         │
-│                                         │
-│         Привет, Рустам.                 │
-│         О чём думаете?                  │
-│                                         │
-│   ╭────────────╮  ╭───────────────╮    │
-│   │ Куда поех. │  │ Виза в Японию │    │
-│   ╰────────────╯  ╰───────────────╯    │
-│                                         │
-│ ┌─────────────────────────────────┬───┐│
-│ │ Напишите Kai…                   │ 🎤││
-│ └─────────────────────────────────┴───┘│
-└─────────────────────────────────────────┘
+POST /chat/confirm
+{
+  "user_id": "...",
+  "session_id": "...",
+  "message_id": "...",
+  "action": "approve" | "reject"
+}
 ```
 
-- Centered greeting (берёт `userName` из settings)
-- 2-3 suggested prompts на основе личной памяти (если есть)
-- Input bar с placeholder, mic справа
-- Top bar: `☰` (drawer), название «Kai» по центру
-
-### В разговоре
-
+### Frontend
+Один widget `ApprovalSurface`:
+```dart
+ApprovalSurface(
+  kind: ConfirmationKind.action | financial | data | scope | injection,
+  title: String,           // "Kai готов забронировать рейс"
+  description: String,     // "Aeroflot SU 270, 17 мая, ¥45,000"
+  warning: String?,        // "Это финансовое действие"
+  onConfirm: () => api.confirm(messageId, 'approve'),
+  onReject: () => api.confirm(messageId, 'reject'),
+)
 ```
-┌─────────────────────────────────────────┐
-│ ☰                              Kai      │
-│                                         │
-│ ─── 17 мая ──────────                   │
-│                                         │
-│                Расскажи про визу в Япо. │
-│                                          → │
-│ Kai                                     │
-│   Гражданам РФ нужна виза в Японию [1]. │
-│   Срок оформления — около 4 раб. дней   │
-│   через визовый центр [2]. Стоимость   │
-│   ¥3,000 [1].                           │
-│                                         │
-│   ✓ Проверено в 3 источниках       👍👎│
-│                                         │
-│ ┌─────────────────────────────────┬───┐│
-│ │ Напишите Kai…                   │ 🎤││
-│ └─────────────────────────────────┴───┘│
-└─────────────────────────────────────────┘
-```
+
+Удаляется regex-matching на «да»/«отмена» в чате.
 
 ---
 
-## Memory Screen — спецификация
+## Crisis Card
 
-### Entry point
+Когда `crisisCategory != null` и `severity >= medium`:
 
-Drawer → «Память»
+```
+┌──────────────────────────────────────────┐
+│              ❤️                          │
+│                                          │
+│   Я слышу, что вам тяжело.               │
+│                                          │
+│   Сейчас вам поможет:                    │
+│                                          │
+│   ┌────────────────────────────────────┐ │
+│   │ 📞 Позвонить 112                   │ │
+│   └────────────────────────────────────┘ │
+│   ┌────────────────────────────────────┐ │
+│   │ 💬 Телефон доверия 8-800-2000-122  │ │
+│   └────────────────────────────────────┘ │
+│   ┌────────────────────────────────────┐ │
+│   │ 🏥 Найти психолога рядом           │ │
+│   └────────────────────────────────────┘ │
+│                                          │
+│   Я остаюсь рядом. Пишите.               │
+└──────────────────────────────────────────┘
+```
 
-### Layout
+Color: `warmTrust` (desaturated coral), не red.
+
+---
+
+## Memory Screen (через Drawer)
 
 ```
 ┌─────────────────────────────────────────┐
@@ -249,7 +429,6 @@ Drawer → «Память»
 │                                         │
 │ Профиль                                 │
 │  Имя — Рустам                     ✏️ 🗑 │
-│  Язык общения — русский           ✏️ 🗑 │
 │                                         │
 │ Путешествия                             │
 │  Не люблю организованные туры     ✏️ 🗑 │
@@ -260,39 +439,29 @@ Drawer → «Память»
 │                                         │
 │  + Добавить факт                        │
 │                                         │
-│ ────────────────────────────            │
+│ ─────────────────                       │
 │ Память Kai                       ●─ Вкл │
-│ Если выключить — Kai будет забывать    │
+│ Если выключить — Kai будет забывать     │
 │ всё после каждой сессии.                │
 │                                         │
 │ [ Забыть всё (необратимо) ]             │
 └─────────────────────────────────────────┘
 ```
 
-### Поведение
-
-- Группировка по `type` field из `UserProfileItem`
-- Per-item edit (открывает bottom-sheet с текстовым полем)
-- Per-item delete (с confirmation)
-- Master toggle — отправляет `POST /user/{id}/memory/toggle` (новый endpoint)
-- «Забыть всё» — переиспользует существующий `DELETE /user/{id}/trajectory`
-
 ---
 
-## Settings — минимальные
-
-### Структура
+## Settings (минимальные, через Drawer)
 
 ```
 ┌─────────────────────────────────────────┐
 │ ←  Настройки                            │
 │                                         │
 │ Внешний вид                             │
-│   Тема           Авто / Светлая / Тёмная│
+│   Тема           Авто / Свет / Тёмная   │
 │   Reduce motion  ○─                     │
 │                                         │
 │ Голос                                   │
-│   Голосовой ввод  ●─                    │
+│   Голос Kai вкл  ●─                     │
 │                                         │
 │ Аккаунт                                 │
 │   rustam.wize@gmail.com                 │
@@ -302,190 +471,105 @@ Drawer → «Память»
 │   [ Удалить мои данные (GDPR) ]         │
 │                                         │
 │ О приложении                            │
-│   Версия 0.2.0                          │  ← 7-tap → dev section
+│   Версия 0.2.0                          │  ← 7-tap → dev API URL
 └─────────────────────────────────────────┘
 ```
 
-### Удаляется из текущих Settings
-
-- ❌ Language section (broken — backend ignores)
-- ❌ Always-visible DEBUG API URL — перенесено в 7-tap easter egg
-
-### Добавляется
-
-- ✅ Тема (Auto / Light / Dark)
-- ✅ Reduce motion toggle
-- ✅ Voice input toggle
-- ✅ Logout button
+**Удаляется из настроек:**
+- Language section (broken)
+- DEBUG API URL section (always visible → 7-tap easter egg)
 
 ---
 
-## Confirmation Protocol — единый
+## Backend coordination (нужно)
 
-### Backend contract
+1. **`POST /chat/confirm`** — typed confirmation, заменяет regex-match на «да»/«отмена»
+2. **`POST /user/{id}/memory/toggle`** — master toggle памяти (вкл/выкл)
+3. **`ui_navigate` tool на бэкенде** — для голосовых команд «открой настройки» / «покажи память» (опционально, можно отложить)
+4. **Crisis API contract** — гарантия что `crisisCategory + crisisSeverity` приходят как structured field, не как regex над текстом
 
-**Новый endpoint:** `POST /chat/confirm`
-
-```json
-{
-  "user_id": "...",
-  "session_id": "...",
-  "message_id": "...",
-  "action": "approve" | "reject"
-}
-```
-
-### Frontend
-
-Один widget `ApprovalSurface`:
-
-```dart
-ApprovalSurface(
-  kind: ConfirmationKind.scope | hitl | injection | simulation,
-  reason: String,        // human-readable
-  fragment: String?,     // for injection case
-  onConfirm: () => api.confirm(messageId, 'approve'),
-  onReject: () => api.confirm(messageId, 'reject'),
-)
-```
-
-Внутри bubble — **только** этот widget (если есть pending state); никаких параллельных banner'ов / chips / cards.
-
-### Visual
-
-```
-┌─────────────────────────────────────────┐
-│ ⚠ Требуется ваше подтверждение          │
-│                                         │
-│ Kai хочет: забронировать рейс           │
-│ Aeroflot SU 270 на 17 мая, ¥45,000      │
-│                                         │
-│ Это финансовое действие.                │
-│                                         │
-│ [ Отмена ]      [ Подтвердить ]         │
-└─────────────────────────────────────────┘
-```
+Если backend не готов — D2 (Confirmation Protocol) и D4 (Memory master toggle) откладываются, остальные фазы — frontend-only.
 
 ---
 
-## Crisis Pattern
+## Метрики успеха
 
-### Trigger
-
-Когда backend возвращает `crisisCategory != null` И severity >= medium.
-
-### Behavior
-
-Вместо рендеринга обычного bubble — **full-bleed CrisisCard** в `MessageList` на позиции этого message. CrisisCard:
-
-- Полная ширина экрана
-- Тёплый цвет (не red — `colors.warmTrust`)
-- Иконка-сердце
-- Короткое empathetic сообщение
-- 1-tap CTA: «📞 Позвонить 112» (открывает `tel:`)
-- 1-tap CTA: «💬 Телефон доверия» (открывает приложение телефона с номером)
-- Optional: «🌍 Embassy contacts» если detected travel context
-- Заключительная строка: «Я остаюсь рядом. Пишите.»
-
-### Что НЕ делает
-
-- Не рендерит chip «crisis»
-- Не рендерит metadata row
-- Не рендерит sources
-- Не показывает Kai'evский ответ как обычный bubble в этом конкретном случае
+- **Декораций на пузыре Kai:** с 15 до **2** (✓ N источников + 👍👎)
+- **Экранов:** с 6 до **1** (KaiScreen) + Auth flow
+- **Approval mechanisms:** с 3 до **1**
+- **Loading indicators:** с 3 до **1** (Kai-сфера сама)
+- **Удалённых файлов:** ~10
+- **LOC `lib/`:** −2500-3000
+- **Время до первой отправки сообщения для нового юзера:** теперь это вопрос UX-теста (пользователь должен догадаться tap or swipe-up)
 
 ---
 
-## Liquid Glass / Calm Palette
+## Фазы реализации
 
-### iOS 26+
+Каждая фаза — отдельный PR, отдельный тест, отдельный commit.
 
-- `BackdropFilter(ImageFilter.blur(σ=30))` для:
-  - Top bar
-  - Input bar
-  - Detail Sheet
-  - Memory screen header
-- Honour `MediaQuery.platformBrightness.disableTransparency` (для accessibility)
-- Honour `MediaQuery.disableAnimations` (reduce motion)
+| Фаза | Что делает | Effort | Bаckend? |
+|---|---|---|---|
+| **D1 — Dechrome bubbles** | Удалить mode/tool/revision/advisor/scope/provider chips из `message_metadata_row.dart`. Удалить `_XAIBlock`, `_SpecialModePill`, `_MemorizeChip`, `_CrisisBanner` chip-форму из `message_bubble.dart`. Удалить `BiasTipCard`, `VerifyWarningCard`. | 1.5 дня | нет |
+| **D2 — DetailSheet** | Создать `MessageDetailSheet` с источниками + XAI + provider/tokens. Wire long-press по Kai-bubble. | 1 день | нет |
+| **D3 — Unified ApprovalSurface** | Создать `ApprovalSurface`. Удалить `_ApprovalNotice`, `_InjectionWarningCard`, `_ScopeEscalationBanner`. Wire `POST /chat/confirm` (с fallback на старый regex). | 1.5 дня | да |
+| **D4 — Crisis Card** | `CrisisCard` full-bleed. Intercept в `MessageList`. | 0.5 дня | нет |
+| **D5 — Navigation cleanup** | Удалить `lib/features/history/`. Удалить `HistoryScreen` из router. Drawer выполняет всё. | 0.5 дня | нет |
+| **D6 — Memory Screen** | Rebrand `personal_context_screen.dart` → `memory_screen.dart`. Per-item edit/delete. Master toggle. `MemoryToast`. | 1.5 дня | да (для toggle) |
+| **D7 — Settings cleanup** | Удалить language section. API URL за 7-tap. Добавить тему + reduce motion + voice toggle + logout. | 0.5 дня | нет |
+| **D8 — InputSheet redesign** | Удалить `_AnimatedPill`. Создать `InputSheet` с visible mic + Send. Wire swipe-up. | 1 день | нет |
+| **D9 — KaiScreen empty state** | Удалить `ChatEmptyState` suggested-prompts (против философии). Empty = только Kai-сфера. (Опц.) one-time hint для нового юзера. | 0.5 дня | нет |
+| **D10 — StopGenerating + StreamingIndicator** | Subtle stop button mid-stream. Replace `ChatLoadingIndicator`/`TypingIndicator` с динамической анимацией Kai-сферы. | 1 день | нет |
+| **D11 — Design system consolidation** | Использовать `KaiCard`/`KaiEmptyState`/`KaiErrorView` везде. Удалить duplicate code. | 1 день | нет |
+| **D12 — File splits** | Split `message_bubble.dart` (1054 LOC), `chat_screen.dart` (461), `chat_notifier.dart` (345). | 1 день | нет |
+| **D13 — Liquid Glass + calm palette** | Update `kai_colors.dart` (warmTrust, calm blue). BackdropFilter для surfaces на iOS 26+. Honour reduce-transparency. | 0.5 дня | нет |
+| **D14 — Dead code purge** | Удалить `typing_indicator.dart`, `kai_connectivity_pill.dart`, `backend_health_provider.dart`, `health_poller.dart`, `language_section.dart`, `FeatureFlags.{voice,push}`, non-stream `sendMessage`. | 0.5 дня | нет |
+| **D15 — `ui_navigate` tool (опц.)** | Backend tool `ui_navigate(target)`. Frontend интерпретирует. Реализует «открой настройки» через Kai. | 1.5 дня | да |
 
-### Цвета (token updates в `kai_colors.dart`)
+**Итого: ~14 дней** для всех фаз. **Рекомендуемый порядок старта:**
+1. **D14** (быстрый purge мёртвого кода) — 0.5д
+2. **D1** (dechrome bubbles — самая видимая разница) — 1.5д
+3. **D2** (DetailSheet — куда переехала метадата) — 1д
+4. **D5** (cleanup history) — 0.5д
+5. **D7** (settings cleanup) — 0.5д
+6. **D8** (visible InputSheet с mic) — 1д
+7. **D9** (Zero-UI empty state) — 0.5д
+8. **D10** (stop button + Kai-sphere as indicator) — 1д
+9. **D6** (Memory screen) — 1.5д
+10. **D4** (Crisis Card) — 0.5д
+11. **D3** (ApprovalSurface — после backend готовности) — 1.5д
+12. **D11/D12** (consolidation + splits) — 2д
+13. **D13** (Liquid Glass) — 0.5д
+14. **D15** (ui_navigate tool — опционально) — 1.5д
 
-| Token | Dark | Light |
-|---|---|---|
-| `background` | `#0F1419` | `#FAFAF7` |
-| `surface` | `#1A1F26` | `#FFFFFF` |
-| `surfaceGlass` | `#1A1F26.7` | `#FFFFFF.7` |
-| `textPrimary` | `#E8EAED` | `#1A1F26` |
-| `textSecondary` | `#9AA0A6` | `#5F6368` |
-| `accent` | `#7BB4FF` (calm blue) | `#3D7DE0` |
-| `warmTrust` (для crisis) | `#E8A87C` | `#C97B49` |
-| `error` | `#E57373` | `#D32F2F` |
-| `warning` | `#FFB74D` | `#F57C00` |
-
-Отказ от saturated colors (которые сейчас используются в `_CrisisBanner` red и в mode pills).
-
----
-
-## Технические заметки по реализации
-
-### Группировка работы (для следующего шага — writing-plans skill)
-
-1. **Phase D1 — Dechroming (UI strip).** Удалить inline chrome из `message_bubble.dart` + `message_metadata_row.dart`. Создать Detail Sheet. Перенести скрытое туда. ~2 дня.
-2. **Phase D2 — Confirmation Protocol.** Один `ApprovalSurface`, новый backend endpoint `/chat/confirm`. Удалить regex matching на «да». ~1.5 дня.
-3. **Phase D3 — Crisis Card.** Создать `CrisisCard`, intercept в `MessageList`. ~0.5 дня.
-4. **Phase D4 — Memory Screen.** Rebrand Personal Context → Memory. Add edit/delete per item. Master toggle. ~1 день.
-5. **Phase D5 — Navigation cleanup.** Delete `lib/features/history/`. Update router. Update drawer. ~0.5 дня.
-6. **Phase D6 — Settings cleanup.** Delete language section. Add theme picker, reduce motion toggle, voice toggle, logout. 7-tap dev easter egg. ~0.5 дня.
-7. **Phase D7 — Input redesign.** Replace invisible pill with visible input bar + mic button. Wire push-to-talk. ~1 день.
-8. **Phase D8 — Empty state.** Centered greeting + suggested prompts (personalized from memory). ~0.5 дня.
-9. **Phase D9 — Design system consolidation.** Use KaiCard/KaiEmptyState/KaiErrorView everywhere. Delete unused widgets. ~1 день.
-10. **Phase D10 — File splits.** Split message_bubble.dart, chat_screen.dart, chat_notifier.dart per spec. ~1 день.
-11. **Phase D11 — Liquid Glass + tokens.** Update kai_colors.dart, add BackdropFilter to surfaces. ~0.5 дня.
-
-**Итого: ~10 дней работы** для всех 11 фаз. Каждая фаза — отдельный PR, отдельный тест.
-
-### Что НЕ трогаем
-
-- iOS CI build pipeline (per `CLAUDE.md` — DO NOT TOUCH `Runner.xcodeproj` signing settings)
-- Auth flow (Login/Register работают)
-- Hive storage layer
-- Riverpod provider topology (для UI-only фаз)
-- API client + interceptors (только добавляем `/chat/confirm`)
-
-### Риски
-
-- **Backend coordination needed.** Новый `POST /chat/confirm` endpoint + опциональный `POST /user/{id}/memory/toggle` — нужны изменения в kai-core. Если backend не готов — Phase D2 откладывается, оставляем существующий regex-matching как fallback.
-- **Localization.** Все новые strings нужно вынести в `lib/l10n/`. Сейчас русский hardcoded во многих местах.
-- **Tests.** Каждая удалённая поверхность — потенциально обнажённый widget test. Run `flutter test` после каждой фазы.
-
-### Метрики успеха
-
-- **LOC.** `lib/` уменьшается на ~2000 строк (после deletes + consolidation)
-- **Декорации на bubble.** С 11 до 2 (sources✓ + reactions)
-- **Экраны.** С 6 до 3
-- **Approval mechanisms.** С 3 до 1
-- **Loading indicators.** С 3 до 1
-- **Время первого UX-теста.** «Покажите этот скрин человеку, который видит app впервые — он понимает, что делать?» Должно быть «да» в <3 секунды.
+Первые 8 фаз (≈6 дней) дают **видимое преобразование Zero-UI без блокеров от бэкенда**.
 
 ---
 
-## Open Questions (не блокирует одобрение, но требует согласования с backend)
+## Что НЕ трогаем
 
-1. Готов ли backend добавить `POST /chat/confirm`? Если нет — D2 идёт через текущий regex-fallback.
-2. Готов ли backend добавить `POST /user/{id}/memory/toggle` для master switch памяти?
-3. Crisis severity threshold — какой именно сигнал триггерит CrisisCard? `crisisCategory != null` достаточно или нужен дополнительный `crisisSeverity` field?
-
----
-
-## Что НЕ входит в этот redesign (но возможно потом)
-
-- Voice mode UX (push-to-talk заглушка — full voice mode = отдельная фаза)
-- Suggested prompts personalization engine (сейчас — hardcoded 2-3 примера)
-- Share-as-PDF (trip planning export) — упомянуто в ultrareview как «top 5 missing», но требует отдельной spec'и
-- A/B testing harness
-- Push notifications (`pushNotificationsEnabled` flag убирается — feature вернётся в отдельном PR с реальной реализацией)
-- Telemetry / metrics dashboard
+- **iOS CI build pipeline** (по `CLAUDE.md` — DO NOT TOUCH signing settings)
+- **Hive storage layer**
+- **Auth flow** (login/register работают)
+- **API interceptors** (только добавляются новые endpoints)
+- **Riverpod provider topology** (для UI-only фаз)
+- **`KaiGeminiWave`** — этот widget остаётся как центральная сущность Zero-UI (расширяется, не удаляется)
 
 ---
 
-**Spec self-review:** ✓ Прошла. Нет TBD/TODO, противоречий, неоднозначностей. Scope большой, но decomposed на 11 phases — каждая фаза — отдельный план.
+## Открытые вопросы (нужно подтверждение backend-team)
+
+1. Когда готов `POST /chat/confirm`? (блокер D3)
+2. Когда готов `POST /user/{id}/memory/toggle`? (блокер для master toggle памяти, но Memory screen без toggle можно сделать раньше)
+3. Структура crisis сигнала — `crisisCategory + crisisSeverity` приходят как typed field?
+4. Bаkend готов добавить `ui_navigate` tool? (опциональная фаза D15)
+
+---
+
+## Spec self-review
+
+✓ Прошла. Нет TBD/TODO. Внутренняя согласованность: все surfaces классифицированы как user-invoked vs Kai-invoked. Scope decomposed на 15 phases. Ambiguity: ни одна — каждое UI surface имеет один home (Detail Sheet, Drawer, Modal или inline).
+
+---
+
+**Готово к одобрению. После approve → invoke writing-plans skill для детального плана первой фазы.**
