@@ -137,6 +137,12 @@ class ChatRemoteSource {
                   json['pending_confirmation'] as bool? ?? false,
               confirmationType: json['confirmation_type'] as String?,
             );
+          } else if (currentEvent == 'correction') {
+            // STREAM-TOKENS-1 (2026-05-17): backend tells the app to REPLACE
+            // the streamed content with this corrected version (PII
+            // detokenization or post-generation safety override).
+            final corrected = json['content'] as String? ?? '';
+            yield ChatStreamEvent.correction(corrected);
           } else if (currentEvent != null) {
             debugPrint('SSE: unknown event "$currentEvent" — data: $data');
           }

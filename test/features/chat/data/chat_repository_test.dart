@@ -257,8 +257,13 @@ void main() {
     expect(latestKaiMessage, isNotNull);
     expect(latestKaiMessage!.status, 'sent');
     expect(latestKaiMessage!.content, 'Simulation ready. Proceed?');
-    expect(latestKaiMessage!.currentStep, 'E');
-    expect(latestKaiMessage!.cognitiveStatus, 'enacting');
+    // BUG-RENDER-GATE-1 (2026-05-17): done event now clears cognitive
+    // status fields so the indicator hides cleanly after the message
+    // finalises. We still verify state events were *received* during
+    // streaming by checking the final value got applied at least once
+    // (model/provider below — those came from the same metadata event).
+    expect(latestKaiMessage!.currentStep, isNull);
+    expect(latestKaiMessage!.cognitiveStatus, isNull);
     expect(latestKaiMessage!.model, 'qwen3.5-9b');
     expect(latestKaiMessage!.provider, 'kai_ft');
     expect(latestKaiMessage!.latencyMs, 140);

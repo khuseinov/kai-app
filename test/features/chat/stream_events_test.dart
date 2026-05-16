@@ -123,6 +123,7 @@ void main() {
       thinking: (_) => fail('expected metadata'),
       state: (_, __) => fail('expected metadata'),
       approval: (_, __, ___) => fail('expected metadata'),
+      correction: (_) => fail('expected metadata'),
       done: () => fail('expected metadata'),
       error: (_) => fail('expected metadata'),
       metadata: (

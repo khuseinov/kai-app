@@ -246,8 +246,23 @@ class ChatRepository {
             );
             onUpdate(responseMessage);
           },
+          correction: (content) async {
+            // STREAM-TOKENS-1 (2026-05-17): REPLACE (not append) — backend
+            // post-generation safety mutated the streamed output (PII
+            // detokenization or refusal override).
+            responseMessage = responseMessage.copyWith(content: content);
+            onUpdate(responseMessage);
+          },
           done: () async {
-            responseMessage = responseMessage.copyWith(status: 'sent');
+            // BUG-RENDER-GATE-1: clear cognitive status so the indicator
+            // doesn't stay frozen on the last step label after streaming
+            // ends. message_bubble.dart hides KaiCognitiveStatus when
+            // cognitiveStatus is null/empty OR status == 'sent'.
+            responseMessage = responseMessage.copyWith(
+              status: 'sent',
+              cognitiveStatus: null,
+              currentStep: null,
+            );
             await _localSource.saveMessage(responseMessage);
 
             final updatedUserMessage = userMessage.copyWith(status: 'sent');

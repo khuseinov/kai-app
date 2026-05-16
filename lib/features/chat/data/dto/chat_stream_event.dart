@@ -55,6 +55,11 @@ class ChatStreamEvent with _$ChatStreamEvent {
     required bool pendingConfirmation,
     String? confirmationType,
   }) = _EventApproval;
+  // STREAM-TOKENS-1 (2026-05-17): backend signal to REPLACE the streamed
+  // message content with a post-generation-corrected version (PII
+  // detokenization or safety override). Distinct from .message which
+  // APPENDS deltas.
+  const factory ChatStreamEvent.correction(String content) = _EventCorrection;
   const factory ChatStreamEvent.done() = _EventDone;
   const factory ChatStreamEvent.error(String error) = _EventError;
 }

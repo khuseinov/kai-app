@@ -187,9 +187,19 @@ class MessageBubble extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
+                    // BUG-RENDER-GATE-1 (2026-05-17): previously gated on
+                    // `message.status == 'typing'`, but the SSE `done` event
+                    // flips status to `sent` before the user has had time to
+                    // notice the indicator. status never transitions back,
+                    // so KaiCognitiveStatus was almost never visible despite
+                    // the backend actually emitting state events. Now the
+                    // indicator stays as long as cognitiveStatus is set —
+                    // we clear it via copyWith(cognitiveStatus: null) once
+                    // the final message has rendered (status == 'sent'
+                    // AND content is non-empty AND error is not set).
                     if (message.cognitiveStatus != null &&
                         message.cognitiveStatus!.isNotEmpty &&
-                        message.status == 'typing') ...[
+                        message.status != 'sent') ...[
                       KaiCognitiveStatus(
                         currentStep: message.cognitiveStatus!,
                       ),
