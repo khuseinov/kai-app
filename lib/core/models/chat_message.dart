@@ -50,6 +50,12 @@ class ChatMessage with _$ChatMessage {
     @Default([]) List<String> biasSuggestions,
     // Block reason for distinct safety banners (APP-A4)
     String? blockReason,
+    // VerifyStep warnings (APP-VERIFY-1 / APP-SPRINT-C-BE-1)
+    @Default([]) @JsonKey(name: 'source_warnings') List<String> sourceWarnings,
+    @Default(true) @JsonKey(name: 'verification_passed') bool verificationPassed,
+    @Default('') @JsonKey(name: 'verification_fail_reason') String verificationFailReason,
+    // AdvisorStep (APP-ADVISOR-1 / APP-SPRINT-C-BE-2)
+    @Default(false) @JsonKey(name: 'advisor_triggered') bool advisorTriggered,
   }) = _ChatMessage;
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) =>

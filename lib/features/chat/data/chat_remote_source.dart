@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/models/tool_source.dart';
+import 'dto/async_chat_dto.dart';
 import 'dto/chat_stream_event.dart';
 import 'dto/chat_request_dto.dart';
 import 'dto/chat_response_dto.dart';
@@ -11,6 +12,20 @@ class ChatRemoteSource {
   final ApiClient _apiClient;
 
   ChatRemoteSource(this._apiClient);
+
+  Future<AsyncChatResponseDto> chatAsync(ChatRequestDto request) async {
+    final response = await _apiClient.chatAsync(
+      message: request.message,
+      userId: request.userId,
+      sessionId: request.sessionId,
+    );
+    return AsyncChatResponseDto.fromJson(response);
+  }
+
+  Future<TaskStatusResponseDto> pollStatus(String taskId) async {
+    final response = await _apiClient.chatStatus(taskId);
+    return TaskStatusResponseDto.fromJson(response);
+  }
 
   Future<ChatResponseDto> sendMessage(ChatRequestDto request) async {
     final response = await _apiClient.sendMessage(
@@ -106,6 +121,13 @@ class ChatRemoteSource {
                       ?.cast<String>() ??
                   const [],
               blockReason: json['block_reason'] as String?,
+              sourceWarnings: (json['source_warnings'] as List<dynamic>?)
+                      ?.cast<String>() ??
+                  const [],
+              verificationPassed: json['verification_passed'] as bool? ?? true,
+              verificationFailReason:
+                  json['verification_fail_reason'] as String? ?? '',
+              advisorTriggered: json['advisor_triggered'] as bool? ?? false,
             );
           } else if (currentEvent == 'approval') {
             yield ChatStreamEvent.approval(

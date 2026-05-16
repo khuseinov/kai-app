@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/models/chat_message.dart';
 import '../../../../core/design/tokens/kai_spacing.dart';
 import '../../logic/chat_notifier.dart';
+import 'async_progress_card.dart';
 import 'message_bubble.dart';
 import 'message_metadata_row.dart';
 import 'chat_loading_indicator.dart';
@@ -64,7 +65,25 @@ class _MessageListState extends ConsumerState<MessageList> {
 
         final message = widget.messages[index];
         final key = _messageKeys.putIfAbsent(message.id, () => GlobalKey());
-        
+
+        // APP-ASYNC-1: async task placeholder messages
+        if (message.status == 'async_pending') {
+          return AsyncProgressCard(
+            key: key,
+            state: AsyncTaskState.pending,
+            elapsedSeconds: double.tryParse(message.content) ?? 0,
+            onCancel: () =>
+                ref.read(chatNotifierProvider.notifier).cancelAsyncTask(),
+          );
+        }
+        if (message.status == 'async_failed') {
+          return AsyncProgressCard(
+            key: key,
+            state: AsyncTaskState.failed,
+            errorMessage: message.content.isEmpty ? null : message.content,
+          );
+        }
+
         return Column(
           key: key,
           crossAxisAlignment: CrossAxisAlignment.start,

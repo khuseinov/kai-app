@@ -99,6 +99,10 @@ class ChatRepository {
       sources: responseDto.sources,
       biasSuggestions: responseDto.biasSuggestions,
       blockReason: responseDto.blockReason,
+      sourceWarnings: responseDto.sourceWarnings,
+      verificationPassed: responseDto.verificationPassed,
+      verificationFailReason: responseDto.verificationFailReason,
+      advisorTriggered: responseDto.advisorTriggered,
     );
 
     await _localSource.saveMessage(kaiMessage);
@@ -193,6 +197,10 @@ class ChatRepository {
             sources,
             biasSuggestions,
             blockReason,
+            sourceWarnings,
+            verificationPassed,
+            verificationFailReason,
+            advisorTriggered,
           ) async {
             responseMessage = responseMessage.copyWith(
               correlationId: correlationId,
@@ -219,6 +227,10 @@ class ChatRepository {
               sources: sources,
               biasSuggestions: biasSuggestions,
               blockReason: blockReason,
+              sourceWarnings: sourceWarnings,
+              verificationPassed: verificationPassed,
+              verificationFailReason: verificationFailReason,
+              advisorTriggered: advisorTriggered,
             );
             onUpdate(responseMessage);
           },
@@ -261,5 +273,57 @@ class ChatRepository {
 
   List<ChatMessage> getMessagesForSession(String sessionId) {
     return _localSource.getMessagesForSession(sessionId);
+  }
+
+  /// APP-ASYNC-1: enqueue a long-running chat request.
+  /// Returns the task_id from POST /chat/async.
+  Future<String> enqueueAsync({
+    required String text,
+    required String sessionId,
+  }) async {
+    final userId = _localStorage.userId;
+    final request = ChatRequestDto(
+      message: text,
+      userId: userId,
+      sessionId: sessionId,
+    );
+    final dto = await _remoteSource.chatAsync(request);
+    return dto.taskId;
+  }
+
+  /// APP-ASYNC-1: poll GET /chat/status/{taskId}.
+  /// Returns ('PENDING' | 'DONE' | 'FAILED', ChatMessage? result, String? error).
+  Future<({String status, ChatMessage? result, String? error})> pollAsync(
+      String taskId) async {
+    final dto = await _remoteSource.pollStatus(taskId);
+    if (dto.status == 'DONE' && dto.result != null) {
+      final r = dto.result!;
+      final msg = ChatMessage(
+        id: _uuid.v4(),
+        content: r.response,
+        isUser: false,
+        timestamp: DateTime.now(),
+        language: r.language,
+        piiBlocked: r.piiBlocked,
+        correlationId: r.correlationId,
+        model: r.model,
+        provider: r.provider,
+        requestType: r.requestType,
+        latencyMs: r.latencyMs,
+        tokensUsed: r.tokensUsed,
+        confidence: r.confidence,
+        status: 'sent',
+        sources: r.sources,
+        biasSuggestions: r.biasSuggestions,
+        blockReason: r.blockReason,
+        sourceWarnings: r.sourceWarnings,
+        verificationPassed: r.verificationPassed,
+        verificationFailReason: r.verificationFailReason,
+        advisorTriggered: r.advisorTriggered,
+      );
+      await _localSource.saveMessage(msg);
+      return (status: 'DONE', result: msg, error: null);
+    }
+    return (status: dto.status, result: null, error: dto.error);
   }
 }

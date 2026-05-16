@@ -33,7 +33,8 @@ class MessageMetadataRow extends StatelessWidget {
         message.executedToolCalls.isNotEmpty ||
         (message.worldModelUsed == true && (message.kgNodesQueried ?? 0) > 0) ||
         (message.revisionCount ?? 0) > 0 ||
-        hasScopeSignal;
+        hasScopeSignal ||
+        (message.advisorTriggered && !(message.requiresHumanApproval ?? false));
 
     if (!hasAnyMeta) return const SizedBox.shrink();
 
@@ -104,6 +105,16 @@ class MessageMetadataRow extends StatelessWidget {
               label: 'нужно подтверждение: ${scopeCategories.join(", ")}',
               color: colors.warning,
               baseStyle: textStyle,
+            ),
+
+          // APP-ADVISOR-1: silent revision by AdvisorStep (CC-12 low-conf path)
+          if (message.advisorTriggered &&
+              !(message.requiresHumanApproval ?? false))
+            _MetaChip(
+              icon: Icons.manage_search_outlined,
+              label: 'Kai уточнил ответ ✓',
+              textStyle: textStyle,
+              colors: colors,
             ),
         ],
       ),

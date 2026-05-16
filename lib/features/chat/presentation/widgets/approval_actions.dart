@@ -11,6 +11,7 @@ import '../../../../core/design/tokens/kai_spacing.dart';
 class ApprovalActions extends StatelessWidget {
   final String? confirmationType;
   final bool isBusy;
+  final bool advisorTriggered;
   final VoidCallback onApprove;
   final VoidCallback onReject;
 
@@ -20,6 +21,7 @@ class ApprovalActions extends StatelessWidget {
     required this.onApprove,
     required this.onReject,
     this.isBusy = false,
+    this.advisorTriggered = false,
   });
 
   @override
@@ -35,32 +37,49 @@ class ApprovalActions extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(top: KaiSpacing.xs),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _ApprovalButton(
-            label: 'Подтвердить',
-            icon: Icons.check_rounded,
-            color: isBusy ? disabledColor : colors.oceanPrimary,
-            textStyle: typography.labelMedium,
-            onTap: isBusy
-                ? null
-                : () {
-                    HapticFeedback.lightImpact();
-                    onApprove();
-                  },
-          ),
-          const SizedBox(width: KaiSpacing.s),
-          _ApprovalButton(
-            label: 'Отменить',
-            icon: Icons.close_rounded,
-            color: isBusy ? disabledColor : colors.textSecondary,
-            textStyle: typography.labelMedium,
-            onTap: isBusy
-                ? null
-                : () {
-                    HapticFeedback.lightImpact();
-                    onReject();
-                  },
+          // APP-ADVISOR-1: advisor context label when CC-12 AdvisorStep fired
+          if (advisorTriggered)
+            Padding(
+              padding: const EdgeInsets.only(bottom: KaiSpacing.xs),
+              child: Text(
+                'Kai обнаружил критичный сценарий — подтвердите действие',
+                style: typography.bodySmall.copyWith(
+                  color: colors.warning,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          Row(
+            children: [
+              _ApprovalButton(
+                label: 'Подтвердить',
+                icon: Icons.check_rounded,
+                color: isBusy ? disabledColor : colors.oceanPrimary,
+                textStyle: typography.labelMedium,
+                onTap: isBusy
+                    ? null
+                    : () {
+                        HapticFeedback.lightImpact();
+                        onApprove();
+                      },
+              ),
+              const SizedBox(width: KaiSpacing.s),
+              _ApprovalButton(
+                label: 'Отменить',
+                icon: Icons.close_rounded,
+                color: isBusy ? disabledColor : colors.textSecondary,
+                textStyle: typography.labelMedium,
+                onTap: isBusy
+                    ? null
+                    : () {
+                        HapticFeedback.lightImpact();
+                        onReject();
+                      },
+              ),
+            ],
           ),
         ],
       ),

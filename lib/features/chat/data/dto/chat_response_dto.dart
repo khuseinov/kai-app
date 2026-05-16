@@ -42,6 +42,12 @@ class ChatResponseDto with _$ChatResponseDto {
     @JsonKey(name: 'bias_suggestions') @Default([]) List<String> biasSuggestions,
     // Block reason for distinct safety banners (APP-A4)
     @JsonKey(name: 'block_reason') String? blockReason,
+    // VerifyStep (APP-SPRINT-C-BE-1)
+    @JsonKey(name: 'source_warnings') @Default([]) List<String> sourceWarnings,
+    @JsonKey(name: 'verification_passed') @Default(true) bool verificationPassed,
+    @JsonKey(name: 'verification_fail_reason') @Default('') String verificationFailReason,
+    // AdvisorStep (APP-SPRINT-C-BE-2)
+    @JsonKey(name: 'advisor_triggered') @Default(false) bool advisorTriggered,
   }) = _ChatResponseDto;
 
   factory ChatResponseDto.fromJson(Map<String, dynamic> json) =>

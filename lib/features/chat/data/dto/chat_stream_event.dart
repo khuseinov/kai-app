@@ -43,6 +43,12 @@ class ChatStreamEvent with _$ChatStreamEvent {
     @Default([]) List<String> biasSuggestions,
     // Block reason for distinct safety banners (APP-A4)
     String? blockReason,
+    // VerifyStep (APP-SPRINT-C-BE-1)
+    @Default([]) List<String> sourceWarnings,
+    @Default(true) bool verificationPassed,
+    @Default('') String verificationFailReason,
+    // AdvisorStep (APP-SPRINT-C-BE-2)
+    @Default(false) bool advisorTriggered,
   }) = _EventMetadata;
   const factory ChatStreamEvent.approval({
     required bool requiresHumanApproval,

@@ -39,6 +39,29 @@ class ApiClient {
     return response.data!;
   }
 
+  Future<Map<String, dynamic>> chatAsync({
+    required String message,
+    required String userId,
+    required String sessionId,
+  }) async {
+    final response = await dio.post<Map<String, dynamic>>(
+      '/chat/async',
+      data: {
+        'message': message,
+        'user_id': userId,
+        'session_id': sessionId,
+      },
+    );
+    return response.data!;
+  }
+
+  Future<Map<String, dynamic>> chatStatus(String taskId) async {
+    final response = await dio.get<Map<String, dynamic>>(
+      '/chat/status/$taskId',
+    );
+    return response.data!;
+  }
+
   Stream<String> streamMessage({
     required String message,
     required String userId,

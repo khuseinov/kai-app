@@ -60,7 +60,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   final _uuid = const Uuid();
   String? _currentSessionId;
   CancelToken? _streamCancelToken;
-  // Track if this session already has a title (first message sets it)
+  Timer? _asyncPollTimer;
   bool _sessionTitled = false;
 
   ChatNotifier(this._repository, this._localStorage, [this._offlineQueue, this._sessionNotifier])
@@ -114,12 +114,113 @@ class ChatNotifier extends StateNotifier<ChatState> {
     state = state.copyWith(messages: updated);
   }
 
+  void cancelAsyncTask() {
+    _asyncPollTimer?.cancel();
+    _asyncPollTimer = null;
+    state = state.copyWith(
+      isLoading: false,
+      messages: state.messages
+          .where((m) => m.status != 'async_pending')
+          .toList(),
+    );
+  }
+
+  Future<void> _sendMessageAsync(String text, String sessionId) async {
+    final placeholderId = _uuid.v4();
+    final userMsg = ChatMessage(
+      id: _uuid.v4(),
+      content: text,
+      isUser: true,
+      timestamp: DateTime.now(),
+      status: 'sent',
+    );
+    final placeholder = ChatMessage(
+      id: placeholderId,
+      content: '',
+      isUser: false,
+      timestamp: DateTime.now(),
+      status: 'async_pending',
+    );
+    state = state.copyWith(
+      messages: [...state.messages, userMsg, placeholder],
+      isLoading: true,
+    );
+
+    try {
+      final taskId = await _repository.enqueueAsync(
+        text: text,
+        sessionId: sessionId,
+      );
+
+      final startTime = DateTime.now();
+
+      _asyncPollTimer?.cancel();
+      _asyncPollTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+        try {
+          final elapsed =
+              DateTime.now().difference(startTime).inSeconds.toDouble();
+          final (:status, :result, :error) = await _repository.pollAsync(taskId);
+
+          if (status == 'DONE' && result != null) {
+            timer.cancel();
+            _asyncPollTimer = null;
+            final updated = state.messages
+                .map((m) => m.id == placeholderId ? result : m)
+                .toList();
+            state = state.copyWith(messages: updated, isLoading: false);
+          } else if (status == 'FAILED') {
+            timer.cancel();
+            _asyncPollTimer = null;
+            final failedPlaceholder = placeholder.copyWith(
+              status: 'async_failed',
+              content: error ?? 'Kai не смог выполнить запрос',
+            );
+            final updated = state.messages
+                .map((m) => m.id == placeholderId ? failedPlaceholder : m)
+                .toList();
+            state = state.copyWith(messages: updated, isLoading: false);
+          } else {
+            // Still PENDING — update elapsed time on placeholder
+            final updatedPlaceholder = placeholder.copyWith(
+              content: elapsed.toStringAsFixed(0),
+            );
+            final updated = state.messages
+                .map((m) =>
+                    m.id == placeholderId ? updatedPlaceholder : m)
+                .toList();
+            state = state.copyWith(messages: updated);
+          }
+        } catch (_) {
+          // Network glitch during poll — keep trying
+        }
+      });
+    } catch (e) {
+      final updated = state.messages
+          .where((m) => m.id != placeholderId)
+          .toList();
+      state = state.copyWith(
+        messages: updated,
+        isLoading: false,
+        error: 'Не удалось запустить фоновую задачу',
+        errorType: ChatErrorType.unknown,
+      );
+    }
+  }
+
   Future<void> sendMessage(String text) async {
     if (text.trim().isEmpty) return;
 
     _currentSessionId ??= _uuid.v4();
     _streamCancelToken?.cancel();
     _streamCancelToken = CancelToken();
+
+    // APP-ASYNC-1: /bg prefix routes to POST /chat/async polling path
+    if (text.trimLeft().startsWith('/bg ')) {
+      final cleanText = text.trimLeft().substring(4).trim();
+      if (cleanText.isNotEmpty) {
+        return _sendMessageAsync(cleanText, _currentSessionId!);
+      }
+    }
     state = state.copyWith(isLoading: true, error: null);
 
     String? userMsgId;
@@ -198,6 +299,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   @override
   void dispose() {
     _streamCancelToken?.cancel();
+    _asyncPollTimer?.cancel();
     super.dispose();
   }
 }

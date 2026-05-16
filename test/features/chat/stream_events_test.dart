@@ -150,6 +150,10 @@ void main() {
         sources,
         biasSuggestions,
         blockReason,
+        sourceWarnings,
+        verificationPassed,
+        verificationFailReason,
+        advisorTriggered,
       ) {
         expect(correlationId, 'corr-42');
         expect(language, 'ru');
