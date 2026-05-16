@@ -4,7 +4,6 @@ import '../../../core/design/theme/theme_extensions.dart';
 import '../../../core/design/tokens/kai_spacing.dart';
 import 'sections/api_url_section.dart';
 import 'sections/delete_data_section.dart';
-import 'sections/language_section.dart';
 
 /// Settings screen — sectioned ListView with Data, Language, About,
 /// Developer (debug-only) groups. Sections are populated incrementally
@@ -30,11 +29,6 @@ class SettingsScreen extends StatelessWidget {
           const _Section(
             title: 'Данные',
             children: [DeleteDataSection()],
-          ),
-          const SizedBox(height: KaiSpacing.l),
-          const _Section(
-            title: 'Язык',
-            children: [LanguageSection()],
           ),
           const SizedBox(height: KaiSpacing.l),
           _Section(

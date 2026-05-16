@@ -8,10 +8,6 @@ class LocalStorage {
   LocalStorage(this._settings, this._history);
 
   // Settings
-  String? get language => _settings.get('language') as String?;
-  set language(String? v) =>
-      v != null ? _settings.put('language', v) : _settings.delete('language');
-
   String? get userName => _settings.get('user_name') as String?;
   set userName(String? v) =>
       v != null ? _settings.put('user_name', v) : _settings.delete('user_name');

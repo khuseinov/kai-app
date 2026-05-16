@@ -19,7 +19,7 @@ void main() {
     await tearDownHiveForTest(tempDir);
   });
 
-  testWidgets('SettingsScreen renders 4 section headers', (tester) async {
+  testWidgets('SettingsScreen renders 3 section headers', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
@@ -31,7 +31,6 @@ void main() {
 
     expect(find.text('Настройки'), findsOneWidget);
     expect(find.text('Данные'), findsOneWidget);
-    expect(find.text('Язык'), findsOneWidget);
     expect(find.text('О приложении'), findsOneWidget);
     expect(find.text('Разработчик'), findsOneWidget);
   });

@@ -7,7 +7,6 @@ import '../storage/secure_storage.dart';
 class AppSettings {
   final String apiBaseUrl;
   final String? apiKey;
-  final String? language;
   final String? userName;
   final bool isOnboarded;
   final String userId;
@@ -15,7 +14,6 @@ class AppSettings {
   const AppSettings({
     required this.apiBaseUrl,
     this.apiKey,
-    this.language,
     this.userName,
     this.isOnboarded = false,
     this.userId = 'local-user',
@@ -24,7 +22,6 @@ class AppSettings {
   AppSettings copyWith({
     String? apiBaseUrl,
     String? apiKey,
-    String? language,
     String? userName,
     bool? isOnboarded,
     String? userId,
@@ -32,7 +29,6 @@ class AppSettings {
     return AppSettings(
       apiBaseUrl: apiBaseUrl ?? this.apiBaseUrl,
       apiKey: apiKey ?? this.apiKey,
-      language: language ?? this.language,
       userName: userName ?? this.userName,
       isOnboarded: isOnboarded ?? this.isOnboarded,
       userId: userId ?? this.userId,
@@ -51,7 +47,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
             // Falls back to VPS IP if no override is stored locally.
             apiBaseUrl: _localStorage.apiBaseUrl ?? EnvConfig.apiBaseUrl,
             apiKey: null, // loaded async
-            language: _localStorage.language,
             userName: _localStorage.userName,
             isOnboarded: _localStorage.isOnboarded,
             userId: _localStorage.userId,
@@ -84,11 +79,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       await _secureStorage.deleteApiKey();
       state = state.copyWith(apiKey: null);
     }
-  }
-
-  void setLanguage(String? lang) {
-    _localStorage.language = lang;
-    state = state.copyWith(language: lang);
   }
 
   void setUserName(String? name) {
