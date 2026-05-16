@@ -38,9 +38,13 @@ class MessageMetadataRow extends StatelessWidget {
       uniqueTools.add(tool);
     }
 
+    // BUG-CHIP-NOISE-1 (2026-05-16): "knowledge graph" / world-model usage
+    // chip removed — pure debug signal that confused QA testers. The fact
+    // that Kai consulted the KG is already implied by source chips on the
+    // bubble; redundant chip in the metadata row added noise without
+    // surfacing actionable info to end users.
     final hasAnyMeta = modeChip != null ||
         uniqueTools.isNotEmpty ||
-        (message.worldModelUsed == true && (message.kgNodesQueried ?? 0) > 0) ||
         (message.revisionCount ?? 0) > 0 ||
         hasScopeSignal ||
         (message.advisorTriggered && !(message.requiresHumanApproval ?? false));
@@ -84,15 +88,7 @@ class MessageMetadataRow extends StatelessWidget {
               baseStyle: textStyle,
             ),
 
-          // Knowledge graph — grounded answer from world model.
-          if (message.worldModelUsed == true &&
-              (message.kgNodesQueried ?? 0) > 0)
-            _MetaChip(
-              icon: Icons.travel_explore_outlined,
-              label: 'база знаний',
-              textStyle: textStyle,
-              colors: colors,
-            ),
+          // BUG-CHIP-NOISE-1: knowledge-graph chip removed (debug-only signal).
 
           // Revision — Kai re-checked after critique failure.
           if ((message.revisionCount ?? 0) > 0)
