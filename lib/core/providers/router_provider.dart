@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/chat/presentation/chat_screen.dart';
-import '../../features/history/presentation/history_screen.dart';
 import '../../features/personal_context/presentation/personal_context_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 
@@ -33,11 +32,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/personal-context',
         builder: (context, state) => const PersonalContextScreen(),
-      ),
-      // APP-E1 + APP-E2: Server-side history + session resume
-      GoRoute(
-        path: '/history',
-        builder: (context, state) => const HistoryScreen(),
       ),
     ],
   );
