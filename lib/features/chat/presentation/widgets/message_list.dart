@@ -5,7 +5,6 @@ import '../../../../core/design/tokens/kai_spacing.dart';
 import '../../logic/chat_notifier.dart';
 import 'message_bubble.dart';
 import 'message_metadata_row.dart';
-import 'chat_loading_indicator.dart';
 
 class MessageList extends ConsumerStatefulWidget {
   final List<ChatMessage> messages;
@@ -49,7 +48,7 @@ class _MessageListState extends ConsumerState<MessageList> {
 
   @override
   Widget build(BuildContext context) {
-    final itemCount = widget.messages.length + (widget.isLoading ? 1 : 0);
+    final itemCount = widget.messages.length;
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(
@@ -58,10 +57,6 @@ class _MessageListState extends ConsumerState<MessageList> {
       ),
       itemCount: itemCount,
       itemBuilder: (context, index) {
-        if (index == widget.messages.length && widget.isLoading) {
-          return const ChatLoadingIndicator();
-        }
-
         final message = widget.messages[index];
         final key = _messageKeys.putIfAbsent(message.id, () => GlobalKey());
 

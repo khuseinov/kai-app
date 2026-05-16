@@ -298,6 +298,12 @@ class ChatNotifier extends StateNotifier<ChatState> {
     state = ChatState(messages: messages);
   }
 
+  void stopStream() {
+    _streamCancelToken?.cancel();
+    _streamCancelToken = null;
+    state = state.copyWith(isLoading: false);
+  }
+
   void newSession() {
     _streamCancelToken?.cancel();
     _streamCancelToken = null;

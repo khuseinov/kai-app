@@ -60,7 +60,7 @@ class ChatInputBar extends StatelessWidget {
                   color: colors.textPrimary,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Спросите Kai...',
+                  hintText: 'Напишите Kai…',
                   hintStyle: typography.bodyLarge.copyWith(
                     color: colors.textTertiary,
                   ),
@@ -73,6 +73,14 @@ class ChatInputBar extends StatelessWidget {
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
                 ),
+              ),
+            ),
+            // Mic button
+            IconButton(
+              onPressed: () {}, // voice mode — wired in later phase
+              icon: Icon(
+                Icons.mic_outlined,
+                color: colors.textTertiary,
               ),
             ),
             const SizedBox(width: KaiSpacing.xs),

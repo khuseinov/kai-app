@@ -9,15 +9,11 @@ import '../../../core/design/tokens/kai_spacing.dart';
 import '../../../core/providers/connectivity_status_provider.dart';
 import '../logic/chat_notifier.dart';
 import '../logic/session_notifier.dart';
-import 'widgets/chat_empty_state.dart';
 import 'widgets/chat_input_bar.dart';
 import 'widgets/message_list.dart';
 import 'widgets/offline_banner.dart';
 import 'widgets/safety_block_banner.dart';
 import 'widgets/session_drawer.dart';
-
-// APP-TOOL-GATE-NOTICE-1: one-time in-session flag so the snackbar fires once.
-final _toolsSeenInSessionProvider = StateProvider<bool>((ref) => false);
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -84,10 +80,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   }
 
   KaiVoiceState _voiceStateFromChat(ChatState state) {
-    if (_isListening) {
-      if (state.isLoading) return KaiVoiceState.thinking;
-      return KaiVoiceState.listening;
-    }
+    if (state.isLoading) return KaiVoiceState.thinking;
+    if (_isListening) return KaiVoiceState.listening;
     return KaiVoiceState.idle;
   }
 
@@ -126,30 +120,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatNotifierProvider);
     final colors = context.kaiColors;
+    final typography = context.kaiTypography;
     final isOfflineAsync = ref.watch(isOnlineProvider);
-
-    // APP-TOOL-GATE-NOTICE-1: show one-time snackbar when tools first fire.
-    ref.listen<ChatState>(chatNotifierProvider, (_, next) {
-      if (ref.read(_toolsSeenInSessionProvider)) return;
-      if (next.messages.any((m) => m.executedToolCalls.isNotEmpty)) {
-        ref.read(_toolsSeenInSessionProvider.notifier).state = true;
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.handyman_outlined, size: 14, color: Colors.white),
-                  SizedBox(width: 8),
-                  Text('Kai проверяет источники данных'),
-                ],
-              ),
-              duration: Duration(seconds: 3),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      }
-    });
     final isOffline = !(isOfflineAsync.valueOrNull ?? true);
 
     final voiceState = _voiceStateFromChat(chatState);
@@ -205,29 +177,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                       ),
 
                     Expanded(
-                      child: chatState.messages.isEmpty &&
-                              !chatState.isLoading
-                          ? ChatEmptyState(
-                                voiceState: voiceState,
-                                onPromptTapped: (text) {
-                                  ref
-                                      .read(chatNotifierProvider.notifier)
-                                      .sendMessage(text);
-                                },
-                              )
-                          : MessageList(
-                                messages: chatState.messages,
-                                isLoading: chatState.isLoading,
-                                onRetry: (messageId) {
-                                  final failedMsg =
-                                      chatState.messages.firstWhere(
-                                    (m) => m.id == messageId,
-                                  );
-                                  ref
-                                      .read(chatNotifierProvider.notifier)
-                                      .sendMessage(failedMsg.content);
-                                },
-                              ),
+                      child: MessageList(
+                        messages: chatState.messages,
+                        isLoading: chatState.isLoading,
+                        onRetry: (messageId) {
+                          final failedMsg = chatState.messages.firstWhere(
+                            (m) => m.id == messageId,
+                          );
+                          ref
+                              .read(chatNotifierProvider.notifier)
+                              .sendMessage(failedMsg.content);
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -276,7 +237,57 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                   }
                 },
                 child: Center(
-                  child: _AnimatedPill(colors: colors),
+                  child: Container(
+                    width: 24,
+                    height: 3,
+                    decoration: BoxDecoration(
+                      color: colors.textTertiary.withAlpha(77),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // Stop generating button — visible only while Kai is responding
+          if (chatState.isLoading)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 80,
+              child: Center(
+                child: GestureDetector(
+                  onTap: () =>
+                      ref.read(chatNotifierProvider.notifier).stopStream(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: colors.surfaceContainer,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: colors.cloudLight),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.stop_rounded,
+                            size: 14, color: colors.textSecondary),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Стоп',
+                          style: typography.labelSmall
+                              .copyWith(color: colors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -393,68 +404,6 @@ class _ErrorBanner extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Animated pill handle that gently pulses to invite interaction.
-class _AnimatedPill extends StatefulWidget {
-  final dynamic colors;
-  const _AnimatedPill({required this.colors});
-
-  @override
-  State<_AnimatedPill> createState() => _AnimatedPillState();
-}
-
-class _AnimatedPillState extends State<_AnimatedPill>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _opacityAnim;
-  late final Animation<double> _scaleAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1800),
-    )..repeat(reverse: true);
-
-    _opacityAnim = Tween<double>(begin: 0.3, end: 0.7).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-    _scaleAnim = Tween<double>(begin: 1.0, end: 1.15).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _opacityAnim.value,
-          child: Transform.scale(
-            scale: _scaleAnim.value,
-            child: child,
-          ),
-        );
-      },
-      child: Container(
-        width: 40,
-        height: 4,
-        decoration: BoxDecoration(
-          color: widget.colors.textTertiary,
-          borderRadius: BorderRadius.circular(2),
-        ),
       ),
     );
   }
