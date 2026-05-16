@@ -39,6 +39,7 @@ class FakeApiClient extends ApiClient {
     required String message,
     required String userId,
     required String sessionId,
+    CancelToken? cancelToken,
   }) async* {
     for (final line in _streamLines) {
       yield line;

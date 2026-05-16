@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -58,6 +59,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   final SessionNotifier? _sessionNotifier;
   final _uuid = const Uuid();
   String? _currentSessionId;
+  CancelToken? _streamCancelToken;
   // Track if this session already has a title (first message sets it)
   bool _sessionTitled = false;
 
@@ -116,6 +118,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
     if (text.trim().isEmpty) return;
 
     _currentSessionId ??= _uuid.v4();
+    _streamCancelToken?.cancel();
+    _streamCancelToken = CancelToken();
     state = state.copyWith(isLoading: true, error: null);
 
     String? userMsgId;
@@ -124,6 +128,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
       await _repository.streamMessage(
         text: text,
         sessionId: _currentSessionId!,
+        cancelToken: _streamCancelToken,
         onUpdate: (updatedMsg) {
           final exists = state.messages.any((m) => m.id == updatedMsg.id);
           
@@ -184,8 +189,16 @@ class ChatNotifier extends StateNotifier<ChatState> {
   }
 
   void newSession() {
+    _streamCancelToken?.cancel();
+    _streamCancelToken = null;
     _currentSessionId = _uuid.v4();
     state = const ChatState();
+  }
+
+  @override
+  void dispose() {
+    _streamCancelToken?.cancel();
+    super.dispose();
   }
 }
 

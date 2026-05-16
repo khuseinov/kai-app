@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../../core/api/api_client.dart';
+import '../../../core/models/tool_source.dart';
 import 'dto/chat_stream_event.dart';
 import 'dto/chat_request_dto.dart';
 import 'dto/chat_response_dto.dart';
@@ -19,11 +22,15 @@ class ChatRemoteSource {
     return ChatResponseDto.fromJson(response);
   }
 
-  Stream<ChatStreamEvent> streamMessage(ChatRequestDto request) async* {
+  Stream<ChatStreamEvent> streamMessage(
+    ChatRequestDto request, {
+    CancelToken? cancelToken,
+  }) async* {
     final stream = _apiClient.streamMessage(
       message: request.message,
       userId: request.userId,
       sessionId: request.sessionId,
+      cancelToken: cancelToken,
     );
 
     String? currentEvent;
@@ -90,6 +97,15 @@ class ChatRemoteSource {
                   json['scope_inheritance_violation'] as bool?,
               injectionFragment: json['injection_fragment'] as String?,
               injectionSource: json['injection_source'] as String?,
+              sources: (json['sources'] as List<dynamic>?)
+                      ?.whereType<Map<String, dynamic>>()
+                      .map(ToolSource.fromJson)
+                      .toList() ??
+                  const [],
+              biasSuggestions: (json['bias_suggestions'] as List<dynamic>?)
+                      ?.cast<String>() ??
+                  const [],
+              blockReason: json['block_reason'] as String?,
             );
           } else if (currentEvent == 'approval') {
             yield ChatStreamEvent.approval(
@@ -99,6 +115,8 @@ class ChatRemoteSource {
                   json['pending_confirmation'] as bool? ?? false,
               confirmationType: json['confirmation_type'] as String?,
             );
+          } else if (currentEvent != null) {
+            debugPrint('SSE: unknown event "$currentEvent" — data: $data');
           }
         } catch (e) {
           yield ChatStreamEvent.error(e.toString());

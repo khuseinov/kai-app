@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/api/api_exceptions.dart';
 import '../../../core/api/circuit_breaker.dart';
@@ -95,6 +96,9 @@ class ChatRepository {
       scopeInheritanceViolation: responseDto.scopeInheritanceViolation,
       injectionFragment: responseDto.injectionFragment,
       injectionSource: responseDto.injectionSource,
+      sources: responseDto.sources,
+      biasSuggestions: responseDto.biasSuggestions,
+      blockReason: responseDto.blockReason,
     );
 
     await _localSource.saveMessage(kaiMessage);
@@ -110,6 +114,7 @@ class ChatRepository {
     required String text,
     required String sessionId,
     required Function(ChatMessage) onUpdate,
+    CancelToken? cancelToken,
   }) async {
     // 1. Create optimistic local message
     final userMessage = ChatMessage(
@@ -143,7 +148,7 @@ class ChatRepository {
 
     // 4. Listen to stream
     try {
-      final stream = _remoteSource.streamMessage(request);
+      final stream = _remoteSource.streamMessage(request, cancelToken: cancelToken);
 
       await for (final event in stream) {
         await event.when<Future<void>>(
@@ -185,6 +190,9 @@ class ChatRepository {
             scopeInheritanceViolation,
             injectionFragment,
             injectionSource,
+            sources,
+            biasSuggestions,
+            blockReason,
           ) async {
             responseMessage = responseMessage.copyWith(
               correlationId: correlationId,
@@ -208,6 +216,9 @@ class ChatRepository {
               scopeInheritanceViolation: scopeInheritanceViolation,
               injectionFragment: injectionFragment,
               injectionSource: injectionSource,
+              sources: sources,
+              biasSuggestions: biasSuggestions,
+              blockReason: blockReason,
             );
             onUpdate(responseMessage);
           },
@@ -239,6 +250,9 @@ class ChatRepository {
         );
       }
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) {
+        return;
+      }
       responseMessage = responseMessage.copyWith(
           status: 'error', content: 'Connection Error: $e');
       onUpdate(responseMessage);

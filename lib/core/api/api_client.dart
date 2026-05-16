@@ -43,6 +43,7 @@ class ApiClient {
     required String message,
     required String userId,
     required String sessionId,
+    CancelToken? cancelToken,
   }) async* {
     final response = await dio.post<ResponseBody>(
       '/chat/stream',
@@ -52,6 +53,7 @@ class ApiClient {
         'session_id': sessionId,
       },
       options: Options(responseType: ResponseType.stream),
+      cancelToken: cancelToken,
     );
 
     final stream = response.data!.stream
