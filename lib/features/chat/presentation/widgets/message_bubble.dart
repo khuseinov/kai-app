@@ -9,10 +9,8 @@ import '../../../../core/design/tokens/kai_spacing.dart';
 import '../../../../core/models/chat_message.dart';
 import '../../logic/chat_notifier.dart';
 import 'approval_actions.dart';
-import 'bias_tip_card.dart';
 import 'safety_block_banner.dart';
 import 'source_chips.dart';
-import 'verify_warning_card.dart';
 
 class MessageBubble extends ConsumerWidget {
   final ChatMessage message;
@@ -306,19 +304,6 @@ class MessageBubble extends ConsumerWidget {
                     if (message.sources.isNotEmpty) ...[
                       const SizedBox(height: KaiSpacing.xs),
                       SourceChips(sources: message.sources),
-                    ],
-
-                    // APP-A3: bias detector suggestion card
-                    if (message.biasSuggestions.isNotEmpty) ...[
-                      const SizedBox(height: KaiSpacing.xs),
-                      BiasTipCard(suggestions: message.biasSuggestions),
-                    ],
-
-                    // APP-VERIFY-1: VerifyStep warning card (CC-6)
-                    if (message.sourceWarnings
-                        .any((w) => w.startsWith('[VERIFY]'))) ...[
-                      const SizedBox(height: KaiSpacing.xs),
-                      VerifyWarningCard(sourceWarnings: message.sourceWarnings),
                     ],
 
                     // APP-INJ-CONFIRM-1 / APP-A4: safety block banner
