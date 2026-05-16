@@ -33,6 +33,33 @@ void main() {
     expect(find.byIcon(Icons.schedule_outlined), findsOneWidget);
   });
 
+  testWidgets(
+      'SourceChips dedupes identical (tool, source) pairs (BUG-DUP-CHIPS-1)',
+      (tester) async {
+    // Backend reports the same tool firing 4 times (cache hits + retries).
+    // The mobile UI must show ONE chip per unique (tool, source) pair.
+    const sources = [
+      ToolSource(tool: 'visa_checker', source: 'kg_visa_rules'),
+      ToolSource(tool: 'visa_checker', source: 'kg_visa_rules'),
+      ToolSource(tool: 'visa_checker', source: 'kg_visa_rules'),
+      ToolSource(tool: 'visa_checker', source: 'kg_visa_rules'),
+    ];
+    await tester.pumpWidget(_wrap(const SourceChips(sources: sources)));
+    expect(find.text('kg_visa_rules'), findsOneWidget);
+  });
+
+  testWidgets('SourceChips keeps distinct (tool, source) pairs',
+      (tester) async {
+    const sources = [
+      ToolSource(tool: 'visa_checker', source: 'kg_visa_rules'),
+      ToolSource(tool: 'health_requirements', source: 'kg_health'),
+      ToolSource(tool: 'visa_checker', source: 'kg_visa_rules'),
+    ];
+    await tester.pumpWidget(_wrap(const SourceChips(sources: sources)));
+    expect(find.text('kg_visa_rules'), findsOneWidget);
+    expect(find.text('kg_health'), findsOneWidget);
+  });
+
   testWidgets('SourceChips falls back to source when sourceDisplayName is null',
       (tester) async {
     final sources = [

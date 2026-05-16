@@ -29,8 +29,17 @@ class MessageMetadataRow extends StatelessWidget {
     final hasScopeSignal = (message.scopeEscalationDetected ?? false) &&
         scopeCategories.isNotEmpty;
 
+    // BUG-DUP-CHIPS-1 (2026-05-16): backend emits each tool call as a separate
+    // entry in executed_tool_calls (cache hits, iteration retries), so the
+    // same tool can appear 3–4× in the list. Dedupe at render time — one chip
+    // per unique tool name. Order preserved via LinkedHashSet semantics.
+    final uniqueTools = <String>{};
+    for (final tool in message.executedToolCalls) {
+      uniqueTools.add(tool);
+    }
+
     final hasAnyMeta = modeChip != null ||
-        message.executedToolCalls.isNotEmpty ||
+        uniqueTools.isNotEmpty ||
         (message.worldModelUsed == true && (message.kgNodesQueried ?? 0) > 0) ||
         (message.revisionCount ?? 0) > 0 ||
         hasScopeSignal ||
@@ -66,8 +75,8 @@ class MessageMetadataRow extends StatelessWidget {
               baseStyle: textStyle,
             ),
 
-          // Tool calls — which tools Kai fired.
-          for (final tool in message.executedToolCalls)
+          // Tool calls — which tools Kai fired (deduped, see BUG-DUP-CHIPS-1).
+          for (final tool in uniqueTools)
             _ColoredMetaChip(
               icon: Icons.handyman_outlined,
               label: _toolLabel(tool),

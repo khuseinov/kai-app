@@ -78,4 +78,45 @@ void main() {
     await tester.pumpWidget(_wrap(userMsg));
     expect(find.text('глубокий разбор'), findsNothing);
   });
+
+  testWidgets(
+      'tool chips dedupe duplicate executed_tool_calls (BUG-DUP-CHIPS-1)',
+      (tester) async {
+    // Backend often reports the same tool 3-4 times because of cache hits
+    // and iteration retries. The metadata row must render ONE chip per
+    // unique tool name, not one per occurrence.
+    final msg = ChatMessage(
+      id: 'm1',
+      content: 'hi',
+      isUser: false,
+      timestamp: DateTime(2026, 5, 16),
+      requestType: 'fast',
+      executedToolCalls: const [
+        'health_requirements',
+        'health_requirements',
+        'health_requirements',
+        'health_requirements',
+      ],
+    );
+    await tester.pumpWidget(_wrap(msg));
+    expect(find.text('здоровье'), findsOneWidget);
+  });
+
+  testWidgets('tool chips keep distinct tools', (tester) async {
+    final msg = ChatMessage(
+      id: 'm1',
+      content: 'hi',
+      isUser: false,
+      timestamp: DateTime(2026, 5, 16),
+      requestType: 'fast',
+      executedToolCalls: const [
+        'visa_checker',
+        'health_requirements',
+        'visa_checker',
+      ],
+    );
+    await tester.pumpWidget(_wrap(msg));
+    expect(find.text('виза'), findsOneWidget);
+    expect(find.text('здоровье'), findsOneWidget);
+  });
 }

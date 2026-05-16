@@ -19,10 +19,23 @@ class SourceChips extends StatelessWidget {
   Widget build(BuildContext context) {
     if (sources.isEmpty) return const SizedBox.shrink();
 
+    // BUG-DUP-CHIPS-1 (2026-05-16): backend reports one source per tool fire,
+    // and Kai often fires the same tool multiple times (cache hits / retry
+    // loops), so a single Kai response can list visa_checker 3-4 times. Show
+    // each unique (tool, source) pair once. Order preserved (first occurrence).
+    final seenKeys = <String>{};
+    final unique = <ToolSource>[];
+    for (final s in sources) {
+      final key = '${s.tool}|${s.source}';
+      if (seenKeys.add(key)) {
+        unique.add(s);
+      }
+    }
+
     return Wrap(
       spacing: KaiSpacing.xxs,
       runSpacing: KaiSpacing.xxs,
-      children: sources.map((s) => _SourceChip(source: s)).toList(),
+      children: unique.map((s) => _SourceChip(source: s)).toList(),
     );
   }
 }
