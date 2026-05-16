@@ -30,7 +30,6 @@ class _PersonalContextScreenState
   Widget build(BuildContext context) {
     final state = ref.watch(personalContextNotifierProvider);
     final colors = context.kaiColors;
-    final typography = context.kaiTypography;
 
     // Show success snackbar
     ref.listen<PersonalContextState>(personalContextNotifierProvider,
