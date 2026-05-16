@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/design/components/kai_button.dart';
+import '../../../../core/design/components/kai_empty_state.dart';
 import '../../../../core/design/theme/theme_extensions.dart';
 import '../../../../core/design/tokens/kai_spacing.dart';
 import '../../domain/chat_session.dart';
@@ -54,7 +55,11 @@ class SessionDrawer extends ConsumerWidget {
               child: sessionState.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : sessionState.sessions.isEmpty
-                      ? const _DrawerEmptyState()
+                      ? const KaiEmptyState(
+                          icon: Icons.chat_bubble_outline,
+                          title: 'Нет разговоров',
+                          subtitle: 'Начните новый разговор',
+                        )
                       : ListView.builder(
                           itemCount: sessionState.sessions.length,
                           padding: const EdgeInsets.symmetric(
@@ -137,43 +142,6 @@ class SessionDrawer extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _DrawerEmptyState extends StatelessWidget {
-  const _DrawerEmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    final kaiColors = context.kaiColors;
-    final kaiTypography = context.kaiTypography;
-
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.chat_bubble_outline,
-            size: 48,
-            color: kaiColors.textTertiary,
-          ),
-          const SizedBox(height: KaiSpacing.s),
-          Text(
-            'Нет разговоров',
-            style: kaiTypography.titleMedium.copyWith(
-              color: kaiColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: KaiSpacing.xxs),
-          Text(
-            'Начните новый разговор',
-            style: kaiTypography.bodySmall.copyWith(
-              color: kaiColors.textTertiary,
-            ),
-          ),
-        ],
       ),
     );
   }
