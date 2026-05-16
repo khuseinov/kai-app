@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../core/models/tool_source.dart';
+
 part 'chat_response_dto.freezed.dart';
 part 'chat_response_dto.g.dart';
 
@@ -34,6 +36,12 @@ class ChatResponseDto with _$ChatResponseDto {
     // Injection transparency (API-INJ-SIGNALS-1; backend: cognitive/critique/critique.py B-12)
     @JsonKey(name: 'injection_fragment') String? injectionFragment,
     @JsonKey(name: 'injection_source') String? injectionSource,
+    // Tool source provenance (APP-A1 / TOOL-PROV-1)
+    @Default([]) List<ToolSource> sources,
+    // Bias detector suggestions (APP-A3)
+    @JsonKey(name: 'bias_suggestions') @Default([]) List<String> biasSuggestions,
+    // Block reason for distinct safety banners (APP-A4)
+    @JsonKey(name: 'block_reason') String? blockReason,
   }) = _ChatResponseDto;
 
   factory ChatResponseDto.fromJson(Map<String, dynamic> json) =>

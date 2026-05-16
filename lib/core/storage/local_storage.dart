@@ -31,6 +31,16 @@ class LocalStorage {
   String get userId => _settings.get('user_id') as String? ?? 'local-user';
   set userId(String v) => _settings.put('user_id', v);
 
+  // Country favourites (APP-D1)
+  List<String> get countryFavourites {
+    final raw = _settings.get('country_favourites');
+    if (raw == null) return [];
+    return (raw as List).cast<String>();
+  }
+
+  set countryFavourites(List<String> v) =>
+      _settings.put('country_favourites', v);
+
   // Chat history
   List<Map> get sessions {
     final raw = _history.get('sessions');

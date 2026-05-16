@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'tool_source.dart';
+
 part 'chat_message.freezed.dart';
 part 'chat_message.g.dart';
 
@@ -42,6 +44,12 @@ class ChatMessage with _$ChatMessage {
     // Injection transparency (API-INJ-SIGNALS-1)
     String? injectionFragment,
     String? injectionSource,
+    // Tool source provenance (APP-A1 / TOOL-PROV-1)
+    @Default([]) List<ToolSource> sources,
+    // Bias detector suggestions (APP-A3)
+    @Default([]) List<String> biasSuggestions,
+    // Block reason for distinct safety banners (APP-A4)
+    String? blockReason,
   }) = _ChatMessage;
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) =>

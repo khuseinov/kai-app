@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/design/components/kai_button.dart';
 import '../../../../core/design/theme/theme_extensions.dart';
@@ -85,7 +86,24 @@ class SessionDrawer extends ConsumerWidget {
                         ),
             ),
 
-            // Footer — version info
+            // Footer — navigation + version
+            Divider(color: colors.textTertiary.withValues(alpha: 0.2)),
+            _DrawerNavItem(
+              icon: Icons.public_outlined,
+              label: 'Страны',
+              onTap: () {
+                onClose?.call();
+                context.push('/country');
+              },
+            ),
+            _DrawerNavItem(
+              icon: Icons.settings_outlined,
+              label: 'Настройки',
+              onTap: () {
+                onClose?.call();
+                context.push('/settings');
+              },
+            ),
             Divider(color: colors.textTertiary.withValues(alpha: 0.2)),
             Padding(
               padding: const EdgeInsets.symmetric(
@@ -148,6 +166,44 @@ class _DrawerEmptyState extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DrawerNavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _DrawerNavItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.kaiColors;
+    final typography = context.kaiTypography;
+
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: KaiSpacing.m,
+          vertical: KaiSpacing.s,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: colors.textSecondary),
+            const SizedBox(width: KaiSpacing.s),
+            Text(
+              label,
+              style: typography.bodyMedium.copyWith(color: colors.textSecondary),
+            ),
+          ],
+        ),
       ),
     );
   }

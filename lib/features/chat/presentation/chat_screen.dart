@@ -16,6 +16,9 @@ import 'widgets/offline_banner.dart';
 import 'widgets/safety_block_banner.dart';
 import 'widgets/session_drawer.dart';
 
+// APP-TOOL-GATE-NOTICE-1: one-time in-session flag so the snackbar fires once.
+final _toolsSeenInSessionProvider = StateProvider<bool>((ref) => false);
+
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
 
@@ -124,6 +127,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     final chatState = ref.watch(chatNotifierProvider);
     final colors = context.kaiColors;
     final isOfflineAsync = ref.watch(isOnlineProvider);
+
+    // APP-TOOL-GATE-NOTICE-1: show one-time snackbar when tools first fire.
+    ref.listen<ChatState>(chatNotifierProvider, (_, next) {
+      if (ref.read(_toolsSeenInSessionProvider)) return;
+      if (next.messages.any((m) => m.executedToolCalls.isNotEmpty)) {
+        ref.read(_toolsSeenInSessionProvider.notifier).state = true;
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.handyman_outlined, size: 14, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text('Kai проверяет источники данных'),
+                ],
+              ),
+              duration: Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    });
     final isOffline = !(isOfflineAsync.valueOrNull ?? true);
 
     final voiceState = _voiceStateFromChat(chatState);

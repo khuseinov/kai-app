@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../core/models/tool_source.dart';
+
 part 'chat_stream_event.freezed.dart';
 
 @freezed
@@ -35,6 +37,12 @@ class ChatStreamEvent with _$ChatStreamEvent {
     // Injection transparency (API-INJ-SIGNALS-1)
     String? injectionFragment,
     String? injectionSource,
+    // Tool source provenance (APP-A1 / TOOL-PROV-1)
+    @Default([]) List<ToolSource> sources,
+    // Bias detector suggestions (APP-A3)
+    @Default([]) List<String> biasSuggestions,
+    // Block reason for distinct safety banners (APP-A4)
+    String? blockReason,
   }) = _EventMetadata;
   const factory ChatStreamEvent.approval({
     required bool requiresHumanApproval,
