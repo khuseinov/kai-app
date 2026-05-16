@@ -89,14 +89,6 @@ class SessionDrawer extends ConsumerWidget {
             // Footer — navigation + version
             Divider(color: colors.textTertiary.withValues(alpha: 0.2)),
             _DrawerNavItem(
-              icon: Icons.public_outlined,
-              label: 'Страны',
-              onTap: () {
-                onClose?.call();
-                context.push('/country');
-              },
-            ),
-            _DrawerNavItem(
               icon: Icons.history_outlined,
               label: 'История',
               onTap: () {
