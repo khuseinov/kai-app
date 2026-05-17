@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/models/chat_message.dart';
 import '../../../../core/design/tokens/kai_spacing.dart';
 import '../../logic/chat_notifier.dart';
+import 'crisis_card.dart';
 import 'message_bubble.dart';
 import 'message_metadata_row.dart';
 
@@ -59,6 +60,11 @@ class _MessageListState extends ConsumerState<MessageList> {
       itemBuilder: (context, index) {
         final message = widget.messages[index];
         final key = _messageKeys.putIfAbsent(message.id, () => GlobalKey());
+
+        // D4: Crisis messages get full-bleed CrisisCard instead of normal bubble.
+        if (message.crisisDetected == true) {
+          return CrisisCard(key: key, category: message.crisisCategory);
+        }
 
         return Column(
           key: key,

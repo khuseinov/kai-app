@@ -9,6 +9,7 @@ import '../../../../core/design/tokens/kai_spacing.dart';
 import '../../../../core/models/chat_message.dart';
 import '../../logic/chat_notifier.dart';
 import 'approval_actions.dart';
+import 'message_detail_sheet.dart';
 import 'safety_block_banner.dart';
 import 'source_chips.dart';
 
@@ -124,28 +125,22 @@ class MessageBubble extends ConsumerWidget {
         ),
       );
     } else {
-      // APP-XAI-CARD-1: pre-compute XAI split so widget tree stays declarative.
-      final xaiIdx = message.specialMode?.toUpperCase() == 'X'
-          ? message.content.indexOf('[XAI]')
-          : -1;
       // APP-SIM-CARD-1: pre-compute S-loop split.
       final sloopIdx = message.specialMode?.toUpperCase() == 'S'
           ? message.content.indexOf('[S-LOOP')
           : -1;
       final mainContent = sloopIdx >= 0
           ? message.content.substring(0, sloopIdx).trimRight()
-          : xaiIdx >= 0
-              ? message.content.substring(0, xaiIdx).trimRight()
-              : message.content;
-      final xaiContent = xaiIdx >= 0
-          ? message.content.substring(xaiIdx + 5).trim()
-          : null;
+          : message.content;
       final sloopContent = sloopIdx >= 0
           ? message.content.substring(sloopIdx).trim()
           : null;
 
       return GestureDetector(
-        onLongPressStart: (d) => showMessageActions(d.globalPosition),
+        onLongPress: () {
+          HapticFeedback.mediumImpact();
+          MessageDetailSheet.show(context, message);
+        },
         child: Padding(
           padding:
               const EdgeInsets.only(bottom: KaiSpacing.l, right: KaiSpacing.l),
@@ -248,21 +243,7 @@ class MessageBubble extends ConsumerWidget {
                             message.scopeInheritanceViolation ?? false,
                       ),
 
-                    // BE-AUT-4: Crisis banner — P0 SAFETY.
-                    // Rendered before the response text so users see the
-                    // helpline notice even before they read the answer.
-                    if (message.crisisDetected == true)
-                      _CrisisBanner(category: message.crisisCategory),
-
-                    // BE-AUT-5: Special mode pill — Kai autonomously entered
-                    // a special cognitive mode (S/M/D/X).
-                    if (message.specialMode != null &&
-                        message.specialMode!.isNotEmpty) ...[
-                      _SpecialModePill(mode: message.specialMode!),
-                      const SizedBox(height: 6),
-                    ],
-
-                    // APP-XAI-CARD-1: render main text; append XAI block if mode X.
+                    // Render main content (marker blocks stripped above).
                     if (mainContent.isNotEmpty)
                       MarkdownBody(
                         data: mainContent,
@@ -289,11 +270,6 @@ class MessageBubble extends ConsumerWidget {
                           ),
                         ),
                       ),
-                    if (xaiContent != null) ...[
-                      const SizedBox(height: KaiSpacing.xs),
-                      _XAIBlock(xaiText: xaiContent),
-                    ],
-
                     // APP-SIM-CARD-1: S-loop structured simulation card
                     if (sloopContent != null) ...[
                       const SizedBox(height: KaiSpacing.xs),
@@ -313,11 +289,6 @@ class MessageBubble extends ConsumerWidget {
                       SafetyBlockBanner(latestMessage: message),
                     ],
 
-                    // APP-MEM-CHIP-1: memorize confirmation chip
-                    if (message.specialMode?.toUpperCase() == 'M') ...[
-                      const SizedBox(height: KaiSpacing.xs),
-                      const _MemorizeChip(),
-                    ],
                   ],
                 ),
               ),
@@ -374,126 +345,6 @@ void _sendConfirmation(WidgetRef ref, bool approve) {
   // "отмена" deliberately does NOT match → backend falls through to denial branch.
   final text = approve ? 'да' : 'отмена';
   notifier.sendMessage(text);
-}
-
-// BE-AUT-4 ────────────────────────────────────────────────────────────────────
-
-/// Full-width crisis banner. Shown when Kai's crisis-detection protocol
-/// (B-14, Constitution §12) fires — before the response text, always visible.
-class _CrisisBanner extends StatelessWidget {
-  final String? category;
-
-  const _CrisisBanner({this.category});
-
-  static String _categoryLabel(String cat) => switch (cat.toLowerCase()) {
-        'suicidal_ideation' => 'Суицидальные мысли',
-        'self_harm' => 'Самоповреждение',
-        'abuse' => 'Насилие / абьюз',
-        'crisis' => 'Кризисная ситуация',
-        _ => cat,
-      };
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.kaiColors;
-    final typography = context.kaiTypography;
-
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: colors.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: colors.error.withValues(alpha: 0.4)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.emergency_outlined, size: 16, color: colors.error),
-              const SizedBox(width: 6),
-              Text(
-                'Экстренная поддержка',
-                style: typography.labelMedium
-                    .copyWith(color: colors.error, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          if (category != null && category!.isNotEmpty) ...[
-            const SizedBox(height: 2),
-            Text(
-              _categoryLabel(category!),
-              style: typography.labelSmall.copyWith(
-                color: colors.textTertiary,
-                fontSize: 10,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-          const SizedBox(height: 6),
-          Text(
-            'Телефон доверия: 8-800-2000-122 (бесплатно)\n'
-            'Международная линия: +7 495 988-44-34',
-            style: typography.bodySmall.copyWith(color: colors.error),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// BE-AUT-5 ────────────────────────────────────────────────────────────────────
-
-/// Small pill shown when Kai autonomously entered a special cognitive mode.
-/// Rendered above the answer text so the user understands WHY the response
-/// looks different (preview-only, memory saved, explanation mode, etc.).
-class _SpecialModePill extends StatelessWidget {
-  final String mode;
-
-  const _SpecialModePill({required this.mode});
-
-  static const _labels = {
-    'S': ('Симуляция', Icons.science_outlined),
-    's': ('Симуляция', Icons.science_outlined),
-    'M': ('Запомнил', Icons.bookmark_outlined),
-    'm': ('Запомнил', Icons.bookmark_outlined),
-    'D': ('Делегирую', Icons.fork_right_outlined),
-    'd': ('Делегирую', Icons.fork_right_outlined),
-    'X': ('Объясняю', Icons.auto_stories_outlined),
-    'x': ('Объясняю', Icons.auto_stories_outlined),
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.kaiColors;
-    final typography = context.kaiTypography;
-    final entry = _labels[mode];
-    if (entry == null) return const SizedBox.shrink();
-    final (label, icon) = entry;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: colors.stateThinking.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.stateThinking.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: colors.stateThinking),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: typography.labelSmall
-                .copyWith(color: colors.stateThinking, fontSize: 11),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // APP-SCOPE-ESC-1 ─────────────────────────────────────────────────────────────
@@ -640,131 +491,6 @@ class _InjectionWarningCard extends StatelessWidget {
             style:
                 typography.labelSmall.copyWith(color: colors.textTertiary),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-// APP-XAI-CARD-1 ───────────────────────────────────────────────────────────────
-
-/// Collapsible XAI explanation block. Shown when special_mode="X" and the
-/// response contains a `[XAI]` marker. Backend: SIM-AUTO-X-2.
-/// Format after marker: "Intents: … | Critique: … | Goal: …"
-class _XAIBlock extends StatefulWidget {
-  final String xaiText;
-
-  const _XAIBlock({required this.xaiText});
-
-  @override
-  State<_XAIBlock> createState() => _XAIBlockState();
-}
-
-class _XAIBlockState extends State<_XAIBlock> {
-  bool _expanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.kaiColors;
-    final typography = context.kaiTypography;
-
-    final parts = widget.xaiText.split(' | ').map((p) {
-      final idx = p.indexOf(':');
-      if (idx < 0) return (key: '', value: p.trim());
-      return (
-        key: p.substring(0, idx).trim(),
-        value: p.substring(idx + 1).trim(),
-      );
-    }).toList();
-
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.stateThinking.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(8),
-        border:
-            Border.all(color: colors.stateThinking.withValues(alpha: 0.25)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InkWell(
-            borderRadius: BorderRadius.circular(8),
-            onTap: () => setState(() => _expanded = !_expanded),
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              child: Row(
-                children: [
-                  Icon(Icons.auto_stories_outlined,
-                      size: 13, color: colors.stateThinking),
-                  const SizedBox(width: 6),
-                  Text(
-                    'XAI — объяснение решения',
-                    style: typography.labelSmall.copyWith(
-                      color: colors.stateThinking,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 11,
-                    ),
-                  ),
-                  const Spacer(),
-                  Icon(
-                    _expanded ? Icons.expand_less : Icons.expand_more,
-                    size: 14,
-                    color: colors.textTertiary,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (_expanded)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: parts.map((part) {
-                  if (part.key.isEmpty) {
-                    return Text(
-                      part.value,
-                      style: typography.bodySmall.copyWith(
-                        color: colors.textSecondary,
-                        fontSize: 10,
-                      ),
-                    );
-                  }
-                  final isCritique =
-                      part.key.toLowerCase() == 'critique';
-                  final isOk = part.value.toLowerCase().contains('ok') ||
-                      part.value.toLowerCase().contains('pass');
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 2),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${part.key}: ',
-                          style: typography.labelSmall.copyWith(
-                            color: colors.textTertiary,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            part.value,
-                            style: typography.bodySmall.copyWith(
-                              color: isCritique
-                                  ? (isOk ? colors.success : colors.error)
-                                  : colors.textSecondary,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
         ],
       ),
     );
@@ -985,42 +711,6 @@ class _SimStat extends StatelessWidget {
               color: color,
               fontSize: 11,
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// APP-MEM-CHIP-1 ───────────────────────────────────────────────────────────────
-
-/// Small confirmation chip shown when special_mode="M" — Kai stored a
-/// user preference. Backend: SIM-AUTO-M-4.
-class _MemorizeChip extends StatelessWidget {
-  const _MemorizeChip();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.kaiColors;
-    final typography = context.kaiTypography;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: colors.success.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.success.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.bookmark_added_outlined,
-              size: 12, color: colors.success),
-          const SizedBox(width: 4),
-          Text(
-            'Предпочтение сохранено',
-            style: typography.labelSmall
-                .copyWith(color: colors.success, fontSize: 11),
           ),
         ],
       ),

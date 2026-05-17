@@ -90,36 +90,30 @@ void main() {
     expect(find.byIcon(Icons.fence_outlined), findsOneWidget);
   });
 
-  // ── APP-XAI-CARD-1 ────────────────────────────────────────────────────────
+  // ── APP-XAI-CARD-1 (D2: XAI moved to MessageDetailSheet) ────────────────
+  // _XAIBlock was removed from the inline bubble in D2. XAI content is now
+  // shown in MessageDetailSheet on long-press. The bubble only shows the main
+  // text before the [XAI] marker.
 
-  testWidgets('XAIBlock not shown when specialMode is not X', (tester) async {
+  testWidgets('XAI label not shown in bubble regardless of specialMode',
+      (tester) async {
     await tester.pumpWidget(_wrap(_kai(content: 'Просто ответ')));
     expect(find.text('XAI — объяснение решения'), findsNothing);
   });
 
-  testWidgets('XAIBlock shown collapsed when specialMode=X with [XAI] marker',
+  testWidgets(
+      'Bubble shows main content only (before [XAI] marker) for specialMode=X',
       (tester) async {
     await tester.pumpWidget(_wrap(_kai(
       specialMode: 'X',
       content:
           'Основной ответ.[XAI] Intents: travel advice | Critique: ok | Goal: aligned',
     )));
-    expect(find.text('XAI — объяснение решения'), findsOneWidget);
-    // Content is hidden by default (collapsed)
-    expect(find.text('travel advice'), findsNothing);
-    // Main text before [XAI] is rendered
+    // XAI label is gone from inline bubble (moved to detail sheet)
+    expect(find.text('XAI — объяснение решения'), findsNothing);
+    // [XAI] marker block is stripped; only main text before marker is shown
     expect(find.textContaining('Основной ответ'), findsOneWidget);
-  });
-
-  testWidgets('XAIBlock expands on tap revealing parsed fields',
-      (tester) async {
-    await tester.pumpWidget(_wrap(_kai(
-      specialMode: 'X',
-      content: 'Ответ[XAI] Intents: travel | Critique: ok | Goal: aligned',
-    )));
-    await tester.tap(find.text('XAI — объяснение решения'));
-    await tester.pumpAndSettle();
-    expect(find.text('travel'), findsOneWidget);
+    expect(find.text('travel advice'), findsNothing);
   });
 
   testWidgets('Content without [XAI] marker renders normally for mode X',
@@ -132,21 +126,23 @@ void main() {
     expect(find.text('XAI — объяснение решения'), findsNothing);
   });
 
-  // ── APP-MEM-CHIP-1 ────────────────────────────────────────────────────────
+  // ── APP-MEM-CHIP-1 (D4: MemorizeChip removed from bubble) ───────────────
+  // _MemorizeChip was removed from the inline bubble in D4 to reduce noise.
 
   testWidgets('MemorizeChip not shown for non-M modes', (tester) async {
     await tester.pumpWidget(_wrap(_kai(specialMode: 'S')));
     expect(find.text('Предпочтение сохранено'), findsNothing);
   });
 
-  testWidgets('MemorizeChip shown when specialMode=M', (tester) async {
+  testWidgets('MemorizeChip not shown even when specialMode=M (removed in D4)',
+      (tester) async {
     await tester.pumpWidget(_wrap(_kai(specialMode: 'M')));
-    expect(find.text('Предпочтение сохранено'), findsOneWidget);
-    expect(find.byIcon(Icons.bookmark_added_outlined), findsOneWidget);
+    expect(find.text('Предпочтение сохранено'), findsNothing);
   });
 
-  testWidgets('MemorizeChip shown for lowercase m', (tester) async {
+  testWidgets('MemorizeChip not shown for lowercase m (removed in D4)',
+      (tester) async {
     await tester.pumpWidget(_wrap(_kai(specialMode: 'm')));
-    expect(find.text('Предпочтение сохранено'), findsOneWidget);
+    expect(find.text('Предпочтение сохранено'), findsNothing);
   });
 }
