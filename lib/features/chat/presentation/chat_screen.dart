@@ -214,9 +214,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
           controller: _textController,
           isLoading: chatState.isLoading,
           onSend: (text) {
-            setState(() => _isListening = false);
             ref.read(chatNotifierProvider.notifier).sendMessage(text);
             Navigator.pop(context);
+            // Pop propagates the tap to the background GestureDetector and
+            // would toggle _isListening back on — suppress it one frame.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) setState(() => _isListening = false);
+            });
           },
         ),
       ),

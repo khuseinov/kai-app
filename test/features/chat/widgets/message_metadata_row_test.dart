@@ -11,15 +11,15 @@ void main() {
     testWidgets('returns SizedBox for user messages', (tester) async {
       final msg = _userMessage();
       await tester.pumpWidget(buildTestWidget(MessageMetadataRow(message: msg)));
-      expect(find.byIcon(Icons.thumb_up_outlined), findsNothing);
-      expect(find.byIcon(Icons.thumb_down_outlined), findsNothing);
+      expect(find.byIcon(Icons.verified_outlined), findsNothing);
     });
 
-    testWidgets('shows reactions for Kai message with no sources', (tester) async {
+    testWidgets('returns SizedBox for Kai message with no sources', (tester) async {
       final msg = _kaiMessage();
       await tester.pumpWidget(buildTestWidget(MessageMetadataRow(message: msg)));
-      expect(find.byIcon(Icons.thumb_up_outlined), findsOneWidget);
-      expect(find.byIcon(Icons.thumb_down_outlined), findsOneWidget);
+      // Reactions moved to _ReactionRow inside MessageBubble — not shown here
+      expect(find.byIcon(Icons.thumb_up_outlined), findsNothing);
+      expect(find.byIcon(Icons.thumb_down_outlined), findsNothing);
       expect(find.byIcon(Icons.verified_outlined), findsNothing);
     });
 
