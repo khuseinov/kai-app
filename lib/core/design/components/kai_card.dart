@@ -48,10 +48,10 @@ class KaiCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.kaiColors;
 
-    final Color effectiveBg = backgroundColor ??
+    final effectiveBg = backgroundColor ??
         (highlighted ? colors.oceanPrimary.withValues(alpha: 0.05) : colors.surface);
 
-    final BoxBorder? effectiveBorder = border ??
+    final effectiveBorder = border ??
         Border.all(
           color: highlighted ? colors.oceanPrimary : colors.cloudLight,
           width: highlighted ? 1.5 : 1.0,

@@ -424,7 +424,7 @@ class _MemoryToggleTile extends StatelessWidget {
               Switch(
                 value: enabled,
                 onChanged: onChanged,
-                activeColor: colors.oceanPrimary,
+                activeThumbColor: colors.oceanPrimary,
               ),
             ],
           ),

@@ -153,7 +153,7 @@ void main() {
 
   testWidgets('long-press chip opens detail bottom sheet', (tester) async {
     final sources = [
-      ToolSource(
+      const ToolSource(
         tool: 'cost_estimator',
         source: 'numbeo.com',
         sourceDisplayName: 'Numbeo',

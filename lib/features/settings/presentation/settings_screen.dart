@@ -68,7 +68,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 value: settings.reduceMotion,
                 onChanged: (v) =>
                     ref.read(settingsProvider.notifier).setReduceMotion(v),
-                activeColor: colors.oceanPrimary,
+                activeThumbColor: colors.oceanPrimary,
               ),
             ],
           ),
@@ -96,7 +96,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   );
                 },
-                activeColor: colors.oceanPrimary,
+                activeThumbColor: colors.oceanPrimary,
               ),
             ],
           ),

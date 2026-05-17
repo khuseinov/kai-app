@@ -6,7 +6,7 @@ import 'kai_label.dart';
 /// quick notes — not a system reporting machine states. PEOVUCARG step
 /// letters get short conversational phrases (lowercase, ellipsis, no
 /// padding) that map to actual user-meaningful work.
-const _STEP_RU = <String, String>{
+const _stepRu = <String, String>{
   'P': 'слушаю...',
   'E': 'ищу источники...',
   'O': 'смотрю что есть...',
@@ -23,7 +23,7 @@ const _STEP_RU = <String, String>{
 /// We map it to a meaningful action so the user sees "сверяю визы..." for
 /// 5–7 seconds (while visa_checker runs) instead of the generic "ищу
 /// источники...". Unknown tools fall through to the step-letter lookup.
-const _TOOL_RU = <String, String>{
+const _toolRu = <String, String>{
   'visa_checker': 'сверяю визы...',
   'health_requirements': 'смотрю про прививки...',
   'risk_assessment': 'оцениваю риски...',
@@ -52,15 +52,15 @@ class KaiCognitiveStatus extends StatelessWidget {
   String get _displayText {
     // STREAM-TOOL-DETAIL-1: if backend pushed a tool-specific label
     // (e.g. "visa_checker") the friendlier tool phrase wins.
-    final toolRu = _TOOL_RU[currentStep];
+    final toolRu = _toolRu[currentStep];
     if (toolRu != null) return toolRu;
 
     // Otherwise translate by step letter ("E" → "ищу источники...").
     if (step != null) {
-      final ru = _STEP_RU[step!];
+      final ru = _stepRu[step!];
       if (ru != null) return ru;
     }
-    final ru = _STEP_RU[currentStep];
+    final ru = _stepRu[currentStep];
     if (ru != null) return ru;
     return currentStep;
   }
