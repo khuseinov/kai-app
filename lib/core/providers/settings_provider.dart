@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/env_config.dart';
@@ -10,6 +11,7 @@ class AppSettings {
   final String? userName;
   final bool isOnboarded;
   final String userId;
+  final ThemeMode themeMode;
 
   const AppSettings({
     required this.apiBaseUrl,
@@ -17,6 +19,7 @@ class AppSettings {
     this.userName,
     this.isOnboarded = false,
     this.userId = 'local-user',
+    this.themeMode = ThemeMode.system,
   });
 
   AppSettings copyWith({
@@ -25,6 +28,7 @@ class AppSettings {
     String? userName,
     bool? isOnboarded,
     String? userId,
+    ThemeMode? themeMode,
   }) {
     return AppSettings(
       apiBaseUrl: apiBaseUrl ?? this.apiBaseUrl,
@@ -32,6 +36,7 @@ class AppSettings {
       userName: userName ?? this.userName,
       isOnboarded: isOnboarded ?? this.isOnboarded,
       userId: userId ?? this.userId,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 }
@@ -50,6 +55,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
             userName: _localStorage.userName,
             isOnboarded: _localStorage.isOnboarded,
             userId: _localStorage.userId,
+            themeMode: _localStorage.themeMode ?? ThemeMode.system,
           ),
         ) {
     _loadApiKey();
@@ -94,6 +100,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   void setUserId(String id) {
     _localStorage.userId = id;
     state = state.copyWith(userId: id);
+  }
+
+  void setThemeMode(ThemeMode mode) {
+    _localStorage.themeMode = mode;
+    state = state.copyWith(themeMode: mode);
   }
 }
 

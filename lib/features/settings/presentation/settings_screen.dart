@@ -1,20 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/theme/theme_extensions.dart';
 import '../../../core/design/tokens/kai_spacing.dart';
+import '../../../core/providers/settings_provider.dart';
+import '../../auth/logic/auth_notifier.dart';
+import '../../auth/logic/auth_state.dart';
 import 'sections/api_url_section.dart';
 import 'sections/delete_data_section.dart';
 
-/// Settings screen — sectioned ListView with Data, Language, About,
-/// Developer (debug-only) groups. Sections are populated incrementally
-/// by APP-B2 (delete data), APP-B3 (language), APP-B4 (API URL).
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  int _versionTapCount = 0;
+  bool _devUnlocked = false;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.kaiColors;
     final typography = context.kaiTypography;
+    final settings = ref.watch(settingsProvider);
+    final authState = ref.watch(authNotifierProvider);
+
+    final email = authState is Authenticated ? authState.user.email : null;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -26,35 +39,143 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(KaiSpacing.l),
         children: [
-          const _Section(
-            title: 'Данные',
-            children: [DeleteDataSection()],
-          ),
-          const SizedBox(height: KaiSpacing.l),
+          // Appearance
           _Section(
-            title: 'О приложении',
+            title: 'Внешний вид',
             children: [
               ListTile(
-                leading: const Icon(Icons.info_outline),
-                title: const Text('Версия'),
-                subtitle: Text(
-                  '0.1.0',
-                  style: typography.bodyMedium
-                      .copyWith(color: colors.textSecondary),
+                leading: Icon(Icons.palette_outlined, color: colors.textSecondary),
+                title: const Text('Тема'),
+                trailing: DropdownButton<ThemeMode>(
+                  value: settings.themeMode,
+                  underline: const SizedBox.shrink(),
+                  items: const [
+                    DropdownMenuItem(value: ThemeMode.system, child: Text('Авто')),
+                    DropdownMenuItem(value: ThemeMode.light, child: Text('Светлая')),
+                    DropdownMenuItem(value: ThemeMode.dark, child: Text('Тёмная')),
+                  ],
+                  onChanged: (mode) {
+                    if (mode != null) {
+                      ref.read(settingsProvider.notifier).setThemeMode(mode);
+                    }
+                  },
                 ),
               ),
             ],
           ),
           const SizedBox(height: KaiSpacing.l),
+
+          // Voice — STUB
+          _Section(
+            title: 'Голос',
+            children: [
+              SwitchListTile(
+                secondary: Icon(Icons.mic_outlined, color: colors.textSecondary),
+                title: const Text('Голос Kai'),
+                subtitle: Text(
+                  // STUB: voice toggle not yet implemented
+                  'Голосовые ответы Kai',
+                  style: typography.bodySmall.copyWith(color: colors.textTertiary),
+                ),
+                value: true, // STUB: always on for now
+                onChanged: (_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Голосовые настройки — скоро'),
+                      duration: Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                activeColor: colors.oceanPrimary,
+              ),
+            ],
+          ),
+          const SizedBox(height: KaiSpacing.l),
+
+          // Account
+          _Section(
+            title: 'Аккаунт',
+            children: [
+              if (email != null)
+                ListTile(
+                  leading: Icon(Icons.person_outline, color: colors.textSecondary),
+                  title: Text(email),
+                  subtitle: Text(
+                    'Текущий аккаунт',
+                    style: typography.bodySmall.copyWith(color: colors.textTertiary),
+                  ),
+                ),
+              ListTile(
+                leading: Icon(Icons.logout, color: colors.error),
+                title: Text(
+                  'Выйти',
+                  style: typography.bodyLarge.copyWith(color: colors.error),
+                ),
+                onTap: () => _confirmLogout(context, ref),
+              ),
+            ],
+          ),
+          const SizedBox(height: KaiSpacing.l),
+
+          // Data
           const _Section(
-            title: 'Разработчик',
-            // Inner section is debug-only; in release ApiUrlSection
-            // returns SizedBox.shrink so the surface area is empty.
-            children: [ApiUrlSection()],
+            title: 'Данные',
+            children: [DeleteDataSection()],
+          ),
+          const SizedBox(height: KaiSpacing.l),
+
+          // About
+          _Section(
+            title: 'О приложении',
+            children: [
+              ListTile(
+                leading: Icon(Icons.info_outline, color: colors.textSecondary),
+                title: const Text('Версия'),
+                subtitle: Text(
+                  '0.2.0',
+                  style: typography.bodyMedium.copyWith(color: colors.textSecondary),
+                ),
+                onTap: () {
+                  setState(() {
+                    _versionTapCount++;
+                    if (_versionTapCount >= 7) {
+                      _devUnlocked = true;
+                    }
+                  });
+                },
+              ),
+              if (_devUnlocked) const ApiUrlSection(),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Выйти?'),
+        content: const Text('Вы выйдете из аккаунта Kai.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: context.kaiColors.error,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Выйти'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref.read(authNotifierProvider.notifier).logout();
   }
 }
 
@@ -82,16 +203,14 @@ class _Section extends StatelessWidget {
             ),
           ),
         ),
-        if (children.isNotEmpty)
-          Container(
-            decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(children: children),
+        Container(
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(12),
           ),
+          child: Column(children: children),
+        ),
       ],
     );
   }
 }
-
