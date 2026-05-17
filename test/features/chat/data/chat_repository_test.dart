@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
 import 'package:kai_app/core/api/api_client.dart';
-import 'package:kai_app/core/api/api_exceptions.dart';
 import 'package:kai_app/core/api/circuit_breaker.dart';
 import 'package:kai_app/core/models/chat_message.dart';
 import 'package:kai_app/core/storage/local_storage.dart';
@@ -91,19 +90,6 @@ void main() {
   tearDown(() async {
     await tearDownTestHive();
   });
-
-  const testResponse = ChatResponseDto(
-    response: 'Tokyo is beautiful in spring!',
-    language: 'en',
-    model: 'gpt-4',
-    provider: 'openai',
-    requestType: 'travel',
-    confidence: 0.95,
-    latencyMs: 1200,
-    tokensUsed: 150,
-    piiBlocked: false,
-    correlationId: 'corr-123',
-  );
 
   test('streamMessage applies state metadata and approval to Kai message',
       () async {
