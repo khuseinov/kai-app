@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/design/components/kai_card.dart';
 import '../../../core/design/components/kai_empty_state.dart';
 import '../../../core/design/components/kai_error_view.dart';
 import '../../../core/design/theme/theme_extensions.dart';
@@ -207,11 +208,8 @@ class _MemorySection extends StatelessWidget {
             ),
           ),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(12),
-          ),
+        KaiCard.flat(
+          padding: EdgeInsets.zero,
           child: Column(
             children: items.asMap().entries.map((entry) {
               final i = entry.key;
@@ -309,13 +307,9 @@ class _AddFactTile extends StatelessWidget {
     final colors = context.kaiColors;
     final typography = context.kaiTypography;
 
-    return Container(
+    return KaiCard(
       padding: const EdgeInsets.all(KaiSpacing.m),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.glassBorder),
-      ),
+      border: Border.all(color: colors.glassBorder),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -395,14 +389,10 @@ class _MemoryToggleTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return KaiCard.flat(
       padding: const EdgeInsets.symmetric(
         horizontal: KaiSpacing.m,
         vertical: KaiSpacing.s,
-      ),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -456,18 +446,16 @@ class _MemoryToggleTile extends StatelessWidget {
 }
 
 class _DeleteAllTile extends StatelessWidget {
-  final KaiColors colors;
+  // ignore: unused_element_parameter — kept for caller symmetry with _MemoryToggleTile
+  final KaiColors? colors;
 
-  const _DeleteAllTile({required this.colors});
+  const _DeleteAllTile({this.colors});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const DeleteDataSection(),
+    return const KaiCard.flat(
+      padding: EdgeInsets.zero,
+      child: DeleteDataSection(),
     );
   }
 }

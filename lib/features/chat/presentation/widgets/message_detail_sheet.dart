@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/design/components/kai_card.dart';
 import '../../../../core/design/theme/theme_extensions.dart';
 import '../../../../core/design/tokens/kai_spacing.dart';
 import '../../../../core/models/chat_message.dart';
@@ -286,12 +287,10 @@ class _ReasoningBlockState extends State<_ReasoningBlock> {
 
     return GestureDetector(
       onTap: () => setState(() => _expanded = !_expanded),
-      child: Container(
+      child: KaiCard.flat(
         padding: const EdgeInsets.all(KaiSpacing.m),
-        decoration: BoxDecoration(
-          color: widget.colors.surfaceContainer,
-          borderRadius: BorderRadius.circular(8),
-        ),
+        backgroundColor: widget.colors.surfaceContainer,
+        borderRadius: 8,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

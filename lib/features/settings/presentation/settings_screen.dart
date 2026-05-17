@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/design/components/kai_card.dart';
 import '../../../core/design/theme/theme_extensions.dart';
 import '../../../core/design/tokens/kai_spacing.dart';
 import '../../../core/providers/settings_provider.dart';
@@ -202,11 +203,8 @@ class _Section extends StatelessWidget {
             ),
           ),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(12),
-          ),
+        KaiCard.flat(
+          padding: EdgeInsets.zero,
           child: Column(children: children),
         ),
       ],
