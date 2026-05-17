@@ -10,20 +10,12 @@ import '../../../../core/models/chat_message.dart';
 import '../../logic/chat_notifier.dart';
 import 'approval_actions.dart';
 import 'approval_notice.dart';
-import 'citation_sheet.dart';
 import 'message_detail_sheet.dart';
 import 'safety_block_banner.dart';
 import 'simulation_card.dart';
 import 'source_chips.dart';
 import 'thinking_trace.dart';
 
-// Converts [1][2] markers in Kai responses to markdown links so flutter_markdown
-// fires onTapLink when the user taps a citation number.
-String _injectCitationLinks(String text) => text.replaceAllMapped(
-      RegExp(r'\[(\d+)\]'),
-      (m) =>
-          '[${m.group(1)}](kai://cite/${int.parse(m.group(1)!) - 1})',
-    );
 
 class MessageBubble extends ConsumerWidget {
   final ChatMessage message;
@@ -252,22 +244,8 @@ class MessageBubble extends ConsumerWidget {
 
                     if (mainContent.isNotEmpty)
                       MarkdownBody(
-                        data: message.sources.isNotEmpty
-                            ? _injectCitationLinks(mainContent)
-                            : mainContent,
+                        data: mainContent,
                         selectable: !kIsWeb,
-                        onTapLink: (text, href, title) {
-                          if (href == null) return;
-                          if (href.startsWith('kai://cite/')) {
-                            final idx = int.tryParse(
-                                href.substring('kai://cite/'.length));
-                            if (idx != null &&
-                                idx < message.sources.length) {
-                              CitationSheet.show(
-                                  context, idx + 1, message.sources[idx]);
-                            }
-                          }
-                        },
                         styleSheet: MarkdownStyleSheet(
                           p: typography.bodyLarge.copyWith(
                             color: colors.textPrimary,
@@ -287,11 +265,6 @@ class MessageBubble extends ConsumerWidget {
                           codeblockDecoration: BoxDecoration(
                             color: colors.surfaceContainer,
                             borderRadius: BorderRadius.circular(8),
-                          ),
-                          a: typography.bodyLarge.copyWith(
-                            color: colors.oceanPrimary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 11,
                           ),
                         ),
                       ),
