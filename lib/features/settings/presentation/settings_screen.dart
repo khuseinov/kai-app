@@ -6,7 +6,6 @@ import '../../../core/design/tokens/kai_spacing.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../auth/logic/auth_notifier.dart';
 import '../../auth/logic/auth_state.dart';
-import 'sections/api_url_section.dart';
 import 'sections/delete_data_section.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -17,9 +16,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  int _versionTapCount = 0;
-  bool _devUnlocked = false;
-
   @override
   Widget build(BuildContext context) {
     final colors = context.kaiColors;
@@ -136,16 +132,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   '0.2.0',
                   style: typography.bodyMedium.copyWith(color: colors.textSecondary),
                 ),
-                onTap: () {
-                  setState(() {
-                    _versionTapCount++;
-                    if (_versionTapCount >= 7) {
-                      _devUnlocked = true;
-                    }
-                  });
-                },
               ),
-              if (_devUnlocked) const ApiUrlSection(),
             ],
           ),
         ],

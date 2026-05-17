@@ -1,10 +1,5 @@
-import 'package:flutter/foundation.dart'
-    show kIsWeb, defaultTargetPlatform, TargetPlatform;
-
 enum Environment { dev, staging, prod }
 
-/// VPS IP address — no domain yet.
-/// Phase 3: replace with wize.travel when domain purchased.
 const String _vpsIp = '78.17.13.214';
 
 class EnvConfig {
@@ -19,17 +14,6 @@ class EnvConfig {
       'staging' => Environment.staging,
       _ => Environment.dev,
     };
-  }
-
-  /// Platform-aware local host.
-  /// - Web: localhost (browser same-machine)
-  /// - Android emulator: 10.0.2.2 (loopback through AVD NAT)
-  /// - Desktop/iOS simulator: localhost / 127.0.0.1
-  /// - Physical device: use VPS IP directly (_vpsIp)
-  static String get _localHost {
-    if (kIsWeb) return 'localhost';
-    if (defaultTargetPlatform == TargetPlatform.android) return '10.0.2.2';
-    return 'localhost';
   }
 
   /// Base URL routing:
@@ -59,8 +43,4 @@ class EnvConfig {
       };
 
   static bool get enableLogging => current != Environment.prod;
-
-  /// VPS base URL for manual override in Settings screen.
-  /// User can change this via Settings → API URL field.
-  static String get vpsBaseUrl => 'http://$_vpsIp:80';
 }

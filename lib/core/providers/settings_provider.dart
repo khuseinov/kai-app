@@ -48,9 +48,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   SettingsNotifier(this._localStorage, this._secureStorage)
       : super(
           AppSettings(
-            // EnvConfig.apiBaseUrl now points to Nginx (port 80) on VPS.
-            // Falls back to VPS IP if no override is stored locally.
-            apiBaseUrl: _localStorage.apiBaseUrl ?? EnvConfig.apiBaseUrl,
+            apiBaseUrl: EnvConfig.apiBaseUrl,
             apiKey: null, // loaded async
             userName: _localStorage.userName,
             isOnboarded: _localStorage.isOnboarded,
@@ -66,15 +64,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     if (apiKey != null) {
       state = state.copyWith(apiKey: apiKey);
     }
-  }
-
-  Future<void> setApiBaseUrl(String? url) async {
-    final effectiveUrl =
-        (url != null && url.trim().isNotEmpty) ? url.trim() : null;
-    _localStorage.apiBaseUrl = effectiveUrl;
-    state = state.copyWith(
-      apiBaseUrl: effectiveUrl ?? EnvConfig.apiBaseUrl,
-    );
   }
 
   Future<void> setApiKey(String? key) async {

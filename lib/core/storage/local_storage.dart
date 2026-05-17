@@ -16,11 +16,6 @@ class LocalStorage {
   bool get isOnboarded => _settings.get('onboarded') as bool? ?? false;
   set isOnboarded(bool v) => _settings.put('onboarded', v);
 
-  String? get apiBaseUrl => _settings.get('api_base_url') as String?;
-  set apiBaseUrl(String? v) => v != null
-      ? _settings.put('api_base_url', v)
-      : _settings.delete('api_base_url');
-
   String? get apiKey => _settings.get('api_key') as String?;
   set apiKey(String? v) =>
       v != null ? _settings.put('api_key', v) : _settings.delete('api_key');

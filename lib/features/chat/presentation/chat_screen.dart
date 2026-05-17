@@ -6,12 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/design/components/kai_gemini_wave.dart';
 import '../../../../core/design/theme/theme_extensions.dart';
 import '../../../core/design/tokens/kai_spacing.dart';
-import '../../../core/providers/connectivity_status_provider.dart';
 import '../logic/chat_notifier.dart';
 import '../logic/session_notifier.dart';
 import 'widgets/chat_input_bar.dart';
 import 'widgets/message_list.dart';
-import 'widgets/offline_banner.dart';
 import 'widgets/safety_block_banner.dart';
 import 'widgets/session_drawer.dart';
 
@@ -121,8 +119,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     final chatState = ref.watch(chatNotifierProvider);
     final colors = context.kaiColors;
     final typography = context.kaiTypography;
-    final isOfflineAsync = ref.watch(isOnlineProvider);
-    final isOffline = !(isOfflineAsync.valueOrNull ?? true);
 
     final voiceState = _voiceStateFromChat(chatState);
 
@@ -159,8 +155,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               child: SafeArea(
                 child: Column(
                   children: [
-                    OfflineBanner(isOffline: isOffline),
-
                     SafetyBlockBanner(
                       latestMessage: chatState.messages.isEmpty
                           ? null
