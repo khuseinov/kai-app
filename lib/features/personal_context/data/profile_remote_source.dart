@@ -34,6 +34,9 @@ class UserProfileItem {
 abstract interface class ProfileRemoteSource {
   Future<List<UserProfileItem>> getProfiles(String userId, {String? typeFilter});
   Future<void> createProfile(String userId, String content, String type);
+  Future<void> deleteProfile(String userId, String itemId);
+  Future<void> updateProfile(String userId, String itemId, String content);
+  Future<void> setMemoryEnabled(String userId, bool enabled);
 }
 
 class DioProfileRemoteSource implements ProfileRemoteSource {
@@ -69,6 +72,27 @@ class DioProfileRemoteSource implements ProfileRemoteSource {
         if (_internalToken.isNotEmpty) 'X-Internal-Token': _internalToken,
       }),
     );
+  }
+
+  @override
+  Future<void> deleteProfile(String userId, String itemId) async {
+    // STUB: endpoint not yet implemented on backend
+    // TODO: DELETE /user/$userId/profiles/$itemId
+    await Future.delayed(const Duration(milliseconds: 300));
+  }
+
+  @override
+  Future<void> updateProfile(String userId, String itemId, String content) async {
+    // STUB: endpoint not yet implemented on backend
+    // TODO: PUT /user/$userId/profiles/$itemId  body: {content: content}
+    await Future.delayed(const Duration(milliseconds: 300));
+  }
+
+  @override
+  Future<void> setMemoryEnabled(String userId, bool enabled) async {
+    // STUB: endpoint not yet implemented on backend
+    // TODO: POST /user/$userId/memory/toggle  body: {enabled: enabled}
+    await Future.delayed(const Duration(milliseconds: 200));
   }
 }
 

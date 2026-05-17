@@ -4,7 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/design/components/kai_empty_state.dart';
 import '../../../core/design/components/kai_error_view.dart';
 import '../../../core/design/theme/theme_extensions.dart';
+import '../../../core/design/tokens/kai_colors.dart';
 import '../../../core/design/tokens/kai_spacing.dart';
+import '../../../core/design/tokens/kai_typography.dart';
+import '../../settings/presentation/sections/delete_data_section.dart';
 import '../data/profile_remote_source.dart';
 import '../logic/personal_context_notifier.dart';
 
@@ -18,11 +21,11 @@ class PersonalContextScreen extends ConsumerStatefulWidget {
 
 class _PersonalContextScreenState
     extends ConsumerState<PersonalContextScreen> {
-  final _controller = TextEditingController();
+  final _addController = TextEditingController();
 
   @override
   void dispose() {
-    _controller.dispose();
+    _addController.dispose();
     super.dispose();
   }
 
@@ -30,15 +33,15 @@ class _PersonalContextScreenState
   Widget build(BuildContext context) {
     final state = ref.watch(personalContextNotifierProvider);
     final colors = context.kaiColors;
+    final typography = context.kaiTypography;
 
-    // Show success snackbar
     ref.listen<PersonalContextState>(personalContextNotifierProvider,
         (_, next) {
       if (next.savedSuccess) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Инструкция сохранена')),
+          const SnackBar(content: Text('Сохранено')),
         );
-        _controller.clear();
+        _addController.clear();
       }
     });
 
@@ -47,7 +50,7 @@ class _PersonalContextScreenState
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: const Text('Личный контекст'),
+        title: const Text('Что Kai обо мне знает'),
         backgroundColor: colors.background,
         elevation: 0,
       ),
@@ -56,37 +59,65 @@ class _PersonalContextScreenState
           : ListView(
               padding: const EdgeInsets.all(KaiSpacing.m),
               children: [
-                // APP-C2: Add instruction section
-                _AddInstructionCard(
-                  controller: _controller,
-                  isSaving: state.isSaving,
-                  onAdd: (text) => ref
-                      .read(personalContextNotifierProvider.notifier)
-                      .addInstruction(text),
-                ),
-                const SizedBox(height: KaiSpacing.l),
-
                 if (state.error != null) ...[
                   KaiErrorView(message: state.error!),
                   const SizedBox(height: KaiSpacing.m),
                 ],
 
-                if (state.items.isEmpty && !state.isLoading)
+                // Grouped memory items
+                if (state.items.isEmpty)
                   const Center(
                     child: KaiEmptyState(
-                      icon: Icons.person_outline,
-                      title: 'Нет инструкций',
-                      subtitle: 'Добавьте инструкции, чтобы Kai лучше вас понимал',
+                      icon: Icons.psychology_outlined,
+                      title: 'Kai ещё ничего не знает',
+                      subtitle: 'Добавьте факты или дайте Kai поработать',
                     ),
                   )
                 else
                   for (final entry in grouped.entries) ...[
-                    _TypeSection(
+                    _MemorySection(
                       type: entry.key,
                       items: entry.value,
+                      onDelete: (id) => ref
+                          .read(personalContextNotifierProvider.notifier)
+                          .deleteItem(id),
+                      onEdit: (id, content) =>
+                          _showEditDialog(context, id, content),
                     ),
                     const SizedBox(height: KaiSpacing.m),
                   ],
+
+                const SizedBox(height: KaiSpacing.m),
+
+                // Add fact
+                _AddFactTile(
+                  controller: _addController,
+                  isSaving: state.isSaving,
+                  onAdd: (text) => ref
+                      .read(personalContextNotifierProvider.notifier)
+                      .addInstruction(text),
+                ),
+
+                const SizedBox(height: KaiSpacing.xl),
+                Divider(color: colors.textTertiary.withAlpha(40)),
+                const SizedBox(height: KaiSpacing.m),
+
+                // Memory master toggle — STUB
+                _MemoryToggleTile(
+                  enabled: state.memoryEnabled,
+                  onChanged: (val) => ref
+                      .read(personalContextNotifierProvider.notifier)
+                      .setMemoryEnabled(val),
+                  colors: colors,
+                  typography: typography,
+                ),
+
+                const SizedBox(height: KaiSpacing.m),
+
+                // GDPR delete — REAL
+                _DeleteAllTile(colors: colors),
+
+                const SizedBox(height: KaiSpacing.l),
               ],
             ),
     );
@@ -100,14 +131,174 @@ class _PersonalContextScreenState
     }
     return map;
   }
+
+  void _showEditDialog(
+      BuildContext context, String itemId, String currentContent) {
+    final editController = TextEditingController(text: currentContent);
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Редактировать'),
+        content: TextField(
+          controller: editController,
+          maxLines: 4,
+          minLines: 2,
+          autofocus: true,
+          decoration: const InputDecoration(border: OutlineInputBorder()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ref
+                  .read(personalContextNotifierProvider.notifier)
+                  .updateItem(itemId, editController.text);
+            },
+            child: const Text('Сохранить'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-class _AddInstructionCard extends StatelessWidget {
+class _MemorySection extends StatelessWidget {
+  final String type;
+  final List<UserProfileItem> items;
+  final void Function(String id) onDelete;
+  final void Function(String id, String content) onEdit;
+
+  const _MemorySection({
+    required this.type,
+    required this.items,
+    required this.onDelete,
+    required this.onEdit,
+  });
+
+  static const _typeLabels = <String, String>{
+    'preference': 'Предпочтения',
+    'instruction': 'Инструкции',
+    'correction': 'Исправления',
+    'episode': 'Эпизоды',
+    'fact': 'Факты',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.kaiColors;
+    final typography = context.kaiTypography;
+    final label = _typeLabels[type] ?? type;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: KaiSpacing.xs, left: 4),
+          child: Text(
+            label,
+            style: typography.labelMedium.copyWith(
+              color: colors.textTertiary,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: items.asMap().entries.map((entry) {
+              final i = entry.key;
+              final item = entry.value;
+              final isLast = i == items.length - 1;
+              return Column(
+                children: [
+                  _MemoryItemRow(
+                    item: item,
+                    onDelete: () => onDelete(item.id),
+                    onEdit: () => onEdit(item.id, item.content),
+                  ),
+                  if (!isLast)
+                    Divider(
+                      height: 1,
+                      indent: 16,
+                      endIndent: 0,
+                      color: colors.textTertiary.withAlpha(30),
+                    ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MemoryItemRow extends StatelessWidget {
+  final UserProfileItem item;
+  final VoidCallback onDelete;
+  final VoidCallback onEdit;
+
+  const _MemoryItemRow({
+    required this.item,
+    required this.onDelete,
+    required this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.kaiColors;
+    final typography = context.kaiTypography;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: KaiSpacing.m,
+        vertical: KaiSpacing.s,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (item.verifiedPreference) ...[
+            Icon(Icons.verified_outlined, size: 14, color: colors.oceanPrimary),
+            const SizedBox(width: 6),
+          ],
+          Expanded(
+            child: Text(
+              item.content,
+              style: typography.bodyMedium.copyWith(color: colors.textPrimary),
+            ),
+          ),
+          const SizedBox(width: KaiSpacing.xs),
+          GestureDetector(
+            onTap: onEdit,
+            child:
+                Icon(Icons.edit_outlined, size: 16, color: colors.textTertiary),
+          ),
+          const SizedBox(width: KaiSpacing.s),
+          GestureDetector(
+            onTap: onDelete,
+            child: Icon(Icons.delete_outline,
+                size: 16, color: colors.textTertiary),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddFactTile extends StatelessWidget {
   final TextEditingController controller;
   final bool isSaving;
   final void Function(String) onAdd;
 
-  const _AddInstructionCard({
+  const _AddFactTile({
     required this.controller,
     required this.isSaving,
     required this.onAdd,
@@ -130,13 +321,13 @@ class _AddInstructionCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.edit_note_outlined,
+              Icon(Icons.add_circle_outline,
                   size: 16, color: colors.oceanPrimary),
               const SizedBox(width: KaiSpacing.xs),
               Text(
-                'Добавить инструкцию',
-                style: typography.labelMedium
-                    .copyWith(color: colors.textPrimary),
+                'Добавить факт',
+                style:
+                    typography.labelMedium.copyWith(color: colors.textPrimary),
               ),
             ],
           ),
@@ -147,7 +338,7 @@ class _AddInstructionCard extends StatelessWidget {
             minLines: 2,
             style: typography.bodyMedium.copyWith(color: colors.textPrimary),
             decoration: InputDecoration(
-              hintText: 'Например: Отвечай мне только на русском языке',
+              hintText: 'Например: Предпочитаю краткие ответы',
               hintStyle:
                   typography.bodySmall.copyWith(color: colors.textTertiary),
               border: OutlineInputBorder(
@@ -160,8 +351,7 @@ class _AddInstructionCard extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide:
-                    BorderSide(color: colors.oceanPrimary),
+                borderSide: BorderSide(color: colors.oceanPrimary),
               ),
               contentPadding: const EdgeInsets.all(KaiSpacing.s),
             ),
@@ -177,7 +367,7 @@ class _AddInstructionCard extends StatelessWidget {
                   )
                 : TextButton.icon(
                     onPressed: () => onAdd(controller.text),
-                    icon: const Icon(Icons.add, size: 16),
+                    icon: const Icon(Icons.save_outlined, size: 16),
                     label: const Text('Сохранить'),
                     style: TextButton.styleFrom(
                       foregroundColor: colors.oceanPrimary,
@@ -190,95 +380,94 @@ class _AddInstructionCard extends StatelessWidget {
   }
 }
 
-class _TypeSection extends StatelessWidget {
-  final String type;
-  final List<UserProfileItem> items;
+class _MemoryToggleTile extends StatelessWidget {
+  final bool enabled;
+  final void Function(bool) onChanged;
+  final KaiColors colors;
+  final KaiTypography typography;
 
-  const _TypeSection({required this.type, required this.items});
-
-  static const _typeLabels = <String, String>{
-    'preference': 'Предпочтения',
-    'instruction': 'Инструкции',
-    'correction': 'Исправления',
-    'episode': 'Эпизоды',
-    'fact': 'Факты',
-  };
+  const _MemoryToggleTile({
+    required this.enabled,
+    required this.onChanged,
+    required this.colors,
+    required this.typography,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.kaiColors;
-    final typography = context.kaiTypography;
-    final label = _typeLabels[type] ?? type;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: KaiSpacing.xs),
-          child: Text(
-            label,
-            style: typography.labelMedium.copyWith(
-              color: colors.textSecondary,
-              fontWeight: FontWeight.w600,
-            ),
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: KaiSpacing.m,
+        vertical: KaiSpacing.s,
+      ),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Память Kai',
+                      style: typography.labelMedium.copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      // STUB: toggle not yet wired to backend
+                      'Kai запоминает факты о вас между сессиями',
+                      style: typography.bodySmall.copyWith(
+                        color: colors.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: enabled,
+                onChanged: onChanged,
+                activeColor: colors.oceanPrimary,
+              ),
+            ],
           ),
-        ),
-        Wrap(
-          spacing: KaiSpacing.xs,
-          runSpacing: KaiSpacing.xs,
-          children: items.map((item) => _ProfileChip(item: item)).toList(),
-        ),
-      ],
+          if (!enabled)
+            Padding(
+              padding: const EdgeInsets.only(top: KaiSpacing.xs),
+              child: Text(
+                'Kai будет забывать всё после каждой сессии.',
+                style: typography.bodySmall.copyWith(
+                  color: colors.warning,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
 
-class _ProfileChip extends StatelessWidget {
-  final UserProfileItem item;
+class _DeleteAllTile extends StatelessWidget {
+  final KaiColors colors;
 
-  const _ProfileChip({required this.item});
+  const _DeleteAllTile({required this.colors});
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.kaiColors;
-    final typography = context.kaiTypography;
-
     return Container(
-      constraints: const BoxConstraints(maxWidth: 280),
-      padding: const EdgeInsets.symmetric(
-        horizontal: KaiSpacing.s,
-        vertical: KaiSpacing.xxs,
-      ),
       decoration: BoxDecoration(
-        color: item.verifiedPreference
-            ? colors.oceanPrimary.withValues(alpha: 0.08)
-            : colors.surfaceContainer,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: item.verifiedPreference
-              ? colors.oceanPrimary.withValues(alpha: 0.3)
-              : colors.glassBorder,
-        ),
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (item.verifiedPreference) ...[
-            Icon(Icons.verified_outlined,
-                size: 12, color: colors.oceanPrimary),
-            const SizedBox(width: KaiSpacing.xxs),
-          ],
-          Flexible(
-            child: Text(
-              item.content,
-              style:
-                  typography.bodySmall.copyWith(color: colors.textSecondary),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
+      child: const DeleteDataSection(),
     );
   }
 }

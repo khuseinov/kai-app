@@ -9,6 +9,7 @@ class PersonalContextState {
   final String? error;
   final bool isSaving;
   final bool savedSuccess;
+  final bool memoryEnabled;
 
   const PersonalContextState({
     this.items = const [],
@@ -16,6 +17,7 @@ class PersonalContextState {
     this.error,
     this.isSaving = false,
     this.savedSuccess = false,
+    this.memoryEnabled = true,
   });
 
   PersonalContextState copyWith({
@@ -24,6 +26,7 @@ class PersonalContextState {
     String? error,
     bool? isSaving,
     bool? savedSuccess,
+    bool? memoryEnabled,
   }) =>
       PersonalContextState(
         items: items ?? this.items,
@@ -31,6 +34,7 @@ class PersonalContextState {
         error: error,
         isSaving: isSaving ?? this.isSaving,
         savedSuccess: savedSuccess ?? this.savedSuccess,
+        memoryEnabled: memoryEnabled ?? this.memoryEnabled,
       );
 }
 
@@ -68,6 +72,56 @@ class PersonalContextNotifier
       state = state.copyWith(
         isSaving: false,
         error: 'Не удалось сохранить инструкцию',
+      );
+    }
+  }
+
+  Future<void> deleteItem(String itemId) async {
+    state = state.copyWith(error: null);
+    try {
+      await _remote.deleteProfile(_userId, itemId);
+      state = state.copyWith(
+        items: state.items.where((i) => i.id != itemId).toList(),
+      );
+    } catch (_) {
+      state = state.copyWith(error: 'Не удалось удалить');
+    }
+  }
+
+  Future<void> updateItem(String itemId, String newContent) async {
+    if (newContent.trim().isEmpty) return;
+    state = state.copyWith(error: null);
+    try {
+      await _remote.updateProfile(_userId, itemId, newContent.trim());
+      state = state.copyWith(
+        items: state.items.map((i) {
+          if (i.id == itemId) {
+            return UserProfileItem(
+              id: i.id,
+              type: i.type,
+              content: newContent.trim(),
+              sourceSession: i.sourceSession,
+              createdAt: i.createdAt,
+              verifiedPreference: i.verifiedPreference,
+            );
+          }
+          return i;
+        }).toList(),
+      );
+    } catch (_) {
+      state = state.copyWith(error: 'Не удалось обновить');
+    }
+  }
+
+  Future<void> setMemoryEnabled(bool value) async {
+    final prev = state.memoryEnabled;
+    state = state.copyWith(memoryEnabled: value);
+    try {
+      await _remote.setMemoryEnabled(_userId, value);
+    } catch (_) {
+      state = state.copyWith(
+        memoryEnabled: prev,
+        error: 'Не удалось изменить настройку',
       );
     }
   }
