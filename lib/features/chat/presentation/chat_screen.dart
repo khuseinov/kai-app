@@ -7,6 +7,7 @@ import '../../../../core/design/components/kai_gemini_wave.dart';
 import '../../../../core/design/theme/theme_extensions.dart';
 import '../../../core/design/tokens/kai_spacing.dart';
 import '../../../core/providers/settings_provider.dart';
+import '../../../core/storage/local_storage.dart';
 import '../logic/chat_notifier.dart';
 import '../logic/session_notifier.dart';
 import 'widgets/chat_input_bar.dart';
@@ -26,6 +27,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     with TickerProviderStateMixin {
   final _textController = TextEditingController();
   bool _isListening = false;
+  bool _showHint = false;
 
   // Full-screen drawer state
   AnimationController? _drawerController;
@@ -46,6 +48,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initSession();
+      _maybeShowHint();
     });
   }
 
@@ -59,6 +62,110 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     if (!_drawerOpen || _drawerController == null) return;
     _drawerOpen = false;
     _drawerController!.reverse();
+  }
+
+  void _maybeShowHint() {
+    final storage = ref.read(localStorageProvider);
+    if (!storage.kaiHintShown) {
+      setState(() => _showHint = true);
+      Future.delayed(const Duration(seconds: 4), () {
+        if (mounted) setState(() => _showHint = false);
+        storage.kaiHintShown = true;
+      });
+    }
+  }
+
+  void _showQuickActions() {
+    final colors = context.kaiColors;
+    final typography = context.kaiTypography;
+    final settings = ref.read(settingsProvider);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: colors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: KaiSpacing.s),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: KaiSpacing.m),
+                decoration: BoxDecoration(
+                  color: colors.cloudLight,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.add_comment_outlined,
+                    color: colors.oceanPrimary),
+                title: Text('Новый разговор',
+                    style: typography.bodyLarge
+                        .copyWith(color: colors.textPrimary)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  ref.read(chatNotifierProvider.notifier).initSession();
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.palette_outlined,
+                    color: colors.textSecondary),
+                title: Text('Тема', style: typography.bodyLarge.copyWith(color: colors.textPrimary)),
+                trailing: DropdownButton<ThemeMode>(
+                  value: settings.themeMode,
+                  underline: const SizedBox.shrink(),
+                  items: const [
+                    DropdownMenuItem(value: ThemeMode.system, child: Text('Авто')),
+                    DropdownMenuItem(value: ThemeMode.light, child: Text('Светлая')),
+                    DropdownMenuItem(value: ThemeMode.dark, child: Text('Тёмная')),
+                  ],
+                  onChanged: (mode) {
+                    if (mode != null) {
+                      ref.read(settingsProvider.notifier).setThemeMode(mode);
+                    }
+                  },
+                ),
+              ),
+              ListTile(
+                leading:
+                    Icon(Icons.delete_sweep_outlined, color: colors.error),
+                title: Text('Очистить сессию',
+                    style: typography.bodyLarge.copyWith(color: colors.error)),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (d) => AlertDialog(
+                      title: const Text('Очистить?'),
+                      content: const Text(
+                          'История этой сессии будет удалена.'),
+                      actions: [
+                        TextButton(
+                            onPressed: () => Navigator.pop(d, false),
+                            child: const Text('Отмена')),
+                        TextButton(
+                            style: TextButton.styleFrom(
+                                foregroundColor: colors.error),
+                            onPressed: () => Navigator.pop(d, true),
+                            child: const Text('Очистить')),
+                      ],
+                    ),
+                  );
+                  if (confirmed == true) {
+                    ref.read(chatNotifierProvider.notifier).initSession();
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _initSession() {
@@ -291,6 +398,44 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                               .copyWith(color: colors.textSecondary),
                         ),
                       ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // Top edge zone — swipe DOWN triggers QuickActionsSheet
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: 40,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onVerticalDragEnd: (details) {
+                if ((details.primaryVelocity ?? 0) > 400) {
+                  HapticFeedback.lightImpact();
+                  _showQuickActions();
+                }
+              },
+              child: const SizedBox.expand(),
+            ),
+          ),
+
+          // One-time hint for new users: fades out after 4s
+          if (_showHint && chatState.messages.isEmpty)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: AnimatedOpacity(
+                  opacity: _showHint ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 600),
+                  child: Center(
+                    child: Text(
+                      'Скажите или коснитесь Kai',
+                      style: typography.bodyMedium.copyWith(
+                        color: colors.textTertiary,
+                        letterSpacing: 0.2,
+                      ),
                     ),
                   ),
                 ),

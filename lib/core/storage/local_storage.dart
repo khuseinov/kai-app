@@ -39,6 +39,9 @@ class LocalStorage {
   bool get reduceMotion => _settings.get('reduce_motion', defaultValue: false) as bool;
   set reduceMotion(bool v) => _settings.put('reduce_motion', v);
 
+  bool get kaiHintShown => _settings.get('kai_hint_shown', defaultValue: false) as bool;
+  set kaiHintShown(bool v) => _settings.put('kai_hint_shown', v);
+
   // Chat history
   List<Map> get sessions {
     final raw = _history.get('sessions');

@@ -10,11 +10,20 @@ import '../../../../core/models/chat_message.dart';
 import '../../logic/chat_notifier.dart';
 import 'approval_actions.dart';
 import 'approval_notice.dart';
+import 'citation_sheet.dart';
 import 'message_detail_sheet.dart';
 import 'safety_block_banner.dart';
 import 'simulation_card.dart';
 import 'source_chips.dart';
 import 'thinking_trace.dart';
+
+// Converts [1][2] markers in Kai responses to markdown links so flutter_markdown
+// fires onTapLink when the user taps a citation number.
+String _injectCitationLinks(String text) => text.replaceAllMapped(
+      RegExp(r'\[(\d+)\]'),
+      (m) =>
+          '[${m.group(1)}](kai://cite/${int.parse(m.group(1)!) - 1})',
+    );
 
 class MessageBubble extends ConsumerWidget {
   final ChatMessage message;
@@ -243,8 +252,22 @@ class MessageBubble extends ConsumerWidget {
 
                     if (mainContent.isNotEmpty)
                       MarkdownBody(
-                        data: mainContent,
+                        data: message.sources.isNotEmpty
+                            ? _injectCitationLinks(mainContent)
+                            : mainContent,
                         selectable: !kIsWeb,
+                        onTapLink: (text, href, title) {
+                          if (href == null) return;
+                          if (href.startsWith('kai://cite/')) {
+                            final idx = int.tryParse(
+                                href.substring('kai://cite/'.length));
+                            if (idx != null &&
+                                idx < message.sources.length) {
+                              CitationSheet.show(
+                                  context, idx + 1, message.sources[idx]);
+                            }
+                          }
+                        },
                         styleSheet: MarkdownStyleSheet(
                           p: typography.bodyLarge.copyWith(
                             color: colors.textPrimary,
@@ -265,6 +288,11 @@ class MessageBubble extends ConsumerWidget {
                             color: colors.surfaceContainer,
                             borderRadius: BorderRadius.circular(8),
                           ),
+                          a: typography.bodyLarge.copyWith(
+                            color: colors.oceanPrimary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 11,
+                          ),
                         ),
                       ),
                     if (sloopContent != null) ...[
@@ -281,6 +309,13 @@ class MessageBubble extends ConsumerWidget {
                         message.injectionFragment != null) ...[
                       const SizedBox(height: KaiSpacing.xs),
                       SafetyBlockBanner(latestMessage: message),
+                    ],
+
+                    // 👍👎 reactions — shown only on fully streamed messages
+                    if (message.status == 'sent' &&
+                        mainContent.isNotEmpty) ...[
+                      const SizedBox(height: KaiSpacing.xs),
+                      _ReactionRow(messageId: message.id),
                     ],
                   ],
                 ),
@@ -401,5 +436,89 @@ class _StatusIcon extends StatelessWidget {
     };
 
     return Icon(icon, size: 12, color: color);
+  }
+}
+
+// 👍👎 feedback row — local optimistic state, STUB for backend.
+class _ReactionRow extends StatefulWidget {
+  final String messageId;
+
+  const _ReactionRow({required this.messageId});
+
+  @override
+  State<_ReactionRow> createState() => _ReactionRowState();
+}
+
+class _ReactionRowState extends State<_ReactionRow> {
+  int? _reaction; // 1 = 👍, -1 = 👎, null = no reaction
+
+  void _react(int value) {
+    setState(() => _reaction = _reaction == value ? null : value);
+    if (_reaction != null) {
+      HapticFeedback.lightImpact();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Спасибо за отзыв'),
+          duration: Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.kaiColors;
+    return Row(
+      children: [
+        _ReactionButton(
+          icon: _reaction == 1
+              ? Icons.thumb_up_rounded
+              : Icons.thumb_up_outlined,
+          active: _reaction == 1,
+          color: _reaction == 1 ? colors.success : colors.textTertiary,
+          onTap: () => _react(1),
+        ),
+        const SizedBox(width: KaiSpacing.xs),
+        _ReactionButton(
+          icon: _reaction == -1
+              ? Icons.thumb_down_rounded
+              : Icons.thumb_down_outlined,
+          active: _reaction == -1,
+          color: _reaction == -1 ? colors.error : colors.textTertiary,
+          onTap: () => _react(-1),
+        ),
+      ],
+    );
+  }
+}
+
+class _ReactionButton extends StatelessWidget {
+  final IconData icon;
+  final bool active;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ReactionButton({
+    required this.icon,
+    required this.active,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: active ? color.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Icon(icon, size: 16, color: color),
+      ),
+    );
   }
 }
