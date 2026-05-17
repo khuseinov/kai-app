@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'kai_label.dart';
 
@@ -35,9 +37,15 @@ const _toolRu = <String, String>{
   'news_search': 'проверяю новости...',
 };
 
-class KaiCognitiveStatus extends StatelessWidget {
-  /// User-visible label. Pass `step` to get Russian translation; if absent,
-  /// `currentStep` (free text) is rendered as-is.
+/// BUG-STREAM-FRAME-1 fix (StatefulWidget approach):
+/// Each cognitive step is held visible for [_minHold] regardless of how fast
+/// the SSE stream delivers events. Incoming steps that arrive while the
+/// current one is still in its hold window are queued and shown in order.
+/// This mirrors how Anthropic and OpenAI surface tool-use / thinking steps —
+/// the network stream is never blocked; display timing is fully UI-side.
+class KaiCognitiveStatus extends StatefulWidget {
+  /// User-visible label. Pass [step] to get Russian translation; if absent,
+  /// [currentStep] (free text) is rendered as-is.
   final String currentStep;
   final String? step;
   final double progress; // 0.0 to 1.0 (reserved for future progress bar)
@@ -49,31 +57,98 @@ class KaiCognitiveStatus extends StatelessWidget {
     this.progress = 0.0,
   });
 
-  String get _displayText {
-    // STREAM-TOOL-DETAIL-1: if backend pushed a tool-specific label
-    // (e.g. "visa_checker") the friendlier tool phrase wins.
-    final toolRu = _toolRu[currentStep];
-    if (toolRu != null) return toolRu;
+  @override
+  State<KaiCognitiveStatus> createState() => _KaiCognitiveStatusState();
+}
 
-    // Otherwise translate by step letter ("E" → "ищу источники...").
-    if (step != null) {
-      final ru = _stepRu[step!];
+class _KaiCognitiveStatusState extends State<KaiCognitiveStatus> {
+  // Each step is visible for at least this long so users can read it.
+  static const _minHold = Duration(milliseconds: 1200);
+  // Fade duration between steps — quick enough to feel responsive.
+  static const _fadeDuration = Duration(milliseconds: 180);
+
+  late String _displayed;
+  Timer? _holdTimer;
+  final Queue<String> _queue = Queue();
+  bool _holding = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayed = _resolve(widget.currentStep, widget.step);
+    _holding = true;
+    _holdTimer = Timer(_minHold, _onHoldExpired);
+  }
+
+  @override
+  void didUpdateWidget(KaiCognitiveStatus old) {
+    super.didUpdateWidget(old);
+    final text = _resolve(widget.currentStep, widget.step);
+    if (text == _displayed) return;
+
+    if (_holding) {
+      // Current step is still in its hold window — queue the new one.
+      if (_queue.isEmpty || _queue.last != text) {
+        _queue.add(text);
+      }
+    } else {
+      _advance(text);
+    }
+  }
+
+  void _advance(String text) {
+    setState(() {
+      _displayed = text;
+      _holding = true;
+    });
+    _holdTimer?.cancel();
+    _holdTimer = Timer(_minHold, _onHoldExpired);
+  }
+
+  void _onHoldExpired() {
+    if (!mounted) return;
+    if (_queue.isNotEmpty) {
+      _advance(_queue.removeFirst());
+    } else {
+      setState(() => _holding = false);
+    }
+  }
+
+  String _resolve(String step, String? letter) {
+    final tool = _toolRu[step];
+    if (tool != null) return tool;
+    if (letter != null) {
+      final ru = _stepRu[letter];
       if (ru != null) return ru;
     }
-    final ru = _stepRu[currentStep];
+    final ru = _stepRu[step];
     if (ru != null) return ru;
-    return currentStep;
+    return step;
+  }
+
+  @override
+  void dispose() {
+    _holdTimer?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return KaiLabel(
-      _displayText,
-      variant: KaiLabelVariant.primary,
-      icon: const SizedBox(
-        width: 10,
-        height: 10,
-        child: CircularProgressIndicator(strokeWidth: 2),
+    return AnimatedSwitcher(
+      duration: _fadeDuration,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: child,
+      ),
+      child: KaiLabel(
+        _displayed,
+        key: ValueKey(_displayed),
+        variant: KaiLabelVariant.primary,
+        icon: const SizedBox(
+          width: 10,
+          height: 10,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
       ),
     );
   }

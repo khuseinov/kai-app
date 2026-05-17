@@ -38,8 +38,8 @@ class EnvConfig {
       };
 
   static Duration get receiveTimeout => switch (current) {
-        Environment.dev => const Duration(seconds: 130),
-        _ => const Duration(seconds: 90),
+        Environment.dev => const Duration(seconds: 1800), // KAI-FT CPU timeout
+        _ => const Duration(seconds: 300),
       };
 
   static bool get enableLogging => current != Environment.prod;

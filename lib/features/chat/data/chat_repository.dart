@@ -62,6 +62,11 @@ class ChatRepository {
     try {
       final stream = _remoteSource.streamMessage(request, cancelToken: cancelToken);
 
+      // BUG-STREAM-FRAME-1: track when the first state event arrived so the
+      // done handler can calculate how much time the UI queue still needs.
+      var cogStepCount = 0;
+      DateTime? firstStateTime;
+
       await for (final event in stream) {
         await event.when<Future<void>>(
           message: (content) async {
@@ -80,11 +85,16 @@ class ChatRepository {
             onUpdate(responseMessage);
           },
           state: (step, label) async {
+            firstStateTime ??= DateTime.now();
+            cogStepCount++;
             responseMessage = responseMessage.copyWith(
               currentStep: step,
               cognitiveStatus: label,
             );
             onUpdate(responseMessage);
+            // One-frame pause so Flutter schedules a rebuild before the next
+            // SSE event. Display timing is owned by KaiCognitiveStatus.
+            await Future.delayed(const Duration(milliseconds: 80));
           },
           metadata: (
             correlationId,
@@ -168,9 +178,22 @@ class ChatRepository {
             onUpdate(responseMessage);
           },
           done: () async {
+            // BUG-STREAM-FRAME-1: wait for KaiCognitiveStatus to drain its
+            // display queue before clearing cognitiveStatus. Each step is
+            // held 1 200 ms by the widget; we compute the exact time still
+            // owed so the indicator fades out naturally on the last step —
+            // not abruptly when streaming ends.
+            if (cogStepCount > 0 && firstStateTime != null) {
+              const holdPerStep = Duration(milliseconds: 1200);
+              final totalDisplay = holdPerStep * cogStepCount;
+              final elapsed = DateTime.now().difference(firstStateTime!);
+              final remaining = totalDisplay - elapsed;
+              if (remaining > Duration.zero) {
+                await Future.delayed(remaining);
+              }
+            }
             // BUG-RENDER-GATE-1: clear cognitive status so the indicator
-            // doesn't stay frozen on the last step label after streaming
-            // ends. message_bubble.dart hides KaiCognitiveStatus when
+            // doesn't stay frozen; message_bubble.dart hides it when
             // cognitiveStatus is null/empty OR status == 'sent'.
             responseMessage = responseMessage.copyWith(
               status: 'sent',
