@@ -112,7 +112,7 @@ void main() {
     );
   });
 
-  test('streamMessage parses agent contract events and suppresses raw thinking',
+  test('streamMessage parses agent contract events and forwards thinking deltas',
       () async {
     apiClient.setStreamLines([
       'event: state',
@@ -167,10 +167,15 @@ void main() {
       ),
     );
     expect(events, contains(const ChatStreamEvent.done()));
+    // STREAM-THINKING-1: thinking deltas ARE forwarded to the UI (Variant C)
     expect(
       events.where((event) =>
           event.maybeWhen(thinking: (_) => true, orElse: () => false)),
-      isEmpty,
+      isNotEmpty,
+    );
+    expect(
+      events,
+      contains(const ChatStreamEvent.thinking('hidden chain')),
     );
   });
 

@@ -243,6 +243,16 @@ class MessageBubble extends ConsumerWidget {
                             message.scopeInheritanceViolation ?? false,
                       ),
 
+                    // STREAM-THINKING-1: o1-style reasoning trace above the
+                    // answer. Streams in live as LLM emits thinking deltas.
+                    if (message.thinking != null && message.thinking!.isNotEmpty) ...[
+                      _ThinkingTrace(
+                        text: message.thinking!,
+                        streaming: message.status != 'sent',
+                      ),
+                      const SizedBox(height: KaiSpacing.xs),
+                    ],
+
                     // Render main content (marker blocks stripped above).
                     if (mainContent.isNotEmpty)
                       MarkdownBody(
@@ -719,6 +729,131 @@ class _SimStat extends StatelessWidget {
 }
 
 enum _MessageAction { copy, retry }
+
+/// STREAM-THINKING-1 (2026-05-17): inline reasoning trace shown above the
+/// final answer when the backend streams `event: thinking` chunks.
+///
+/// Behaviour:
+/// - While streaming (`streaming == true`): expanded by default with a
+///   subtle pulsing dot so the user sees Kai's reasoning in real time.
+/// - When done: auto-collapses to a single line; tap to re-expand.
+/// - Italic, low-contrast (textTertiary) — never competes with the answer.
+class _ThinkingTrace extends StatefulWidget {
+  final String text;
+  final bool streaming;
+
+  const _ThinkingTrace({required this.text, required this.streaming});
+
+  @override
+  State<_ThinkingTrace> createState() => _ThinkingTraceState();
+}
+
+class _ThinkingTraceState extends State<_ThinkingTrace>
+    with SingleTickerProviderStateMixin {
+  bool _userCollapsed = false;
+  late final AnimationController _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  bool get _expanded => widget.streaming && !_userCollapsed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.kaiColors;
+    final typography = context.kaiTypography;
+
+    return GestureDetector(
+      onTap: () => setState(() => _userCollapsed = !_userCollapsed),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: KaiSpacing.s,
+          vertical: KaiSpacing.xs,
+        ),
+        decoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(
+              color: colors.cloudLight,
+              width: 2,
+            ),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                if (widget.streaming) ...[
+                  FadeTransition(
+                    opacity: Tween<double>(begin: 0.3, end: 0.9).animate(_pulse),
+                    child: Icon(
+                      Icons.psychology_outlined,
+                      size: 11,
+                      color: colors.textTertiary,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ] else ...[
+                  Icon(
+                    Icons.psychology_outlined,
+                    size: 11,
+                    color: colors.textTertiary,
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  widget.streaming
+                      ? 'Kai размышляет...'
+                      : (_userCollapsed ? 'Развернуть рассуждения' : 'Свернуть'),
+                  style: typography.labelSmall.copyWith(
+                    color: colors.textTertiary,
+                    fontSize: 10,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const Spacer(),
+                if (!widget.streaming)
+                  Icon(
+                    _userCollapsed ? Icons.expand_more : Icons.expand_less,
+                    size: 14,
+                    color: colors.textTertiary,
+                  ),
+              ],
+            ),
+            if (_expanded || !_userCollapsed && !widget.streaming) ...[
+              const SizedBox(height: KaiSpacing.xxs),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 200),
+                alignment: Alignment.topLeft,
+                child: Text(
+                  widget.text,
+                  style: typography.bodySmall.copyWith(
+                    color: colors.textSecondary,
+                    fontStyle: FontStyle.italic,
+                    fontSize: 12,
+                    height: 1.45,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _StatusIcon extends StatelessWidget {
   final String status;

@@ -70,8 +70,14 @@ class ChatRepository {
             );
             onUpdate(responseMessage);
           },
-          thinking: (thinking) async {
-            // Raw reasoning is intentionally not surfaced in kai-app.
+          thinking: (delta) async {
+            // STREAM-THINKING-1 (2026-05-17): accumulate reasoning deltas
+            // so MessageBubble can render the o1-style trace above the
+            // final answer.
+            responseMessage = responseMessage.copyWith(
+              thinking: (responseMessage.thinking ?? '') + delta,
+            );
+            onUpdate(responseMessage);
           },
           state: (step, label) async {
             responseMessage = responseMessage.copyWith(

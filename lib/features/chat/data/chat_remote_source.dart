@@ -74,9 +74,14 @@ class ChatRemoteSource {
                 json['choices'][0]['delta']['content'] as String? ?? '';
             yield ChatStreamEvent.message(content);
           } else if (currentEvent == 'thinking') {
-            // Raw reasoning is not user-visible in kai-app. Backend should not
-            // emit it, but older streams are ignored defensively.
-            continue;
+            // STREAM-THINKING-1 (2026-05-17): backend now forwards LLM
+            // reasoning deltas. Surface them so MessageBubble can render
+            // a collapsible "Kai thinking aloud" trace above the answer.
+            final content =
+                json['choices']?[0]?['delta']?['content'] as String? ?? '';
+            if (content.isNotEmpty) {
+              yield ChatStreamEvent.thinking(content);
+            }
           } else if (currentEvent == 'state') {
             yield ChatStreamEvent.state(
               step: json['step'] as String? ?? '',
