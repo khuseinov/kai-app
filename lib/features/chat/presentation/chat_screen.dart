@@ -6,9 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/design/components/kai_gemini_wave.dart';
 import '../../../../core/design/theme/theme_extensions.dart';
 import '../../../core/design/tokens/kai_spacing.dart';
+import '../../../core/providers/settings_provider.dart';
 import '../logic/chat_notifier.dart';
 import '../logic/session_notifier.dart';
 import 'widgets/chat_input_bar.dart';
+import 'widgets/memory_toast.dart';
 import 'widgets/message_list.dart';
 import 'widgets/safety_block_banner.dart';
 import 'widgets/session_drawer.dart';
@@ -119,6 +121,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     final chatState = ref.watch(chatNotifierProvider);
     final colors = context.kaiColors;
     final typography = context.kaiTypography;
+    final reduceMotion =
+        ref.watch(settingsProvider.select((s) => s.reduceMotion));
+
+    // Kai-invoked: surface MemoryToast when backend marks a message as
+    // memorize (specialMode == 'M'). The widget itself dedupes via shown-ids.
+    ref.listen<ChatState>(chatNotifierProvider, (_, __) {
+      if (mounted) MemoryToast.maybeShow(context, ref);
+    });
 
     final voiceState = _voiceStateFromChat(chatState);
 
@@ -131,6 +141,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
           // to avoid accidental drawer opens from swiping anywhere.
           KaiGeminiWave(
             state: voiceState,
+            reduceMotion: reduceMotion,
             child: RawGestureDetector(
               behavior: HitTestBehavior.translucent,
               gestures: {

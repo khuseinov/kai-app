@@ -57,6 +57,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                 ),
               ),
+              SwitchListTile(
+                secondary: Icon(Icons.motion_photos_off_outlined, color: colors.textSecondary),
+                title: const Text('Снизить анимацию'),
+                subtitle: Text(
+                  'Kai-сфера и переходы будут спокойнее',
+                  style: typography.bodySmall.copyWith(color: colors.textTertiary),
+                ),
+                value: settings.reduceMotion,
+                onChanged: (v) =>
+                    ref.read(settingsProvider.notifier).setReduceMotion(v),
+                activeColor: colors.oceanPrimary,
+              ),
             ],
           ),
           const SizedBox(height: KaiSpacing.l),

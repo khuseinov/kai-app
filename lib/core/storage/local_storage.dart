@@ -36,6 +36,9 @@ class LocalStorage {
       ? _settings.put('theme_mode', v.name)
       : _settings.delete('theme_mode');
 
+  bool get reduceMotion => _settings.get('reduce_motion', defaultValue: false) as bool;
+  set reduceMotion(bool v) => _settings.put('reduce_motion', v);
+
   // Chat history
   List<Map> get sessions {
     final raw = _history.get('sessions');

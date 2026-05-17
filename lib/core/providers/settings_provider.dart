@@ -12,6 +12,7 @@ class AppSettings {
   final bool isOnboarded;
   final String userId;
   final ThemeMode themeMode;
+  final bool reduceMotion;
 
   const AppSettings({
     required this.apiBaseUrl,
@@ -20,6 +21,7 @@ class AppSettings {
     this.isOnboarded = false,
     this.userId = 'local-user',
     this.themeMode = ThemeMode.system,
+    this.reduceMotion = false,
   });
 
   AppSettings copyWith({
@@ -29,6 +31,7 @@ class AppSettings {
     bool? isOnboarded,
     String? userId,
     ThemeMode? themeMode,
+    bool? reduceMotion,
   }) {
     return AppSettings(
       apiBaseUrl: apiBaseUrl ?? this.apiBaseUrl,
@@ -37,6 +40,7 @@ class AppSettings {
       isOnboarded: isOnboarded ?? this.isOnboarded,
       userId: userId ?? this.userId,
       themeMode: themeMode ?? this.themeMode,
+      reduceMotion: reduceMotion ?? this.reduceMotion,
     );
   }
 }
@@ -54,6 +58,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
             isOnboarded: _localStorage.isOnboarded,
             userId: _localStorage.userId,
             themeMode: _localStorage.themeMode ?? ThemeMode.system,
+            reduceMotion: _localStorage.reduceMotion,
           ),
         ) {
     _loadApiKey();
@@ -94,6 +99,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   void setThemeMode(ThemeMode mode) {
     _localStorage.themeMode = mode;
     state = state.copyWith(themeMode: mode);
+  }
+
+  void setReduceMotion(bool value) {
+    _localStorage.reduceMotion = value;
+    state = state.copyWith(reduceMotion: value);
   }
 }
 

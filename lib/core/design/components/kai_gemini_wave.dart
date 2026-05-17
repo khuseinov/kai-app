@@ -7,11 +7,13 @@ enum KaiVoiceState { idle, listening, thinking, speaking }
 class KaiGeminiWave extends StatefulWidget {
   final Widget child;
   final KaiVoiceState state;
+  final bool reduceMotion;
 
   const KaiGeminiWave({
     super.key,
     required this.child,
     this.state = KaiVoiceState.idle,
+    this.reduceMotion = false,
   });
 
   @override
@@ -27,8 +29,20 @@ class _KaiGeminiWaveState extends State<KaiGeminiWave>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 4),
+      duration: Duration(seconds: widget.reduceMotion ? 12 : 4),
     )..repeat();
+  }
+
+  @override
+  void didUpdateWidget(covariant KaiGeminiWave oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.reduceMotion != widget.reduceMotion) {
+      _controller.duration = Duration(seconds: widget.reduceMotion ? 12 : 4);
+      if (_controller.isAnimating) {
+        _controller.stop();
+        _controller.repeat();
+      }
+    }
   }
 
   @override

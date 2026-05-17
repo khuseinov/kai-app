@@ -34,6 +34,12 @@ void main() {
     expect(find.text('Голос'), findsOneWidget);
     expect(find.text('Аккаунт'), findsOneWidget);
     expect(find.text('Данные'), findsOneWidget);
+    // 'О приложении' is below the fold after Reduce Motion tile — scroll to it.
+    await tester.scrollUntilVisible(
+      find.text('О приложении'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('О приложении'), findsOneWidget);
   });
 }

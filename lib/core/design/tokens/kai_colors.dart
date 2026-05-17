@@ -39,6 +39,13 @@ class KaiColors extends ThemeExtension<KaiColors> {
   final Color primary;
   final Color onPrimary;
 
+  /// D13: warmTrust — desaturated coral for crisis/emotional surfaces.
+  /// Calming, not alarming. Used by CrisisCard.
+  final Color warmTrust;
+
+  /// D13: calmBlue — softer ocean for Liquid Glass surfaces / backdrop tints.
+  final Color calmBlue;
+
   const KaiColors({
     required this.oceanPrimary,
     required this.oceanLight,
@@ -67,6 +74,8 @@ class KaiColors extends ThemeExtension<KaiColors> {
     required this.glassBorder,
     required this.primary,
     required this.onPrimary,
+    required this.warmTrust,
+    required this.calmBlue,
   });
 
   factory KaiColors.light() {
@@ -119,6 +128,9 @@ class KaiColors extends ThemeExtension<KaiColors> {
       glassBorder: Color(0x1A191919), // 10% slate dark
       primary: oceanPrimary,
       onPrimary: ivoryLight,
+
+      warmTrust: Color(0xFFC17B6B), // desaturated coral
+      calmBlue: Color(0xFF5A9CC4), // softer ocean for glass
     );
   }
 
@@ -172,6 +184,9 @@ class KaiColors extends ThemeExtension<KaiColors> {
       glassBorder: Color(0x1AFAFAF7), // 10% ivory light
       primary: oceanPrimary,
       onPrimary: slateDark,
+
+      warmTrust: Color(0xFFD89384), // brighter coral on dark
+      calmBlue: Color(0xFF7BB4D4), // softer ocean for glass on dark
     );
   }
 
@@ -204,6 +219,8 @@ class KaiColors extends ThemeExtension<KaiColors> {
     Color? glassBorder,
     Color? primary,
     Color? onPrimary,
+    Color? warmTrust,
+    Color? calmBlue,
   }) {
     return KaiColors(
       oceanPrimary: oceanPrimary ?? this.oceanPrimary,
@@ -233,6 +250,8 @@ class KaiColors extends ThemeExtension<KaiColors> {
       glassBorder: glassBorder ?? this.glassBorder,
       primary: primary ?? this.primary,
       onPrimary: onPrimary ?? this.onPrimary,
+      warmTrust: warmTrust ?? this.warmTrust,
+      calmBlue: calmBlue ?? this.calmBlue,
     );
   }
 
@@ -268,6 +287,8 @@ class KaiColors extends ThemeExtension<KaiColors> {
       glassBorder: Color.lerp(glassBorder, other.glassBorder, t)!,
       primary: Color.lerp(primary, other.primary, t)!,
       onPrimary: Color.lerp(onPrimary, other.onPrimary, t)!,
+      warmTrust: Color.lerp(warmTrust, other.warmTrust, t)!,
+      calmBlue: Color.lerp(calmBlue, other.calmBlue, t)!,
     );
   }
 }

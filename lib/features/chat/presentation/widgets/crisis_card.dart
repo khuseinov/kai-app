@@ -16,7 +16,7 @@ class CrisisCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.kaiColors;
     final typography = context.kaiTypography;
-    const warmCoral = Color(0xFFC17B6B); // warmTrust token placeholder
+    final warmCoral = colors.warmTrust;
 
     return Container(
       width: double.infinity,
