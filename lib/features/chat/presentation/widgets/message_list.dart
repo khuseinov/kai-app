@@ -6,6 +6,7 @@ import '../../logic/chat_notifier.dart';
 import 'crisis_card.dart';
 import 'message_bubble.dart';
 import 'message_metadata_row.dart';
+import 'scroll_to_latest_button.dart';
 
 class MessageList extends ConsumerStatefulWidget {
   final List<ChatMessage> messages;
@@ -25,6 +26,8 @@ class MessageList extends ConsumerStatefulWidget {
 
 class _MessageListState extends ConsumerState<MessageList> {
   final Map<String, GlobalKey> _messageKeys = {};
+  final ScrollController _scrollController = ScrollController();
+  bool _showJumpToBottom = false;
 
   @override
   void initState() {
@@ -34,6 +37,32 @@ class _MessageListState extends ConsumerState<MessageList> {
         _scrollToMessage(next);
       }
     });
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    // Bottom of list is `maxScrollExtent`. Show fab when more than 120 px above.
+    final atBottom = pos.pixels >= pos.maxScrollExtent - 120;
+    if (atBottom == _showJumpToBottom) return;
+    setState(() => _showJumpToBottom = !atBottom);
+  }
+
+  void _jumpToLatest() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   void _scrollToMessage(String id) {
@@ -51,30 +80,43 @@ class _MessageListState extends ConsumerState<MessageList> {
   Widget build(BuildContext context) {
     final itemCount = widget.messages.length;
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(
-        horizontal: KaiSpacing.m,
-        vertical: KaiSpacing.l,
-      ),
-      itemCount: itemCount,
-      itemBuilder: (context, index) {
-        final message = widget.messages[index];
-        final key = _messageKeys.putIfAbsent(message.id, () => GlobalKey());
+    return Stack(
+      children: [
+        ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(
+            horizontal: KaiSpacing.m,
+            vertical: KaiSpacing.l,
+          ),
+          itemCount: itemCount,
+          itemBuilder: (context, index) {
+            final message = widget.messages[index];
+            final key = _messageKeys.putIfAbsent(message.id, () => GlobalKey());
 
-        // D4: Crisis messages get full-bleed CrisisCard instead of normal bubble.
-        if (message.crisisDetected == true) {
-          return CrisisCard(key: key, category: message.crisisCategory);
-        }
+            // D4: Crisis messages get full-bleed CrisisCard instead of normal bubble.
+            if (message.crisisDetected == true) {
+              return CrisisCard(key: key, category: message.crisisCategory);
+            }
 
-        return Column(
-          key: key,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            MessageBubble(message: message),
-            MessageMetadataRow(message: message),
-          ],
-        );
-      },
+            return Column(
+              key: key,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                MessageBubble(message: message),
+                MessageMetadataRow(message: message),
+              ],
+            );
+          },
+        ),
+        Positioned(
+          right: KaiSpacing.m,
+          bottom: KaiSpacing.m,
+          child: ScrollToLatestButton(
+            visible: _showJumpToBottom,
+            onTap: _jumpToLatest,
+          ),
+        ),
+      ],
     );
   }
 }
