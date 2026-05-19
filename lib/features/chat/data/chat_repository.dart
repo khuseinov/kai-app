@@ -213,7 +213,7 @@ class ChatRepository {
             );
             await _localSource.saveMessage(responseMessage);
 
-            final failedUserMessage = userMessage.copyWith(status: 'error');
+            final failedUserMessage = userMessage.copyWith(status: 'failed');
             await _localSource.saveMessage(failedUserMessage);
             onUpdate(responseMessage);
           },
@@ -229,7 +229,7 @@ class ChatRepository {
           thinking: null,
         );
         await _localSource.saveMessage(responseMessage);
-        final cancelledUserMessage = userMessage.copyWith(status: 'error');
+        final cancelledUserMessage = userMessage.copyWith(status: 'failed');
         await _localSource.saveMessage(cancelledUserMessage);
         onUpdate(responseMessage);
         return;
@@ -243,7 +243,7 @@ class ChatRepository {
       );
       await _localSource.saveMessage(responseMessage);
 
-      final failedUserMessage = userMessage.copyWith(status: 'error');
+      final failedUserMessage = userMessage.copyWith(status: 'failed');
       await _localSource.saveMessage(failedUserMessage);
       onUpdate(responseMessage);
     }

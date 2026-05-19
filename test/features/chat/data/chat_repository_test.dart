@@ -178,8 +178,8 @@ void main() {
     expect(lastKai.status, 'error');
 
     final persistedUser = localSource.savedMessages.lastWhere((m) => m.isUser);
-    expect(persistedUser.status, 'error',
-        reason: 'user message must be persisted as error');
+    expect(persistedUser.status, 'failed',
+        reason: 'user message must be persisted as failed (matches MessageStatus enum)');
   });
 
   // T12 — T9 regression: state events must not introduce artificial delays.
