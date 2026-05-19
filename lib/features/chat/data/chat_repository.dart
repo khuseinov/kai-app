@@ -208,17 +208,46 @@ class ChatRepository {
           },
           error: (error) async {
             responseMessage = responseMessage.copyWith(
-                status: 'error', content: 'Error: $error');
+              status: 'error',
+              content: 'Error: $error',
+              cognitiveStatus: null,
+              currentStep: null,
+              thinking: null,
+            );
+            await _localSource.saveMessage(responseMessage);
+
+            final failedUserMessage = userMessage.copyWith(status: 'error');
+            await _localSource.saveMessage(failedUserMessage);
             onUpdate(responseMessage);
           },
         );
       }
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) {
+        // User explicitly cancelled — clear cognitive indicators so the
+        // spinner doesn't freeze; persist both messages.
+        responseMessage = responseMessage.copyWith(
+          cognitiveStatus: null,
+          currentStep: null,
+          thinking: null,
+        );
+        await _localSource.saveMessage(responseMessage);
+        final cancelledUserMessage = userMessage.copyWith(status: 'error');
+        await _localSource.saveMessage(cancelledUserMessage);
+        onUpdate(responseMessage);
         return;
       }
       responseMessage = responseMessage.copyWith(
-          status: 'error', content: 'Connection Error: $e');
+        status: 'error',
+        content: 'Connection Error: $e',
+        cognitiveStatus: null,
+        currentStep: null,
+        thinking: null,
+      );
+      await _localSource.saveMessage(responseMessage);
+
+      final failedUserMessage = userMessage.copyWith(status: 'error');
+      await _localSource.saveMessage(failedUserMessage);
       onUpdate(responseMessage);
     }
   }
