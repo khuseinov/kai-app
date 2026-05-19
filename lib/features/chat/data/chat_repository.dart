@@ -211,10 +211,8 @@ class ChatRepository {
               currentStep: null,
               thinking: null,
             );
-            await _localSource.saveMessage(responseMessage);
-
             final failedUserMessage = userMessage.copyWith(status: 'failed');
-            await _localSource.saveMessage(failedUserMessage);
+            await _safelyPersistMessages([responseMessage, failedUserMessage]);
             onUpdate(responseMessage);
           },
         );
@@ -232,9 +230,8 @@ class ChatRepository {
             currentStep: null,
             thinking: null,
           );
-          await _localSource.saveMessage(responseMessage);
           final cancelledUserMessage = userMessage.copyWith(status: 'failed');
-          await _localSource.saveMessage(cancelledUserMessage);
+          await _safelyPersistMessages([responseMessage, cancelledUserMessage]);
           onUpdate(responseMessage);
         }
         return;
@@ -246,11 +243,20 @@ class ChatRepository {
         currentStep: null,
         thinking: null,
       );
-      await _localSource.saveMessage(responseMessage);
-
       final failedUserMessage = userMessage.copyWith(status: 'failed');
-      await _localSource.saveMessage(failedUserMessage);
+      await _safelyPersistMessages([responseMessage, failedUserMessage]);
       onUpdate(responseMessage);
+    }
+  }
+
+  Future<void> _safelyPersistMessages(List<ChatMessage> messages) async {
+    for (final msg in messages) {
+      try {
+        await _localSource.saveMessage(msg);
+      } catch (_) {
+        // Don't let storage failures escape error/cancel handlers.
+        // In-memory state is updated via onUpdate regardless.
+      }
     }
   }
 

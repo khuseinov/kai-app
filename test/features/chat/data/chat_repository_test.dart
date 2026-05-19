@@ -70,12 +70,25 @@ class _FakeApiClient extends Fake implements ApiClient {
 
 class FakeLocalSource extends ChatLocalSource {
   final List<ChatMessage> savedMessages = [];
+  Object? _throwOnSave;
+  int _saveCount = 0;
+  int _throwFromSaveN = 0;
 
   FakeLocalSource(Box chatBox, Box sessionBox)
       : super(chatBox: chatBox, sessionBox: sessionBox);
 
+  // Throws on saves AFTER n-th call (skipFirst=1 skips the initial userMessage save)
+  void setThrowOnSave(Object error, {int skipFirst = 1}) {
+    _throwOnSave = error;
+    _throwFromSaveN = _saveCount + skipFirst;
+  }
+
   @override
   Future<void> saveMessage(ChatMessage message) async {
+    _saveCount++;
+    if (_throwOnSave != null && _saveCount > _throwFromSaveN) {
+      throw _throwOnSave!;
+    }
     savedMessages.add(message);
   }
 
@@ -258,6 +271,24 @@ void main() {
         .where((m) => m.isUser)
         .last;
     expect(persistedUser.status, 'failed');
+  });
+
+  // T33 — saveMessage failures in error path do not cascade to connection-error
+  test('saveMessage failures in error path do not cascade', () async {
+    remoteSource.setStreamEvents([
+      const ChatStreamEvent.error('upstream timeout'),
+    ]);
+    localSource.setThrowOnSave(Exception('Box closed'));
+
+    await expectLater(
+      repository.streamMessage(
+        text: 'test',
+        sessionId: 'sess-save-fail',
+        onUpdate: (_) {},
+      ),
+      completes,
+      reason: 'error handler must not propagate storage failures',
+    );
   });
 
   // T32 — cancel before stream starts must NOT persist phantom messages
