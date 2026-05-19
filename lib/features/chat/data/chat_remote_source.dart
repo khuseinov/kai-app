@@ -58,12 +58,12 @@ class ChatRemoteSource {
 
         if (data == '[DONE]' || currentEvent == 'done') {
           yield const ChatStreamEvent.done();
-          continue;
+          return;
         }
 
         if (currentEvent == 'error') {
           yield ChatStreamEvent.error(data);
-          continue;
+          return;
         }
 
         try {
