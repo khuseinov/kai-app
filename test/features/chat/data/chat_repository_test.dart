@@ -273,6 +273,29 @@ void main() {
     expect(persistedUser.status, 'failed');
   });
 
+  // T34 — error path emits both messages via onUpdate (user message visible immediately)
+  test('error path emits both updated messages via onUpdate', () async {
+    remoteSource.setStreamEvents([
+      const ChatStreamEvent.error('upstream timeout'),
+    ]);
+
+    final updates = <ChatMessage>[];
+    await repository.streamMessage(
+      text: 'visa Japan',
+      sessionId: 'sess-on-update',
+      onUpdate: (m) => updates.add(m),
+    );
+
+    final userUpdates = updates.where((m) => m.isUser).toList();
+    expect(userUpdates.isNotEmpty, isTrue,
+        reason: 'failed user message must be emitted via onUpdate (T34)');
+    expect(userUpdates.last.status, 'failed',
+        reason: 'user message status visible without session reload');
+
+    final kaiUpdates = updates.where((m) => !m.isUser).toList();
+    expect(kaiUpdates.last.status, 'error');
+  });
+
   // T33 — saveMessage failures in error path do not cascade to connection-error
   test('saveMessage failures in error path do not cascade', () async {
     remoteSource.setStreamEvents([

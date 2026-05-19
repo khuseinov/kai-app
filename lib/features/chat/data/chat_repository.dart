@@ -213,6 +213,7 @@ class ChatRepository {
             );
             final failedUserMessage = userMessage.copyWith(status: 'failed');
             await _safelyPersistMessages([responseMessage, failedUserMessage]);
+            onUpdate(failedUserMessage);
             onUpdate(responseMessage);
           },
         );
@@ -232,6 +233,7 @@ class ChatRepository {
           );
           final cancelledUserMessage = userMessage.copyWith(status: 'failed');
           await _safelyPersistMessages([responseMessage, cancelledUserMessage]);
+          onUpdate(cancelledUserMessage);
           onUpdate(responseMessage);
         }
         return;
@@ -245,6 +247,7 @@ class ChatRepository {
       );
       final failedUserMessage = userMessage.copyWith(status: 'failed');
       await _safelyPersistMessages([responseMessage, failedUserMessage]);
+      onUpdate(failedUserMessage);
       onUpdate(responseMessage);
     }
   }
