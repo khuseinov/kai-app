@@ -22,7 +22,7 @@ class ChatMessage with _$ChatMessage {
     int? latencyMs,
     int? tokensUsed,
     bool? piiBlocked,
-    String? thinking,
+    @JsonKey(includeToJson: false) String? thinking,
     String? correlationId,
     String? currentStep,
     String? cognitiveStatus,
