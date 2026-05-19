@@ -48,6 +48,13 @@ class FakeRemoteSource extends ChatRemoteSource {
     }
     for (final event in _streamEvents) {
       yield event;
+      // Mirror production SSE behavior: error and done are terminal events.
+      final isTerminal = event.maybeWhen(
+        error: (_) => true,
+        done: () => true,
+        orElse: () => false,
+      );
+      if (isTerminal) return;
     }
     if (_streamThrowAfterEvents != null) {
       final err = _streamThrowAfterEvents!;
@@ -165,6 +172,28 @@ void main() {
             .single
             .status,
         'sent');
+  });
+
+  // T30 — error event terminates stream: subsequent done must NOT overwrite status
+  test('error event terminates stream — subsequent done event ignored', () async {
+    remoteSource.setStreamEvents([
+      const ChatStreamEvent.state(step: 'P', label: 'perceiving'),
+      const ChatStreamEvent.error('upstream timeout'),
+      const ChatStreamEvent.done(), // must NOT be processed after error
+    ]);
+
+    final updates = <ChatMessage>[];
+    await repository.streamMessage(
+      text: 'visa Japan',
+      sessionId: 'sess-err-done',
+      onUpdate: (m) => updates.add(m),
+    );
+
+    final lastKai = updates.lastWhere((m) => !m.isUser);
+    expect(lastKai.status, 'error',
+        reason: 'subsequent done event must NOT overwrite error status to sent');
+    expect(lastKai.content, contains('Error:'),
+        reason: 'error content must not be overwritten by done handler');
   });
 
   // T12 — T8 regression: error event clears cognitive indicators
