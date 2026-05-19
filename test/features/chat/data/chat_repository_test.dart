@@ -150,4 +150,60 @@ void main() {
             .status,
         'sent');
   });
+
+  // T12 — T8 regression: error event clears cognitive indicators
+  test('error event clears cognitive indicators and persists user-message as error',
+      () async {
+    remoteSource.setStreamEvents([
+      const ChatStreamEvent.state(step: 'P', label: 'perceiving'),
+      const ChatStreamEvent.state(step: 'E', label: 'enacting'),
+      const ChatStreamEvent.error('upstream timeout'),
+    ]);
+
+    final updates = <ChatMessage>[];
+
+    await repository.streamMessage(
+      text: 'visa Japan',
+      sessionId: 'sess-err',
+      onUpdate: (m) => updates.add(m),
+    );
+
+    final lastKai = updates.lastWhere((m) => !m.isUser);
+    expect(lastKai.cognitiveStatus, isNull,
+        reason: 'cognitiveStatus must be cleared on error');
+    expect(lastKai.currentStep, isNull,
+        reason: 'currentStep must be cleared on error');
+    expect(lastKai.thinking, isNull,
+        reason: 'thinking must be cleared on error');
+    expect(lastKai.status, 'error');
+
+    final persistedUser = localSource.savedMessages.lastWhere((m) => m.isUser);
+    expect(persistedUser.status, 'error',
+        reason: 'user message must be persisted as error');
+  });
+
+  // T12 — T9 regression: state events must not introduce artificial delays.
+  // End with error (not done) to avoid the BUG-STREAM-FRAME-1 cognitive-status
+  // drain (1 200 ms × cogStepCount) which is intentional and unrelated to T9.
+  test('state events do not introduce artificial delays', () async {
+    remoteSource.setStreamEvents([
+      const ChatStreamEvent.state(step: 'P', label: 'perceiving'),
+      const ChatStreamEvent.state(step: 'E', label: 'enacting'),
+      const ChatStreamEvent.state(step: 'V', label: 'evaluating'),
+      const ChatStreamEvent.error('test-end'),
+    ]);
+
+    final sw = Stopwatch()..start();
+    await repository.streamMessage(
+      text: 'route planner',
+      sessionId: 'sess-delay',
+      onUpdate: (_) {},
+    );
+    sw.stop();
+
+    // 3 state events × 80ms = 240ms if artificial delay not removed.
+    // Allow 200ms for real I/O overhead (Hive writes).
+    expect(sw.elapsedMilliseconds, lessThan(200),
+        reason: 'state handler must not sleep between SSE events');
+  });
 }

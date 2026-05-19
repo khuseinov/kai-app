@@ -92,9 +92,6 @@ class ChatRepository {
               cognitiveStatus: label,
             );
             onUpdate(responseMessage);
-            // One-frame pause so Flutter schedules a rebuild before the next
-            // SSE event. Display timing is owned by KaiCognitiveStatus.
-            await Future.delayed(const Duration(milliseconds: 80));
           },
           metadata: (
             correlationId,
