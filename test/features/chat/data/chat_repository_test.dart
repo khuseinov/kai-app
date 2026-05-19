@@ -17,12 +17,18 @@ class FakeRemoteSource extends ChatRemoteSource {
   ChatResponseDto? _response;
   Object? _error;
   List<ChatStreamEvent> _streamEvents = const [];
+  Object? _streamThrow;
+  Object? _streamThrowAfterEvents;
 
   FakeRemoteSource() : super(_FakeApiClient());
 
   void setResponse(ChatResponseDto response) => _response = response;
   void setError(Object error) => _error = error;
   void setStreamEvents(List<ChatStreamEvent> events) => _streamEvents = events;
+  // Throws BEFORE any events (simulates early cancel / immediate failure)
+  void setThrowOnNext(Object error) => _streamThrow = error;
+  // Throws AFTER all events are yielded (simulates cancel mid-stream)
+  void setThrowAfterEvents(Object error) => _streamThrowAfterEvents = error;
 
   @override
   Future<ChatResponseDto> sendMessage(ChatRequestDto request) async {
@@ -35,8 +41,18 @@ class FakeRemoteSource extends ChatRemoteSource {
     ChatRequestDto request, {
     CancelToken? cancelToken,
   }) async* {
+    if (_streamThrow != null) {
+      final err = _streamThrow!;
+      _streamThrow = null;
+      throw err;
+    }
     for (final event in _streamEvents) {
       yield event;
+    }
+    if (_streamThrowAfterEvents != null) {
+      final err = _streamThrowAfterEvents!;
+      _streamThrowAfterEvents = null;
+      throw err;
     }
   }
 }
@@ -180,6 +196,39 @@ void main() {
     final persistedUser = localSource.savedMessages.lastWhere((m) => m.isUser);
     expect(persistedUser.status, 'failed',
         reason: 'user message must be persisted as failed (matches MessageStatus enum)');
+  });
+
+  // T29 — cancel after stream started: responseMessage gets status='error' (not 'typing')
+  test('cancel path persists responseMessage with status=error (not typing)', () async {
+    // Yield a message chunk first so cogStepCount==0 but content is non-empty
+    // → streamStarted=true after T32 guard is applied → persist IS expected.
+    remoteSource.setStreamEvents([
+      const ChatStreamEvent.message('Привет'),
+    ]);
+    remoteSource.setThrowAfterEvents(
+      DioException(
+        requestOptions: RequestOptions(path: '/chat/stream'),
+        type: DioExceptionType.cancel,
+      ),
+    );
+
+    await repository.streamMessage(
+      text: 'visa Japan',
+      sessionId: 'sess-cancel',
+      onUpdate: (_) {},
+    );
+
+    final persistedKai = localSource.savedMessages
+        .where((m) => !m.isUser)
+        .last;
+    expect(persistedKai.status, 'error',
+        reason: 'cancel must update responseMessage status (was stuck on typing)');
+    expect(persistedKai.cognitiveStatus, isNull);
+
+    final persistedUser = localSource.savedMessages
+        .where((m) => m.isUser)
+        .last;
+    expect(persistedUser.status, 'failed');
   });
 
   // T12 — T9 regression: state events must not introduce artificial delays.

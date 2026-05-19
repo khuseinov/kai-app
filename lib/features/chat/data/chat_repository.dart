@@ -224,6 +224,7 @@ class ChatRepository {
         // User explicitly cancelled — clear cognitive indicators so the
         // spinner doesn't freeze; persist both messages.
         responseMessage = responseMessage.copyWith(
+          status: 'error',
           cognitiveStatus: null,
           currentStep: null,
           thinking: null,
