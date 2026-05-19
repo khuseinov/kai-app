@@ -59,13 +59,13 @@ class ChatRepository {
     );
 
     // 4. Listen to stream
+    // BUG-STREAM-FRAME-1 + T32: cogStepCount declared outside try so the catch
+    // block can use it to determine whether the stream actually started.
+    var cogStepCount = 0;
+    DateTime? firstStateTime;
+
     try {
       final stream = _remoteSource.streamMessage(request, cancelToken: cancelToken);
-
-      // BUG-STREAM-FRAME-1: track when the first state event arrived so the
-      // done handler can calculate how much time the UI queue still needs.
-      var cogStepCount = 0;
-      DateTime? firstStateTime;
 
       await for (final event in stream) {
         await event.when<Future<void>>(
@@ -221,18 +221,22 @@ class ChatRepository {
       }
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) {
-        // User explicitly cancelled — clear cognitive indicators so the
-        // spinner doesn't freeze; persist both messages.
-        responseMessage = responseMessage.copyWith(
-          status: 'error',
-          cognitiveStatus: null,
-          currentStep: null,
-          thinking: null,
-        );
-        await _localSource.saveMessage(responseMessage);
-        final cancelledUserMessage = userMessage.copyWith(status: 'failed');
-        await _localSource.saveMessage(cancelledUserMessage);
-        onUpdate(responseMessage);
+        // Only persist failure state if the stream actually started producing
+        // content — otherwise this is a context-switch cancel (newSession,
+        // loadFromHistory, rapid re-send), not a real failure.
+        final streamStarted = responseMessage.content.isNotEmpty || cogStepCount > 0;
+        if (streamStarted) {
+          responseMessage = responseMessage.copyWith(
+            status: 'error',
+            cognitiveStatus: null,
+            currentStep: null,
+            thinking: null,
+          );
+          await _localSource.saveMessage(responseMessage);
+          final cancelledUserMessage = userMessage.copyWith(status: 'failed');
+          await _localSource.saveMessage(cancelledUserMessage);
+          onUpdate(responseMessage);
+        }
         return;
       }
       responseMessage = responseMessage.copyWith(

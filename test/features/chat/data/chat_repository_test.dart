@@ -260,6 +260,32 @@ void main() {
     expect(persistedUser.status, 'failed');
   });
 
+  // T32 — cancel before stream starts must NOT persist phantom messages
+  test('cancel before stream starts does NOT persist phantom messages', () async {
+    remoteSource.setThrowOnNext(
+      DioException(
+        requestOptions: RequestOptions(path: '/chat/stream'),
+        type: DioExceptionType.cancel,
+      ),
+    );
+
+    await repository.streamMessage(
+      text: 'visa Japan',
+      sessionId: 'sess-ghost',
+      onUpdate: (_) {},
+    );
+
+    final kaiMessages = localSource.savedMessages.where((m) => !m.isUser).toList();
+    expect(kaiMessages, isEmpty,
+        reason: 'no phantom responseMessage should be persisted on early cancel');
+
+    final userMessages = localSource.savedMessages.where((m) => m.isUser).toList();
+    expect(userMessages.length, 1,
+        reason: 'only initial sending userMessage saved, no failed overwrite');
+    expect(userMessages.first.status, 'sending',
+        reason: 'userMessage status not mutated on early cancel');
+  });
+
   // T12 — T9 regression: state events must not introduce artificial delays.
   // End with error (not done) to avoid the BUG-STREAM-FRAME-1 cognitive-status
   // drain (1 200 ms × cogStepCount) which is intentional and unrelated to T9.
