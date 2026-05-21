@@ -102,7 +102,17 @@ class _MessageListState extends ConsumerState<MessageList> {
               key: key,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                MessageBubble(message: message),
+                MessageBubble(
+                  message: message,
+                  // T37 (Phase 3): wrap onRetry with closure to inject
+                  // message.id — MessageBubble.onRetry is VoidCallback?
+                  // (no params), MessageList.onRetry is Function(String).
+                  // Without this wrapping the popup menu retry option
+                  // was unreachable since onRetry stayed null.
+                  onRetry: message.isUser
+                      ? () => widget.onRetry(message.id)
+                      : null,
+                ),
                 MessageMetadataRow(message: message),
               ],
             );

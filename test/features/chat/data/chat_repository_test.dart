@@ -364,4 +364,80 @@ void main() {
     expect(sw.elapsedMilliseconds, lessThan(200),
         reason: 'state handler must not sleep between SSE events');
   });
+
+  // T21 (Phase 3): correction event replaces accumulated message content
+  // atomically (not append). STREAM-TOKENS-1 semantics.
+  test('correction event replaces accumulated message content', () async {
+    remoteSource.setStreamEvents([
+      const ChatStreamEvent.message('Visa to Japan'),
+      const ChatStreamEvent.message(' requires invitation'),
+      const ChatStreamEvent.correction(
+          'REVISED: Visa to Japan requires sponsorship'),
+      const ChatStreamEvent.done(),
+    ]);
+
+    final updates = <ChatMessage>[];
+    await repository.streamMessage(
+      text: 'visa Japan',
+      sessionId: 'sess-correction',
+      onUpdate: (m) => updates.add(m),
+    );
+
+    final lastKai = updates.lastWhere((m) => !m.isUser);
+    expect(lastKai.content, 'REVISED: Visa to Japan requires sponsorship',
+        reason: 'correction must REPLACE content, not append');
+    expect(lastKai.status, 'sent');
+  });
+
+  // T21 (Phase 3): multi-chunk full-cycle stream accumulates message
+  // events correctly. Mirrors T10 server-side simulated typing output.
+  test('multi-chunk full-cycle stream concatenates message events',
+      () async {
+    remoteSource.setStreamEvents([
+      const ChatStreamEvent.state(step: 'P', label: 'perceiving'),
+      const ChatStreamEvent.state(step: 'E', label: 'enacting'),
+      const ChatStreamEvent.message('Visa '),
+      const ChatStreamEvent.message('to '),
+      const ChatStreamEvent.message('Japan '),
+      const ChatStreamEvent.message('requires '),
+      const ChatStreamEvent.message('invitation.'),
+      const ChatStreamEvent.done(),
+    ]);
+
+    final updates = <ChatMessage>[];
+    await repository.streamMessage(
+      text: 'visa Japan',
+      sessionId: 'sess-multichunk',
+      onUpdate: (m) => updates.add(m),
+    );
+
+    final lastKai = updates.lastWhere((m) => !m.isUser);
+    expect(lastKai.content, 'Visa to Japan requires invitation.',
+        reason: 'multi-chunk messages must concatenate in arrival order');
+    expect(lastKai.status, 'sent');
+  });
+
+  // T21 (Phase 3): correction during partial stream replaces content,
+  // subsequent message events APPEND to corrected content (per
+  // chat_repository.dart:170-179 — correction sets content; later
+  // message handler appends delta).
+  test('correction mid-stream replaces partial content', () async {
+    remoteSource.setStreamEvents([
+      const ChatStreamEvent.message('Partial '),
+      const ChatStreamEvent.message('answer '),
+      const ChatStreamEvent.correction('Full corrected answer'),
+      const ChatStreamEvent.done(),
+    ]);
+
+    final updates = <ChatMessage>[];
+    await repository.streamMessage(
+      text: 'test',
+      sessionId: 'sess-mid-correction',
+      onUpdate: (m) => updates.add(m),
+    );
+
+    final lastKai = updates.lastWhere((m) => !m.isUser);
+    expect(lastKai.content, 'Full corrected answer',
+        reason: 'correction must replace partial content fully');
+  });
 }

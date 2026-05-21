@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/api/circuit_breaker.dart';
@@ -92,6 +94,15 @@ class ChatRepository {
               cognitiveStatus: label,
             );
             onUpdate(responseMessage);
+            // T36 (Phase 3): yield to event loop so Riverpod schedules a
+            // rebuild between state events. Without this, multiple state
+            // events arriving in the same micro-task batch can collapse —
+            // KaiCognitiveStatus.didUpdateWidget only fires for the last
+            // value, dropping intermediate steps from the queue (e.g.
+            // P → V skipping E, O). Future.microtask is 0ms wall-clock
+            // (NOT Future.delayed) — preserves the T9 fix that removed
+            // the 80ms artificial delay.
+            await Future.microtask(() {});
           },
           metadata: (
             correlationId,
@@ -186,7 +197,28 @@ class ChatRepository {
               final elapsed = DateTime.now().difference(firstStateTime!);
               final remaining = totalDisplay - elapsed;
               if (remaining > Duration.zero) {
-                await Future.delayed(remaining);
+                // T35 (Phase 3): cancel-aware delay. Without this, tapping
+                // Stop during the BUG-STREAM-FRAME-1 drain window (up to
+                // ~3.6s for cogStepCount=3) was silently swallowed — the
+                // delay completed and message was saved as 'sent' against
+                // the user's intent. Race with Future.any against
+                // cancelToken.whenCancel.
+                final cancelCompleter = Completer<void>();
+                cancelToken?.whenCancel.then((_) {
+                  if (!cancelCompleter.isCompleted) cancelCompleter.complete();
+                });
+                await Future.any([
+                  Future.delayed(remaining),
+                  cancelCompleter.future,
+                ]);
+                // If cancelled during drain — exit early without persisting
+                // as 'sent'. Outer catch handles cancel-path cleanup.
+                if (cancelToken?.isCancelled ?? false) {
+                  throw DioException(
+                    requestOptions: RequestOptions(path: ''),
+                    type: DioExceptionType.cancel,
+                  );
+                }
               }
             }
             // BUG-RENDER-GATE-1: clear cognitive status so the indicator

@@ -201,6 +201,16 @@ class ChatNotifier extends StateNotifier<ChatState> {
         sessionId: _currentSessionId!,
         cancelToken: _streamCancelToken,
         onUpdate: (updatedMsg) {
+          // T27 (Phase 3): session-switch race guard. If user switched
+          // sessions (newSession, loadFromHistory, setSession) during
+          // streamMessage's done-handler delay window (up to ~3.6s for
+          // BUG-STREAM-FRAME-1 drain), this onUpdate would inject the
+          // old Kai response into the new session's message list.
+          // Hive persistence still happens with the original sessionId
+          // (correct), but in-memory state must ignore late updates
+          // for a session the user has left.
+          if (updatedMsg.sessionId != _currentSessionId) return;
+
           final exists = state.messages.any((m) => m.id == updatedMsg.id);
 
           if (!exists) {
