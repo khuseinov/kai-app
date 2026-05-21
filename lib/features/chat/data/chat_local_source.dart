@@ -32,8 +32,8 @@ class ChatLocalSource {
     final currentVersion = chatBox.get(kChatBoxVersionKey) as int? ?? 1;
     if (currentVersion >= kChatBoxVersion) return;
 
-    int migratedCount = 0;
-    int skippedCount = 0;
+    var migratedCount = 0;
+    var skippedCount = 0;
     final keys = chatBox.keys.where((k) => k != kChatBoxVersionKey).toList();
     for (final key in keys) {
       final raw = chatBox.get(key);
@@ -107,8 +107,8 @@ class ChatLocalSource {
     // map['session_id'] but toJson writes camelCase 'sessionId', so
     // filter never matched and messages accumulated as orphans.
     // Telemetry logs help measure pre-fix orphan impact on devices.
-    int legacyKeyCount = 0;
-    int camelKeyCount = 0;
+    var legacyKeyCount = 0;
+    var camelKeyCount = 0;
     for (final key in _chatBox.keys) {
       if (key == kChatBoxVersionKey) continue;
       final data = _chatBox.get(key);
