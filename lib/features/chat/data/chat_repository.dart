@@ -92,6 +92,15 @@ class ChatRepository {
               cognitiveStatus: label,
             );
             onUpdate(responseMessage);
+            // T36 (Phase 3): yield to event loop so Riverpod schedules a
+            // rebuild between state events. Without this, multiple state
+            // events arriving in the same micro-task batch can collapse —
+            // KaiCognitiveStatus.didUpdateWidget only fires for the last
+            // value, dropping intermediate steps from the queue (e.g.
+            // P → V skipping E, O). Future.microtask is 0ms wall-clock
+            // (NOT Future.delayed) — preserves the T9 fix that removed
+            // the 80ms artificial delay.
+            await Future.microtask(() {});
           },
           metadata: (
             correlationId,
