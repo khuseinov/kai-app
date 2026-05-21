@@ -50,11 +50,37 @@ class ChatLocalSource {
 
   Future<void> deleteSession(String sessionId) async {
     await _sessionBox.delete(sessionId);
+
+    // T26 (Phase 3): telemetry — count orphan messages by key format
+    // before deletion. Pre-existing bug: filter used snake_case
+    // map['session_id'] but toJson writes camelCase 'sessionId', so
+    // filter never matched and messages accumulated as orphans.
+    // Telemetry logs help measure pre-fix orphan impact on devices.
+    int legacyKeyCount = 0;
+    int camelKeyCount = 0;
+    for (final key in _chatBox.keys) {
+      final data = _chatBox.get(key);
+      if (data == null) continue;
+      final map = Map<String, dynamic>.from(data);
+      if (map['session_id'] != null && map['sessionId'] == null) {
+        legacyKeyCount++;
+      } else if (map['sessionId'] != null) {
+        camelKeyCount++;
+      }
+    }
+    if (legacyKeyCount > 0) {
+      // ignore: avoid_print
+      print(
+        '[deleteSession telemetry] orphan legacy snake_case=$legacyKeyCount camelCase=$camelKeyCount',
+      );
+    }
+
+    // T26 fix: use camelCase to match chat_message.g.dart toJson output.
     final messageKeys = _chatBox.keys.where((key) {
       final data = _chatBox.get(key);
       if (data == null) return false;
       final map = Map<String, dynamic>.from(data);
-      return map['session_id'] == sessionId;
+      return map['sessionId'] == sessionId;
     }).toList();
     for (final key in messageKeys) {
       await _chatBox.delete(key);
