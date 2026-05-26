@@ -1,2 +1,6 @@
-// TODO(phase-1): wire ProviderContainer, Hive, .env, session.
-Future<void> bootstrap() async {}
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// TODO(phase-1): wire Hive, .env, session, root providers.
+Future<ProviderContainer> bootstrap() async {
+  return ProviderContainer();
+}
