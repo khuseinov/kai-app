@@ -147,7 +147,7 @@ class KaiTide {
     strokePx: 2.0,
     opacity: 0.95,
     animation: KaiTideAnimation.wobble,
-    durationMs: 600,
+    durationMs: 700,
     ephemeral: true,
   );
 

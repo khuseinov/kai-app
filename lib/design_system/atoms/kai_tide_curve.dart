@@ -176,7 +176,8 @@ class _KaiTideCurveState extends State<KaiTideCurve>
             _runEphemeralCycle(duration, gapMs: gapMs);
           });
         } else {
-          c.forward(from: 0);
+          if (!mounted) return;
+          _runEphemeralCycle(duration, gapMs: gapMs);
         }
       } else {
         // Done — auto-revert.
