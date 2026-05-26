@@ -13,10 +13,10 @@ class KaiRadius {
   static const double r5 = 28; // sheets, hero surfaces
   static const double pill = 999;
 
-  static BorderRadius get br1 => BorderRadius.circular(r1);
-  static BorderRadius get br2 => BorderRadius.circular(r2);
-  static BorderRadius get br3 => BorderRadius.circular(r3);
-  static BorderRadius get br4 => BorderRadius.circular(r4);
-  static BorderRadius get br5 => BorderRadius.circular(r5);
-  static BorderRadius get brPill => BorderRadius.circular(pill);
+  static const BorderRadius br1 = BorderRadius.all(Radius.circular(r1));
+  static const BorderRadius br2 = BorderRadius.all(Radius.circular(r2));
+  static const BorderRadius br3 = BorderRadius.all(Radius.circular(r3));
+  static const BorderRadius br4 = BorderRadius.all(Radius.circular(r4));
+  static const BorderRadius br5 = BorderRadius.all(Radius.circular(r5));
+  static const BorderRadius brPill = BorderRadius.all(Radius.circular(pill));
 }

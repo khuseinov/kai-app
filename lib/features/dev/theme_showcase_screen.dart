@@ -288,7 +288,7 @@ class _TideBlock extends StatelessWidget {
     return Container(
       width: 240,
       height: 28,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: KaiTide.gradient,
         borderRadius: KaiRadius.brPill,
       ),

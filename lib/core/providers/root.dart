@@ -33,18 +33,24 @@ final envProvider = Provider<EnvConfig>(
 /// Order matters: connectivity first (fail fast offline), auth, logging,
 /// retry (re-fires the request, so must sit before error normalisation),
 /// error last (normalises whatever bubbles up).
+///
+/// [RetryInterceptor] is attached to the constructed Dio so retries re-enter
+/// the full chain instead of escaping via a bare Dio.
 final dioProvider = Provider<Dio>((ref) {
   final env = ref.watch(envProvider);
-  return buildDioClient(
+  final retry = RetryInterceptor();
+  final dio = buildDioClient(
     baseUrl: env.apiBaseUrl,
     interceptors: [
       ConnectivityInterceptor(),
       AuthInterceptor(),
       LoggingInterceptor(),
-      RetryInterceptor(),
+      retry,
       ErrorInterceptor(),
     ],
   );
+  retry.attach(dio);
+  return dio;
 });
 
 /// Active theme mode. Toggled from the theme showcase screen.

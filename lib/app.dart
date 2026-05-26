@@ -13,15 +13,18 @@ class KaiApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final mode = ref.watch(themeModeProvider);
-    return KaiTheme(
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        title: 'KAI',
-        themeMode: mode,
-        theme: KaiThemeExt.materialLight(),
-        darkTheme: KaiThemeExt.materialDark(),
-        routerConfig: router,
-      ),
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      title: 'KAI',
+      themeMode: mode,
+      theme: KaiThemeExt.materialLight(),
+      darkTheme: KaiThemeExt.materialDark(),
+      routerConfig: router,
+      // KaiTheme sits inside MaterialApp so MediaQuery.platformBrightnessOf
+      // (called from KaiTheme.build) has the MediaQuery ancestor MaterialApp
+      // inserts. Outside MaterialApp it would throw on the first frame.
+      builder: (context, child) =>
+          KaiTheme(child: child ?? const SizedBox.shrink()),
     );
   }
 }

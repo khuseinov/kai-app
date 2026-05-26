@@ -15,10 +15,12 @@ class KaiMotion {
   /// Material 3 emphasized — for UI panels, sheets, drawers.
   static const Curve standardCurve = Cubic(0.2, 0, 0, 1);
 
-  /// Symmetric breathing — for tide pulse, brand cycles.
+  /// Symmetric ease for breathing animations — tide pulse, brand cycles.
   static const Curve ambientCurve = Cubic(0.4, 0, 0.6, 1);
 
-  /// Snappier than enter — for exit transitions.
+  /// Symmetric ease. Identical to [ambientCurve] by design — Kai's exit motion
+  /// matches enter to preserve the calm aesthetic (no snappier-than-enter).
+  /// Matches `new-design/design-tokens.json § motion` which has them identical.
   static const Curve exitCurve = Cubic(0.4, 0, 0.6, 1);
 
   /// For stroke flow, gradient slide.
