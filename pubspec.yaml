@@ -67,6 +67,7 @@ flutter:
   generate: true
   assets:
     - .env
+    - assets/icons/
   fonts:
     # Variable font — same TTF declared per weight so requests like
     # FontWeight.w600 pick the true 600 axis instead of OS synthetic bold.
