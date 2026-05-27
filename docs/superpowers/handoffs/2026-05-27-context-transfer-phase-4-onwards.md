@@ -52,13 +52,16 @@ User is on **Windows 11**. `gh` CLI is NOT installed. Cannot programmatically ve
 
 ---
 
-## 3 · Current state (as of 2026-05-27 — after Phase 4a)
+## 3 · Current state (as of 2026-05-27 — after Phase 4b)
 
 ### Branch position
 
-- HEAD: `d62e867` on `origin/claude/hungry-lamport-e41998`
-- 13 commits since branch off master:
+- HEAD: `dcfa341` on `origin/claude/hungry-lamport-e41998`
+- 15 commits since branch off master:
   ```
+  dcfa341 phase-4b fix: controller leak + tautological cancel test
+  7590b69 phase-4b: repo interfaces + mocks + showcase
+  9d5df26 docs(handoff): update for Phase 4b controller — Phase 4a state + next steps
   d62e867 phase-4a fix: review findings (spec + code quality)
   bc119e9 phase-4a: organisms (onboarding_card, chat_list, nav_panel, edge_state_block)
   f37086d phase-3 fix-2: design canon + ephemeral race
@@ -71,7 +74,6 @@ User is on **Windows 11**. `gh` CLI is NOT installed. Cannot programmatically ve
   1d215dd phase-1: foundation (tokens, theme, fonts, dio skeleton)
   b91b6a2 phase-0 fix: align bootstrap signature with plan T0.3
   cd8ba93 phase-0: wipe lib/ + scaffold blank shell
-  0717601 docs(plan): Kai app rebuild v3 implementation plan
   ```
 
 ### Local tags (NOT pushed to origin)
@@ -81,6 +83,16 @@ User is on **Windows 11**. `gh` CLI is NOT installed. Cannot programmatically ve
 - `phase-2-atoms` → `46a2ec5`
 - `phase-3-molecules` → `54332c8`
 - `phase-4a-organisms` → `d62e867`
+- `phase-4-organisms` → `dcfa341`
+
+### Worktree setup note (NEW — learned in Phase 4b)
+
+When creating a new worktree for this branch, you MUST run:
+```bash
+cp .env.example .env          # flutter test fails without .env asset
+dart run build_runner build   # generates *.freezed.dart and *.g.dart (gitignored)
+```
+Both steps are required before `flutter test` and `flutter analyze` will succeed.
 
 ### Test + lint state
 
@@ -208,51 +220,40 @@ Status unknown to controller (no `gh` CLI). User verifies manually at https://gi
   - `tokens.colors.warning` used for offline yellow dot (confirmed token exists: `#B57A0B` light / `#D69E3E` dark)
   - `tokens.colors.surface` for selected language chip text in OnboardingCard step 3
 
+### Phase 4b — Repo interfaces + mocks + showcase ✅ (commits 7590b69 + dcfa341)
+
+- **Repository interfaces** in `lib/core/repositories/`:
+  - `chat_repository.dart` — hand-written sealed `ChatEvent` (8 variants: Message/Thinking/State/Metadata/Approval/Correction/Done/Error) + `abstract ChatRepository` with `sendMessage` / `cancelStreaming`.
+  - `mock_chat_repository.dart` — implements ChatRepository with async fake stream: state→thinking→state→3 chunks→correction→done. Error path on sessionId ':error'. `sendMessage` closes any existing controller for the same sessionId before starting new one (prevents listener leak on retry). `cancelStreaming` closes stream immediately.
+  - `session_repository.dart` — `abstract SessionRepository` (list/create/delete) + `ChatSession` model (id/createdAt/tripId/title). Phase 5 will replace `ChatSession` with Hive-backed entity.
+  - `mock_session_repository.dart` — in-memory list, seeded with 2 sessions. `list()` sorts by createdAt desc and returns `List.unmodifiable`.
+
+- **Providers** in `lib/core/providers/root.dart`:
+  - `chatRepositoryProvider = Provider<ChatRepository>` → MockChatRepository
+  - `sessionRepositoryProvider = Provider<SessionRepository>` → MockSessionRepository
+  - Phase 5: switch both to real implementations behind env flag.
+
+- **Showcase** in `lib/features/dev/organisms_showcase_screen.dart`:
+  - Route `/_dev/organisms`, tile in `_DevHubScreen`.
+  - Interactive ChoiceChip selectors for OnboardingCard step, ChatList frame, EdgeStateBlock surface.
+  - NavPanel opened via 'Open NavPanel' button, overlaid in Stack.
+
+- **Tests**: 143 passing (131 + 5 chat repo + 7 session repo).
+
+- **Key implementation notes**:
+  - `NavPanel.sessions` is `List<Map<String, String>>` (must include 'date' key per comment in nav_panel.dart). Showcase uses const list with 3 keys.
+  - `*.freezed.dart` and `*.g.dart` are gitignored — must run `dart run build_runner build` in fresh worktrees.
+  - `.env` is gitignored — must `cp .env.example .env` in fresh worktrees before `flutter test`.
+
 ---
 
 ## 5 · What's still pending
 
-### Phase 4b — Repo Interfaces + Mocks (T4.30-T4.44) ← NEXT
+### Phase 4b — Repo Interfaces + Mocks ✅ (commits 7590b69 + dcfa341)
 
-Plan section: `docs/superpowers/plans/2026-05-26-kai-app-rebuild-v3-implementation.md` § "Phase 4" around line 350-370.
+All T4.30-T4.44 complete. See §4 "Phase 4b" above for details.
 
-**T4.30** `lib/core/repositories/chat_repository.dart` — abstract interface:
-```dart
-abstract class ChatRepository {
-  Stream<ChatEvent> sendMessage(String text, String sessionId);
-  Future<void> cancelStreaming(String sessionId);
-}
-```
-
-**T4.31** Define `ChatEvent` sealed class — 8 variants (message/thinking/state/metadata/approval/correction/done/error). Prefer hand-written sealed class (avoids codegen). If using freezed, committed `.freezed.dart` is tracked in git.
-
-**T4.32** Run `dart run build_runner build` ONLY if using freezed codegen (plain, no `--delete-conflicting-outputs`).
-
-**T4.33** `lib/core/repositories/mock_chat_repository.dart` — in-memory + faked streaming with realistic delays (100-300ms). Cover: multi-chunk message, correction event, done, error path, cancel (cancelStreaming completes stream).
-
-**T4.34** `test/core/mock_chat_repository_test.dart` — event ordering, cancel, error scenarios
-
-**T4.35** `lib/core/repositories/session_repository.dart` — abstract: `list()`, `create({String? tripId})`, `delete(String id)`
-
-**T4.36** `lib/core/repositories/mock_session_repository.dart` — in-memory list
-
-**T4.37** `test/core/mock_session_repository_test.dart`
-
-**T4.38** Update `lib/core/providers/root.dart` — add `chatRepositoryProvider` and `sessionRepositoryProvider` pointing to mock implementations
-
-**T4.39** `lib/features/dev/organisms_showcase_screen.dart` — visual demo of all 4 organisms with switchers
-
-**T4.40** Update `lib/core/routing/router.dart` — add `/_dev/organisms` route pointing to organisms showcase
-
-**T4.41** `flutter test` — all 131+ tests pass
-
-**T4.42** Commit: `phase-4b: repo interfaces + mocks + showcase`
-
-**T4.43** Push: `git push -u origin claude/hungry-lamport-e41998` (NEVER `--tags`)
-
-**T4.44** Local tag: `git tag phase-4-organisms` (final Phase 4 tag, local only — NEVER push)
-
-### Phase 5 — Screens + Real SSE backend (41 sub-tasks T5.1-T5.41)
+### Phase 5 — Screens + Real SSE backend (41 sub-tasks T5.1-T5.41) ← NEXT
 
 Plan section around line 370-415. The biggest deliverable phase: real SSE chat with the 8 baked-in legacy patterns from T8-T37 (optimistic persist-then-stream, cancel-aware drain via Future.any + cancelCompleter, session-switch guard, microtask yield for cognitive status, correction-replaces-not-appends, _safelyPersistMessages, stream-started guard, emit failedUserMessage first).
 
@@ -367,16 +368,24 @@ User communicates in Russian. Respond in Russian. Code/commits stay English.
 
 ---
 
-## 10 · Your immediate next steps (Phase 4b controller)
+## 10 · Your immediate next steps (Phase 5 controller)
 
-1. Read: spec, plan, new-design/CLAUDE.md, this file.
-2. Run `git log --oneline -6` — confirm HEAD is `d62e867`. Run `flutter test` — confirm 131 passing. Run `flutter analyze` — confirm clean.
-3. **No Phase 0-3 review needed** — already done. Go straight to Phase 4b.
-4. Dispatch Phase 4b implementer subagent with the T4.30-T4.44 task text from Section 5 above.
-5. After implementer: dispatch spec compliance reviewer + code quality reviewer in parallel.
-6. Fix any issues found.
-7. Checkpoint with user: CI зелёный? Продолжаем Phase 5?
+1. Read: spec (`docs/superpowers/specs/2026-05-26-kai-app-rebuild-v3-design.md`), plan (`docs/superpowers/plans/2026-05-26-kai-app-rebuild-v3-implementation.md` § Phase 5 lines ~324-365), `new-design/CLAUDE.md`, this file in full.
+2. Create worktree setup:
+   ```bash
+   # The worktree already exists at E:/startup/kai-app/.claude/worktrees/hungry-lamport-e41998
+   # If re-entering a fresh environment, run these first:
+   cp .env.example .env
+   dart run build_runner build
+   ```
+3. Run `git log --oneline -6` — confirm HEAD is `dcfa341`. Run `flutter test` — confirm 143 passing. Run `flutter analyze` — confirm clean (only .env warning is OK).
+4. **No Phase 0-4 review needed** — go straight to Phase 5.
+5. Phase 5 has 41 sub-tasks (T5.1-T5.41) — consider splitting into 5a + 5b if implementer budget is a concern (happened in Phase 2). A natural split: T5.1-T5.19 (state + screens + router) vs T5.20-T5.41 (SSE + real repositories + tests).
+6. Dispatch Phase 5 implementer subagent — embed full task text inline, don't make them open the plan file.
+7. After implementer: dispatch spec + code quality reviewers in parallel.
+8. Fix issues, re-review if needed.
+9. Checkpoint with user: CI зелёный? Продолжаем Phase 6?
 
-**КАЖДАЯ ФАЗА = НОВАЯ СЕССИЯ.** После Phase 4b обновляй этот handoff-документ (Section 3, 4, 5, 10) и пиши контекст-промпт для следующей сессии.
+**КАЖДАЯ ФАЗА = НОВАЯ СЕССИЯ.** После Phase 5 обновляй этот handoff-документ (Section 3, 4, 5, 10) и пиши контекст-промпт для следующей сессии.
 
 Good luck.
