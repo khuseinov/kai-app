@@ -83,7 +83,7 @@ body { background: var(--bg); color: var(--ink-1); font-family: var(--font-sans)
 /* Country header */
 .fc-id { display: flex; align-items: center; justify-content: space-between; }
 .fc-country { display: flex; align-items: center; gap: 6px; }
-.fc-glyph { width: 18px; height: 18px; border-radius: 5px; background: var(--tide-gradient); display: flex; align-items: center; justify-content: center; color: white; font: 700 7px var(--font-sans); flex-shrink: 0; }
+.fc-glyph { width: 18px; height: 18px; border-radius: 5px; background: var(--tide-gradient-corner); display: flex; align-items: center; justify-content: center; color: white; font: 700 7px var(--font-sans); flex-shrink: 0; }
 .fc-glyph.kr { background: linear-gradient(135deg,#1B4FB0,#2BA8C9); }
 .fc-glyph.vn { background: linear-gradient(135deg,#C44A3C,#F4B589); }
 .fc-name { font: 600 11.5px var(--font-sans); color: var(--ink-1); letter-spacing: -0.01em; }
@@ -191,10 +191,10 @@ body { background: var(--bg); color: var(--ink-1); font-family: var(--font-sans)
 @keyframes fade-in { from{opacity:0;} to{opacity:1;} }
 @keyframes scale-in { from{opacity:0;transform:scale(0.95);} to{opacity:1;transform:scale(1);} }
 
-.variants { animation: fade-in 0.4s ease 0.05s forwards; opacity: 0; }
-.phone { animation: fade-up 0.48s cubic-bezier(.2,0,0,1) 0.1s forwards; opacity: 0; }
-.fc { animation: scale-in 0.38s cubic-bezier(.2,0,0,1) 0.22s forwards; opacity: 0; }
-.anatomy { animation: fade-in 0.5s ease 0.2s forwards; opacity: 0; }
+.variants { animation: fade-in 0.4s ease 0.05s both; opacity: 0; }
+.phone { animation: fade-up 0.48s cubic-bezier(.2,0,0,1) 0.1s both; opacity: 0; }
+.fc { animation: scale-in 0.38s cubic-bezier(.2,0,0,1) 0.22s both; opacity: 0; }
+.anatomy { animation: fade-in 0.5s ease 0.2s both; opacity: 0; }
 </style>
 </head>
 <body>

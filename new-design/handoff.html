@@ -96,7 +96,7 @@
 
   /* Phone frames fade up with stagger */
   .phone, .frame-card {
-    animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) forwards;
+    animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) both;
   }
   .frame-card:nth-child(1) { animation-delay: 0.02s; }
   .frame-card:nth-child(2) { animation-delay: 0.04s; }
@@ -104,13 +104,13 @@
   .frame-card:nth-child(4) { animation-delay: 0.10s; }
 
   /* Phone-frame wrappers */
-  .phone-frame .phone { animation: kai-fade-up 0.5s cubic-bezier(.2,0,0,1) 0.1s forwards; }
-  .layout .phone-frame { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.06s forwards; }
-  .layout .notes       { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.18s forwards; }
+  .phone-frame .phone { animation: kai-fade-up 0.5s cubic-bezier(.2,0,0,1) 0.1s both; }
+  .layout .phone-frame { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.06s both; }
+  .layout .notes       { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.18s both; }
 
 
   /* Tide curve entrance — already animates; just ensure visibility */
-  .phone .tide-bar, .phone .tide-svg { animation: kai-fade-in 0.6s ease 0.2s forwards; }
+  .phone .tide-bar, .phone .tide-svg { animation: kai-fade-in 0.6s ease 0.2s both; }
 
 </style>
 </head>
