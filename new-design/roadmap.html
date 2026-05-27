@@ -1,0 +1,996 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1320,initial-scale=1">
+<title>kai · дорожная карта · 2026</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink-1); font-family: var(--font-sans); }
+
+  .shell { max-width: 1280px; margin: 0 auto; padding: 48px 56px 160px; }
+
+  /* ── Top ── */
+  .top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 48px; }
+  .top .mark { font-weight: 700; font-size: 18px; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 10px; }
+  .top .meta { display: flex; gap: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+
+  /* ── Tide glyph ── */
+  .tide-glyph { display: inline-block; width: 18px; height: 5px; border-radius: 999px; background: var(--tide-gradient); }
+
+  /* ── Hero ── */
+  .hero { padding-bottom: 56px; border-bottom: 1px solid var(--line); margin-bottom: 48px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 22px; display: inline-flex; align-items: center; gap: 8px; }
+  .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--ink-3); }
+  .hero h1 { font-size: 64px; font-weight: 600; line-height: 0.97; letter-spacing: -0.03em; max-width: 980px; margin: 0; }
+  .hero h1 .ocean { background: var(--tide-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; font-style: italic; font-weight: 500; }
+  .hero .lead { margin-top: 22px; font-size: 18px; line-height: 1.55; color: var(--ink-2); max-width: 760px; }
+  .stats { margin-top: 36px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--line); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .stat { background: var(--bg); padding: 20px 4px 8px; }
+  .stat .n { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  .stat .v { font-size: 32px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink-1); line-height: 1; }
+  .stat.accent .v { color: var(--accent); }
+  .stat.tide .v { background: var(--tide-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+  /* ── Sticky tab nav ── */
+  .navbar {
+    position: sticky; top: 0; z-index: 80;
+    background: rgba(250,250,249,0.92); backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    margin: 0 -56px 48px; padding: 0 56px;
+    display: flex; gap: 2px; overflow-x: auto;
+  }
+  .nb {
+    padding: 16px 14px; font: 500 13px var(--font-sans); color: var(--ink-3);
+    text-decoration: none; letter-spacing: -0.005em;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer;
+    background: transparent; border-top: 0; border-left: 0; border-right: 0;
+    transition: color 180ms;
+  }
+  .nb .cnt { font-family: var(--font-mono); font-size: 10px; color: var(--ink-4); }
+  .nb:hover { color: var(--ink-1); }
+  .nb.active { color: var(--ink-1); border-bottom-color: var(--ink-1); }
+  .nb.active .cnt { color: var(--accent); }
+
+  /* ── Sections ── */
+  .sec { display: none; }
+  .sec.active { display: block; animation: fadein 0.28s cubic-bezier(.2,0,0,1); }
+  @keyframes fadein { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+  .sec-head { display: grid; grid-template-columns: 200px 1fr; gap: 56px; margin-bottom: 36px; align-items: baseline; }
+  .sec-head .idx { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .sec-head h2 { font-size: 38px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.05; }
+  .sec-head .blurb { font-size: 15px; color: var(--ink-2); line-height: 1.6; max-width: 700px; margin-top: 12px; }
+
+  /* ── Priority + effort badges ── */
+  .badge { display: inline-flex; align-items: center; gap: 4px; font: 700 9px var(--font-mono); padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.07em; }
+  .badge.p0 { background: #FEF0EE; color: var(--negative); }
+  .badge.p1 { background: var(--warning-wash); color: var(--warning); }
+  .badge.p2 { background: var(--surface-2); color: var(--ink-3); }
+  .badge.s { background: var(--positive-wash); color: var(--positive); }
+  .badge.m { background: var(--accent-wash); color: var(--accent); border: 1px solid var(--accent-line); }
+  .badge.l { background: var(--surface-2); color: var(--ink-2); }
+  .badge.done { background: var(--positive-wash); color: var(--positive); }
+
+  /* ── Proposal card ── */
+  .prop {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    padding: 0; margin-bottom: 20px; overflow: hidden;
+  }
+  .prop-head {
+    padding: 22px 26px 20px;
+    display: flex; align-items: flex-start; gap: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .prop-head .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; flex-shrink: 0; }
+  .prop-head .info { flex: 1; }
+  .prop-head .info h3 { font: 600 17px var(--font-sans); color: var(--ink-1); letter-spacing: -0.012em; margin: 0 0 6px; }
+  .prop-head .info p { font: 400 14px var(--font-sans); color: var(--ink-2); line-height: 1.55; margin: 0; max-width: 680px; }
+  .prop-head .link { font: 400 11px var(--font-mono); color: var(--ink-4); white-space: nowrap; margin-top: 4px; }
+
+  .prop-body { padding: 20px 26px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .prop-body.two { grid-template-columns: repeat(2, 1fr); }
+  .variant-card {
+    background: var(--surface-2); border-radius: 12px; padding: 16px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .variant-card .v-tag { font: 700 9px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 6px; }
+  .variant-card .v-tag .vn { color: var(--accent); }
+  .variant-card .v-tag .rec { margin-left: auto; font: 600 8px var(--font-mono); color: var(--tide-2); background: rgba(43,168,201,0.12); padding: 2px 6px; border-radius: 999px; }
+  .variant-card h4 { font: 600 13.5px var(--font-sans); color: var(--ink-1); letter-spacing: -0.008em; margin: 0; }
+  .variant-card p { font: 400 12.5px var(--font-sans); color: var(--ink-2); line-height: 1.5; margin: 0; }
+
+  /* ── Mini phone mockup ── */
+  .mini-phone {
+    width: 100%; aspect-ratio: 258/420;
+    background: var(--surface-3); border-radius: 10px;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+    border: 1px solid var(--line-strong);
+  }
+  .mini-phone .mp-island { position: absolute; top: 5px; left: 50%; transform: translateX(-50%); width: 36px; height: 10px; background: var(--ink-1); border-radius: 999px; z-index: 5; }
+  .mini-phone .mp-tide { position: absolute; top: 18px; left: 6px; width: calc(100% - 12px); height: 5px; z-index: 3; }
+  .mini-phone .mp-body { position: absolute; inset: 0; top: 28px; padding: 4px 6px 6px; display: flex; flex-direction: column; gap: 4px; }
+  .mp-row { height: 8px; border-radius: 4px; background: var(--surface-2); }
+  .mp-row.wide { width: 100%; }
+  .mp-row.mid { width: 72%; }
+  .mp-row.short { width: 44%; }
+  .mp-row.user { align-self: flex-end; width: 58%; background: var(--surface-3); }
+  .mp-row.accent { background: var(--accent-wash); width: 80%; }
+  .mp-compose { position: absolute; bottom: 4px; left: 6px; right: 6px; height: 16px; background: var(--surface); border-radius: 999px; border: 1px solid var(--line); }
+
+  /* ── File index grid ── */
+  .file-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .file-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px 18px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .file-card .fname { font: 600 13px var(--font-mono); color: var(--ink-1); letter-spacing: -0.01em; }
+  .file-card .fdesc { font: 400 12px var(--font-sans); color: var(--ink-2); line-height: 1.45; }
+  .file-card .fmeta { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+  .file-card .flink { font: 400 10px var(--font-mono); color: var(--ink-4); margin-top: 2px; }
+
+  /* ── Gap item (overview) ── */
+  .gap-item { display: flex; align-items: flex-start; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .gap-item:last-child { border-bottom: 0; }
+  .gap-item .gi-icon { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .gap-item .gi-icon.red { background: #FEF0EE; color: var(--negative); }
+  .gap-item .gi-icon.yellow { background: var(--warning-wash); color: var(--warning); }
+  .gap-item .gi-icon.gray { background: var(--surface-2); color: var(--ink-3); }
+  .gap-item .gi-body { flex: 1; }
+  .gap-item .gi-title { font: 600 14px var(--font-sans); color: var(--ink-1); letter-spacing: -0.008em; }
+  .gap-item .gi-desc { font: 400 13px var(--font-sans); color: var(--ink-2); line-height: 1.45; margin-top: 2px; }
+  .gap-item .gi-trail { font: 400 11px var(--font-mono); color: var(--ink-4); white-space: nowrap; flex-shrink: 0; margin-top: 6px; }
+
+  /* ── System task card ── */
+  .sys-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+    padding: 20px 24px; margin-bottom: 14px;
+    display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: start;
+  }
+  .sys-card h3 { font: 600 16px var(--font-sans); letter-spacing: -0.01em; margin: 0 0 6px; }
+  .sys-card p { font: 400 13.5px var(--font-sans); color: var(--ink-2); line-height: 1.5; margin: 0; max-width: 640px; }
+  .sys-card .sm { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .sys-chip { font: 500 10px var(--font-mono); color: var(--ink-3); padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* Divider */
+  .divider { border: 0; border-top: 1px solid var(--line); margin: 40px 0; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Top -->
+  <div class="top">
+    <div class="mark">
+      <span class="tide-glyph"></span>
+      kai · design system
+    </div>
+    <div class="meta">
+      <span>дорожная карта</span>
+      <span>2026-05-26</span>
+      <span>v1.0</span>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="eyebrow">план развития</div>
+    <h1>что строим<br><span class="ocean">дальше</span></h1>
+    <p class="lead">
+      Аудит 15 канонических файлов, анализ пробелов и конкретные предложения —
+      новые экраны, компоненты, улучшения существующего. Каждое предложение дано
+      в 2–3 вариантах реализации.
+    </p>
+    <div class="stats">
+      <div class="stat"><div class="n">Канон. файлов</div><div class="v">15</div></div>
+      <div class="stat accent"><div class="n">Новых экранов</div><div class="v">8</div></div>
+      <div class="stat accent"><div class="n">Компонентов</div><div class="v">8</div></div>
+      <div class="stat"><div class="n">Улучшений</div><div class="v">6</div></div>
+      <div class="stat tide"><div class="n">Системных задач</div><div class="v">5</div></div>
+    </div>
+  </div>
+
+  <!-- Sticky nav -->
+  <nav class="navbar">
+    <button class="nb active" onclick="show('overview',this)">Обзор <span class="cnt">01</span></button>
+    <button class="nb" onclick="show('screens',this)">Новые экраны <span class="cnt">08</span></button>
+    <button class="nb" onclick="show('components',this)">Компоненты <span class="cnt">08</span></button>
+    <button class="nb" onclick="show('improve',this)">Улучшения <span class="cnt">06</span></button>
+    <button class="nb" onclick="show('system',this)">Система <span class="cnt">05</span></button>
+  </nav>
+
+  <!-- ═══════════════════════════════════════
+       01 · ОБЗОР
+       ═══════════════════════════════════════ -->
+  <section id="overview" class="sec active">
+    <div class="sec-head">
+      <div class="idx">01 · обзор</div>
+      <div>
+        <h2>Что есть сейчас</h2>
+        <p class="blurb">15 канонических файлов покрывают токены, компоненты, все основные экраны продукта и маркетинг. Ниже — полный индекс и карта пробелов.</p>
+      </div>
+    </div>
+
+    <div class="file-grid">
+      <div class="file-card"><div class="fname">colors_and_type.css</div><div class="fdesc">54 токена — цвет, типографика, отступы, радиусы, фреймы</div><div class="fmeta"><span class="badge done">канон</span><span class="badge s">исток</span></div></div>
+      <div class="file-card"><div class="fname">design-tokens.json</div><div class="fdesc">Те же токены в JSON для Flutter codegen</div><div class="fmeta"><span class="badge done">канон</span></div></div>
+      <div class="file-card"><div class="fname">foundations.html</div><div class="fdesc">Визуальный манифест: палитра, типографика, motion, tide brand</div><div class="fmeta"><span class="badge done">канон</span></div></div>
+      <div class="file-card"><div class="fname">components.html</div><div class="fdesc">Layer 1 (атомы) + Layer 2 (молекулы). Кнопки, инпуты, бабблы, шторка</div><div class="fmeta"><span class="badge done">канон</span><span class="badge p1">нужен L3</span></div></div>
+      <div class="file-card"><div class="fname">nav.html</div><div class="fdesc">Боковая панель — поездки, даты, Memory/Settings</div><div class="fmeta"><span class="badge done">канон</span></div></div>
+      <div class="file-card"><div class="fname">room.html</div><div class="fdesc">Layer 3: чат-поверхность — пустой/живой/панель/compose</div><div class="fmeta"><span class="badge done">канон</span><span class="badge p1">+3 стейта</span></div></div>
+      <div class="file-card"><div class="fname">voice.html</div><div class="fdesc">Голосовой режим: tide-only, karaoke reveal, транскрипт</div><div class="fmeta"><span class="badge done">канон</span><span class="badge p1">sleep state</span></div></div>
+      <div class="file-card"><div class="fname">edge-states.html</div><div class="fdesc">Offline · error · rate-limit · crisis (паттерн C3)</div><div class="fmeta"><span class="badge done">канон</span></div></div>
+      <div class="file-card"><div class="fname">onboarding.html</div><div class="fdesc">Первый запуск: 4 экрана (welcome/tide/жесты/контекст)</div><div class="fmeta"><span class="badge done">канон</span><span class="badge p1">+screen 5</span></div></div>
+      <div class="file-card"><div class="fname">trip-detail.html</div><div class="fdesc">Папка поездки — факты, чаты, источники, действия</div><div class="fmeta"><span class="badge done">канон</span></div></div>
+      <div class="file-card"><div class="fname">memory.html</div><div class="fdesc">Приложение Memory: факты, источники, GDPR forget</div><div class="fmeta"><span class="badge done">канон</span></div></div>
+      <div class="file-card"><div class="fname">settings.html</div><div class="fdesc">Настройки: аккаунт / вид / голос / данные / приватность</div><div class="fmeta"><span class="badge done">канон</span></div></div>
+      <div class="file-card"><div class="fname">dark.html</div><div class="fdesc">Тёмная тема — 4 ключевых экрана</div><div class="fmeta"><span class="badge done">канон</span><span class="badge p2">нужно 15</span></div></div>
+      <div class="file-card"><div class="fname">brand.html</div><div class="fdesc">Иконки (3×7), splash, OG card, правила бренда</div><div class="fmeta"><span class="badge done">канон</span></div></div>
+      <div class="file-card"><div class="fname">handoff.html</div><div class="fdesc">Flutter widget specs: KaiTheme, KaiTokens, KaiTideCurve…</div><div class="fmeta"><span class="badge done">канон</span></div></div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="sec-head">
+      <div class="idx">01b · пробелы</div>
+      <div>
+        <h2>Где дыры</h2>
+        <p class="blurb">Что отсутствует в системе и почему это важно.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="gap-item">
+        <div class="gi-icon red"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+        <div class="gi-body">
+          <div class="gi-title">Уведомления — нет экрана</div>
+          <div class="gi-desc">Kai может предупреждать о сроке визы, изменении рейса, ценовом дропе — но нет ни UI-паттерна, ни экрана для этих событий</div>
+        </div>
+        <div class="gi-trail">P0 · Экраны</div>
+      </div>
+      <div class="gap-item">
+        <div class="gi-icon red"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M8 10h8M8 14h4"/></svg></div>
+        <div class="gi-body">
+          <div class="gi-title">Документы / Passport Vault — нет</div>
+          <div class="gi-desc">Паспортные данные, визы, страховки — Kai их знает (Memory), но нет отдельного UI для хранения и просмотра документов</div>
+        </div>
+        <div class="gi-trail">P0 · Экраны</div>
+      </div>
+      <div class="gap-item">
+        <div class="gi-icon red"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <div class="gi-body">
+          <div class="gi-title">Пустое состояние чата — не задокументировано</div>
+          <div class="gi-desc">room.html показывает живой чат, но не показывает экран до первого сообщения. Это первое что видит пользователь после онбординга</div>
+        </div>
+        <div class="gi-trail">P0 · Экраны</div>
+      </div>
+      <div class="gap-item">
+        <div class="gi-icon yellow"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+        <div class="gi-body">
+          <div class="gi-title">Paywall / Подписка — нет экрана</div>
+          <div class="gi-desc">settings.html показывает «Pro» бейдж, но экрана выбора плана и апгрейда нет. Нет описания того, что даёт Pro</div>
+        </div>
+        <div class="gi-trail">P1 · Экраны</div>
+      </div>
+      <div class="gap-item">
+        <div class="gi-icon yellow"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+        <div class="gi-body">
+          <div class="gi-title">Skeleton / Loading states — нет</div>
+          <div class="gi-desc">Нет паттернов для состояний загрузки контента (memory, trip detail). Shimmer-плейсхолдеры — обязательный компонент</div>
+        </div>
+        <div class="gi-trail">P0 · Компоненты</div>
+      </div>
+      <div class="gap-item">
+        <div class="gi-icon yellow"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+        <div class="gi-body">
+          <div class="gi-title">Toast / Snackbar — нет</div>
+          <div class="gi-desc">Нет стандартного паттерна для краткого системного фидбека (сохранено, скопировано, ошибка). Каждый экран решает это по-разному</div>
+        </div>
+        <div class="gi-trail">P0 · Компоненты</div>
+      </div>
+      <div class="gap-item">
+        <div class="gi-icon gray"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div>
+        <div class="gi-body">
+          <div class="gi-title">dark.html покрывает только 4 из 15 экранов</div>
+          <div class="gi-desc">voice, memory, onboarding, edge-states, landing в тёмной теме не задокументированы</div>
+        </div>
+        <div class="gi-trail">P2 · Улучшения</div>
+      </div>
+      <div class="gap-item">
+        <div class="gi-icon gray"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg></div>
+        <div class="gi-body">
+          <div class="gi-title">Motion tokens не в JSON</div>
+          <div class="gi-desc">Кривые анимации и длительности есть в CSS-комментариях, но не в design-tokens.json. Flutter не может их импортировать автоматически</div>
+        </div>
+        <div class="gi-trail">P1 · Система</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       02 · НОВЫЕ ЭКРАНЫ
+       ═══════════════════════════════════════ -->
+  <section id="screens" class="sec">
+    <div class="sec-head">
+      <div class="idx">02 · экраны</div>
+      <div>
+        <h2>Новые экраны</h2>
+        <p class="blurb">8 экранов которых не хватает системе. Для каждого — 2–3 варианта реализации с разным подходом.</p>
+      </div>
+    </div>
+
+    <!-- S01: Уведомления -->
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p0">P0</span><span class="badge m">Effort M</span></div>
+        <div class="info">
+          <h3>S-01 · Уведомления / Alert Center</h3>
+          <p>Kai проактивно сигнализирует о важных событиях: истекает виза, изменился рейс, упала цена на отель. Сейчас нет ни паттерна, ни экрана для этих ситуаций.</p>
+        </div>
+        <div class="link">→ nav.html · room.html</div>
+      </div>
+      <div class="prop-body">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> встроенные в nav</div>
+          <div class="mini-phone">
+            <div class="mp-island"></div>
+            <div class="mp-tide"><svg viewBox="0 0 200 8" fill="none" width="100%" height="8"><path d="M0 4 Q50 0 100 4 Q150 8 200 4" stroke="url(#t)" stroke-width="3" fill="none"/><defs><linearGradient id="t" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#1B4FB0"/><stop offset="52%" stop-color="#2BA8C9"/><stop offset="100%" stop-color="#F4B589"/></linearGradient></defs></svg></div>
+            <div class="mp-body" style="top:26px;gap:3px;">
+              <div class="mp-row" style="width:100%;height:6px;background:var(--surface-2);"></div>
+              <div class="mp-row" style="width:100%;height:28px;background:#FEF0EE;border-radius:6px;"></div>
+              <div class="mp-row" style="width:100%;height:22px;background:var(--warning-wash);border-radius:6px;"></div>
+              <div class="mp-row mid" style="height:6px;"></div>
+              <div class="mp-row short" style="height:6px;"></div>
+            </div>
+          </div>
+          <h4>Алерты в боковой панели</h4>
+          <p>Тревожные события появляются в верхней части nav-панели над списком поездок. Красный / жёлтый бейдж-точка на кнопке свайпа.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> отдельный экран <span class="rec">рекомендую</span></div>
+          <div class="mini-phone">
+            <div class="mp-island"></div>
+            <div class="mp-tide"><svg viewBox="0 0 200 8" fill="none" width="100%" height="8"><path d="M0 4 Q50 0 100 4 Q150 8 200 4" stroke="url(#t2)" stroke-width="3" fill="none"/><defs><linearGradient id="t2" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#1B4FB0"/><stop offset="52%" stop-color="#2BA8C9"/><stop offset="100%" stop-color="#F4B589"/></linearGradient></defs></svg></div>
+            <div class="mp-body" style="top:26px;gap:3px;">
+              <div class="mp-row" style="width:60%;height:6px;"></div>
+              <div class="mp-row" style="width:100%;height:26px;background:#FEF0EE;border-radius:6px;border-left:2px solid #C44A3C;"></div>
+              <div class="mp-row" style="width:100%;height:26px;background:var(--warning-wash);border-radius:6px;border-left:2px solid #B57A0B;"></div>
+              <div class="mp-row" style="width:100%;height:20px;background:var(--surface-2);border-radius:6px;"></div>
+              <div class="mp-row" style="width:100%;height:20px;background:var(--surface-2);border-radius:6px;"></div>
+            </div>
+          </div>
+          <h4>Notification Center</h4>
+          <p>Отдельный экран в Nav-панели рядом с Memory/Settings. Карточки-события с цветовой кодировкой, сгруппированные по поездке.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">В</span> в чат-ленте</div>
+          <div class="mini-phone">
+            <div class="mp-island"></div>
+            <div class="mp-tide"><svg viewBox="0 0 200 8" fill="none" width="100%" height="8"><path d="M0 4 Q50 0 100 4 Q150 8 200 4" stroke="url(#t3)" stroke-width="3" fill="none"/><defs><linearGradient id="t3" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#1B4FB0"/><stop offset="52%" stop-color="#2BA8C9"/><stop offset="100%" stop-color="#F4B589"/></linearGradient></defs></svg></div>
+            <div class="mp-body" style="top:26px;gap:3px;">
+              <div class="mp-row user"></div>
+              <div class="mp-row wide" style="height:6px;"></div>
+              <div class="mp-row mid" style="height:6px;"></div>
+              <div class="mp-row" style="width:100%;height:30px;background:linear-gradient(90deg,rgba(196,74,60,0.08),rgba(196,74,60,0.04));border-radius:6px;border:1px solid rgba(196,74,60,0.2);"></div>
+            </div>
+            <div class="mp-compose"></div>
+          </div>
+          <h4>System message в чате</h4>
+          <p>Kai вставляет предупреждение прямо в поток разговора — как system bubble с иконкой. Не требует отдельного экрана.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- S02: Документы -->
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p0">P0</span><span class="badge m">Effort M</span></div>
+        <div class="info">
+          <h3>S-02 · Документы / Passport Vault</h3>
+          <p>Паспорт, визы, страховки, билеты — Kai их знает через Memory, но нет структурированного UI для просмотра и управления этими данными.</p>
+        </div>
+        <div class="link">→ memory.html · settings.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> вкладка в Memory <span class="rec">рекомендую</span></div>
+          <h4>«Документы» внутри Memory</h4>
+          <p>Вторая вкладка в memory.html рядом с «Факты». Структурированные карточки: паспорт, каждая виза, страховка. Tap → детали + срок действия + tide-предупреждение если скоро истекает.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> отдельный раздел в Nav</div>
+          <h4>Passport в боковой панели</h4>
+          <p>Третий пункт в Nav между Memory и Settings. Иконка паспорта. Экран похож на memory.html но заточен под документы с датами истечения срока.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- S03: Пустой чат -->
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p0">P0</span><span class="badge s">Effort S</span></div>
+        <div class="info">
+          <h3>S-03 · Пустое состояние чата / Empty Room</h3>
+          <p>Первое что видит пользователь после онбординга. room.html этого не показывает. Критично для first-impression и активации.</p>
+        </div>
+        <div class="link">→ room.html · onboarding.html</div>
+      </div>
+      <div class="prop-body">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> подсказки-чипы <span class="rec">рекомендую</span></div>
+          <h4>Tide + стартовые вопросы</h4>
+          <p>Tide curve наверху, по центру экрана 3–4 полупрозрачных чипа с примерами вопросов. Tap → текст копируется в compose. Исчезают как только пользователь начинает печатать.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> анимированный текст</div>
+          <h4>«куда летим?»</h4>
+          <p>Только tide curve и одна строка анимированного текста по центру — typewriter эффект перебирает разные вопросы. Минималистично, в духе zero-UI.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">В</span> абсолютный ноль</div>
+          <h4>Чистый экран</h4>
+          <p>Только tide curve, никакого контента. Compose island ждёт внизу. Экстремальный zero-UI — доверяем тому, что онбординг объяснил всё.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- S04: Paywall -->
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p1">P1</span><span class="badge m">Effort M</span></div>
+        <div class="info">
+          <h3>S-04 · Paywall / Экран подписки</h3>
+          <p>settings.html показывает бейдж «Pro» но экрана выбора и апгрейда нет. Нужен паттерн, который не ощущается как агрессивная продажа.</p>
+        </div>
+        <div class="link">→ settings.html · components.html</div>
+      </div>
+      <div class="prop-body">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> bottom sheet <span class="rec">рекомендую</span></div>
+          <h4>Шторка с планами</h4>
+          <p>Появляется снизу когда пользователь натыкается на Pro-фичу. Два плана (Monthly / Annual), bullets с отличиями, одна tide-кнопка CTA. Легко dismissable.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> full-screen flow</div>
+          <h4>Как онбординг</h4>
+          <p>3 экрана: что даёт Pro → выбор плана → оплата. Tide curve во всех состояниях. Кнопка «Не сейчас» всегда доступна.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">В</span> inline в Settings</div>
+          <h4>Раскрывающаяся карточка</h4>
+          <p>В settings.html карточка аккаунта раскрывается по тапу и показывает plan comparison. Нет отдельного экрана — всё на месте.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- S05: Shared Trip -->
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p1">P1</span><span class="badge l">Effort L</span></div>
+        <div class="info">
+          <h3>S-05 · Совместная поездка / Shared Trip</h3>
+          <p>Несколько путешественников планируют вместе. Как работает расшаренный trip folder? Как Kai отвечает на вопросы когда в чате несколько людей?</p>
+        </div>
+        <div class="link">→ trip-detail.html · room.html · nav.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> расшаренная папка <span class="rec">рекомендую</span></div>
+          <h4>Shared Trip Folder</h4>
+          <p>Trip Detail получает раздел «Участники» — аватары, invite-link, роли. Kai отвечает всем из одного контекста. Совместные решения фиксируются как факты в Memory.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> общий чат</div>
+          <h4>Multi-user Room</h4>
+          <p>Отдельный тип чат-рума — «совместный». Сообщения других участников видны в ленте, Kai отвечает в контексте всего разговора. Имена участников над бабблами.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- S06: Itinerary -->
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p1">P1</span><span class="badge l">Effort L</span></div>
+        <div class="info">
+          <h3>S-06 · Маршрут / Itinerary View</h3>
+          <p>Посуточный план поездки — когда разговоры с Kai привели к конкретному плану действий. Нужен структурированный вид, а не только чат-история.</p>
+        </div>
+        <div class="link">→ trip-detail.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> вкладка в Trip Detail <span class="rec">рекомендую</span></div>
+          <h4>«Маршрут» — вторая вкладка</h4>
+          <p>Trip Detail получает табы: «Чаты» | «Маршрут» | «Источники». В маршруте — хронологическая лента дней, каждый день раскрывается в список активностей.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> карточки дней</div>
+          <h4>Day-by-day карточки</h4>
+          <p>Горизонтальный скролл заголовков дней вверху, ниже контент выбранного дня. Каждая активность — карточка с временем, описанием, иконкой типа.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- S07: Discover -->
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p2">P2</span><span class="badge l">Effort L</span></div>
+        <div class="info">
+          <h3>S-07 · Поиск / Discover Mode</h3>
+          <p>Пользователь ещё не знает куда хочет — он исследует варианты. Нужен режим вдохновения/исследования отличный от целевого чата.</p>
+        </div>
+        <div class="link">→ room.html · nav.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> поиск в Nav</div>
+          <h4>Модальный поиск</h4>
+          <p>Иконка поиска в Nav-панели. По нажатию — полноэкранный поиск с историей и предложениями Kai: «популярно сейчас», «на основе вашей истории».</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> чат-режим Discover</div>
+          <h4>Специальный чат</h4>
+          <p>Отдельный тип разговора — Discover Session. Tide curve в особом состоянии (голубой + пульс), Kai задаёт вопросы первым: «какие даты?», «один или с партнёром?».</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- S08: Pre-trip checklist -->
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p2">P2</span><span class="badge s">Effort S</span></div>
+        <div class="info">
+          <h3>S-08 · Чеклист перед вылетом / Pre-trip</h3>
+          <p>За N дней до поездки Kai формирует персональный чеклист: паспорт, виза, вакцины, деньги, страховка. Автоматически на основе данных пользователя.</p>
+        </div>
+        <div class="link">→ trip-detail.html · memory.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> source card в чате <span class="rec">рекомендую</span></div>
+          <h4>Kai присылает как rich-сообщение</h4>
+          <p>Kai проактивно отправляет чеклист в чат поездки за 7 дней до вылета. Чекбоксы прямо в карточке, состояние сохраняется. Нет отдельного экрана — всё в ленте.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> вид в Trip Detail</div>
+          <h4>Раздел «Готовность» в поездке</h4>
+          <p>В Trip Detail появляется прогресс-бар «Готовность к поездке» + список пунктов. Автоматически отмечает выполненные на основе данных из Memory.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       03 · КОМПОНЕНТЫ
+       ═══════════════════════════════════════ -->
+  <section id="components" class="sec">
+    <div class="sec-head">
+      <div class="idx">03 · компоненты</div>
+      <div>
+        <h2>Новые компоненты</h2>
+        <p class="blurb">8 компонентов которых не хватает в components.html. От критичных системных (toast, skeleton) до богатых интерактивных (date picker, map card).</p>
+      </div>
+    </div>
+
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p0">P0</span><span class="badge s">Effort S</span></div>
+        <div class="info">
+          <h3>C-01 · Toast / Snackbar</h3>
+          <p>Краткое системное уведомление: сохранено, скопировано, ошибка отправки, memory fact added. Сейчас каждый экран обходится без этого паттерна.</p>
+        </div>
+        <div class="link">→ components.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> снизу над compose <span class="rec">рекомендую</span></div>
+          <h4>Floating pill</h4>
+          <p>Pill-форм, появляется снизу над compose island. 3 варианта: нейтральный (ink-1), positive (зелёный), negative (красный). Auto-dismiss 3s, swipe to dismiss. Tide-pulse на «memory saved».</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> сверху под tide</div>
+          <h4>Banner под tide curve</h4>
+          <p>Slide-down из-под tide curve. Занимает всю ширину. Более заметен — хорош для важных уведомлений, плохо — перекрывает контент.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p0">P0</span><span class="badge s">Effort S</span></div>
+        <div class="info">
+          <h3>C-02 · Skeleton / Loading States</h3>
+          <p>Плейсхолдеры пока грузится контент Memory, Trip Detail, source cards. Сейчас ничего нет — пустые экраны или мгновенный рендер.</p>
+        </div>
+        <div class="link">→ components.html · memory.html · trip-detail.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> shimmer серый</div>
+          <h4>Standard shimmer</h4>
+          <p>Серые прямоугольники var(--surface-2) с анимацией gradient sweep слева направо. CSS-only, легко добавить на любой экран как класс .skeleton.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> tide shimmer <span class="rec">рекомендую</span></div>
+          <h4>Branded tide shimmer</h4>
+          <p>Тот же sweep но с tide-градиентом в 5% opacity. Уникально для Kai — загрузка ощущается как «Kai думает», а не просто «контент грузится».</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p1">P1</span><span class="badge m">Effort M</span></div>
+        <div class="info">
+          <h3>C-03 · Дата-пикер / Date Picker</h3>
+          <p>Выбор дат поездки. Kai часто уточняет «когда планируете?» — нужен нативный компонент который появляется вместо клавиатуры.</p>
+        </div>
+        <div class="link">→ components.html · room.html</div>
+      </div>
+      <div class="prop-body">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> calendar grid в sheet <span class="rec">рекомендую</span></div>
+          <h4>Calendar bottom sheet</h4>
+          <p>Kai присылает rich-компонент в чат — тап открывает calendar grid в шторке снизу. Диапазон дат, tide-градиент на выбранном, подтверждение одной кнопкой.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> inline в чате</div>
+          <h4>Date chip в ленте</h4>
+          <p>Kai предлагает даты как интерактивные чипы прямо в бабble. Tap на чипе — выбран. Несколько вариантов рядом. Минималистично.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">В</span> NLP текст</div>
+          <h4>Естественный ввод</h4>
+          <p>«через 2 недели», «конец июня», «с 15 по 22» — Kai сам парсит. Подтверждение показывает конкретные даты. Нет calendar UI вообще.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p1">P1</span><span class="badge m">Effort M</span></div>
+        <div class="info">
+          <h3>C-04 · Country / City Selector</h3>
+          <p>Структурированный выбор направления поездки — с поиском, флагами, популярными вариантами. Нужен для создания поездки и для контекста в onboarding.</p>
+        </div>
+        <div class="link">→ components.html · onboarding.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> search sheet <span class="rec">рекомендую</span></div>
+          <h4>Поиск + популярные</h4>
+          <p>Bottom sheet: поле поиска вверху, ниже — «Популярные направления» (8 стран с флагами), результаты поиска в реальном времени. Разделители по континентам.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> inline в чате</div>
+          <h4>Destination chips</h4>
+          <p>Kai предлагает несколько направлений как интерактивные карточки прямо в ленте. Флаг + название + 1 строка контекста («безвизовый», «сезон: апрель–октябрь»).</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p1">P1</span><span class="badge s">Effort S</span></div>
+        <div class="info">
+          <h3>C-05 · Multi-select</h3>
+          <p>Выбор нескольких элементов для массовых операций: удалить несколько фактов из Memory, выбрать несколько поездок для экспорта.</p>
+        </div>
+        <div class="link">→ components.html · memory.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> long-press mode <span class="rec">рекомендую</span></div>
+          <h4>iOS-паттерн выделения</h4>
+          <p>Long-press на любом элементе → режим выделения: слева появляются круглые чекбоксы, снизу — toolbar с действиями (удалить, экспортировать). Эскейп или тап в пустое место — выход.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> edit mode кнопка</div>
+          <h4>Кнопка «Изменить»</h4>
+          <p>Кнопка в appbar → режим редактирования. Более явный, хорош для пожилых пользователей или первого раза. Менее элегантный.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p1">P1</span><span class="badge s">Effort S</span></div>
+        <div class="info">
+          <h3>C-06 · Progress Stepper</h3>
+          <p>Onboarding уже использует dots (хорошо), но нет стандартного компонента для других multi-step флоу: visa application, trip creation wizard.</p>
+        </div>
+        <div class="link">→ components.html · onboarding.html</div>
+      </div>
+      <div class="prop-body">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> dots (уже есть)</div>
+          <h4>Стандартизировать dots</h4>
+          <p>Вынести паттерн из onboarding.html в components.html как canonical. Добавить: активный = tide gradient pill, completed = ink-1 dot, upcoming = ink-4 dot.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> numbered steps <span class="rec">рекомендую</span></div>
+          <h4>1 → 2 → 3 степпер</h4>
+          <p>Горизонтальный степпер с номерами и лейблами — для сложных wizard-флоу (создание поездки, онбординг про). Активный шаг = tide gradient circle, пройденный = ink-2 с галкой.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">В</span> progress bar</div>
+          <h4>Тонкая линия прогресса</h4>
+          <p>1px tide gradient line под tide curve. Заполняется по мере прохождения шагов. Ненавязчиво, в духе zero-UI. Плохо: не показывает общее количество шагов.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p2">P2</span><span class="badge m">Effort M</span></div>
+        <div class="info">
+          <h3>C-07 · Map Card</h3>
+          <p>Source card variant с картой локации — когда Kai рекомендует конкретное место или показывает маршрут. Сейчас source cards только текстовые.</p>
+        </div>
+        <div class="link">→ components.html · room.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> static preview <span class="rec">рекомендую</span></div>
+          <h4>Thumbnail + Open</h4>
+          <p>Source card с статичным превью карты (image-slot), пин-иконка на нём, кнопка «Открыть в картах» под превью. Coordinate label в font-mono. Не требует API карт.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> inline mini-map</div>
+          <h4>Встроенная мини-карта</h4>
+          <p>Интерактивная карта прямо в карточке (MapKit / Google Maps tile). Красиво, но требует API ключа и усложняет рендер в дизайн-системе.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p2">P2</span><span class="badge m">Effort M</span></div>
+        <div class="info">
+          <h3>C-08 · Image / Media Bubble</h3>
+          <p>Kai присылает фото места, инфографику, скриншот визы. Сейчас нет паттерна для изображений в чат-ленте.</p>
+        </div>
+        <div class="link">→ components.html · room.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">А</span> thumbnail в ленте <span class="rec">рекомендую</span></div>
+          <h4>Rounded image в пузыре</h4>
+          <p>Изображение как attachment к текстовому сообщению Kai: картинка с r-4 скруглением, под ней текст. Tap → fullscreen overlay. Как в iMessage.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">Б</span> full-width card</div>
+          <h4>Медиа-карточка</h4>
+          <p>Изображение занимает всю ширину чата, под ним caption и meta-row с источником. Более editorial, хорош для вдохновляющих фото направлений.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       04 · УЛУЧШЕНИЯ
+       ═══════════════════════════════════════ -->
+  <section id="improve" class="sec">
+    <div class="sec-head">
+      <div class="idx">04 · улучшения</div>
+      <div>
+        <h2>Улучшения существующего</h2>
+        <p class="blurb">6 конкретных доработок к уже готовым файлам — добавить состояния, расширить покрытие, довести до полноты.</p>
+      </div>
+    </div>
+
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p0">P0</span><span class="badge m">Effort M</span></div>
+        <div class="info">
+          <h3>I-01 · components.html → Layer 3 Organisms</h3>
+          <p>Сейчас: Layer 1 (атомы) + Layer 2 (молекулы). Нет Layer 3 — собранных организмов: полный chat thread, nav panel in-context, compose island со всеми состояниями отдельно.</p>
+        </div>
+        <div class="link">→ components.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">добавить в тот же файл</span> <span class="rec">рекомендую</span></div>
+          <h4>Раздел L3 в components.html</h4>
+          <p>Добавить секцию «Layer 3 · Organisms» в конец components.html: (1) полный chat thread с разными типами бабблов, (2) compose island — все 4 состояния рядом (пустой / с текстом / streaming / voice), (3) source card — все варианты (text / map / image).</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">отдельный файл</span></div>
+          <h4>organisms.html</h4>
+          <p>Отдельный файл в системе. Больший контроль над структурой, но добавляет 16й файл и усложняет навигацию. Оправдано только если components.html перегружен.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p0">P0</span><span class="badge s">Effort S</span></div>
+        <div class="info">
+          <h3>I-02 · room.html → Streaming + Error состояния</h3>
+          <p>Сейчас 4 состояния: empty / live / panel / compose. Не хватает критичных: Kai streaming (печатает ответ) и error bubble (не смог ответить).</p>
+        </div>
+        <div class="link">→ room.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">добавить</span> <span class="rec">рекомендую</span></div>
+          <h4>Фрейм F-05: Streaming</h4>
+          <p>Kai «печатает» — tide curve в состоянии «thinking» (анимированный pulse), в ленте появляется баббл Kai с cursor-blink. Текст появляется постепенно — typewriter эффект.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">добавить</span></div>
+          <h4>Фрейм F-06: Error bubble</h4>
+          <p>Kai не смог ответить — баббл с мягким красным фоном (negative-wash), иконка, текст «не получилось найти ответ», кнопка «попробовать снова».</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p1">P1</span><span class="badge s">Effort S</span></div>
+        <div class="info">
+          <h3>I-03 · onboarding.html → Экран 5: Разрешения</h3>
+          <p>Сейчас 4 экрана. Нет 5го — запрос разрешений (уведомления, микрофон). Это обязательный шаг до первого использования и критичный для voice mode.</p>
+        </div>
+        <div class="link">→ onboarding.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">добавить</span> <span class="rec">рекомендую</span></div>
+          <h4>Экран 5 · Разрешения</h4>
+          <p>Два пункта с иконками: 🎤 Микрофон (для голосового режима) и 🔔 Уведомления (для алертов о визах и рейсах). Кнопка «Разрешить» → системный запрос iOS/Android. «Пропустить» доступна всегда.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">альтернатива</span></div>
+          <h4>Just-in-time запросы</h4>
+          <p>Не добавлять отдельный экран — запрашивать разрешения в момент первого использования фичи. Лучше конвертирует, но сложнее в реализации.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p1">P1</span><span class="badge s">Effort S</span></div>
+        <div class="info">
+          <h3>I-04 · voice.html → Sleep state + Wake</h3>
+          <p>Сейчас 4 состояния голосового режима. Нет Sleep (экран тускнеет после молчания) и Wake (оживление по wake word). Это важно для ambient use case.</p>
+        </div>
+        <div class="link">→ voice.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">добавить</span> <span class="rec">рекомендую</span></div>
+          <h4>R5 · Sleep state</h4>
+          <p>После 30с молчания — tide curve плавно затухает до 20% opacity, экран диммируется. Только пульс дыхания остаётся. Любой звук → Wake transition (tide curve оживает).</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">добавить</span></div>
+          <h4>R6 · Wake word</h4>
+          <p>Из Sleep: пользователь говорит «Kai» → tide curve мгновенно разгорается, переходит в listening state. Анимация перехода Sleep→Listening — главный момент оживления.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p2">P2</span><span class="badge l">Effort L</span></div>
+        <div class="info">
+          <h3>I-05 · dark.html → Полное покрытие всех экранов</h3>
+          <p>Сейчас тёмная тема задокументирована только для 4 экранов (room / nav / trip / settings). voice, memory, onboarding, edge-states, landing — не покрыты.</p>
+        </div>
+        <div class="link">→ dark.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">расширить dark.html</span> <span class="rec">рекомендую</span></div>
+          <h4>+7 экранов в dark.html</h4>
+          <p>Добавить секции: voice dark (уже тёмный по правилу — задокументировать исключение), memory dark, onboarding dark (4 screen), edge-states dark, landing dark. Итого 11 экранов в одном файле.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">data-theme на каждый файл</span></div>
+          <h4>Toggle в каждом файле</h4>
+          <p>Добавить кнопку светлый/тёмный в каждый HTML файл. Нет отдельного dark.html — тема переключается на месте. Мощнее для инженерного хендофа.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prop">
+      <div class="prop-head">
+        <div class="badges"><span class="badge p2">P2</span><span class="badge m">Effort M</span></div>
+        <div class="info">
+          <h3>I-06 · landing.html → Pricing + Social proof</h3>
+          <p>Лендинг есть, но нет секции с тарифами и отзывами. Для конверсии это критичные секции — без них лендинг не завершён.</p>
+        </div>
+        <div class="link">→ landing.html</div>
+      </div>
+      <div class="prop-body two">
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">добавить секцию Pricing</span> <span class="rec">рекомендую</span></div>
+          <h4>Два плана, один CTA</h4>
+          <p>Free (базовый) vs Pro (полный). Таблица сравнения, акцент на Pro. Tide-кнопка «Начать Pro». Annual plan со скидкой выделен. Дизайн: карточки, не таблица — мобильно-дружный.</p>
+        </div>
+        <div class="variant-card">
+          <div class="v-tag"><span class="vn">добавить секцию Отзывы</span></div>
+          <h4>3 testimonial карточки</h4>
+          <p>Три цитаты реальных пользователей с аватаром, именем, страной. Одна строка текста — не длинные истории. Под hero-секцией или перед Pricing.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       05 · СИСТЕМА
+       ═══════════════════════════════════════ -->
+  <section id="system" class="sec">
+    <div class="sec-head">
+      <div class="idx">05 · система</div>
+      <div>
+        <h2>Системные задачи</h2>
+        <p class="blurb">5 задач которые делают систему более целостной — прототип, анимации, accessibility, локализация, токены.</p>
+      </div>
+    </div>
+
+    <div class="sys-card">
+      <div>
+        <h3>SYS-01 · Интерактивный прототип</h3>
+        <p>Единый кликабельный флоу через все экраны. Жесты: свайп влево → боковая панель, свайп вверх → compose, tap → переход. Показывает полный UX journey от онбординга до завершения поездки. Нужен для инвесторов, пресс-кита и UX тестирования.</p>
+        <div class="sm"><span class="sys-chip">Effort L</span><span class="sys-chip">P1</span><span class="sys-chip">→ все экраны</span><span class="sys-chip">React + CSS transitions</span></div>
+      </div>
+      <span class="badge l">L</span>
+    </div>
+
+    <div class="sys-card">
+      <div>
+        <h3>SYS-02 · Tide Curve Animation Library</h3>
+        <p>Все 8 состояний tide curve с CSS анимациями в одном файле: idle (медленный дрейф) / listening (быстрый bounce) / thinking (pulse) / responding (flow) / success (bloom) / error (shake) / memory (shimmer) / sleep (dim). Сейчас состояния описаны в design-tokens.json но не визуализированы все вместе.</p>
+        <div class="sm"><span class="sys-chip">Effort M</span><span class="sys-chip">P1</span><span class="sys-chip">→ voice.html · room.html</span><span class="sys-chip">CSS keyframes</span></div>
+      </div>
+      <span class="badge m">M</span>
+    </div>
+
+    <div class="sys-card">
+      <div>
+        <h3>SYS-03 · Accessibility Pass</h3>
+        <p>Проверить WCAG AA контраст для всех текстовых пар (особенно ink-3 на bg — сейчас граничное значение). Убедиться что все touch targets ≥44px. Добавить aria-label на все icon-only кнопки. Обновить components.html с правильными role, aria-* атрибутами как canonical reference для инженеров.</p>
+        <div class="sm"><span class="sys-chip">Effort M</span><span class="sys-chip">P1</span><span class="sys-chip">→ components.html · все экраны</span><span class="sys-chip">WCAG AA</span></div>
+      </div>
+      <span class="badge m">M</span>
+    </div>
+
+    <div class="sys-card">
+      <div>
+        <h3>SYS-04 · Russian Locale Pass</h3>
+        <p>Пройти по всем 15 экранам и показать их на русском языке — применив правила gender-neutral из KAI_CHARACTER.md §9.2. Проверить: переносы слов, длина строк (RU в среднем на 30% длиннее EN), кириллические шрифтовые нюансы Manrope. Создать отдельный файл locale-ru.html или добавить переключатель язык → UI в каждый экран.</p>
+        <div class="sm"><span class="sys-chip">Effort S</span><span class="sys-chip">P2</span><span class="sys-chip">→ все экраны</span><span class="sys-chip">KAI_CHARACTER §9.2</span></div>
+      </div>
+      <span class="badge s">S</span>
+    </div>
+
+    <div class="sys-card">
+      <div>
+        <h3>SYS-05 · Motion Tokens в design-tokens.json</h3>
+        <p>Добавить в design-tokens.json секцию motion: duration scale (m-1: 100ms / m-2: 180ms / m-3: 320ms / m-4: 480ms) и easing curves (ease-out: cubic(.2,0,0,1) / ease-spring: spring(1,80,10,0)). Сейчас они закомментированы в CSS — Flutter codegen их не видит. Добавить shadow scale и z-index scale пока там.</p>
+        <div class="sm"><span class="sys-chip">Effort S</span><span class="sys-chip">P1</span><span class="sys-chip">→ design-tokens.json · handoff.html</span><span class="sys-chip">Flutter codegen</span></div>
+      </div>
+      <span class="badge s">S</span>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  function show(id, btn) {
+    document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>

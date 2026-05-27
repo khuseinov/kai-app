@@ -101,6 +101,30 @@ class KaiTide {
     end: Alignment(0.906, 0.423),
   );
 
+  /// 135° corner-to-corner gradient — for **square surfaces only**.
+  ///
+  /// Used by brand assets where the gradient flows from top-left corner to
+  /// bottom-right corner of a square: app icon, splash glyph, OG card bg-curve,
+  /// avatar circles. Stop-2 sits at 0.55 (vs 0.52 on [gradient]) — shifts the
+  /// warm horizon slightly past center to land brighter on the diagonal.
+  ///
+  /// Source: `new-design/brand.html § 02.1` — `.app-icon.primary`,
+  /// `.size-item .ic-mini`, `.splash-phone .glyph`.
+  ///
+  /// **Do NOT use this for the tide curve** at the top of screens — that's
+  /// a thin horizontal line, [gradient] (115°) flows correctly across it.
+  /// `gradientCorner` would tilt the gradient too steeply on a wide-thin curve.
+  ///
+  /// CSS `linear-gradient(135deg, ...)` on a square box = exactly diagonal
+  /// (top-left → bottom-right corner). Alignment.topLeft → Alignment.bottomRight
+  /// reproduces this exactly when the box is square.
+  static const LinearGradient gradientCorner = LinearGradient(
+    colors: [stop1, stop2, stop3],
+    stops: [0.0, 0.55, 1.0],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
   // 8 states. JSON null animations for idle/sleep overridden by HTML breathe.
   static const KaiTideState idle = KaiTideState(
     name: 'idle',

@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280,initial-scale=1">
+<title>kai · tide curve · 8 состояний</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink-1); font-family: var(--font-sans); }
+  .shell { max-width: 1280px; margin: 0 auto; padding: 56px 64px 120px; }
+
+  /* ── Top ── */
+  .top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 56px; }
+  .top .mark { font-weight: 700; font-size: 18px; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 10px; }
+  .top .meta { display: flex; gap: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+
+  /* ── Hero ── */
+  .hero { padding-bottom: 56px; border-bottom: 1px solid var(--line); margin-bottom: 64px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 24px; display: inline-flex; align-items: center; gap: 8px; }
+  .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--ink-3); }
+  .hero h1 { font-size: 72px; font-weight: 600; line-height: 0.96; letter-spacing: -0.035em; max-width: 920px; margin: 0; }
+  .hero h1 .ocean { background: var(--tide-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; font-style: italic; font-weight: 500; }
+  .hero .lead { margin-top: 24px; font-size: 18px; line-height: 1.55; color: var(--ink-2); max-width: 700px; }
+  .hero .meta-row { margin-top: 28px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill { font: 500 11px var(--font-mono); padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .pill.on { background: var(--accent-wash); color: var(--accent); border-color: var(--accent-line); }
+
+  /* ── States grid — 4 col ── */
+  .states-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 72px; }
+
+  .state-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
+    padding: 22px 22px 20px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .state-card.dark-card { background: #0E0E11; border-color: #2A2A2F; }
+
+  /* Tide demo area */
+  .tide-demo {
+    width: 100%; height: 72px;
+    background: var(--surface-2); border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; position: relative;
+    padding: 0 16px; box-sizing: border-box;
+  }
+  .dark-card .tide-demo { background: #1E1E23; }
+  .tide-demo svg { width: 100%; height: 28px; overflow: visible; }
+
+  /* State meta */
+  .state-num { font: 400 10px var(--font-mono); color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.1em; }
+  .dark-card .state-num { color: #5C5C58; }
+  .state-name { font: 700 20px var(--font-sans); letter-spacing: -0.018em; color: var(--ink-1); }
+  .dark-card .state-name { color: #F5F5F2; }
+  .state-when { font: 400 12.5px var(--font-sans); color: var(--ink-2); line-height: 1.45; }
+  .dark-card .state-when { color: #8E8E88; }
+
+  /* Params row */
+  .params { display: flex; gap: 5px; flex-wrap: wrap; }
+  .param { font: 500 9.5px var(--font-mono); color: var(--ink-3); padding: 3px 7px; border-radius: 999px; border: 1px solid var(--line); }
+  .dark-card .param { color: #5C5C58; border-color: #2A2A2F; }
+  .param.hi { color: var(--accent); background: var(--accent-wash); border-color: var(--accent-line); }
+  .param.ep { color: var(--warning); background: var(--warning-wash); border-color: rgba(181,122,11,0.2); }
+
+  /* ── CSS Animations ── */
+
+  /* idle: едва живой — самое медленное дыхание системы */
+  .p-idle { animation: tide-idle 5.5s cubic-bezier(0.4,0,0.6,1) infinite; }
+  @keyframes tide-idle {
+    0%, 100% { stroke-width: 1.3; opacity: 0.32; }
+    50%       { stroke-width: 1.7; opacity: 0.46; }
+  }
+
+  /* sleep: ещё медленнее, почти нет — последний признак жизни */
+  .p-sleep { animation: tide-sleep 7s cubic-bezier(0.4,0,0.6,1) infinite; }
+  @keyframes tide-sleep {
+    0%, 100% { stroke-width: 0.9; opacity: 0.18; }
+    50%       { stroke-width: 1.1; opacity: 0.24; }
+  }
+
+  /* listening: slow breathing of stroke-width */
+  .p-listening { animation: tide-bob 2.2s cubic-bezier(0.4,0,0.6,1) infinite; }
+  @keyframes tide-bob {
+    0%, 100% { stroke-width: 1.6; opacity: 0.7; }
+    50%       { stroke-width: 2.6; opacity: 0.9; }
+  }
+
+  /* thinking: slow flow, dash 6 4, 3000ms */
+  /* responding: fast stream, dash 12 4, 1400ms — via SMIL animate */
+
+  /* success: flash bright then settle */
+  .p-success { animation: tide-flash 1.2s ease-out 3; }
+  @keyframes tide-flash {
+    0%   { stroke-width: 1.5; opacity: 0.3; }
+    25%  { stroke-width: 3.2; opacity: 1; }
+    65%  { stroke-width: 2.5; opacity: 1; }
+    100% { stroke-width: 2;   opacity: 0.85; }
+  }
+
+  /* error: shake horizontally × 2 */
+  .p-error-wrap { animation: tide-wobble 0.7s ease-in-out 2 1s both; transform-origin: center center; }
+  @keyframes tide-wobble {
+    0%,100% { transform: translateX(0); }
+    20%     { transform: translateX(-6px); }
+    40%     { transform: translateX(6px); }
+    60%     { transform: translateX(-4px); }
+    80%     { transform: translateX(4px); }
+  }
+
+  /* memory: pop — briefly thicker then settle */
+  .p-memory { animation: tide-pop 0.9s ease-out 3 0.5s both; }
+  @keyframes tide-pop {
+    0%   { stroke-width: 1.8; opacity: 0.6; }
+    35%  { stroke-width: 4;   opacity: 1; }
+    100% { stroke-width: 2;   opacity: 1; }
+  }
+
+
+
+  /* ── Section head ── */
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  .sec-head { display: grid; grid-template-columns: 220px 1fr; gap: 64px; margin-bottom: 40px; align-items: baseline; }
+  .sec-head .idx { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .sec-head h2 { font-size: 36px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.05; }
+  .sec-head .blurb { font-size: 15px; color: var(--ink-2); line-height: 1.6; max-width: 580px; margin-top: 12px; }
+
+  /* ── Token table ── */
+  .token-table { width: 100%; border-collapse: collapse; }
+  .token-table th { font: 500 10px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; text-align: left; padding: 8px 16px 10px; border-bottom: 1px solid var(--line); }
+  .token-table td { font: 400 12.5px var(--font-mono); color: var(--ink-2); padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .token-table tr:last-child td { border-bottom: 0; }
+  .token-table .name { font-weight: 700; color: var(--ink-1); }
+  .token-table .val { color: var(--accent); }
+  .token-table .ep-tag { font: 700 8px var(--font-mono); color: var(--warning); background: var(--warning-wash); padding: 2px 6px; border-radius: 999px; text-transform: uppercase; margin-left: 6px; }
+
+  /* ── Live demo strip ── */
+  .live-strip {
+    background: #08080A; border-radius: 20px; padding: 32px 40px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .live-row {
+    display: grid; grid-template-columns: 80px 1fr 120px; gap: 24px; align-items: center;
+  }
+  .live-row .lname { font: 700 11px var(--font-mono); color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; }
+  .live-row .lsvg-wrap { height: 20px; display: flex; align-items: center; }
+  .live-row .lsvg-wrap svg { width: 100%; height: 20px; overflow: visible; }
+  .live-row .ldesc { font: 400 11px var(--font-mono); color: rgba(255,255,255,0.28); text-align: right; }
+  .live-divider { height: 1px; background: rgba(255,255,255,0.06); }
+
+  /* Tide glyph in mark */
+  .tide-mark { display: inline-block; width: 18px; height: 5px; border-radius: 999px; background: var(--tide-gradient); }
+</style>
+</head>
+<body>
+
+<!-- SVG defs — shared gradients -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Main tide gradient (horizontal) -->
+    <linearGradient id="gtide" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#1B4FB0"/>
+      <stop offset="52%"  stop-color="#2BA8C9"/>
+      <stop offset="100%" stop-color="#F4B589"/>
+    </linearGradient>
+    <!-- Success: green-to-teal -->
+    <linearGradient id="gsuccess" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#1B8E4E"/>
+      <stop offset="60%"  stop-color="#3DBE7A"/>
+      <stop offset="100%" stop-color="#A8E4C0"/>
+    </linearGradient>
+    <!-- Error: coral-red solid (no gradient — stark) -->
+    <!-- Sleep / Idle: gray (no gradient needed) -->
+  </defs>
+</svg>
+
+<div class="shell">
+
+  <!-- Top -->
+  <div class="top">
+    <div class="mark"><span class="tide-mark"></span> kai · design system</div>
+    <div class="meta"><span>tide curve · 8 состояний</span><span>SYS-02</span><span>2026-05-26</span></div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="eyebrow">фича состояний</div>
+    <h1>Tide curve —<br><span class="ocean">живая</span></h1>
+    <p class="lead">
+      Кривая прилива вверху каждого экрана несёт всё состояние Kai. 8 живых состояний — каждое со своей анимацией, весом штриха и скоростью. Текстовых меток состояния нет: кривая сама говорит.
+    </p>
+    <div class="meta-row">
+      <span class="pill on">8 состояний</span>
+      <span class="pill">3 персистентных</span>
+      <span class="pill">5 эфемерных</span>
+      <span class="pill">→ design-tokens.json § tide-states</span>
+      <span class="pill">→ onboarding.html экран 2</span>
+    </div>
+  </div>
+
+  <!-- ═══ 8 STATE CARDS ═══ -->
+  <div class="states-grid">
+
+    <!-- 01 IDLE -->
+    <div class="state-card">
+      <div class="tide-demo">
+        <svg viewBox="0 0 240 28" preserveAspectRatio="none">
+          <path class="p-idle"
+                stroke="#A8A8AE" stroke-width="1.5" opacity="0.38" fill="none" stroke-linecap="round"
+                d="M 0 14 Q 60 8 120 14 T 240 12"/>
+        </svg>
+      </div>
+      <div>
+        <div class="state-num">01 · постоянное</div>
+        <div class="state-name">idle</div>
+        <div class="state-when">Kai ничего не делает. Ждёт. Экран в покое.</div>
+      </div>
+      <div class="params">
+        <span class="param">1.5px</span>
+        <span class="param">ink-4</span>
+        <span class="param">opacity 0.4</span>
+        <span class="param">без анимации</span>
+      </div>
+    </div>
+
+    <!-- 02 LISTENING -->
+    <div class="state-card">
+      <div class="tide-demo">
+        <svg viewBox="0 0 240 28" preserveAspectRatio="none">
+          <path class="p-listening"
+                stroke="url(#gtide)" stroke-width="2" opacity="0.8" fill="none" stroke-linecap="round"
+                d="M 0 14 Q 60 8 120 14 T 240 12"/>
+        </svg>
+      </div>
+      <div>
+        <div class="state-num">02 · постоянное</div>
+        <div class="state-name">listening</div>
+        <div class="state-when">Kai слушает голос пользователя. Микрофон открыт.</div>
+      </div>
+      <div class="params">
+        <span class="param">2px</span>
+        <span class="param hi">tide gradient</span>
+        <span class="param">bob 2200ms</span>
+        <span class="param">ambient easing</span>
+      </div>
+    </div>
+
+    <!-- 03 THINKING -->
+    <div class="state-card">
+      <div class="tide-demo">
+        <svg viewBox="0 0 240 28" preserveAspectRatio="none">
+          <path stroke="url(#gtide)" stroke-width="2" opacity="0.85" fill="none" stroke-linecap="round"
+                stroke-dasharray="6 4"
+                d="M 0 14 Q 60 8 120 14 T 240 12">
+            <animate attributeName="stroke-dashoffset" from="0" to="-40" dur="3s" repeatCount="indefinite"/>
+          </path>
+        </svg>
+      </div>
+      <div>
+        <div class="state-num">03 · постоянное</div>
+        <div class="state-name">thinking</div>
+        <div class="state-when">Kai обрабатывает запрос. Токены ещё не идут.</div>
+      </div>
+      <div class="params">
+        <span class="param">2px</span>
+        <span class="param hi">tide gradient</span>
+        <span class="param">flow 3000ms</span>
+        <span class="param">dash 6·4</span>
+      </div>
+    </div>
+
+    <!-- 04 RESPONDING -->
+    <div class="state-card" style="border-color: var(--accent-line); background: linear-gradient(160deg, rgba(43,168,201,0.04), var(--surface));">
+      <div class="tide-demo" style="background: rgba(43,168,201,0.06);">
+        <svg viewBox="0 0 240 28" preserveAspectRatio="none">
+          <path stroke="url(#gtide)" stroke-width="2.5" opacity="1" fill="none" stroke-linecap="round"
+                stroke-dasharray="12 4"
+                d="M 0 14 Q 60 8 120 14 T 240 12">
+            <animate attributeName="stroke-dashoffset" from="0" to="-32" dur="1.4s" repeatCount="indefinite"/>
+          </path>
+        </svg>
+      </div>
+      <div>
+        <div class="state-num" style="color:var(--tide-2)">04 · постоянное · стриминг</div>
+        <div class="state-name">responding</div>
+        <div class="state-when">Токены стримятся. Kai генерирует ответ прямо сейчас.</div>
+      </div>
+      <div class="params">
+        <span class="param hi">2.5px</span>
+        <span class="param hi">tide gradient</span>
+        <span class="param hi">stream 1400ms</span>
+        <span class="param hi">dash 12·4</span>
+      </div>
+    </div>
+
+    <!-- 05 SUCCESS -->
+    <div class="state-card">
+      <div class="tide-demo">
+        <svg viewBox="0 0 240 28" preserveAspectRatio="none">
+          <path class="p-success"
+                stroke="url(#gsuccess)" stroke-width="2.5" fill="none" stroke-linecap="round"
+                d="M 0 14 Q 60 8 120 14 T 240 12"/>
+        </svg>
+      </div>
+      <div>
+        <div class="state-num">05 · эфемерное</div>
+        <div class="state-name">success</div>
+        <div class="state-when">Ответ завершён. Краткая вспышка — Kai успешно ответил.</div>
+      </div>
+      <div class="params">
+        <span class="param">2.5px</span>
+        <span class="param" style="color:#1B8E4E;background:var(--positive-wash);border-color:rgba(27,142,78,0.2)">success grad</span>
+        <span class="param ep">flash 1200ms</span>
+        <span class="param ep">эфемерное</span>
+      </div>
+    </div>
+
+    <!-- 06 ERROR -->
+    <div class="state-card" style="background: #FEF8F7;">
+      <div class="tide-demo" style="background: var(--negative-wash);">
+        <svg viewBox="0 0 240 28" preserveAspectRatio="none" style="overflow:visible;">
+          <g class="p-error-wrap">
+            <path stroke="#C44A3C" stroke-width="2" opacity="0.95" fill="none" stroke-linecap="round"
+                  d="M 0 14 Q 60 8 120 14 T 240 12"/>
+          </g>
+        </svg>
+      </div>
+      <div>
+        <div class="state-num">06 · эфемерное</div>
+        <div class="state-name">error</div>
+        <div class="state-when">Соединение прервано или Kai не смог ответить.</div>
+      </div>
+      <div class="params">
+        <span class="param">2px</span>
+        <span class="param" style="color:var(--negative);background:var(--negative-wash);border-color:rgba(196,74,60,0.2)">coral</span>
+        <span class="param ep">wobble ×2</span>
+        <span class="param ep">эфемерное</span>
+      </div>
+    </div>
+
+    <!-- 07 MEMORY -->
+    <div class="state-card">
+      <div class="tide-demo" style="background: linear-gradient(135deg, rgba(43,168,201,0.06), rgba(244,181,137,0.06));">
+        <svg viewBox="0 0 240 28" preserveAspectRatio="none">
+          <path class="p-memory"
+                stroke="url(#gtide)" stroke-width="2" fill="none" stroke-linecap="round"
+                d="M 0 14 Q 60 8 120 14 T 240 12"/>
+        </svg>
+      </div>
+      <div>
+        <div class="state-num">07 · эфемерное</div>
+        <div class="state-name">memory</div>
+        <div class="state-when">Kai только что сохранил факт в Memory. Мгновенная вспышка.</div>
+      </div>
+      <div class="params">
+        <span class="param">2px</span>
+        <span class="param hi">tide gradient</span>
+        <span class="param ep">pop 900ms</span>
+        <span class="param ep">эфемерное</span>
+      </div>
+    </div>
+
+    <!-- 08 SLEEP -->
+    <div class="state-card dark-card">
+      <div class="tide-demo">
+        <svg viewBox="0 0 240 28" preserveAspectRatio="none">
+          <path class="p-sleep"
+                stroke="#5C5C58" stroke-width="1" opacity="0.2" fill="none" stroke-linecap="round"
+                d="M 0 14 Q 60 8 120 14 T 240 12"/>
+        </svg>
+      </div>
+      <div>
+        <div class="state-num">08 · постоянное</div>
+        <div class="state-name" style="color:#F5F5F2;">sleep</div>
+        <div class="state-when" style="color:#5C5C58;">60 секунд без активности. Экран гаснет, кривая исчезает.</div>
+      </div>
+      <div class="params">
+        <span class="param">1px</span>
+        <span class="param">ink-4</span>
+        <span class="param">opacity 0.2</span>
+        <span class="param">триггер: 60с</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ LIVE DARK STRIP ═══ -->
+  <section>
+    <div class="sec-head">
+      <div class="idx">02 · в контексте</div>
+      <div>
+        <h2>Все состояния рядом</h2>
+        <p class="blurb">Как состояния выглядят на тёмном фоне экрана — в voice mode и при тёмной теме. Все 8 в одном столбце.</p>
+      </div>
+    </div>
+
+    <div class="live-strip">
+
+      <div class="live-row">
+        <div class="lname">idle</div>
+        <div class="lsvg-wrap">
+          <svg viewBox="0 0 400 20" preserveAspectRatio="none">
+            <path class="p-idle" stroke="#A8A8AE" stroke-width="1.5" opacity="0.38" fill="none" stroke-linecap="round" d="M 0 10 Q 100 5 200 10 T 400 8"/>
+          </svg>
+        </div>
+        <div class="ldesc">1.5px · 0.4 opacity</div>
+      </div>
+      <div class="live-divider"></div>
+
+      <div class="live-row">
+        <div class="lname">listening</div>
+        <div class="lsvg-wrap">
+          <svg viewBox="0 0 400 20" preserveAspectRatio="none">
+            <path class="p-listening" stroke="url(#gtide)" stroke-width="2" opacity="0.85" fill="none" stroke-linecap="round" d="M 0 10 Q 100 5 200 10 T 400 8"/>
+          </svg>
+        </div>
+        <div class="ldesc">2px · bob 2200ms</div>
+      </div>
+      <div class="live-divider"></div>
+
+      <div class="live-row">
+        <div class="lname">thinking</div>
+        <div class="lsvg-wrap">
+          <svg viewBox="0 0 400 20" preserveAspectRatio="none">
+            <path stroke="url(#gtide)" stroke-width="2" opacity="0.85" fill="none" stroke-linecap="round" stroke-dasharray="6 4" d="M 0 10 Q 100 5 200 10 T 400 8">
+              <animate attributeName="stroke-dashoffset" from="0" to="-40" dur="3s" repeatCount="indefinite"/>
+            </path>
+          </svg>
+        </div>
+        <div class="ldesc">2px · flow 3000ms</div>
+      </div>
+      <div class="live-divider"></div>
+
+      <div class="live-row">
+        <div class="lname">responding</div>
+        <div class="lsvg-wrap">
+          <svg viewBox="0 0 400 20" preserveAspectRatio="none">
+            <path stroke="url(#gtide)" stroke-width="2.5" opacity="1" fill="none" stroke-linecap="round" stroke-dasharray="12 4" d="M 0 10 Q 100 5 200 10 T 400 8">
+              <animate attributeName="stroke-dashoffset" from="0" to="-32" dur="1.4s" repeatCount="indefinite"/>
+            </path>
+          </svg>
+        </div>
+        <div class="ldesc">2.5px · stream 1400ms</div>
+      </div>
+      <div class="live-divider"></div>
+
+      <div class="live-row">
+        <div class="lname">success</div>
+        <div class="lsvg-wrap">
+          <svg viewBox="0 0 400 20" preserveAspectRatio="none">
+            <path class="p-success" stroke="url(#gsuccess)" stroke-width="2.5" fill="none" stroke-linecap="round" d="M 0 10 Q 100 5 200 10 T 400 8"/>
+          </svg>
+        </div>
+        <div class="ldesc">2.5px · flash 1200ms</div>
+      </div>
+      <div class="live-divider"></div>
+
+      <div class="live-row">
+        <div class="lname">error</div>
+        <div class="lsvg-wrap">
+          <svg viewBox="0 0 400 20" preserveAspectRatio="none" style="overflow:visible;">
+            <g class="p-error-wrap">
+              <path stroke="#E66F60" stroke-width="2" opacity="0.9" fill="none" stroke-linecap="round" d="M 0 10 Q 100 5 200 10 T 400 8"/>
+            </g>
+          </svg>
+        </div>
+        <div class="ldesc">2px · wobble ×2</div>
+      </div>
+      <div class="live-divider"></div>
+
+      <div class="live-row">
+        <div class="lname">memory</div>
+        <div class="lsvg-wrap">
+          <svg viewBox="0 0 400 20" preserveAspectRatio="none">
+            <path class="p-memory" stroke="url(#gtide)" stroke-width="2" fill="none" stroke-linecap="round" d="M 0 10 Q 100 5 200 10 T 400 8"/>
+          </svg>
+        </div>
+        <div class="ldesc">2px · pop 900ms</div>
+      </div>
+      <div class="live-divider"></div>
+
+      <div class="live-row">
+        <div class="lname">sleep</div>
+        <div class="lsvg-wrap">
+          <svg viewBox="0 0 400 20" preserveAspectRatio="none">
+            <path class="p-sleep" stroke="#5C5C58" stroke-width="1" opacity="0.2" fill="none" stroke-linecap="round" d="M 0 10 Q 100 5 200 10 T 400 8"/>
+          </svg>
+        </div>
+        <div class="ldesc">1px · opacity 0.2</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ TOKEN REFERENCE ═══ -->
+  <section>
+    <div class="sec-head">
+      <div class="idx">03 · токены</div>
+      <div>
+        <h2>design-tokens.json § tide-states</h2>
+        <p class="blurb">Полная таблица параметров из JSON. Источник истины для Flutter codegen и iOS/Android реализации.</p>
+      </div>
+    </div>
+
+    <table class="token-table">
+      <thead>
+        <tr>
+          <th>состояние</th>
+          <th>stroke-px</th>
+          <th>stroke-color</th>
+          <th>opacity</th>
+          <th>animation · type</th>
+          <th>duration</th>
+          <th>dash</th>
+          <th>тип</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="name">idle</td><td class="val">1.5</td><td>ink-4</td><td>0.4</td><td>—</td><td>—</td><td>—</td><td>постоянное</td></tr>
+        <tr><td class="name">listening</td><td class="val">2.0</td><td>tide-gradient</td><td>0.8</td><td>bob</td><td>2200ms</td><td>—</td><td>постоянное</td></tr>
+        <tr><td class="name">thinking</td><td class="val">2.0</td><td>tide-gradient</td><td>0.85</td><td>flow · R→L</td><td>3000ms</td><td>6 4</td><td>постоянное</td></tr>
+        <tr><td class="name">responding</td><td class="val">2.5</td><td>tide-gradient</td><td>1.0</td><td>stream · R→L</td><td>1400ms</td><td>12 4</td><td>постоянное</td></tr>
+        <tr><td class="name">success</td><td class="val">2.5</td><td>gradient-success</td><td>1.0</td><td>flash</td><td>1200ms</td><td>—</td><td>эфемерное <span class="ep-tag">←</span></td></tr>
+        <tr><td class="name">error</td><td class="val">2.0</td><td>gradient-error</td><td>0.95</td><td>wobble ×2</td><td>600ms</td><td>—</td><td>эфемерное <span class="ep-tag">←</span></td></tr>
+        <tr><td class="name">memory</td><td class="val">2.0</td><td>tide-gradient</td><td>1.0</td><td>pop</td><td>900ms</td><td>—</td><td>эфемерное <span class="ep-tag">←</span></td></tr>
+        <tr><td class="name">sleep</td><td class="val">1.0</td><td>ink-4</td><td>0.2</td><td>—</td><td>—</td><td>—</td><td>постоянное · триггер: 60с</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══ ПРАВИЛА ═══ -->
+  <section>
+    <div class="sec-head">
+      <div class="idx">04 · правила</div>
+      <div>
+        <h2>Как пользоваться</h2>
+        <p class="blurb">Что нельзя нарушать при реализации состояний в продукте.</p>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;">
+        <h4 style="font:600 14px var(--font-sans);letter-spacing:-0.01em;margin:0 0 8px;">Переходы мгновенные</h4>
+        <p style="font:400 13px var(--font-sans);color:var(--ink-2);line-height:1.5;margin:0;">Смена состояния происходит на следующий фрейм — не плавно. Анимация внутри состояния плавная, переход между состояниями — нет. Easing только для duration, не для смены.</p>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;">
+        <h4 style="font:600 14px var(--font-sans);letter-spacing:-0.01em;margin:0 0 8px;">Эфемерные → возврат в idle</h4>
+        <p style="font:400 13px var(--font-sans);color:var(--ink-2);line-height:1.5;margin:0;">success, error, memory — короткие вспышки. После их завершения кривая автоматически возвращается в idle (или в предыдущее постоянное состояние если разговор продолжается).</p>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;">
+        <h4 style="font:600 14px var(--font-sans);letter-spacing:-0.01em;margin:0 0 8px;">Gradient неизменен</h4>
+        <p style="font:400 13px var(--font-sans);color:var(--ink-2);line-height:1.5;margin:0;">Tide gradient (#1B4FB0 → #2BA8C9 → #F4B589) не меняется ни при каком состоянии, кроме success (зелёный) и error (коралловый). Holiday recolors, тематические варианты — запрещены.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

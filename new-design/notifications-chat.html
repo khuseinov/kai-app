@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1320,initial-scale=1">
+<title>kai · уведомления в ленте · N-01</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink-1); font-family: var(--font-sans); }
+  .shell { max-width: 1280px; margin: 0 auto; padding: 56px 64px 120px; }
+
+  /* ── Top ── */
+  .top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 56px; }
+  .top .mark { font-weight: 700; font-size: 18px; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 10px; }
+  .top .meta { display: flex; gap: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+  .tide-bar { display: inline-block; width: 18px; height: 5px; border-radius: 999px; background: var(--tide-gradient); }
+
+  /* ── Hero ── */
+  .hero { padding-bottom: 56px; border-bottom: 1px solid var(--line); margin-bottom: 72px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 24px; display: inline-flex; align-items: center; gap: 8px; }
+  .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--ink-3); }
+  .hero h1 { font-size: 68px; font-weight: 600; line-height: 0.97; letter-spacing: -0.034em; max-width: 920px; margin: 0; }
+  .hero h1 .ocean { background: var(--tide-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; font-style: italic; font-weight: 500; }
+  .hero .lead { margin-top: 24px; font-size: 18px; line-height: 1.55; color: var(--ink-2); max-width: 700px; }
+  .pills { margin-top: 28px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill { font: 500 11px var(--font-mono); padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .pill.on { background: var(--accent-wash); color: var(--accent); border-color: var(--accent-line); }
+
+  /* ── Section head ── */
+  section { padding: 64px 0; border-top: 1px solid var(--line); }
+  section:first-of-type { padding-top: 0; border-top: 0; }
+  .sec-head { display: grid; grid-template-columns: 220px 1fr; gap: 64px; margin-bottom: 44px; align-items: baseline; }
+  .sec-head .idx { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .sec-head h2 { font-size: 38px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.05; }
+  .sec-head .blurb { font-size: 15px; color: var(--ink-2); line-height: 1.6; max-width: 620px; margin-top: 12px; }
+
+  /* ── Frames grid ── */
+  .frames { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .frame-card { background: var(--surface-3); border: 1px solid var(--line); border-radius: 22px; padding: 28px 0 22px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .frame-num { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .frame-card h3 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  .frame-card .desc { font-size: 12px; color: var(--ink-2); line-height: 1.5; padding: 0 20px; text-align: center; }
+  .frame-card .traits { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+  .frame-card .traits span { font: 500 9px var(--font-mono); color: var(--ink-3); padding: 3px 7px; border: 1px solid var(--line); border-radius: 999px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ── iPhone shell ── */
+  .phone {
+    width: 240px; height: 500px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 32px;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .phone .island { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 76px; height: 22px; background: var(--ink-1); border-radius: 999px; z-index: 10; }
+  .phone .home { position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%); width: 76px; height: 3px; border-radius: 999px; background: var(--ink-3); opacity: 0.3; z-index: 10; }
+
+  /* Tide curve SVG */
+  .phone .tide-svg { position: absolute; top: 40px; left: 14px; width: calc(100% - 28px); height: 14px; z-index: 4; }
+
+  /* Status bar */
+  .phone .sb { position: absolute; top: 15px; left: 20px; right: 20px; display: flex; justify-content: space-between; font: 500 10px var(--font-mono); color: var(--ink-2); z-index: 9; }
+  .phone .sb .r { display: flex; align-items: center; gap: 4px; }
+
+  /* Chat scroll area */
+  .chat { position: absolute; inset: 0; top: 58px; bottom: 54px; padding: 10px 14px 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  .chat::-webkit-scrollbar { display: none; }
+
+  /* Compose island */
+  .compose { position: absolute; left: 14px; right: 14px; bottom: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 4px 4px 13px; display: flex; align-items: center; gap: 3px; z-index: 6; height: 34px; box-sizing: border-box; }
+  .compose .ph { flex: 1; font: 400 11px var(--font-sans); color: var(--ink-4); }
+  .compose .mic-btn { width: 24px; height: 24px; border-radius: 50%; border: 0; background: transparent; color: var(--ink-3); display: flex; align-items: center; justify-content: center; }
+  .compose .send-btn { width: 24px; height: 24px; border-radius: 50%; border: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .compose .send-btn.off { background: var(--ink-4); opacity: 0.38; color: white; }
+  .compose .send-btn.on { background: var(--tide-gradient); color: white; box-shadow: 0 2px 6px rgba(43,168,201,0.22); }
+
+  /* Bubbles */
+  .day-label { text-align: center; font: 400 9px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; }
+  .user-b { align-self: flex-end; background: var(--surface-2); padding: 7px 11px; border-radius: 14px 14px 3px 14px; font: 400 11.5px var(--font-sans); line-height: 1.45; color: var(--ink-1); max-width: 78%; letter-spacing: -0.005em; }
+  .kai-wrap { display: flex; flex-direction: column; gap: 4px; max-width: 92%; }
+  .kai-wrap .who { font: 500 8px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; display: inline-flex; align-items: center; gap: 5px; }
+  .kai-wrap .who::before { content: ""; display: inline-block; width: 10px; height: 2.5px; border-radius: 999px; background: var(--tide-gradient); }
+  .kai-wrap .who.proactive::after { content: "· проактивно"; color: var(--ink-4); margin-left: 2px; }
+  .kai-txt { font: 400 11.5px var(--font-sans); color: var(--ink-1); line-height: 1.5; letter-spacing: -0.005em; }
+
+  /* ════════════════════════════════════════
+     ALERT CARD — the new component
+     ════════════════════════════════════════ */
+
+  .alert-card {
+    border-radius: 14px;
+    overflow: hidden;
+    margin-top: 2px;
+  }
+
+  /* Type variants */
+  .alert-card.urgent {
+    background: var(--negative-wash);
+    border: 1px solid rgba(196,74,60,0.18);
+    border-left: 3px solid var(--negative);
+  }
+  .alert-card.warning {
+    background: var(--warning-wash);
+    border: 1px solid rgba(181,122,11,0.18);
+    border-left: 3px solid var(--warning);
+  }
+  .alert-card.positive {
+    background: var(--positive-wash);
+    border: 1px solid rgba(27,142,78,0.18);
+    border-left: 3px solid var(--positive);
+  }
+  .alert-card.neutral {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--ink-3);
+  }
+
+  /* Header strip */
+  .alert-card .ac-head {
+    padding: 7px 11px 6px;
+    display: flex; align-items: center; gap: 6px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .alert-card.urgent .ac-head { background: rgba(196,74,60,0.08); }
+  .alert-card.warning .ac-head { background: rgba(181,122,11,0.08); }
+  .alert-card.positive .ac-head { background: rgba(27,142,78,0.08); }
+  .alert-card.neutral .ac-head { background: var(--surface-3); }
+
+  .alert-card .ac-icon {
+    width: 16px; height: 16px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .alert-card.urgent .ac-icon { background: rgba(196,74,60,0.15); color: var(--negative); }
+  .alert-card.warning .ac-icon { background: rgba(181,122,11,0.15); color: var(--warning); }
+  .alert-card.positive .ac-icon { background: rgba(27,142,78,0.15); color: var(--positive); }
+  .alert-card.neutral .ac-icon { background: var(--surface-2); color: var(--ink-3); }
+
+  .alert-card .ac-type { font: 700 8px var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em; flex: 1; }
+  .alert-card.urgent .ac-type { color: var(--negative); }
+  .alert-card.warning .ac-type { color: var(--warning); }
+  .alert-card.positive .ac-type { color: var(--positive); }
+  .alert-card.neutral .ac-type { color: var(--ink-3); }
+
+  .alert-card .ac-time { font: 400 8px var(--font-mono); color: var(--ink-4); }
+
+  /* Body */
+  .alert-card .ac-body { padding: 9px 11px 10px; display: flex; flex-direction: column; gap: 5px; }
+  .alert-card .ac-title { font: 600 11.5px var(--font-sans); color: var(--ink-1); letter-spacing: -0.008em; line-height: 1.3; }
+  .alert-card .ac-text { font: 400 11px var(--font-sans); color: var(--ink-2); line-height: 1.45; }
+
+  /* Actions */
+  .alert-card .ac-actions { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+  .alert-card .ac-cta {
+    font: 600 10px var(--font-sans); padding: 5px 10px;
+    border-radius: 999px; border: 0; cursor: pointer;
+    letter-spacing: -0.005em;
+  }
+  .alert-card.urgent .ac-cta { background: var(--negative); color: white; }
+  .alert-card.warning .ac-cta { background: var(--warning); color: white; }
+  .alert-card.positive .ac-cta { background: var(--positive); color: white; }
+  .alert-card.neutral .ac-cta { background: var(--ink-1); color: var(--surface); }
+
+  .alert-card .ac-dismiss { font: 500 10px var(--font-sans); color: var(--ink-3); background: transparent; border: 0; padding: 5px 6px; cursor: pointer; }
+
+  /* Dot pulse for urgent */
+  .live-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--negative); animation: pulse-neg 2s ease-in-out infinite; margin-right: 2px; }
+  @keyframes pulse-neg { 0%,100%{ box-shadow:0 0 0 0 rgba(196,74,60,0.5);} 50%{ box-shadow:0 0 0 4px rgba(196,74,60,0);} }
+
+  /* ── Anatomy section ── */
+  .anatomy-wrap { display: grid; grid-template-columns: 320px 1fr; gap: 56px; align-items: start; }
+  .anatomy-phone-frame { background: var(--surface-3); border: 1px solid var(--line); border-radius: 22px; padding: 28px 24px; display: flex; justify-content: center; }
+  .anatomy-phone { width: 270px; background: var(--surface); border: 1px solid var(--line); border-radius: 36px; padding: 16px; display: flex; flex-direction: column; gap: 0; overflow: hidden; position: relative; }
+
+  /* Anatomy labels */
+  .ann { display: flex; flex-direction: column; gap: 16px; padding-top: 8px; }
+  .ann-item { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .ann-item:last-child { border-bottom: 0; padding-bottom: 0; }
+  .ann-num { font: 700 11px var(--font-mono); color: var(--accent); width: 20px; flex-shrink: 0; margin-top: 1px; }
+  .ann-body h4 { font: 600 14px var(--font-sans); letter-spacing: -0.01em; margin: 0 0 4px; }
+  .ann-body p { font: 400 13px var(--font-sans); color: var(--ink-2); line-height: 1.5; margin: 0; }
+  .ann-body code { font: 400 11px var(--font-mono); color: var(--accent); background: var(--accent-wash); padding: 1px 5px; border-radius: 4px; }
+
+  /* ── Rules grid ── */
+  .rules { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .rule-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; }
+  .rule-card .rc-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .rule-card .rc-head .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .rule-card .rc-head h4 { font: 600 14px var(--font-sans); letter-spacing: -0.01em; margin: 0; }
+  .rule-card ul { margin: 0; padding: 0 0 0 16px; display: flex; flex-direction: column; gap: 6px; }
+  .rule-card li { font: 400 13px var(--font-sans); color: var(--ink-2); line-height: 1.45; }
+  .rule-card li strong { font-weight: 600; color: var(--ink-1); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Top -->
+  <div class="top">
+    <div class="mark"><span class="tide-bar"></span>kai · design system</div>
+    <div class="meta"><span>N-01 · уведомления в ленте</span><span>2026-05-26</span></div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="eyebrow">новый компонент</div>
+    <h1>Alert Card —<br><span class="ocean">в чат-ленте</span></h1>
+    <p class="lead">Kai проактивно сигнализирует о важных событиях прямо в потоке разговора — виза истекает, рейс изменился, цена упала. Алерт выглядит как сообщение от Kai, не как системное уведомление.</p>
+    <div class="pills">
+      <span class="pill on">S-01 · вариант В</span>
+      <span class="pill">zero-UI</span>
+      <span class="pill">проактивно</span>
+      <span class="pill">4 типа</span>
+      <span class="pill">→ room.html</span>
+      <span class="pill">→ components.html</span>
+    </div>
+  </div>
+
+  <!-- Section 1: 4 types in context -->
+  <section>
+    <div class="sec-head">
+      <div class="idx">01 · варианты</div>
+      <div>
+        <h2>4 типа алертов в контексте</h2>
+        <p class="blurb">Каждый тип показан в живом разговоре — так алерт воспринимает пользователь. Kai остаётся первым лицом, compose island всегда доступен.</p>
+      </div>
+    </div>
+
+    <div class="frames">
+
+      <!-- URGENT -->
+      <div class="frame-card">
+        <div class="frame-num">N-01-A · Критично</div>
+        <div class="phone">
+          <div class="island"></div>
+          <div class="sb"><span>9:41</span><div class="r"><svg width="12" height="9" fill="var(--ink-2)" viewBox="0 0 12 9"><rect x="0" y="4" width="2" height="5" rx="1"/><rect x="3" y="2.5" width="2" height="6.5" rx="1"/><rect x="6" y="1" width="2" height="8" rx="1"/><rect x="9" y="0" width="2" height="9" rx="1"/></svg></div></div>
+          <svg class="tide-svg" viewBox="0 0 212 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 7 Q53 1 106 7 Q159 13 212 7" stroke="url(#tg1)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <defs><linearGradient id="tg1" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#1B4FB0"/><stop offset="52%" stop-color="#2BA8C9"/><stop offset="100%" stop-color="#F4B589"/></linearGradient></defs>
+          </svg>
+          <div class="chat">
+            <div class="day-label">сегодня</div>
+            <div class="user-b">Когда лучше лететь в Японию?</div>
+            <div class="kai-wrap">
+              <div class="who">kai</div>
+              <div class="kai-txt">Апрель — сакура, октябрь — осенние клёны. Оба сезона идеальны. Ваш маршрут: Токио → Киото → Осака.</div>
+            </div>
+            <div class="user-b">Отлично, планирую на август</div>
+            <!-- ALERT -->
+            <div class="kai-wrap">
+              <div class="who proactive"><span class="live-dot"></span></div>
+              <div class="alert-card urgent">
+                <div class="ac-head">
+                  <div class="ac-icon">
+                    <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  </div>
+                  <span class="ac-type">Критично · виза</span>
+                  <span class="ac-time">сейчас</span>
+                </div>
+                <div class="ac-body">
+                  <div class="ac-title">Виза в Японию истекает через 12 дней</div>
+                  <div class="ac-text">Август не успеете — поездка запланирована на 14 августа. Нужно продлить или получить новую.</div>
+                  <div class="ac-actions">
+                    <button class="ac-cta">Что делать</button>
+                    <button class="ac-dismiss">позже</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="compose">
+            <span class="ph">Сообщение</span>
+            <button class="mic-btn"><svg width="10" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0"/><line x1="12" y1="19" x2="12" y2="22"/></svg></button>
+            <button class="send-btn off"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
+          </div>
+        </div>
+        <h3>Критично</h3>
+        <p class="desc">Виза, документ, безопасность. Требует действия до поездки.</p>
+        <div class="traits"><span style="color:var(--negative);border-color:rgba(196,74,60,0.2);background:var(--negative-wash)">--negative</span></div>
+      </div>
+
+      <!-- WARNING -->
+      <div class="frame-card">
+        <div class="frame-num">N-01-B · Предупреждение</div>
+        <div class="phone">
+          <div class="island"></div>
+          <div class="sb"><span>14:22</span><div class="r"><svg width="12" height="9" fill="var(--ink-2)" viewBox="0 0 12 9"><rect x="0" y="4" width="2" height="5" rx="1"/><rect x="3" y="2.5" width="2" height="6.5" rx="1"/><rect x="6" y="1" width="2" height="8" rx="1"/><rect x="9" y="0" width="2" height="9" rx="1"/></svg></div></div>
+          <svg class="tide-svg" viewBox="0 0 212 14" fill="none">
+            <path d="M0 7 Q53 1 106 7 Q159 13 212 7" stroke="url(#tg2)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <defs><linearGradient id="tg2" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#1B4FB0"/><stop offset="52%" stop-color="#2BA8C9"/><stop offset="100%" stop-color="#F4B589"/></linearGradient></defs>
+          </svg>
+          <div class="chat">
+            <div class="day-label">вчера</div>
+            <div class="user-b">Как добраться из аэропорта?</div>
+            <div class="kai-wrap">
+              <div class="who">kai</div>
+              <div class="kai-txt">Narita Express — 75 мин до Shinjuku, ¥3070. Или лимузин-автобус — дешевле, но медленнее.</div>
+            </div>
+            <div class="day-label">сегодня</div>
+            <div class="user-b">Всё, билет куплен!</div>
+            <div class="kai-wrap">
+              <div class="who">kai</div>
+              <div class="kai-txt">Отлично. Занесу в папку поездки.</div>
+            </div>
+            <!-- ALERT -->
+            <div class="kai-wrap">
+              <div class="who proactive"></div>
+              <div class="alert-card warning">
+                <div class="ac-head">
+                  <div class="ac-icon">
+                    <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  </div>
+                  <span class="ac-type">Изменение · рейс</span>
+                  <span class="ac-time">час назад</span>
+                </div>
+                <div class="ac-body">
+                  <div class="ac-title">Рейс SU262 перенесён на 07:30</div>
+                  <div class="ac-text">Было 10:15. Стыковка в Токио может не состояться — разрыв сократился до 45 мин.</div>
+                  <div class="ac-actions">
+                    <button class="ac-cta">Проверить стыковку</button>
+                    <button class="ac-dismiss">ок</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="compose">
+            <span class="ph">Сообщение</span>
+            <button class="mic-btn"><svg width="10" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0"/><line x1="12" y1="19" x2="12" y2="22"/></svg></button>
+            <button class="send-btn off"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
+          </div>
+        </div>
+        <h3>Предупреждение</h3>
+        <p class="desc">Рейс, цена, регуляции. Стоит знать, но не критично.</p>
+        <div class="traits"><span style="color:var(--warning);border-color:rgba(181,122,11,0.2);background:var(--warning-wash)">--warning</span></div>
+      </div>
+
+      <!-- POSITIVE -->
+      <div class="frame-card">
+        <div class="frame-num">N-01-C · Хорошие новости</div>
+        <div class="phone">
+          <div class="island"></div>
+          <div class="sb"><span>11:08</span><div class="r"><svg width="12" height="9" fill="var(--ink-2)" viewBox="0 0 12 9"><rect x="0" y="4" width="2" height="5" rx="1"/><rect x="3" y="2.5" width="2" height="6.5" rx="1"/><rect x="6" y="1" width="2" height="8" rx="1"/><rect x="9" y="0" width="2" height="9" rx="1"/></svg></div></div>
+          <svg class="tide-svg" viewBox="0 0 212 14" fill="none">
+            <path d="M0 7 Q53 1 106 7 Q159 13 212 7" stroke="url(#tg3)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <defs><linearGradient id="tg3" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#1B4FB0"/><stop offset="52%" stop-color="#2BA8C9"/><stop offset="100%" stop-color="#F4B589"/></linearGradient></defs>
+          </svg>
+          <div class="chat">
+            <div class="day-label">3 дня назад</div>
+            <div class="user-b">Ищу отель в Киото, бюджет ¥15 000/ночь</div>
+            <div class="kai-wrap">
+              <div class="who">kai</div>
+              <div class="kai-txt">Нашёл три варианта в Gion. Лучший — Kyoto Century Hotel, ¥18 400. Немного выше бюджета, слежу за ценой.</div>
+            </div>
+            <div class="day-label">сегодня</div>
+            <div class="user-b">Ещё не бронировал</div>
+            <!-- ALERT -->
+            <div class="kai-wrap">
+              <div class="who proactive"></div>
+              <div class="alert-card positive">
+                <div class="ac-head">
+                  <div class="ac-icon">
+                    <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                  </div>
+                  <span class="ac-type">Цена снизилась</span>
+                  <span class="ac-time">сейчас</span>
+                </div>
+                <div class="ac-body">
+                  <div class="ac-title">Kyoto Century Hotel — ¥13 900</div>
+                  <div class="ac-text">Упала на 24% — теперь в вашем бюджете. Таких цен на август обычно немного.</div>
+                  <div class="ac-actions">
+                    <button class="ac-cta">Посмотреть</button>
+                    <button class="ac-dismiss">не сейчас</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="compose">
+            <span class="ph">Сообщение</span>
+            <button class="mic-btn"><svg width="10" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0"/><line x1="12" y1="19" x2="12" y2="22"/></svg></button>
+            <button class="send-btn off"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
+          </div>
+        </div>
+        <h3>Хорошие новости</h3>
+        <p class="desc">Цена упала, открылся безвиз, нашлось место.</p>
+        <div class="traits"><span style="color:var(--positive);border-color:rgba(27,142,78,0.2);background:var(--positive-wash)">--positive</span></div>
+      </div>
+
+      <!-- NEUTRAL -->
+      <div class="frame-card">
+        <div class="frame-num">N-01-D · Нейтрально</div>
+        <div class="phone">
+          <div class="island"></div>
+          <div class="sb"><span>19:55</span><div class="r"><svg width="12" height="9" fill="var(--ink-2)" viewBox="0 0 12 9"><rect x="0" y="4" width="2" height="5" rx="1"/><rect x="3" y="2.5" width="2" height="6.5" rx="1"/><rect x="6" y="1" width="2" height="8" rx="1"/><rect x="9" y="0" width="2" height="9" rx="1"/></svg></div></div>
+          <svg class="tide-svg" viewBox="0 0 212 14" fill="none">
+            <path d="M0 7 Q53 1 106 7 Q159 13 212 7" stroke="url(#tg4)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <defs><linearGradient id="tg4" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#1B4FB0"/><stop offset="52%" stop-color="#2BA8C9"/><stop offset="100%" stop-color="#F4B589"/></linearGradient></defs>
+          </svg>
+          <div class="chat">
+            <div class="day-label">5 дней назад</div>
+            <div class="user-b">Нашёл билеты в Лиссабон!</div>
+            <div class="kai-wrap">
+              <div class="who">kai</div>
+              <div class="kai-txt">Хороший выбор. Начало мая — лучшее время. Добавить в папку «Лиссабон»?</div>
+            </div>
+            <div class="user-b">Да, давай</div>
+            <div class="day-label">сегодня</div>
+            <!-- ALERT -->
+            <div class="kai-wrap">
+              <div class="who proactive"></div>
+              <div class="alert-card neutral">
+                <div class="ac-head">
+                  <div class="ac-icon">
+                    <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  </div>
+                  <span class="ac-type">До вылета · 18 дней</span>
+                  <span class="ac-time">сейчас</span>
+                </div>
+                <div class="ac-body">
+                  <div class="ac-title">Готовы к Лиссабону?</div>
+                  <div class="ac-text">Виза не нужна, страховка не оформлена. Хотите составить чеклист или уточнить маршрут?</div>
+                  <div class="ac-actions">
+                    <button class="ac-cta">Составить чеклист</button>
+                    <button class="ac-dismiss">позже</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="compose">
+            <span class="ph">Сообщение</span>
+            <button class="mic-btn"><svg width="10" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0"/><line x1="12" y1="19" x2="12" y2="22"/></svg></button>
+            <button class="send-btn off"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
+          </div>
+        </div>
+        <h3>Нейтрально</h3>
+        <p class="desc">Напоминание, чеклист, контекстный вопрос от Kai.</p>
+        <div class="traits"><span>--surface-2</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 2: Anatomy -->
+  <section>
+    <div class="sec-head">
+      <div class="idx">02 · анатомия</div>
+      <div>
+        <h2>Из чего состоит</h2>
+        <p class="blurb">Алерт — это сообщение Kai помеченное как «проактивное». Его анатомия строго следует существующим паттернам room.html.</p>
+      </div>
+    </div>
+
+    <div class="anatomy-wrap">
+      <div class="anatomy-phone-frame">
+        <div style="display:flex;flex-direction:column;gap:0;width:270px;">
+          <!-- Who row -->
+          <div style="display:flex;align-items:center;gap:6px;padding:0 0 6px;font:500 9px var(--font-mono);color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;">
+            <span style="display:inline-block;width:12px;height:3px;border-radius:999px;background:var(--tide-gradient);"></span>
+            kai &nbsp;·&nbsp; проактивно &nbsp;·&nbsp; <span style="color:var(--ink-4)">14:22</span>
+          </div>
+          <!-- Alert card full size -->
+          <div class="alert-card warning" style="border-radius:16px;">
+            <div class="ac-head" style="padding:10px 14px 9px;">
+              <div class="ac-icon" style="width:20px;height:20px;">
+                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </div>
+              <span class="ac-type" style="font-size:9px;">Изменение · рейс</span>
+              <span class="ac-time" style="font-size:9px;">час назад</span>
+            </div>
+            <div class="ac-body" style="padding:12px 14px 14px;">
+              <div class="ac-title" style="font-size:14px;">Рейс SU262 перенесён на 07:30</div>
+              <div class="ac-text" style="font-size:12.5px;margin-top:4px;">Было 10:15. Стыковка в Токио может не состояться — разрыв сократился до 45 мин.</div>
+              <div class="ac-actions" style="margin-top:10px;gap:8px;">
+                <button class="ac-cta" style="font-size:11.5px;padding:6px 14px;">Проверить стыковку</button>
+                <button class="ac-dismiss" style="font-size:11.5px;">ок</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ann">
+        <div class="ann-item">
+          <div class="ann-num">01</div>
+          <div class="ann-body">
+            <h4>Who row — атрибуция</h4>
+            <p>Стандартный <code>.who</code> паттерн из room.html с добавлением <code>· проактивно</code>. Tide gradient мини-бар слева — визуальная привязка к Kai. Временная метка справа.</p>
+          </div>
+        </div>
+        <div class="ann-item">
+          <div class="ann-num">02</div>
+          <div class="ann-body">
+            <h4>ac-head — тип и категория</h4>
+            <p>Цветной заголовочный strip: иконка в rounded square, тип события в <code>font-mono uppercase</code>, временная метка. Фон чуть темнее тела карточки.</p>
+          </div>
+        </div>
+        <div class="ann-item">
+          <div class="ann-num">03</div>
+          <div class="ann-body">
+            <h4>ac-title + ac-text</h4>
+            <p>Заголовок — конкретный факт (<code>font-weight: 600</code>). Тело — что это значит для пользователя в контексте его поездки. Не более 2 строк каждое.</p>
+          </div>
+        </div>
+        <div class="ann-item">
+          <div class="ann-num">04</div>
+          <div class="ann-body">
+            <h4>ac-actions — одно действие + dismiss</h4>
+            <p>Ровно один CTA — pill-кнопка с семантическим цветом. Всегда есть escape: «позже» / «ок» / «не сейчас» — серый text button. Kai не навязывает действие.</p>
+          </div>
+        </div>
+        <div class="ann-item">
+          <div class="ann-num">05</div>
+          <div class="ann-body">
+            <h4>Цветовое кодирование</h4>
+            <p>Urgent → <code>--negative / --negative-wash</code>. Warning → <code>--warning / --warning-wash</code>. Positive → <code>--positive / --positive-wash</code>. Neutral → <code>--surface-2 / --line</code>. Границы — 18% opacity от основного цвета.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Rules -->
+  <section>
+    <div class="sec-head">
+      <div class="idx">03 · правила</div>
+      <div>
+        <h2>Когда и как использовать</h2>
+        <p class="blurb">Правила поведения компонента — что нарушает zero-UI философию, а что органично вписывается в паттерн Kai.</p>
+      </div>
+    </div>
+
+    <div class="rules">
+      <div class="rule-card">
+        <div class="rc-head"><div class="dot" style="background:var(--positive)"></div><h4>Делаем</h4></div>
+        <ul>
+          <li>Алерт появляется <strong>только в активном чате поездки</strong>, к которой он относится</li>
+          <li>Tide curve переходит в состояние <strong>«memory»</strong> пока алерт не прочитан</li>
+          <li>Текст CTA — <strong>конкретное действие</strong> («Продлить визу», «Проверить стыковку»), не «Узнать больше»</li>
+          <li>Kai объясняет <strong>почему это важно именно сейчас</strong> — в контексте конкретной поездки пользователя</li>
+          <li>Dismiss всегда доступен — <strong>пользователь сохраняет контроль</strong></li>
+          <li>Не более <strong>одного алерта за сессию</strong> в одном чате</li>
+        </ul>
+      </div>
+      <div class="rule-card">
+        <div class="rc-head"><div class="dot" style="background:var(--negative)"></div><h4>Не делаем</h4></div>
+        <ul>
+          <li><strong>Не показываем алерт поверх чата</strong> — modal, overlay, takeover запрещены (zero-UI)</li>
+          <li><strong>Не используем Push Notification</strong> для информации доступной в чате</li>
+          <li><strong>Не отправляем в пустой чат</strong> — алерт требует контекста разговора</li>
+          <li><strong>Не urgent если не urgent</strong> — «цена упала на 3%» не красный алерт</li>
+          <li>Compose island <strong>не перекрывается</strong> и не блокируется алертом</li>
+          <li><strong>Не показываем два алерта</strong> подряд без ответа пользователя</li>
+        </ul>
+      </div>
+      <div class="rule-card">
+        <div class="rc-head"><div class="dot" style="background:var(--accent)"></div><h4>Триггеры · когда посылать</h4></div>
+        <ul>
+          <li><strong>Urgent</strong> — срок документа &lt; 30 дней до поездки, МИД изменил уровень безопасности</li>
+          <li><strong>Warning</strong> — рейс перенесён, стыковка под угрозой, визовые правила изменились</li>
+          <li><strong>Positive</strong> — цена упала ниже указанного бюджета, открылся безвиз, нашлись места</li>
+          <li><strong>Neutral</strong> — до вылета &lt; 21 день и нет чеклиста, не было активности 5+ дней</li>
+        </ul>
+      </div>
+      <div class="rule-card">
+        <div class="rc-head"><div class="dot" style="background:var(--ink-3)"></div><h4>Связи с системой</h4></div>
+        <ul>
+          <li>Tide curve: состояние <strong>«memory»</strong> (shimmer) пока алерт не прочитан</li>
+          <li>После dismiss — tide curve возвращается в <strong>«idle»</strong></li>
+          <li>После CTA действия — Kai отвечает как <strong>обычное сообщение</strong> в том же чате</li>
+          <li>В Nav-панели: папка поездки получает <strong>цветную точку</strong> если есть непрочитанный алерт</li>
+          <li>Алерт <strong>не дублируется</strong> в Push Notification если чат открыт</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

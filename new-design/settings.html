@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280,initial-scale=1">
+<title>kai · приложение Настройки</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink-1); font-family: var(--font-sans); }
+  .shell { max-width: 1280px; margin: 0 auto; padding: 56px 64px 120px; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 56px; }
+  .top .mark { font-weight: 700; font-size: 18px; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 10px; }
+  .top .meta { display: flex; gap: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+
+  .hero { padding-bottom: 48px; border-bottom: 1px solid var(--line); margin-bottom: 56px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 22px; display: inline-flex; align-items: center; gap: 8px; }
+  .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--ink-3); }
+  .hero h1 { font-size: 56px; font-weight: 600; line-height: 0.98; letter-spacing: -0.03em; max-width: 960px; margin: 0; }
+  .hero h1 .ocean { background: var(--tide-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; font-style: italic; font-weight: 500; }
+  .hero .lead { margin-top: 22px; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 720px; }
+
+  .layout { display: grid; grid-template-columns: 340px 1fr; gap: 56px; align-items: start; }
+  .phone-frame { background: var(--surface-3); border: 1px solid var(--line); border-radius: 24px; padding: 32px; display: flex; justify-content: center; }
+  .phone { width: 280px; height: 620px; background: var(--surface); border: 1px solid var(--line); border-radius: 38px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+  .phone .island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 90px; height: 26px; background: var(--ink-1); border-radius: 999px; z-index: 10; }
+  .phone .home { position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%); width: 90px; height: 4px; border-radius: 999px; background: var(--ink-3); opacity: 0.3; z-index: 10; }
+  .phone .tide-bar { position: absolute; top: 46px; left: 18px; width: calc(100% - 36px); height: 14px; z-index: 2; }
+
+  .appbar { position: absolute; top: 16px; left: 0; right: 0; height: 28px; padding: 0 16px; z-index: 8; display: flex; align-items: center; justify-content: space-between; }
+  .appbar .ic-btn { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-2); border: 0; display: flex; align-items: center; justify-content: center; color: var(--ink-1); }
+  .appbar .ttl { font: 600 13px var(--font-sans); color: var(--ink-1); letter-spacing: -0.005em; }
+
+  .settings { padding: 70px 14px 24px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+
+  .acc-hero {
+    background: var(--surface-2); border-radius: 12px; padding: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .acc-hero .av { width: 36px; height: 36px; border-radius: 50%; background: var(--tide-gradient); background-size: 200% 100%; display: flex; align-items: center; justify-content: center; color: white; font: 700 13px var(--font-sans); flex-shrink: 0; }
+  .acc-hero .info { flex: 1; min-width: 0; }
+  .acc-hero .info .n { font: 600 13px var(--font-sans); color: var(--ink-1); letter-spacing: -0.01em; }
+  .acc-hero .info .e { font: 400 10px var(--font-mono); color: var(--ink-3); margin-top: 1px; }
+  .acc-hero .plan { font: 500 9px var(--font-mono); color: var(--accent); background: var(--accent-wash); padding: 2px 6px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid var(--accent-line); flex-shrink: 0; }
+
+  .s-label { font-family: var(--font-mono); font-size: 9px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; padding: 2px 4px 0; }
+
+  .group { background: var(--surface-2); border-radius: 12px; padding: 3px; display: flex; flex-direction: column; }
+  .row { padding: 9px 11px; border-radius: 8px; display: grid; grid-template-columns: 16px 1fr auto; gap: 9px; align-items: center; }
+  .row svg { color: var(--ink-3); }
+  .row .body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .row .body .t { font: 500 12px var(--font-sans); color: var(--ink-1); letter-spacing: -0.005em; }
+  .row .body .s { font: 400 10px var(--font-mono); color: var(--ink-3); }
+  .row .trail { color: var(--ink-3); font: 500 11px var(--font-sans); display: flex; align-items: center; gap: 5px; }
+
+  /* Toggle — proportioned correctly */
+  .toggle { width: 34px; height: 20px; border-radius: 999px; background: var(--surface-3); padding: 2px; transition: background 200ms cubic-bezier(.2,0,0,1); flex-shrink: 0; }
+  .toggle .knob { width: 16px; height: 16px; border-radius: 50%; background: white; transition: transform 200ms cubic-bezier(.2,0,0,1); box-shadow: 0 1px 3px rgba(0,0,0,0.18); }
+  .toggle.on { background: var(--accent); }
+  .toggle.on .knob { transform: translateX(14px); }
+
+  /* Segmented control */
+  .seg { display: flex; background: var(--surface-3); border-radius: 8px; padding: 2px; gap: 2px; }
+  .seg .opt { padding: 4px 9px; font: 500 11px var(--font-sans); color: var(--ink-3); border-radius: 6px; }
+  .seg .opt.active { background: var(--surface); color: var(--ink-1); }
+
+  /* Danger group */
+  .danger-group { background: var(--surface); border: 1px solid var(--negative-wash); border-radius: 12px; padding: 4px; }
+  .danger-group .row { padding: 11px 12px; }
+  .danger-group .row .body .t { color: var(--negative); }
+  .danger-group .row svg { color: var(--negative); }
+
+  /* Notes */
+  .notes h3 { font-size: 24px; font-weight: 600; letter-spacing: -0.018em; margin-bottom: 18px; }
+  .notes p { font-size: 14.5px; color: var(--ink-2); line-height: 1.55; margin-bottom: 22px; max-width: 560px; }
+  .anatomy-list { display: flex; flex-direction: column; gap: 22px; }
+  .anatomy-item { border-left: 2px solid var(--line); padding: 4px 0 4px 18px; }
+  .anatomy-item.kept { border-left-color: var(--tide-2); }
+  .anatomy-item .ref { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .anatomy-item.kept .ref { color: var(--tide-2); }
+  .anatomy-item h4 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 6px; }
+  .anatomy-item p { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin: 0; max-width: 560px; }
+
+  /* ── Shared entrance animations ── */
+  @keyframes kai-fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes kai-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes kai-scale-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Phone frames fade up with stagger */
+  .phone, .frame-card {
+    animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) both;
+  }
+  .frame-card:nth-child(1) { animation-delay: 0.02s; }
+  .frame-card:nth-child(2) { animation-delay: 0.04s; }
+  .frame-card:nth-child(3) { animation-delay: 0.07s; }
+  .frame-card:nth-child(4) { animation-delay: 0.10s; }
+
+  /* Phone-frame wrappers */
+  .phone-frame .phone { animation: kai-fade-up 0.5s cubic-bezier(.2,0,0,1) 0.1s both; }
+  .layout .phone-frame { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.06s both; }
+  .layout .notes       { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.18s both; }
+
+
+  /* Tide curve entrance — already animates; just ensure visibility */
+  .phone .tide-bar, .phone .tide-svg { animation: kai-fade-in 0.6s ease 0.2s both; }
+
+
+  /* Settings rows staggered entrance */
+  @keyframes row-in {
+    from { opacity: 0; transform: translateX(-6px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .group .row { animation: row-in 0.28s cubic-bezier(.2,0,0,1) both; }
+  .group .row:nth-child(1) { animation-delay: 0.08s; }
+  .group .row:nth-child(2) { animation-delay: 0.14s; }
+  .group .row:nth-child(3) { animation-delay: 0.20s; }
+
+  /* Account hero */
+  .acc-hero { animation: kai-scale-in 0.4s cubic-bezier(.2,0,0,1) 0.05s both; }
+
+  /* Toggle transition */
+  .toggle { transition: background 200ms cubic-bezier(.2,0,0,1); }
+  .toggle .knob { transition: transform 200ms cubic-bezier(.2,0,0,1); }
+
+  /* Privacy section — subtle highlight entrance */
+  @keyframes privacy-reveal {
+    from { opacity: 0; transform: translateY(8px); border-color: transparent; }
+    to   { opacity: 1; transform: none; }
+  }
+  .group:has(.t:contains('PII')) { animation: privacy-reveal 0.4s ease 0.3s both; }
+
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-tide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1B4FB0"/><stop offset="0.5" stop-color="#2BA8C9"/><stop offset="1" stop-color="#F4B589"/></linearGradient>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="9" r="1.2" fill="currentColor"/><circle cx="16" cy="9" r="1.2" fill="currentColor"/><circle cx="9" cy="15" r="1.2" fill="currentColor"/></symbol>
+    <symbol id="i-motion" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 11v1a7 7 0 0 0 14 0v-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-speaker" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-mem" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><ellipse cx="12" cy="12" rx="4" ry="9" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M16 17l5-5-5-5M21 12H9M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><line x1="12" y1="11" x2="12" y2="17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="7.5" r="1" fill="currentColor"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2l9 4v6c0 5-3.5 9-9 10-5.5-1-9-5-9-10V6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 12l3 3 5-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell">
+
+  <div class="top">
+    <div class="mark">
+      <svg width="28" height="6" viewBox="0 0 28 6"><path d="M 1 3 Q 7 0, 14 3 T 27 3" stroke="url(#g-tide)" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      <span>kai</span>
+      <span style="color:var(--ink-3);font-weight:500;letter-spacing:0;">— приложение Настройки</span>
+    </div>
+    <div class="meta">
+      <span>creative add</span>
+      <span style="color:var(--ink-1)">·</span>
+      <span>аккаунт + предпочтения</span>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="eyebrow">творческое — приложение Настройки</div>
+    <h1>Маленькая поверхность.<br>Большой <span class="ocean">договор доверия</span>.</h1>
+    <p class="lead">
+      Пять групп — аккаунт, внешний вид, голос, данные, о приложении. Память + удаление данных связаны с договором доверия (GDPR). Ничего лишнего — чистые строки, один сегментированный контрол для темы, один главный переключатель на предпочтение.
+    </p>
+  </header>
+
+  <div class="layout">
+
+    <div class="phone-frame">
+      <div class="phone">
+        <div class="island"></div>
+        <div class="appbar">
+          <button class="ic-btn"><svg width="14" height="14"><use href="#i-back"/></svg></button>
+          <div class="ttl">Настройки</div>
+          <div style="width:28px"></div>
+        </div>
+        <svg class="tide-bar" viewBox="0 0 244 14" preserveAspectRatio="none"><path d="M 2 8 Q 30 4, 56 8 T 110 8 T 168 8 T 244 6" stroke="url(#g-tide)" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.45"/></svg>
+
+        <div class="settings">
+
+          <!-- Account hero -->
+          <div class="acc-hero">
+            <div class="av">A</div>
+            <div class="info">
+              <div class="n">Aibek</div>
+              <div class="e">aibek@wize.ai</div>
+            </div>
+            <span class="plan">plus</span>
+          </div>
+
+          <!-- Appearance -->
+          <div>
+            <div class="s-label">внешний вид</div>
+            <div class="group">
+              <div class="row">
+                <svg width="15" height="15"><use href="#i-palette"/></svg>
+                <div class="body"><div class="t">Тема</div></div>
+                <div class="seg">
+                  <span class="opt">Авто</span>
+                  <span class="opt active">Светлая</span>
+                  <span class="opt">Тёмная</span>
+                </div>
+              </div>
+              <div class="row">
+                <svg width="15" height="15"><use href="#i-motion"/></svg>
+                <div class="body">
+                  <div class="t">Уменьшить анимацию</div>
+                  <div class="s">кривая прилива становится статичной</div>
+                </div>
+                <div class="toggle"><div class="knob"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Voice -->
+          <div>
+            <div class="s-label">голос</div>
+            <div class="group">
+              <div class="row">
+                <svg width="15" height="15"><use href="#i-mic"/></svg>
+                <div class="body">
+                  <div class="t">Голосовой ввод</div>
+                  <div class="s">нажмите орб для начала прослушивания</div>
+                </div>
+                <div class="toggle on"><div class="knob"></div></div>
+              </div>
+              <div class="row">
+                <svg width="15" height="15"><use href="#i-speaker"/></svg>
+                <div class="body">
+                  <div class="t">Kai отвечает голосом</div>
+                  <div class="s">голосовые ответы на голосовые запросы</div>
+                </div>
+                <div class="toggle"><div class="knob"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data -->
+          <div>
+            <div class="s-label">данные</div>
+            <div class="group">
+              <div class="row">
+                <svg width="15" height="15"><use href="#i-mem"/></svg>
+                <div class="body">
+                  <div class="t">Память</div>
+                  <div class="s">23 факта · вкл</div>
+                </div>
+                <div class="trail"><svg width="13" height="13"><use href="#i-chev"/></svg></div>
+              </div>
+              <div class="row">
+                <svg width="15" height="15"><use href="#i-globe"/></svg>
+                <div class="body">
+                  <div class="t">Язык</div>
+                  <div class="s">интерфейс</div>
+                </div>
+                <div class="trail">Русский<svg width="13" height="13"><use href="#i-chev"/></svg></div>
+              </div>
+            </div>
+            <div class="danger-group" style="margin-top:8px;">
+              <div class="row">
+                <svg width="15" height="15"><use href="#i-trash"/></svg>
+                <div class="body">
+                  <div class="t">Удалить мои данные</div>
+                  <div class="s" style="color:var(--negative);opacity:0.7">необратимо · GDPR</div>
+                </div>
+                <div class="trail"><svg width="13" height="13" style="color:var(--negative)"><use href="#i-chev"/></svg></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Приватность (F-L4-01/02/04) -->
+          <div>
+            <div class="s-label">приватность</div>
+            <div class="group">
+              <div class="row" style="color:var(--positive);">
+                <svg width="15" height="15" style="color:var(--positive)"><use href="#i-shield"/></svg>
+                <div class="body">
+                  <div class="t" style="color:var(--positive);">PII-аудит</div>
+                  <div class="s" style="color:var(--positive);opacity:0.75;">0 утечек · 30-дневный мониторинг</div>
+                </div>
+                <div class="trail" style="font:600 10px var(--font-mono);color:var(--positive);">чисто</div>
+              </div>
+              <div class="row">
+                <svg width="15" height="15"><use href="#i-clock"/></svg>
+                <div class="body">
+                  <div class="t">Авто-забывание</div>
+                  <div class="s">временные выводы истекают через 24ч</div>
+                </div>
+                <div class="trail" style="font:500 10px var(--font-mono);color:var(--positive);">вкл</div>
+              </div>
+              <div class="row">
+                <svg width="15" height="15"><use href="#i-lock"/></svg>
+                <div class="body">
+                  <div class="t">3-уровневая токенизация</div>
+                  <div class="s">имя, геолокация, паспорт защищены</div>
+                </div>
+                <div class="trail"><svg width="13" height="13"><use href="#i-chev"/></svg></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Аккаунт -->
+          <div>
+            <div class="s-label">аккаунт</div>
+            <div class="group">
+              <div class="row">
+                <svg width="15" height="15"><use href="#i-info"/></svg>
+                <div class="body">
+                  <div class="t">Тарифный план</div>
+                  <div class="s">Kai Plus · $9/мес</div>
+                </div>
+                <div class="trail"><svg width="13" height="13"><use href="#i-chev"/></svg></div>
+              </div>
+              <div class="row">
+                <svg width="15" height="15"><use href="#i-logout"/></svg>
+                <div class="body">
+                  <div class="t" style="color:var(--negative)">Выйти</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="s-label">о приложении</div>
+            <div class="group">
+              <div class="row">
+                <svg width="15" height="15"><use href="#i-info"/></svg>
+                <div class="body"><div class="t">Версия</div></div>
+                <div class="trail">0.2.0</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="home"></div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <h3>Только те элементы управления, которые заслуживают этого.</h3>
+      <p>Нет раздела «для разработчиков». Нет пасхального яйца на 7 нажатий. Если настройка ничего не меняет для пользователя — она не войдёт в продукт.</p>
+
+      <div class="anatomy-list">
+        <div class="anatomy-item kept">
+          <div class="ref">оставлено · из аккаунта панели</div>
+          <h4>Герой аккаунта · аватар прилива + бейдж тарифного плана</h4>
+          <p>Тот же аватар с градиентом прилива как в блоке аккаунта панели. Email + имя + чип тарифного плана (в подложке акцента). Лицо доверия экрана.</p>
+        </div>
+        <div class="anatomy-item kept">
+          <div class="ref">оставлено · из строк списка</div>
+          <h4>Строки · иконка + заголовок + хвост</h4>
+          <p>Стандартная строка списка из Слоя 1. Хвост справа — один из: шеврон (переход), переключатель, сегментированный контрол, простой текст.</p>
+        </div>
+        <div class="anatomy-item kept">
+          <div class="ref">оставлено · из опасной зоны Памяти</div>
+          <h4>Удалить мои данные · изолированная опасная карточка</h4>
+          <p>Обрамлено с негативной подложкой. Тот же паттерн что «забыть всё» в приложении Память — вынесено отдельно, чтобы исключить случайное нажатие.</p>
+        </div>
+        <div class="anatomy-item kept">
+          <div class="ref">оставлено · новое для настроек</div>
+          <h4>Сегментированный контрол темы</h4>
+          <p>Одно нажатие для переключения Авто / Светлая / Тёмная. Без выпадающего списка. Авто следует системным настройкам; Светлая/Тёмная — явные переопределения.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>

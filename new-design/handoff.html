@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280,initial-scale=1">
+<title>kai · передача в разработку · шаг 03</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink-1); font-family: var(--font-sans); }
+  .shell { max-width: 1280px; margin: 0 auto; padding: 56px 64px 120px; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 56px; }
+  .top .mark { font-weight: 700; font-size: 18px; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 10px; }
+  .top .meta { display: flex; gap: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+
+  .hero { padding-bottom: 48px; border-bottom: 1px solid var(--line); margin-bottom: 64px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 22px; display: inline-flex; align-items: center; gap: 8px; }
+  .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--ink-3); }
+  .hero h1 { font-size: 60px; font-weight: 600; line-height: 0.98; letter-spacing: -0.03em; max-width: 960px; margin: 0; }
+  .hero h1 .ocean { background: var(--tide-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; font-style: italic; font-weight: 500; }
+  .hero .lead { margin-top: 22px; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 720px; }
+
+  /* File grid in hero */
+  .files-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 36px; }
+  .file-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .file-card .name { font: 600 13px var(--font-mono); color: var(--accent); }
+  .file-card .desc { font: 400 12px var(--font-sans); color: var(--ink-2); margin-top: 4px; line-height: 1.4; }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  section:first-of-type { padding-top: 0; border-top: 0; }
+  .sec-head { display: grid; grid-template-columns: 220px 1fr; gap: 64px; margin-bottom: 32px; align-items: baseline; }
+  .sec-head .idx { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .sec-head h2 { font-size: 36px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.05; }
+  .sec-head .blurb { font-size: 16px; color: var(--ink-2); line-height: 1.55; max-width: 580px; margin-top: 14px; }
+
+  /* Code block */
+  .code {
+    background: #0E0E11;
+    color: #C8C8C2;
+    border-radius: 14px;
+    padding: 24px 28px;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.65;
+    margin-bottom: 16px;
+  }
+  .code .c-comment { color: #5C5C58; }
+  .code .c-key { color: #5C8EFF; }
+  .code .c-str { color: #F4B589; }
+  .code .c-num { color: #3DBE7A; }
+  .code .c-kw { color: #B07AE8; }
+  .code .c-cls { color: #2BA8C9; }
+  .code .filename {
+    color: #5C5C58; font-size: 11px;
+    border-bottom: 1px solid #25252A;
+    padding-bottom: 10px; margin-bottom: 14px;
+    display: flex; justify-content: space-between;
+  }
+  .code .filename .lang { color: #5C8EFF; }
+
+  /* Token table */
+  .token-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .token { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .token .swatch { width: 100%; height: 36px; border-radius: 6px; border: 1px solid var(--line); }
+  .token .name { font: 600 12px var(--font-mono); color: var(--ink-1); }
+  .token .val { font: 400 10.5px var(--font-mono); color: var(--ink-3); }
+
+  /* Quick-start */
+  .quickstart {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  .step {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px;
+  }
+  .step .n { font: 700 22px var(--font-sans); color: var(--accent); letter-spacing: -0.02em; }
+  .step h4 { font: 600 16px var(--font-sans); color: var(--ink-1); margin: 4px 0 6px; letter-spacing: -0.01em; }
+  .step p { font: 400 13.5px var(--font-sans); color: var(--ink-2); line-height: 1.5; margin: 0; }
+  .step code { font: 400 11.5px var(--font-mono); background: var(--surface-2); padding: 1px 5px; border-radius: 4px; color: var(--accent); }
+
+  /* ── Shared entrance animations ── */
+  @keyframes kai-fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes kai-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes kai-scale-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Phone frames fade up with stagger */
+  .phone, .frame-card {
+    animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) forwards;
+  }
+  .frame-card:nth-child(1) { animation-delay: 0.02s; }
+  .frame-card:nth-child(2) { animation-delay: 0.04s; }
+  .frame-card:nth-child(3) { animation-delay: 0.07s; }
+  .frame-card:nth-child(4) { animation-delay: 0.10s; }
+
+  /* Phone-frame wrappers */
+  .phone-frame .phone { animation: kai-fade-up 0.5s cubic-bezier(.2,0,0,1) 0.1s forwards; }
+  .layout .phone-frame { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.06s forwards; }
+  .layout .notes       { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.18s forwards; }
+
+
+  /* Tide curve entrance — already animates; just ensure visibility */
+  .phone .tide-bar, .phone .tide-svg { animation: kai-fade-in 0.6s ease 0.2s forwards; }
+
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-tide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1B4FB0"/><stop offset="0.5" stop-color="#2BA8C9"/><stop offset="1" stop-color="#F4B589"/></linearGradient>
+  </defs>
+</svg>
+
+<div class="shell">
+
+  <div class="top">
+    <div class="mark">
+      <svg width="28" height="6" viewBox="0 0 28 6"><path d="M 1 3 Q 7 0, 14 3 T 27 3" stroke="url(#g-tide)" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      <span>kai</span>
+      <span style="color:var(--ink-3);font-weight:500;letter-spacing:0;">— передача в разработку · шаг 03</span>
+    </div>
+    <div class="meta">
+      <span>шаг 03 из 5</span>
+      <span style="color:var(--ink-1)">·</span>
+      <span>токены · flutter · анимация</span>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="eyebrow">шаг 03 — передача в разработку</div>
+    <h1>Дизайн становится <span class="ocean">Dart</span>.</h1>
+    <p class="lead">
+      Три артефакта для kai-app: версионированный <code style="font-family:var(--font-mono);font-size:14px;background:var(--surface-2);padding:2px 8px;border-radius:4px;color:var(--accent);">design-tokens.json</code> (уже экспортирован), четыре спецификации Flutter-виджетов на Dart (KaiTideCurve, KaiButton, KaiBubble, KaiCompose), и спецификация анимации готовая для AnimationController. Быстрый старт внизу — три шага от клонирования до запуска.
+    </p>
+
+    <div class="files-row">
+      <div class="file-card"><div class="name">design-tokens.json</div><div class="desc">Версионированные токены · светлые + тёмные + прилив · 11 размеров + 6 радиусов + анимация</div></div>
+      <div class="file-card"><div class="name">kai_theme.dart</div><div class="desc">Фабрика ThemeData · светлая/тёмная · ColorScheme + TextTheme</div></div>
+      <div class="file-card"><div class="name">kai_widgets.dart</div><div class="desc">Четыре виджета · TideCurve, Button, Bubble, Compose</div></div>
+      <div class="file-card"><div class="name">HANDOFF.md</div><div class="desc">README для разработчиков · установка, машина состояний прилива, анимация</div></div>
+    </div>
+  </header>
+
+  <!-- ─── 1. TOKENS PREVIEW ─── -->
+  <section>
+    <div class="sec-head">
+      <div class="idx">03.1 — токены · пример</div>
+      <div>
+        <h2>Токены, образец.</h2>
+        <p class="blurb">Полный набор в <code>design-tokens.json</code>. Ниже — образец цветовых токенов (светлая тема) и градиента прилива. Разработчики импортируют JSON и генерируют Dart-константы через <code>build_runner</code> или включённый скрипт кодогенерации.</p>
+      </div>
+    </div>
+
+    <div class="token-grid">
+      <div class="token"><div class="swatch" style="background:#FAFAF9"></div><div class="name">bg</div><div class="val">#FAFAF9</div></div>
+      <div class="token"><div class="swatch" style="background:#FFFFFF;border-color:#E8E8E5"></div><div class="name">surface</div><div class="val">#FFFFFF</div></div>
+      <div class="token"><div class="swatch" style="background:#F3F3F1"></div><div class="name">surface-2</div><div class="val">#F3F3F1</div></div>
+      <div class="token"><div class="swatch" style="background:#111114"></div><div class="name">ink-1</div><div class="val">#111114</div></div>
+      <div class="token"><div class="swatch" style="background:#2C5BE5"></div><div class="name">accent</div><div class="val">#2C5BE5</div></div>
+      <div class="token"><div class="swatch" style="background:#1B8E4E"></div><div class="name">positive</div><div class="val">#1B8E4E</div></div>
+      <div class="token"><div class="swatch" style="background:#C44A3C"></div><div class="name">negative</div><div class="val">#C44A3C</div></div>
+      <div class="token"><div class="swatch" style="background:linear-gradient(115deg,#1B4FB0,#2BA8C9,#F4B589)"></div><div class="name">tide</div><div class="val">3 stops</div></div>
+    </div>
+
+    <div class="code" style="margin-top:20px;">
+      <div class="filename"><span>design-tokens.json · отрывок</span><span class="lang">json</span></div>
+<span class="c-key">"color"</span>: {
+  <span class="c-key">"light"</span>: {
+    <span class="c-key">"bg"</span>:           { <span class="c-key">"value"</span>: <span class="c-str">"#FAFAF9"</span> },
+    <span class="c-key">"surface"</span>:      { <span class="c-key">"value"</span>: <span class="c-str">"#FFFFFF"</span> },
+    <span class="c-key">"ink-1"</span>:        { <span class="c-key">"value"</span>: <span class="c-str">"#111114"</span> },
+    <span class="c-key">"accent"</span>:       { <span class="c-key">"value"</span>: <span class="c-str">"#2C5BE5"</span> }
+  },
+  <span class="c-key">"tide"</span>: {
+    <span class="c-key">"stop-1"</span>: { <span class="c-key">"value"</span>: <span class="c-str">"#1B4FB0"</span> },
+    <span class="c-key">"stop-2"</span>: { <span class="c-key">"value"</span>: <span class="c-str">"#2BA8C9"</span> },
+    <span class="c-key">"stop-3"</span>: { <span class="c-key">"value"</span>: <span class="c-str">"#F4B589"</span> },
+    <span class="c-key">"angle-deg"</span>: <span class="c-num">115</span>
+  }
+}
+    </div>
+  </section>
+
+  <!-- ─── 2. FLUTTER THEME ─── -->
+  <section>
+    <div class="sec-head">
+      <div class="idx">03.2 — kai_theme.dart</div>
+      <div>
+        <h2>Тема.</h2>
+        <p class="blurb"><code>KaiTheme.light()</code> и <code>KaiTheme.dark()</code> возвращают полный <code>ThemeData</code>. Подключите один раз в <code>MaterialApp</code> — каждый виджет ниже подхватит цвета автоматически.</p>
+      </div>
+    </div>
+
+    <div class="code">
+      <div class="filename"><span>lib/core/theme/kai_theme.dart</span><span class="lang">dart</span></div>
+<span class="c-kw">import</span> <span class="c-str">'package:flutter/material.dart'</span>;
+<span class="c-kw">import</span> <span class="c-str">'package:google_fonts/google_fonts.dart'</span>;
+
+<span class="c-kw">class</span> <span class="c-cls">KaiTokens</span> {
+  <span class="c-comment">// Градиент прилива — независимый от темы</span>
+  <span class="c-kw">static</span> <span class="c-kw">const</span> tideStop1 = <span class="c-cls">Color</span>(<span class="c-num">0xFF1B4FB0</span>);
+  <span class="c-kw">static</span> <span class="c-kw">const</span> tideStop2 = <span class="c-cls">Color</span>(<span class="c-num">0xFF2BA8C9</span>);
+  <span class="c-kw">static</span> <span class="c-kw">const</span> tideStop3 = <span class="c-cls">Color</span>(<span class="c-num">0xFFF4B589</span>);
+  <span class="c-kw">static</span> <span class="c-kw">final</span> tideGradient = <span class="c-cls">LinearGradient</span>(
+    begin: <span class="c-cls">Alignment</span>.topLeft,
+    end:   <span class="c-cls">Alignment</span>.bottomRight,
+    colors: [tideStop1, tideStop2, tideStop3],
+    stops:  [<span class="c-num">0.0</span>, <span class="c-num">0.52</span>, <span class="c-num">1.0</span>],
+  );
+}
+
+<span class="c-kw">class</span> <span class="c-cls">KaiTheme</span> {
+  <span class="c-kw">static</span> <span class="c-cls">ThemeData</span> light() => <span class="c-cls">ThemeData</span>(
+    brightness: <span class="c-cls">Brightness</span>.light,
+    scaffoldBackgroundColor: <span class="c-kw">const</span> <span class="c-cls">Color</span>(<span class="c-num">0xFFFAFAF9</span>),
+    colorScheme: <span class="c-kw">const</span> <span class="c-cls">ColorScheme</span>.light(
+      primary:    <span class="c-cls">Color</span>(<span class="c-num">0xFF2C5BE5</span>),
+      surface:    <span class="c-cls">Color</span>(<span class="c-num">0xFFFFFFFF</span>),
+      onSurface:  <span class="c-cls">Color</span>(<span class="c-num">0xFF111114</span>),
+      error:      <span class="c-cls">Color</span>(<span class="c-num">0xFFC44A3C</span>),
+    ),
+    textTheme: <span class="c-cls">GoogleFonts</span>.manropeTextTheme(),
+    extensions: [_kaiTokensExt(light: <span class="c-kw">true</span>)],
+  );
+
+  <span class="c-kw">static</span> <span class="c-cls">ThemeData</span> dark() => <span class="c-cls">ThemeData</span>(
+    brightness: <span class="c-cls">Brightness</span>.dark,
+    scaffoldBackgroundColor: <span class="c-kw">const</span> <span class="c-cls">Color</span>(<span class="c-num">0xFF0E0E11</span>),
+    colorScheme: <span class="c-kw">const</span> <span class="c-cls">ColorScheme</span>.dark(
+      primary:    <span class="c-cls">Color</span>(<span class="c-num">0xFF5C8EFF</span>),
+      surface:    <span class="c-cls">Color</span>(<span class="c-num">0xFF16161A</span>),
+      onSurface:  <span class="c-cls">Color</span>(<span class="c-num">0xFFF5F5F2</span>),
+      error:      <span class="c-cls">Color</span>(<span class="c-num">0xFFE66F60</span>),
+    ),
+    textTheme: <span class="c-cls">GoogleFonts</span>.manropeTextTheme(<span class="c-cls">ThemeData</span>.dark().textTheme),
+    extensions: [_kaiTokensExt(light: <span class="c-kw">false</span>)],
+  );
+}
+    </div>
+  </section>
+
+  <!-- ─── 3. TIDE CURVE WIDGET ─── -->
+  <section>
+    <div class="sec-head">
+      <div class="idx">03.3 — KaiTideCurve</div>
+      <div>
+        <h2>Знак бренда в коде.</h2>
+        <p class="blurb">Один виджет управляет всеми восемью состояниями. Передайте enum — получите нужную анимацию. CustomPainter + AnimationController. Без сторонних библиотек анимации.</p>
+      </div>
+    </div>
+
+    <div class="code">
+      <div class="filename"><span>lib/widgets/kai_tide_curve.dart</span><span class="lang">dart</span></div>
+<span class="c-kw">enum</span> <span class="c-cls">TideState</span> {
+  idle, listening, thinking, responding,
+  success, error, memory, sleep,
+}
+
+<span class="c-kw">class</span> <span class="c-cls">KaiTideCurve</span> <span class="c-kw">extends</span> <span class="c-cls">StatefulWidget</span> {
+  <span class="c-kw">final</span> <span class="c-cls">TideState</span> state;
+  <span class="c-kw">final</span> <span class="c-cls">double</span> height;
+  <span class="c-kw">final</span> <span class="c-cls">EdgeInsets</span> padding;
+
+  <span class="c-kw">const</span> <span class="c-cls">KaiTideCurve</span>({
+    <span class="c-kw">super</span>.key,
+    <span class="c-kw">required</span> <span class="c-kw">this</span>.state,
+    <span class="c-kw">this</span>.height = <span class="c-num">16</span>,
+    <span class="c-kw">this</span>.padding = <span class="c-kw">const</span> <span class="c-cls">EdgeInsets</span>.symmetric(horizontal: <span class="c-num">18</span>),
+  });
+
+  <span class="c-comment">// Профиль анимации для каждого состояния — см. design-tokens.json § tide-states</span>
+  <span class="c-cls">Duration</span> get _duration => <span class="c-kw">switch</span> (state) {
+    <span class="c-cls">TideState</span>.listening  => <span class="c-cls">Duration</span>(milliseconds: <span class="c-num">2200</span>),
+    <span class="c-cls">TideState</span>.thinking   => <span class="c-cls">Duration</span>(milliseconds: <span class="c-num">3000</span>),
+    <span class="c-cls">TideState</span>.responding => <span class="c-cls">Duration</span>(milliseconds: <span class="c-num">1400</span>),
+    <span class="c-cls">TideState</span>.success    => <span class="c-cls">Duration</span>(milliseconds: <span class="c-num">1200</span>),
+    <span class="c-cls">TideState</span>.error      => <span class="c-cls">Duration</span>(milliseconds: <span class="c-num">600</span>),
+    <span class="c-cls">TideState</span>.memory     => <span class="c-cls">Duration</span>(milliseconds: <span class="c-num">900</span>),
+    _                          => <span class="c-cls">Duration</span>.zero,
+  };
+
+  <span class="c-comment">// reduce-motion → свернуть анимации до статичной прозрачности</span>
+  <span class="c-comment">// Читать MediaQuery.disableAnimationsOf(context) внутри build()</span>
+}
+    </div>
+  </section>
+
+  <!-- ─── 4. WIDGETS ─── -->
+  <section>
+    <div class="sec-head">
+      <div class="idx">03.4 — виджеты</div>
+      <div>
+        <h2>Ещё три виджета.</h2>
+        <p class="blurb">Кнопка, пузырь сообщения, поле ввода. Все используют тему. Кнопка с заливкой Прилива — момент бренда, одна на экран.</p>
+      </div>
+    </div>
+
+    <div class="code">
+      <div class="filename"><span>lib/widgets/kai_button.dart</span><span class="lang">dart</span></div>
+<span class="c-kw">enum</span> <span class="c-cls">KaiButtonVariant</span> { primary, tide, secondary, ghost, destructive }
+
+<span class="c-kw">class</span> <span class="c-cls">KaiButton</span> <span class="c-kw">extends</span> <span class="c-cls">StatelessWidget</span> {
+  <span class="c-kw">final</span> <span class="c-cls">String</span> label;
+  <span class="c-kw">final</span> <span class="c-cls">VoidCallback</span>? onPressed;
+  <span class="c-kw">final</span> <span class="c-cls">KaiButtonVariant</span> variant;
+  <span class="c-kw">final</span> <span class="c-cls">Widget</span>? icon;
+  <span class="c-kw">final</span> <span class="c-cls">bool</span> isLoading;
+
+  <span class="c-kw">const</span> <span class="c-cls">KaiButton</span>({
+    <span class="c-kw">super</span>.key,
+    <span class="c-kw">required</span> <span class="c-kw">this</span>.label,
+    <span class="c-kw">this</span>.onPressed,
+    <span class="c-kw">this</span>.variant = <span class="c-cls">KaiButtonVariant</span>.primary,
+    <span class="c-kw">this</span>.icon,
+    <span class="c-kw">this</span>.isLoading = <span class="c-kw">false</span>,
+  });
+
+  <span class="c-comment">// Радиус: 14, отступы: 12×18, вес: 600, трекинг: -0.005em</span>
+  <span class="c-comment">// вариант .tide использует KaiTokens.tideGradient как фон — анимирован при наведении</span>
+}
+
+<span class="c-kw">class</span> <span class="c-cls">KaiBubble</span> <span class="c-kw">extends</span> <span class="c-cls">StatelessWidget</span> {
+  <span class="c-kw">final</span> <span class="c-cls">String</span> text;
+  <span class="c-kw">final</span> <span class="c-cls">bool</span> isUser;
+  <span class="c-kw">final</span> <span class="c-cls">List</span>&lt;<span class="c-cls">Source</span>&gt; sources;
+  <span class="c-kw">final</span> <span class="c-cls">bool</span> streaming;
+  <span class="c-comment">// Пользователь: фон surface-2, радиус 14-14-4-14, по правому краю</span>
+  <span class="c-comment">// Kai: без фона, глиф прилива над именем, встроенные цитаты [n] в акценте</span>
+}
+
+<span class="c-kw">class</span> <span class="c-cls">KaiCompose</span> <span class="c-kw">extends</span> <span class="c-cls">StatefulWidget</span> {
+  <span class="c-kw">final</span> <span class="c-cls">ValueChanged</span>&lt;<span class="c-cls">String</span>&gt; onSubmit;
+  <span class="c-kw">final</span> <span class="c-cls">VoidCallback</span>? onMicTap;
+  <span class="c-comment">// Многострочный, макс 80px, кнопка отправки с градиентом прилива</span>
+}
+    </div>
+  </section>
+
+  <!-- ─── 5. MOTION ─── -->
+  <section>
+    <div class="sec-head">
+      <div class="idx">03.5 — анимация</div>
+      <div>
+        <h2>Одна кривая, три длительности.</h2>
+        <p class="blurb">Один токен смягчения покрывает 90% случаев. Стандарт 240 мс для UI, фоновый 2.6 с для циклов бренда, микро 120 мс для обратной связи нажатия.</p>
+      </div>
+    </div>
+
+    <div class="code">
+      <div class="filename"><span>lib/core/motion/kai_motion.dart</span><span class="lang">dart</span></div>
+<span class="c-kw">class</span> <span class="c-cls">KaiMotion</span> {
+  <span class="c-comment">// Длительности</span>
+  <span class="c-kw">static</span> <span class="c-kw">const</span> standard = <span class="c-cls">Duration</span>(milliseconds: <span class="c-num">240</span>);
+  <span class="c-kw">static</span> <span class="c-kw">const</span> ambient  = <span class="c-cls">Duration</span>(milliseconds: <span class="c-num">2600</span>);
+  <span class="c-kw">static</span> <span class="c-kw">const</span> micro    = <span class="c-cls">Duration</span>(milliseconds: <span class="c-num">120</span>);
+  <span class="c-kw">static</span> <span class="c-kw">const</span> exitFast = <span class="c-cls">Duration</span>(milliseconds: <span class="c-num">200</span>);
+
+  <span class="c-comment">// Кривые смягчения</span>
+  <span class="c-kw">static</span> <span class="c-kw">const</span> standardCurve = <span class="c-cls">Cubic</span>(<span class="c-num">0.2</span>, <span class="c-num">0</span>, <span class="c-num">0</span>, <span class="c-num">1</span>);  <span class="c-comment">// Material 3 выделенный</span>
+  <span class="c-kw">static</span> <span class="c-kw">const</span> ambientCurve  = <span class="c-cls">Curves</span>.easeInOut;
+  <span class="c-kw">static</span> <span class="c-kw">const</span> exitCurve     = <span class="c-cls">Cubic</span>(<span class="c-num">0.4</span>, <span class="c-num">0</span>, <span class="c-num">0.6</span>, <span class="c-num">1</span>);
+}
+
+<span class="c-comment">// Пример использования — панель выезжает</span>
+<span class="c-cls">AnimatedPositioned</span>(
+  duration: <span class="c-cls">KaiMotion</span>.standard,
+  curve:    <span class="c-cls">KaiMotion</span>.standardCurve,
+  left:     panelOpen ? <span class="c-num">0</span> : -panelWidth,
+  child:    <span class="c-cls">KaiPanel</span>(...),
+);
+    </div>
+  </section>
+
+  <!-- ─── 6. QUICK START ─── -->
+  <section>
+    <div class="sec-head">
+      <div class="idx">03.6 — быстрый старт</div>
+      <div>
+        <h2>Три шага.</h2>
+        <p class="blurb">Добавить в kai-app, запустить, отправить.</p>
+      </div>
+    </div>
+
+    <div class="quickstart">
+      <div class="step">
+        <div class="n">01</div>
+        <h4>Скопировать токены</h4>
+        <p>Поместите <code>design-tokens.json</code> в <code>lib/core/design/</code>. Запустите <code>flutter pub run build_runner build</code> для генерации Dart-констант.</p>
+      </div>
+      <div class="step">
+        <div class="n">02</div>
+        <h4>Подключить тему</h4>
+        <p>В <code>main.dart</code>: <code>MaterialApp(theme: KaiTheme.light(), darkTheme: KaiTheme.dark())</code>.</p>
+      </div>
+      <div class="step">
+        <div class="n">03</div>
+        <h4>Использовать виджеты</h4>
+        <p>Замените существующие кнопки / пузыри / поле ввода на <code>KaiButton</code>, <code>KaiBubble</code>, <code>KaiCompose</code>. Добавьте <code>KaiTideCurve</code> вверху каждого экрана.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

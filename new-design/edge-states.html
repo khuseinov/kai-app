@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280,initial-scale=1">
+<title>kai · граничные состояния · шаг 06</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink-1); font-family: var(--font-sans); }
+  .shell { max-width: 1280px; margin: 0 auto; padding: 56px 64px 120px; }
+  .top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 56px; }
+  .top .mark { font-weight: 700; font-size: 18px; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 10px; }
+  .top .meta { display: flex; gap: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+  .hero { padding-bottom: 48px; border-bottom: 1px solid var(--line); margin-bottom: 56px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 22px; display: inline-flex; align-items: center; gap: 8px; }
+  .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--ink-3); }
+  .hero h1 { font-size: 60px; font-weight: 600; line-height: 0.98; letter-spacing: -0.03em; max-width: 960px; margin: 0; }
+  .hero h1 .ocean { background: var(--tide-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; font-style: italic; font-weight: 500; }
+  .hero .lead { margin-top: 22px; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 720px; }
+
+  .frames { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .frame-card { background: var(--surface-3); border: 1px solid var(--line); border-radius: 22px; padding: 28px 0 22px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .frame-num { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .frame-card h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; }
+  .frame-card .desc { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; padding: 0 22px; text-align: center; }
+  .frame-card .traits { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; padding: 0 22px; }
+  .frame-card .traits span { font-family: var(--font-mono); font-size: 9px; color: var(--ink-3); padding: 3px 7px; border: 1px solid var(--line); border-radius: 999px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .phone {
+    width: 240px; height: 480px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 32px;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .phone .island { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 76px; height: 22px; background: var(--ink-1); border-radius: 999px; z-index: 10; }
+  .phone .home { position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%); width: 76px; height: 3px; border-radius: 999px; background: var(--ink-3); opacity: 0.3; z-index: 10; }
+  .phone .tide-bar { position: absolute; top: 40px; left: 16px; width: calc(100% - 32px); height: 14px; z-index: 2; }
+
+  /* Background chat for context */
+  .bg-chat { position: absolute; inset: 0; padding: 70px 14px 80px; display: flex; flex-direction: column; gap: 8px; opacity: 0.6; }
+  .bg-chat .u { align-self: flex-end; background: var(--surface-2); padding: 8px 12px; border-radius: 14px 14px 4px 14px; font: 400 12px var(--font-sans); color: var(--ink-1); max-width: 78%; }
+  .bg-chat .k { font: 400 12px var(--font-sans); color: var(--ink-1); line-height: 1.5; padding-right: 12px; }
+
+  /* Compose island */
+  .compose-island {
+    position: absolute; left: 18px; right: 18px; bottom: 24px;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px;
+    padding: 4px 4px 4px 14px; display: flex; align-items: center; gap: 2px;
+    z-index: 5;
+    height: 38px; box-sizing: border-box;
+  }
+  .compose-island input { flex: 1; border: 0; outline: 0; background: transparent; font: 400 12.5px var(--font-sans); color: var(--ink-4); min-width: 0; }
+  .compose-island .mic, .compose-island .send {
+    width: 28px; height: 28px; border-radius: 50%; border: 0;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .compose-island .mic { background: transparent; color: var(--ink-3); }
+  .compose-island .send { background: var(--ink-1); color: var(--surface); opacity: 0.4; }
+
+  /* Inline note in chat — for offline / rate limit */
+  .inline-note {
+    margin: 8px 0;
+    padding: 11px 14px; border-radius: 12px;
+    display: flex; gap: 10px; align-items: flex-start;
+    font: 400 12.5px var(--font-sans); line-height: 1.45; letter-spacing: -0.005em;
+  }
+  .inline-note svg { flex-shrink: 0; margin-top: 1px; }
+  .inline-note strong { font-weight: 600; }
+  .inline-note .body { flex: 1; min-width: 0; }
+  .inline-note .body .ttl { font-weight: 600; margin-bottom: 2px; }
+  .inline-note.warning { background: var(--warning-wash); color: var(--warning); }
+  .inline-note.negative { background: var(--negative-wash); color: var(--negative); }
+  .inline-note .retry {
+    background: transparent; border: 1px solid currentColor; opacity: 0.6;
+    color: inherit; padding: 4px 10px; border-radius: 999px;
+    font: 600 10px var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em;
+    margin-top: 8px;
+  }
+
+  /* Offline banner — pinned under tide */
+  .offline-strip {
+    position: absolute; top: 60px; left: 12px; right: 12px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 8px 12px; display: flex; align-items: center; gap: 8px;
+    font: 500 11px var(--font-sans); color: var(--ink-2); letter-spacing: -0.005em;
+    z-index: 6;
+  }
+  .offline-strip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--warning); }
+  .offline-strip .ts { margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); }
+
+  /* Crisis · C3 in-conversation */
+  .crisis-chat { position: absolute; inset: 60px 14px 24px; display: flex; flex-direction: column; gap: 10px; z-index: 3; }
+  .crisis-chat .u { align-self: flex-end; background: var(--surface-2); padding: 8px 12px; border-radius: 14px 14px 4px 14px; font: 400 12px var(--font-sans); color: var(--ink-1); max-width: 78%; }
+  .crisis-chat .kai-msg { display: flex; flex-direction: column; gap: 4px; font: 400 12.5px var(--font-sans); line-height: 1.55; color: var(--ink-1); padding-right: 8px; }
+  .crisis-chat .kai-msg .who { font: 500 9px var(--font-mono); text-transform: uppercase; letter-spacing: 0.14em; color: rgba(43,168,201,0.7); }
+  .crisis-chat .care-block {
+    background: rgba(196,74,60,0.04);
+    border-left: 3px solid var(--negative);
+    padding: 12px 14px; margin-top: 6px;
+    border-radius: 0 10px 10px 0;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .crisis-chat .care-block .resources { display: flex; flex-direction: column; gap: 4px; }
+  .crisis-chat .care-block .res { display: flex; align-items: center; gap: 8px; font: 500 12px var(--font-sans); color: var(--negative); letter-spacing: -0.005em; }
+  .crisis-chat .care-block .res .num { font: 600 14px var(--font-sans); color: var(--negative); }
+  .crisis-chat .closing { font: italic 400 11.5px var(--font-sans); color: var(--ink-3); margin-top: 6px; }
+
+  /* ── HITL + Anti-domain ── */
+  .patterns { margin-top: 48px; }
+  .patterns .pat-head { margin-bottom: 20px; }
+  .patterns .pat-head .pt { font-family: var(--font-mono); font-size: 11px; color: var(--positive); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .patterns .pat-head h2 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; }
+  .patterns .pat-head p { font-size: 14.5px; color: var(--ink-2); line-height: 1.55; max-width: 640px; margin-top: 8px; }
+  .frames-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .specs { margin-top: 56px; padding: 28px 32px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; }
+  .specs .ttl { font-family: var(--font-mono); font-size: 12px; color: var(--positive); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; }
+  .specs .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 32px; }
+  .specs .row { display: flex; flex-direction: column; gap: 4px; }
+  .specs .row .k { font: 500 11px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .specs .row .v { font: 400 13.5px var(--font-sans); color: var(--ink-1); line-height: 1.5; }
+  .specs .row .v code { font: 400 11.5px var(--font-mono); background: var(--surface-2); padding: 1px 5px; border-radius: 4px; color: var(--accent); }
+
+  /* ── Shared entrance animations ── */
+  @keyframes kai-fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes kai-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes kai-scale-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Phone frames fade up with stagger */
+  .phone, .frame-card {
+    animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) both;
+  }
+  .frame-card:nth-child(1) { animation-delay: 0.02s; }
+  .frame-card:nth-child(2) { animation-delay: 0.04s; }
+  .frame-card:nth-child(3) { animation-delay: 0.07s; }
+  .frame-card:nth-child(4) { animation-delay: 0.10s; }
+
+  /* Phone-frame wrappers */
+  .phone-frame .phone { animation: kai-fade-up 0.5s cubic-bezier(.2,0,0,1) 0.1s both; }
+  .layout .phone-frame { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.06s both; }
+  .layout .notes       { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.18s both; }
+
+
+  /* Tide curve entrance — already animates; just ensure visibility */
+  .phone .tide-bar, .phone .tide-svg { animation: kai-fade-in 0.6s ease 0.2s both; }
+
+
+  /* HITL yes-button glow pulse */
+  @keyframes tide-glow {
+    0%, 100% { box-shadow: 0 2px 8px rgba(43,168,201,0.18); }
+    50%       { box-shadow: 0 4px 20px rgba(43,168,201,0.42), 0 0 0 4px rgba(43,168,201,0.1); }
+  }
+  /* Applied via inline style in HITL frame — target by class if possible */
+  .patterns { animation: kai-fade-up 0.5s cubic-bezier(.2,0,0,1) 0.15s both; }
+  .frames-2 .frame-card:nth-child(1) { animation-delay: 0.1s; }
+  .frames-2 .frame-card:nth-child(2) { animation-delay: 0.22s; }
+
+  /* Inline-note slide-in */
+  .inline-note { animation: kai-fade-up 0.32s cubic-bezier(.2,0,0,1) 0.18s both; }
+  .offline-strip { animation: kai-fade-up 0.32s cubic-bezier(.2,0,0,1) 0.1s both; }
+
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-tide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1B4FB0"/><stop offset="0.5" stop-color="#2BA8C9"/><stop offset="1" stop-color="#F4B589"/></linearGradient>
+    <linearGradient id="g-error" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#C44A3C"/><stop offset="1" stop-color="#F4B589"/></linearGradient>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 11v1a7 7 0 0 0 14 0v-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-wifi-off" viewBox="0 0 24 24"><line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M5 13a10 10 0 0 1 5-2.6M9 17a4 4 0 0 1 3-1.4M12 21h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 2L22 20H2L12 2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><line x1="12" y1="9" x2="12" y2="14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-7-4.5-9-9c-1.5-3.4 1-7 4-7 2 0 3.5 1 5 3 1.5-2 3-3 5-3 3 0 5.5 3.6 4 7-2 4.5-9 9-9 9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 17v3a2 2 0 0 1-2 2 19 19 0 0 1-17-17 2 2 0 0 1 2-2h3l2 5-3 2a14 14 0 0 0 8 8l2-3 5 2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell">
+
+  <div class="top">
+    <div class="mark">
+      <svg width="28" height="6" viewBox="0 0 28 6"><path d="M 1 3 Q 7 0, 14 3 T 27 3" stroke="url(#g-tide)" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      <span>kai</span>
+      <span style="color:var(--ink-3);font-weight:500;letter-spacing:0;">— граничные состояния · шаг 06</span>
+    </div>
+    <div class="meta">
+      <span>шаг 06 из 6</span>
+      <span style="color:var(--ink-1)">·</span>
+      <span>офлайн · ошибка · лимит · кризис</span>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="eyebrow">шаг 06 — граничные состояния · финальный слой</div>
+    <h1>Когда что-то идёт <span class="ocean">не так</span>.</h1>
+    <p class="lead">
+      Четыре граничных случая. <strong>Офлайн</strong> — нет сети, что видит пользователь. <strong>Ошибка</strong>
+      — бэкенд Kai завис в середине ответа. <strong>Лимит</strong> — пользователь достиг предела, мягкая пауза.
+      <strong>Кризис</strong> — обнаружен сигнал бедствия, Kai отвечает с заботой, не как чат-бот.
+      Каждое использует существующую встроенную заметку + состояния прилива — без нового хрома, без страшных модалок.
+    </p>
+  </header>
+
+  <div class="frames">
+
+    <!-- 01 OFFLINE -->
+    <div class="frame-card">
+      <div class="phone">
+        <div class="island"></div>
+        <svg class="tide-bar" viewBox="0 0 208 14" preserveAspectRatio="none">
+          <path d="M 2 8 Q 26 4, 52 8 T 104 8 T 208 6" stroke="url(#g-mute)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.4"/>
+          <defs><linearGradient id="g-mute" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#A8A8AE"/><stop offset="1" stop-color="#A8A8AE"/></linearGradient></defs>
+        </svg>
+        <div class="offline-strip">
+          <span class="dot"></span>
+          <span>Офлайн · наверстаю, когда вернётесь</span>
+          <span class="ts">3m ago</span>
+        </div>
+        <div class="bg-chat" style="padding-top:100px;opacity:0.85">
+          <div class="u">JR Pass на 14 дней?</div>
+          <div class="inline-note warning">
+            <svg width="16" height="16"><use href="#i-wifi-off"/></svg>
+            <div class="body">
+              <div class="ttl">Нет сети.</div>
+              <div>Отправлю, когда выйдете в онлайн. Ничего не потеряно.</div>
+              <button class="retry">повторить</button>
+            </div>
+          </div>
+        </div>
+        <div class="compose-island">
+          <input value="JR Pass на 14 дней?" style="color:var(--ink-2)">
+          <button class="mic"><svg width="13" height="13"><use href="#i-mic"/></svg></button>
+          <button class="send"><svg width="12" height="12"><use href="#i-arrow-up"/></svg></button>
+        </div>
+        <div class="home"></div>
+      </div>
+      <div class="frame-num">01 · офлайн</div>
+      <h3>Нет сети</h3>
+      <p class="desc">Прилив становится приглушённо-серым. Сообщение в очереди — отправится при подключении.</p>
+      <div class="traits"><span>Спокойно</span><span>В очереди</span><span>Авто-повтор</span></div>
+    </div>
+
+    <!-- 02 ERROR -->
+    <div class="frame-card">
+      <div class="phone">
+        <div class="island"></div>
+        <svg class="tide-bar" viewBox="0 0 208 14" preserveAspectRatio="none">
+          <path d="M 2 8 Q 26 4, 52 8 T 104 8 T 208 6" stroke="url(#g-error)" stroke-width="2" stroke-linecap="round" fill="none">
+            <animate attributeName="transform" type="translate" values="0,0;-2,0;2,0;0,0" dur="0.5s" begin="0s" repeatCount="2"/>
+          </path>
+        </svg>
+        <div class="bg-chat">
+          <div class="u">JR Pass на 14 дней?</div>
+          <div class="k">¥80,000 — Green Pass покрывает все синкансэны кроме Nozomi…</div>
+          <div class="inline-note negative">
+            <svg width="16" height="16"><use href="#i-alert"/></svg>
+            <div class="body">
+              <div class="ttl">Что-то зависло.</div>
+              <div>Потерял нить в середине ответа. Попробовать снова с того места?</div>
+              <button class="retry">продолжить</button>
+            </div>
+          </div>
+        </div>
+        <div class="compose-island">
+          <input placeholder="Спросить Kai…">
+          <button class="mic"><svg width="13" height="13"><use href="#i-mic"/></svg></button>
+          <button class="send"><svg width="12" height="12"><use href="#i-arrow-up"/></svg></button>
+        </div>
+        <div class="home"></div>
+      </div>
+      <div class="frame-num">02 · ошибка</div>
+      <h3>Зависание в середине ответа</h3>
+      <p class="desc">Прилив один раз покачивается коралловым, затем успокаивается. Кнопка «продолжить» сохраняет контекст.</p>
+      <div class="traits"><span>Восстановимо</span><span>Честно</span><span>Продолжение</span></div>
+    </div>
+
+    <!-- 03 RATE LIMIT -->
+    <div class="frame-card">
+      <div class="phone">
+        <div class="island"></div>
+        <svg class="tide-bar" viewBox="0 0 208 14" preserveAspectRatio="none">
+          <path d="M 2 8 Q 26 4, 52 8 T 104 8 T 208 6" stroke="url(#g-mute)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.4"/>
+        </svg>
+        <div class="bg-chat" style="padding-top:90px">
+          <div class="u">А что насчёт маршрута через Хаконе?</div>
+          <div class="inline-note warning">
+            <svg width="16" height="16"><use href="#i-clock"/></svg>
+            <div class="body">
+              <div class="ttl">Регулирую темп.</div>
+              <div>Вы на бесплатном тарифе — 20 сообщений в час. Сбросится в 14:00 (через 22 мин).</div>
+              <button class="retry">обновить · 3 тарифа</button>
+            </div>
+          </div>
+        </div>
+        <div class="compose-island">
+          <input placeholder="Доступно снова в 14:00" style="color:var(--ink-4)">
+          <button class="mic"><svg width="13" height="13"><use href="#i-mic"/></svg></button>
+          <button class="send" style="opacity:0.2"><svg width="12" height="12"><use href="#i-arrow-up"/></svg></button>
+        </div>
+        <div class="home"></div>
+      </div>
+      <div class="frame-num">03 · лимит запросов</div>
+      <h3>Мягкая пауза</h3>
+      <p class="desc">Переформулировано как Kai «регулирует темп» — не как ограничение пользователя. Время сброса + путь к обновлению.</p>
+      <div class="traits"><span>Тёплая формулировка</span><span>Конкретный сброс</span><span>Путь к обновлению</span></div>
+    </div>
+
+    <!-- 04 CRISIS -->
+    <div class="frame-card">
+      <div class="phone">
+        <div class="island"></div>
+        <svg class="tide-bar" viewBox="0 0 208 14" preserveAspectRatio="none">
+          <path d="M 2 8 Q 26 4, 52 8 T 104 8 T 208 6" stroke="url(#g-mute)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.3"/>
+        </svg>
+        <div class="crisis-chat">
+          <div class="u">Я больше не могу с этим</div>
+          <div class="kai-msg">
+            <span class="who">kai</span>
+            <div>Звучит очень тяжело. Я здесь, и есть люди, специально обученные для этого.</div>
+            <div class="care-block">
+              <div class="resources">
+                <div class="res"><span class="num">988</span><span>· Телефон доверия кризисной помощи</span></div>
+                <div class="res"><span class="num">741741</span><span>· Напишите ПОМОЩЬ</span></div>
+              </div>
+            </div>
+            <div class="closing">Без давления. Можем продолжить разговор.</div>
+          </div>
+        </div>
+        <div class="compose-island">
+          <input placeholder="…" style="color:var(--ink-4)">
+          <button class="mic"><svg width="13" height="13"><use href="#i-mic"/></svg></button>
+          <button class="send"><svg width="12" height="12"><use href="#i-arrow-up"/></svg></button>
+        </div>
+        <div class="home"></div>
+      </div>
+      <div class="frame-num">04 · кризис · в разговоре</div>
+      <h3>Обнаружен сигнал бедствия</h3>
+      <p class="desc">Kai остаётся в чате. Блок заботы рядом с ответом. Ввод доступен — пользователь может продолжать говорить.</p>
+      <div class="traits"><span>Уважает автономию</span><span>Без захвата экрана</span><span>Можно продолжить</span></div>
+    </div>
+
+  </div>
+
+  <!-- ── Conversation patterns: HITL + Anti-Domain ── -->
+  <div class="patterns">
+    <div class="pat-head">
+      <div class="pt">→ паттерны разговора · новые в v1.0</div>
+      <h2>Ещё два момента, требующих дизайна.</h2>
+      <p>Это не состояния ошибок — это намеренные формы разговора. HITL защищает деньги; отказ Anti-Domain перенаправляет мягко. Оба остаются в чате и уважают автономию пользователя.</p>
+    </div>
+
+    <div class="frames-2">
+
+      <!-- 05 HITL MONEY GATE -->
+      <div class="frame-card">
+        <div class="phone">
+          <div class="island"></div>
+          <svg class="tide-bar" viewBox="0 0 208 14" preserveAspectRatio="none">
+            <path d="M 2 8 Q 26 4, 52 8 T 104 8 T 208 6" stroke="url(#g-tide)" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.45"/>
+          </svg>
+          <div class="bg-chat">
+            <div class="u">Забронируй Токио → Киото синкансэн 14 ноября</div>
+          </div>
+          <div style="position:absolute;inset:60px 14px 24px;display:flex;flex-direction:column;gap:10px;z-index:3;">
+            <div class="u" style="align-self:flex-end;background:var(--surface-2);padding:8px 12px;border-radius:14px 14px 4px 14px;font:400 12px var(--font-sans);color:var(--ink-1);max-width:78%;">Забронируй Токио → Киото синкансэн 14 ноября</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <span style="font:500 9px var(--font-mono);color:rgba(43,168,201,0.7);text-transform:uppercase;letter-spacing:0.14em;">kai</span>
+              <span style="font:400 12px var(--font-sans);color:var(--ink-1);line-height:1.5;">Нашёл. Прежде чем бронировать — это выше моего автоматического лимита.</span>
+              <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 12px 10px;margin-top:4px;display:flex;flex-direction:column;gap:8px;">
+                <div style="font:600 13px var(--font-sans);color:var(--ink-1);letter-spacing:-0.005em;">Nozomi · 14 ноя · 08:23</div>
+                <div style="font:400 11px var(--font-mono);color:var(--ink-3);">Токио → Киото · 2ч 15мин · зарезервированное место</div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;">
+                  <span style="font:600 20px var(--font-sans);color:var(--ink-1);letter-spacing:-0.015em;">¥14,000</span>
+                  <span style="font:500 10px var(--font-mono);color:var(--ink-3);">≈ $112 · выше порога $100</span>
+                </div>
+                <div style="display:flex;gap:6px;">
+                  <button style="flex:1;padding:9px 0;background:var(--tide-gradient);background-size:200% 100%;color:white;border:0;border-radius:10px;font:600 12px var(--font-sans);cursor:pointer;letter-spacing:-0.005em;animation:tide-glow 2.2s ease-in-out infinite;animation-fill-mode:both;">Да, бронируй</button>
+                  <button style="flex:1;padding:9px 0;background:var(--surface);border:1px solid var(--line);color:var(--ink-1);border-radius:10px;font:500 12px var(--font-sans);cursor:pointer;">Дай проверю</button>
+                </div>
+              </div>
+              <span style="font:italic 400 11px var(--font-sans);color:var(--ink-3);margin-top:2px;">Не забронирую без вашего явного согласия.</span>
+            </div>
+          </div>
+          <div class="compose-island">
+            <input placeholder="Спросить Kai…">
+            <button class="mic"><svg width="13" height="13"><use href="#i-mic"/></svg></button>
+            <button class="send" style="background:var(--ink-4);opacity:0.5;"><svg width="12" height="12"><use href="#i-arrow-up"/></svg></button>
+          </div>
+          <div class="home"></div>
+        </div>
+        <div class="frame-num">05 · HITL денежный порог · F-L2-04</div>
+        <h3>Порог $100</h3>
+        <p class="desc">Kai делает паузу перед любым действием выше $100. Встроенная карточка подтверждения с ценой + маршрутом + двумя кнопками. Градиент Прилива на «Да» — единственное основное действие.</p>
+        <div class="traits"><span>Явное согласие</span><span>Без фантомного бронирования</span><span>Всегда обратимо</span></div>
+      </div>
+
+      <!-- 06 ANTI-DOMAIN REFUSAL -->
+      <div class="frame-card">
+        <div class="phone">
+          <div class="island"></div>
+          <svg class="tide-bar" viewBox="0 0 208 14" preserveAspectRatio="none">
+            <path d="M 2 8 Q 26 4, 52 8 T 104 8 T 208 6" stroke="url(#g-mute)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.4"/>
+            <defs><linearGradient id="g-mute" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#A8A8AE"/><stop offset="1" stop-color="#A8A8AE"/></linearGradient></defs>
+          </svg>
+          <div style="position:absolute;inset:60px 14px 24px;display:flex;flex-direction:column;gap:10px;z-index:3;">
+            <div style="align-self:flex-end;background:var(--surface-2);padding:8px 12px;border-radius:14px 14px 4px 14px;font:400 12px var(--font-sans);color:var(--ink-1);max-width:78%;">Напиши стихотворение о моём коте</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <span style="font:500 9px var(--font-mono);color:rgba(43,168,201,0.7);text-transform:uppercase;letter-spacing:0.14em;">kai</span>
+              <span style="font:400 12px var(--font-sans);color:var(--ink-1);line-height:1.5;">Поэзия вне того, для чего я создан. Я компаньон путешественника — стараюсь не выходить за рамки.</span>
+              <div class="inline-note" style="background:var(--surface-2);color:var(--ink-2);border-radius:10px;padding:10px 12px;margin-top:4px;display:flex;flex-direction:column;gap:6px;">
+                <div style="font:600 12px var(--font-sans);color:var(--ink-1);">Могу помочь с:</div>
+                <div style="display:flex;flex-direction:column;gap:4px;font:400 11.5px var(--font-sans);color:var(--ink-2);line-height:1.5;">
+                  <span>→ Визовые правила, маршруты, логистика</span>
+                  <span>→ Планирование бюджета для любого направления</span>
+                  <span>→ Сравнение стран или вариантов поездки</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="compose-island">
+            <input placeholder="Спросить Kai о путешествиях…">
+            <button class="mic"><svg width="13" height="13"><use href="#i-mic"/></svg></button>
+            <button class="send" style="background:var(--ink-4);opacity:0.5;"><svg width="12" height="12"><use href="#i-arrow-up"/></svg></button>
+          </div>
+          <div class="home"></div>
+        </div>
+        <div class="frame-num">06 · анти-доменный отказ · F-L1-02</div>
+        <h3>Вне области</h3>
+        <p class="desc">Kai перенаправляет без извинений — спокойно, не роботизированно. Называет что не может, сразу предлагает что может. Ввод остаётся открытым. Без стилизации ошибки.</p>
+        <div class="traits"><span>Без извинений</span><span>Перенаправление, не блок</span><span>Ввод остаётся</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="specs">
+    <div class="ttl">спецификация · что определяет каждое состояние</div>
+    <div class="grid">
+      <div class="row">
+        <div class="k">офлайн</div>
+        <div class="v">Прилив → <code>приглушённо-серый</code> · закреплённая полоска под приливом · сообщения в очереди · авто-повтор при подключении · отображается до восстановления сети</div>
+      </div>
+      <div class="row">
+        <div class="k">ошибка</div>
+        <div class="v">Прилив → <code>покачивание ошибки</code> один раз · <code>негативная</code> встроенная заметка · кнопка <em>продолжить</em> сохраняет запрос + частичный ответ</div>
+      </div>
+      <div class="row">
+        <div class="k">лимит запросов</div>
+        <div class="v">Прилив остаётся <code>ожидание</code> · предупредительная встроенная заметка · конкретное время сброса · призыв к обновлению · ввод отключён с плейсхолдером времени сброса</div>
+      </div>
+      <div class="row">
+        <div class="k">кризис</div>
+        <div class="v">Прилив остаётся <code>ожидание</code> · блок заботы внутри ответа Kai · ввод остаётся · без захвата экрана</div>
+      </div>
+      <div class="row">
+        <div class="k">HITL порог</div>
+        <div class="v">Tide stays <code>idle</code> · inline confirm card (price + breakdown) · <code>tide-gradient</code> on Yes · <em>Дай проверю</em> cancels · never books without explicit yes</div>
+      </div>
+      <div class="row">
+        <div class="k">анти-доменный отказ</div>
+        <div class="v">Прилив остаётся <code>ожидание</code> · простой ответ Kai + карточка перенаправления surface-2 · без стилизации ошибки · ввод открыт · пользователь может спросить снова</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

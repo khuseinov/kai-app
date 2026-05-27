@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1320,initial-scale=1">
+<title>kai · fork card · F-L1-05</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+html, body { margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--ink-1); font-family: var(--font-sans); }
+.shell { max-width: 1280px; margin: 0 auto; padding: 48px 56px 120px; }
+
+/* ── Topbar ─────────────────────────────── */
+.topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 44px; }
+.topbar .mark { font: 700 18px var(--font-sans); letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 10px; }
+.topbar .meta { font: 400 12px var(--font-mono); color: var(--ink-3); display: flex; gap: 20px; }
+
+/* ── Hero ────────────────────────────────── */
+.hero { padding-bottom: 44px; border-bottom: 1px solid var(--line); margin-bottom: 52px; }
+.eyebrow { font: 400 11px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 8px; }
+.eyebrow::before { content: ""; width: 20px; height: 1px; background: var(--ink-3); }
+.hero h1 { font: 600 58px var(--font-sans); line-height: 0.98; letter-spacing: -0.032em; max-width: 860px; margin: 0 0 18px; }
+.hero h1 em { background: var(--tide-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; font-style: italic; font-weight: 500; }
+.hero p { font: 400 17px var(--font-sans); color: var(--ink-2); line-height: 1.6; max-width: 660px; margin: 0 0 20px; }
+.pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill { font: 500 11px var(--font-mono); padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-3); }
+.pill.on { background: var(--accent-wash); color: var(--accent); border-color: var(--accent-line); }
+
+/* ── Variants intro ──────────────────────── */
+.variants-intro { margin-bottom: 24px; display: flex; align-items: baseline; justify-content: space-between; gap: 24px; }
+.variants-intro p { font: 400 14px var(--font-sans); color: var(--ink-2); line-height: 1.55; margin: 0; max-width: 680px; }
+.variants-intro .hint { font: 400 11px var(--font-mono); color: var(--ink-3); white-space: nowrap; }
+
+/* ── 3-column variants ───────────────────── */
+.variants { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.variant { display: flex; flex-direction: column; gap: 12px; }
+.v-label { display: flex; align-items: center; gap: 8px; font: 500 10px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; }
+.v-label .n { font-weight: 700; color: var(--accent); }
+.v-label .tag { margin-left: auto; font: 600 9px var(--font-mono); color: var(--tide-2); background: rgba(43,168,201,0.1); padding: 2px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.06em; }
+.v-caption { font: 400 12.5px var(--font-sans); color: var(--ink-2); line-height: 1.55; }
+
+/* ── Phone frame ─────────────────────────── */
+.phone-wrap { background: var(--surface-3); border: 1px solid var(--line); border-radius: 22px; padding: 24px; display: flex; justify-content: center; }
+.phone { width: 258px; height: 560px; background: var(--surface); border: 1px solid var(--line); border-radius: 36px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+.phone .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 80px; height: 24px; background: var(--ink-1); border-radius: 999px; z-index: 10; }
+.phone .home { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 80px; height: 3.5px; border-radius: 999px; background: var(--ink-1); opacity: 0.15; z-index: 10; }
+.phone .tide-bar { position: absolute; top: 43px; left: 14px; width: calc(100% - 28px); height: 12px; z-index: 2; }
+
+/* ── Chat ────────────────────────────────── */
+.chat { padding: 60px 14px 66px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.chat::-webkit-scrollbar { display: none; }
+.u { align-self: flex-end; background: var(--surface-2); padding: 8px 11px; border-radius: 14px 14px 3px 14px; font: 400 12px var(--font-sans); line-height: 1.45; color: var(--ink-1); max-width: 78%; letter-spacing: -0.005em; }
+.k-who { font: 500 8.5px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; display: inline-flex; align-items: center; gap: 5px; margin-bottom: 4px; }
+.k-who::before { content: ""; display: inline-block; width: 10px; height: 2.5px; border-radius: 999px; background: var(--tide-gradient); }
+.k-txt { font: 400 12px var(--font-sans); color: var(--ink-1); line-height: 1.5; letter-spacing: -0.005em; margin-bottom: 5px; }
+
+/* ── Compose bar ─────────────────────────── */
+.compose { position: absolute; left: 14px; right: 14px; bottom: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 4px 4px 13px; display: flex; align-items: center; gap: 3px; z-index: 6; }
+.compose .ph { flex: 1; font: 400 11.5px var(--font-sans); color: var(--ink-4); }
+.compose .send { width: 26px; height: 26px; border-radius: 50%; border: 0; background: var(--ink-4); opacity: 0.4; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.compose .send.on { background: var(--tide-gradient); opacity: 1; box-shadow: 0 2px 8px rgba(43,168,201,0.22); }
+
+/* ═══════════════════════════════════════════
+   FORK CARD SYSTEM
+   ═══════════════════════════════════════════ */
+.fc { background: var(--surface); border: 1px solid var(--line); border-radius: 15px; overflow: hidden; margin-top: 4px; }
+
+/* Header */
+.fc-h { padding: 7px 11px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 7px; }
+.fc-h .ldot { width: 5px; height: 5px; border-radius: 50%; background: var(--positive); flex-shrink: 0; animation: lpulse 2s ease-in-out infinite; }
+@keyframes lpulse { 0%,100%{ box-shadow:0 0 0 0 rgba(27,142,78,0.5);} 50%{ box-shadow:0 0 0 4px rgba(27,142,78,0);} }
+.fc-h .lbl { font: 500 8.5px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; flex: 1; }
+.fc-h .fresh { font: 500 8.5px var(--font-mono); color: var(--positive); }
+.fc-h .note  { font: 400 8.5px var(--font-mono); color: var(--ink-3); }
+
+/* Two columns */
+.fc-cols { display: grid; grid-template-columns: 1fr 1fr; }
+.fc-col { padding: 11px 11px 13px; display: flex; flex-direction: column; gap: 9px; position: relative; }
+.fc-col + .fc-col { border-left: 1px solid var(--line); }
+.fc-col.win { background: linear-gradient(170deg, rgba(43,168,201,0.07), rgba(43,168,201,0.02)); }
+.fc-col.win::before { content:""; position:absolute; top:0; left:0; right:0; height:2px; background:var(--tide-gradient); }
+
+/* Country header */
+.fc-id { display: flex; align-items: center; justify-content: space-between; }
+.fc-country { display: flex; align-items: center; gap: 6px; }
+.fc-glyph { width: 18px; height: 18px; border-radius: 5px; background: var(--tide-gradient); display: flex; align-items: center; justify-content: center; color: white; font: 700 7px var(--font-sans); flex-shrink: 0; }
+.fc-glyph.kr { background: linear-gradient(135deg,#1B4FB0,#2BA8C9); }
+.fc-glyph.vn { background: linear-gradient(135deg,#C44A3C,#F4B589); }
+.fc-name { font: 600 11.5px var(--font-sans); color: var(--ink-1); letter-spacing: -0.01em; }
+.fc-badge { font: 600 7.5px var(--font-mono); color: var(--tide-2); background: rgba(43,168,201,0.1); padding: 2px 6px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* Price + delta */
+.fc-price-row { display: flex; align-items: baseline; gap: 6px; }
+.fc-price { font: 600 19px var(--font-sans); color: var(--ink-1); letter-spacing: -0.025em; line-height: 1; }
+.fc-price.sm { font-size: 14px; }
+.fc-delta { font: 600 8.5px var(--font-mono); padding: 1.5px 5px; border-radius: 999px; display: inline-flex; }
+.fc-delta.up   { background: var(--negative-wash); color: var(--negative); }
+.fc-delta.down { background: var(--positive-wash); color: var(--positive); }
+
+/* Chips */
+.fc-facts { display: flex; flex-direction: column; gap: 4px; }
+.fc-row { display: flex; gap: 3px; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; padding: 2px 6px; border-radius: 999px; font: 600 8px var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em; }
+.chip.ok   { background: var(--positive-wash); color: var(--positive); }
+.chip.bad  { background: var(--negative-wash); color: var(--negative); }
+.chip.warn { background: var(--warning-wash);  color: var(--warning); }
+.chip.neu  { background: var(--surface-2); color: var(--ink-3); border: 1px solid var(--line); }
+
+/* Budget bar */
+.fc-bud { display: flex; flex-direction: column; gap: 4px; }
+.fc-bud-lbl { font: 500 7.5px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.fc-bar { height: 5px; border-radius: 999px; overflow: hidden; display: flex; gap: 1px; }
+.fc-bar .s { height: 100%; border-radius: 999px; }
+.fc-bar .fl { background: var(--tide-1); }
+.fc-bar .st { background: var(--tide-2); }
+.fc-bar .fo { background: var(--tide-3); }
+.fc-bar .tr { background: var(--accent);  }
+.fc-leg { display: flex; gap: 8px; flex-wrap: wrap; }
+.fc-li  { display: flex; align-items: center; gap: 3px; font: 400 8px var(--font-mono); color: var(--ink-3); }
+.fc-li i { width: 6px; height: 6px; border-radius: 2px; display: inline-block; flex-shrink: 0; }
+
+/* Best-for */
+.fc-bf { display: flex; flex-direction: column; gap: 5px; }
+.fc-bf-lbl { font: 500 7.5px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.fc-bf-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.fc-bf-tag { padding: 3px 8px; border-radius: 6px; font: 500 10.5px var(--font-sans); letter-spacing: -0.005em; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink-2); }
+.fc-col.win .fc-bf-tag { background: rgba(43,168,201,0.08); border-color: rgba(43,168,201,0.2); color: var(--tide-1); }
+
+/* Score */
+.fc-score { display: flex; align-items: center; gap: 3px; }
+.fc-score .d { width: 5px; height: 5px; border-radius: 50%; }
+.fc-score .d.f { background: var(--tide-2); }
+.fc-score .d.e { background: var(--surface-3); border: 1px solid var(--line); }
+.fc-score .sl  { font: 500 8.5px var(--font-mono); color: var(--ink-3); margin-left: 3px; }
+.fc-col.win .fc-score .sl { color: var(--tide-2); }
+
+/* Matrix */
+.fc-matrix { border-top: 1px solid var(--line); padding: 8px 11px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; background: var(--surface-2); }
+.fc-matrix .mi { display: flex; align-items: center; gap: 2px; font: 500 8.5px var(--font-mono); color: var(--ink-3); }
+.fc-matrix .mi .ar { color: var(--ink-4); }
+.fc-matrix .mi .w  { color: var(--ink-1); font-weight: 700; }
+.fc-matrix .mi .t  { color: var(--tide-2); font-weight: 700; }
+.fc-matrix .sep { width: 1px; height: 10px; background: var(--line); }
+
+/* Winner */
+.fc-winner { border-top: 1px solid var(--line); padding: 9px 11px; display: flex; align-items: flex-start; gap: 6px; font: 400 11px var(--font-sans); color: var(--ink-2); line-height: 1.5; }
+.fc-winner .wd { width: 5px; height: 5px; border-radius: 50%; background: var(--tide-2); flex-shrink: 0; margin-top: 4px; animation: lpulse 2s ease-in-out infinite; }
+.fc-winner strong { color: var(--ink-1); font-weight: 600; }
+
+/* Minimal simple winner */
+.fc-sw { border-top: 1px solid var(--line); padding: 8px 11px; display: flex; align-items: center; gap: 5px; background: rgba(43,168,201,0.04); font: 500 10.5px var(--font-sans); color: var(--ink-2); }
+.fc-sw .wd { width: 5px; height: 5px; border-radius: 50%; background: var(--tide-2); flex-shrink: 0; }
+
+/* Triple layout */
+.fc-triple { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+.fc-tc { padding: 9px 9px 11px; display: flex; flex-direction: column; gap: 5px; }
+.fc-tc + .fc-tc { border-left: 1px solid var(--line); }
+.fc-tc .tn { font: 600 9.5px var(--font-sans); color: var(--ink-1); display: flex; align-items: center; gap: 4px; }
+.fc-tc .tp { font: 600 13px var(--font-sans); color: var(--ink-1); letter-spacing: -0.01em; }
+.fc-tc .ts { font: 400 8.5px var(--font-mono); color: var(--ink-3); }
+.fc-tc .ts.ok { color: var(--positive); }
+.fc-tc .tdots { display: flex; gap: 2px; margin-top: 2px; }
+.fc-tc .tdots .d { width: 4px; height: 4px; border-radius: 50%; background: var(--tide-2); }
+.fc-tc .tdots .d.e { background: var(--surface-3); border: 1px solid var(--line); }
+
+/* ── Anatomy ─────────────────────────────── */
+.anatomy { margin-top: 64px; padding-top: 48px; border-top: 1px solid var(--line); display: grid; grid-template-columns: 340px 1fr; gap: 56px; align-items: start; }
+.anatomy h2 { font: 600 26px var(--font-sans); letter-spacing: -0.018em; margin: 0 0 10px; }
+.anatomy .intro { font: 400 14px var(--font-sans); color: var(--ink-2); line-height: 1.6; margin: 0 0 24px; }
+.atom-table { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--surface); }
+.atom-row { display: grid; grid-template-columns: 120px 1fr; border-bottom: 1px solid var(--line); }
+.atom-row:last-child { border-bottom: 0; }
+.atom-tag { padding: 13px 14px; background: var(--bg); display: flex; flex-direction: column; gap: 2px; }
+.atom-tag .n { font: 700 9px var(--font-mono); color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; }
+.atom-tag .s { font: 400 11px var(--font-sans); color: var(--ink-3); }
+.atom-body { padding: 13px 16px; }
+.atom-body .t { font: 600 13px var(--font-sans); color: var(--ink-1); margin-bottom: 2px; }
+.atom-body .d { font: 400 12.5px var(--font-sans); color: var(--ink-2); line-height: 1.55; }
+
+/* Spec grid */
+.spec { margin-top: 28px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; }
+.spec-c { padding: 14px 16px; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
+.spec-c:nth-child(2n) { border-right: 0; }
+.spec-c:nth-last-child(-n+2) { border-bottom: 0; }
+.spec-c .k { font: 500 9px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.spec-c .v { font: 400 13px var(--font-sans); color: var(--ink-1); line-height: 1.45; }
+.spec-c .v code { font-family: var(--font-mono); font-size: 11px; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; color: var(--accent); }
+
+/* ── Animations ──────────────────────────── */
+@keyframes fade-up { from{opacity:0;transform:translateY(12px);} to{opacity:1;transform:none;} }
+@keyframes fade-in { from{opacity:0;} to{opacity:1;} }
+@keyframes scale-in { from{opacity:0;transform:scale(0.95);} to{opacity:1;transform:scale(1);} }
+
+.variants { animation: fade-in 0.4s ease 0.05s forwards; opacity: 0; }
+.phone { animation: fade-up 0.48s cubic-bezier(.2,0,0,1) 0.1s forwards; opacity: 0; }
+.fc { animation: scale-in 0.38s cubic-bezier(.2,0,0,1) 0.22s forwards; opacity: 0; }
+.anatomy { animation: fade-in 0.5s ease 0.2s forwards; opacity: 0; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-tide" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1B4FB0"/>
+      <stop offset="0.5" stop-color="#2BA8C9"/>
+      <stop offset="1" stop-color="#F4B589"/>
+    </linearGradient>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 11v1a7 7 0 0 0 14 0v-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="mark">
+      <svg width="28" height="6" viewBox="0 0 28 6"><path d="M 1 3 Q 7 0, 14 3 T 27 3" stroke="url(#g-tide)" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      kai
+      <span style="color:var(--ink-3);font-weight:500;letter-spacing:0;">— fork card</span>
+    </div>
+    <div class="meta">
+      <span>F-L1-05</span>
+      <span>L1 + L3 moat</span>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="eyebrow">мультистрановое сравнение</div>
+    <h1>«Япония или Корея?» —<br><em>честный ответ</em> за секунду.</h1>
+    <p>
+      Когда Kai видит сравнительный вопрос — он форкается: две (или три) параллельные задачи,
+      один оформленный ответ. Никакой расплывчатой прозы. Данные проверены, победитель назван.
+    </p>
+    <div class="pills">
+      <span class="pill on">L1 · домен</span>
+      <span class="pill on">L3 · параллельный запрос</span>
+      <span class="pill">backend ✓ · sprint 2</span>
+    </div>
+  </div>
+
+  <!-- Variants intro -->
+  <div class="variants-intro">
+    <p>Три уровня глубины — Kai выбирает автоматически по контексту. Быстрый вопрос → минимал. Детальный запрос с бюджетом → гибрид. Три страны → компактная сетка.</p>
+    <span class="hint">← скрольте телефоны</span>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       3 VARIANT PHONES
+       ═══════════════════════════════════ -->
+  <div class="variants">
+
+    <!-- V1: Minimal -->
+    <div class="variant">
+      <div class="v-label"><span class="n">01</span>минималистичный</div>
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="island"></div>
+          <svg class="tide-bar" viewBox="0 0 230 12" preserveAspectRatio="none">
+            <path d="M 2 7 Q 28 3, 56 7 T 114 7 T 228 5" stroke="url(#g-tide)" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.45"/>
+          </svg>
+          <div class="chat">
+            <div class="u">Япония или Корея — ~$2k?</div>
+            <div>
+              <div class="k-who">kai</div>
+              <div class="k-txt">Ключевая разница:</div>
+              <!-- Minimal fork card -->
+              <div class="fc">
+                <div class="fc-h">
+                  <span class="ldot"></span>
+                  <span class="lbl">2 варианта</span>
+                  <span class="fresh">✓ сегодня</span>
+                </div>
+                <div class="fc-cols">
+                  <div class="fc-col">
+                    <div class="fc-id">
+                      <div class="fc-country"><div class="fc-glyph">JP</div><span class="fc-name">Япония</span></div>
+                    </div>
+                    <div class="fc-price-row">
+                      <span class="fc-price">$2,100</span>
+                      <span class="fc-delta up">+$500</span>
+                    </div>
+                    <div class="fc-row"><span class="chip bad">виза</span><span class="chip neu">14°C</span></div>
+                    <div class="fc-score"><div class="d f"></div><div class="d f"></div><div class="d f"></div><div class="d f"></div><div class="d e"></div><span class="sl">4/5</span></div>
+                  </div>
+                  <div class="fc-col win">
+                    <div class="fc-id">
+                      <div class="fc-country"><div class="fc-glyph kr">KR</div><span class="fc-name">Корея</span></div>
+                      <span class="fc-badge">✓</span>
+                    </div>
+                    <div class="fc-price-row">
+                      <span class="fc-price">$1,600</span>
+                      <span class="fc-delta down">−$500</span>
+                    </div>
+                    <div class="fc-row"><span class="chip ok">без визы</span><span class="chip neu">10°C</span></div>
+                    <div class="fc-score"><div class="d f"></div><div class="d f"></div><div class="d f"></div><div class="d f"></div><div class="d f"></div><span class="sl">5/5</span></div>
+                  </div>
+                </div>
+                <div class="fc-sw"><div class="wd"></div><span><strong>Корея</strong> — лучший выбор для $2k.</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="compose"><span class="ph">Спросить о любой…</span><button class="send on"><svg width="10" height="10"><use href="#i-up"/></svg></button></div>
+          <div class="home"></div>
+        </div>
+      </div>
+      <div class="v-caption">Быстрый ответ: цена + дельта + один чип + оценка. Для вопросов «что дешевле».</div>
+    </div>
+
+    <!-- V2: Hybrid (approved) -->
+    <div class="variant">
+      <div class="v-label"><span class="n">02</span>гибрид<span class="tag">рекомендован</span></div>
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="island"></div>
+          <svg class="tide-bar" viewBox="0 0 230 12" preserveAspectRatio="none">
+            <path d="M 2 7 Q 28 3, 56 7 T 114 7 T 228 5" stroke="url(#g-tide)" stroke-width="2" stroke-linecap="round" fill="none" stroke-dasharray="11 4">
+              <animate attributeName="stroke-dashoffset" from="0" to="-30" dur="1.4s" repeatCount="indefinite"/>
+            </path>
+          </svg>
+          <div class="chat">
+            <div class="u">Япония или Корея — ноябрь, соло, ~$2k?</div>
+            <div>
+              <div class="k-who">kai</div>
+              <div class="k-txt">Оба подойдут. Вот честный разбор:</div>
+              <!-- Hybrid fork card -->
+              <div class="fc">
+                <div class="fc-h">
+                  <span class="ldot"></span>
+                  <span class="lbl">сравниваем · 2 варианта</span>
+                  <span class="fresh">✓ сегодня</span>
+                </div>
+                <div class="fc-cols">
+                  <!-- Japan -->
+                  <div class="fc-col">
+                    <div class="fc-id"><div class="fc-country"><div class="fc-glyph">JP</div><span class="fc-name">Япония</span></div></div>
+                    <div class="fc-price-row"><span class="fc-price">$2,100</span><span class="fc-delta up">+$500</span></div>
+                    <div class="fc-facts">
+                      <div class="fc-row"><span class="chip bad">виза нужна</span></div>
+                      <div class="fc-row"><span class="chip neu">14°C</span><span class="chip warn">толпы↑</span></div>
+                    </div>
+                    <div class="fc-bud">
+                      <span class="fc-bud-lbl">бюджет</span>
+                      <div class="fc-bar"><div class="s fl" style="flex:5"></div><div class="s st" style="flex:4"></div><div class="s fo" style="flex:2"></div><div class="s tr" style="flex:3"></div></div>
+                      <div class="fc-leg">
+                        <div class="fc-li"><i style="background:var(--tide-1)"></i>перелёт</div>
+                        <div class="fc-li"><i style="background:var(--tide-2)"></i>жильё</div>
+                        <div class="fc-li"><i style="background:var(--tide-3)"></i>еда</div>
+                        <div class="fc-li"><i style="background:var(--accent)"></i>транспорт</div>
+                      </div>
+                    </div>
+                    <div class="fc-bf">
+                      <span class="fc-bf-lbl">лучше для</span>
+                      <div class="fc-bf-tags"><span class="fc-bf-tag">Культура</span><span class="fc-bf-tag">Кухня</span></div>
+                    </div>
+                    <div class="fc-score"><div class="d f"></div><div class="d f"></div><div class="d f"></div><div class="d f"></div><div class="d e"></div><span class="sl">4/5</span></div>
+                  </div>
+                  <!-- Korea (winner) -->
+                  <div class="fc-col win">
+                    <div class="fc-id">
+                      <div class="fc-country"><div class="fc-glyph kr">KR</div><span class="fc-name">Корея</span></div>
+                      <span class="fc-badge">✓ лучший</span>
+                    </div>
+                    <div class="fc-price-row"><span class="fc-price">$1,600</span><span class="fc-delta down">−$500</span></div>
+                    <div class="fc-facts">
+                      <div class="fc-row"><span class="chip ok">без визы</span></div>
+                      <div class="fc-row"><span class="chip neu">10°C</span><span class="chip ok">толпы↓</span></div>
+                    </div>
+                    <div class="fc-bud">
+                      <span class="fc-bud-lbl">бюджет</span>
+                      <div class="fc-bar"><div class="s fl" style="flex:4"></div><div class="s st" style="flex:3"></div><div class="s fo" style="flex:2"></div><div class="s tr" style="flex:2"></div></div>
+                      <div class="fc-leg">
+                        <div class="fc-li"><i style="background:var(--tide-1)"></i>перелёт</div>
+                        <div class="fc-li"><i style="background:var(--tide-2)"></i>жильё</div>
+                        <div class="fc-li"><i style="background:var(--tide-3)"></i>еда</div>
+                        <div class="fc-li"><i style="background:var(--accent)"></i>транспорт</div>
+                      </div>
+                    </div>
+                    <div class="fc-bf">
+                      <span class="fc-bf-lbl">лучше для</span>
+                      <div class="fc-bf-tags"><span class="fc-bf-tag">Бюджет</span><span class="fc-bf-tag">Виза</span></div>
+                    </div>
+                    <div class="fc-score"><div class="d f"></div><div class="d f"></div><div class="d f"></div><div class="d f"></div><div class="d f"></div><span class="sl">5/5</span></div>
+                  </div>
+                </div>
+                <div class="fc-matrix">
+                  <div class="mi"><span>бюджет</span><span class="ar"> → </span><span class="w">KR</span></div>
+                  <div class="sep"></div>
+                  <div class="mi"><span>культура</span><span class="ar"> → </span><span class="w">JP</span></div>
+                  <div class="sep"></div>
+                  <div class="mi"><span>виза</span><span class="ar"> → </span><span class="w">KR</span></div>
+                  <div class="sep"></div>
+                  <div class="mi"><span>ноябрь</span><span class="ar"> → </span><span class="t">оба</span></div>
+                </div>
+                <div class="fc-winner">
+                  <div class="wd"></div>
+                  <span>Для соло $2k — <strong>Корея выигрывает.</strong> Виза Японии поджимает бюджет. Ноябрь отличный для обеих.</span>
+                </div>
+              </div>
+            </div>
+            <div class="u" style="opacity:0.45;font-size:11.5px;">Расскажи подробнее про Сеул</div>
+          </div>
+          <div class="compose"><span class="ph">Спросить о любой…</span><button class="send on"><svg width="10" height="10"><use href="#i-up"/></svg></button></div>
+          <div class="home"></div>
+        </div>
+      </div>
+      <div class="v-caption">8 атомов: live-dot, winner-tint, delta-badge, chips, budget-bar, best-for, матрица, победитель. Скроллится внутри.</div>
+    </div>
+
+    <!-- V3: Three countries -->
+    <div class="variant">
+      <div class="v-label"><span class="n">03</span>три страны</div>
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="island"></div>
+          <svg class="tide-bar" viewBox="0 0 230 12" preserveAspectRatio="none">
+            <path d="M 2 7 Q 28 3, 56 7 T 114 7 T 228 5" stroke="url(#g-tide)" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.45"/>
+          </svg>
+          <div class="chat">
+            <div class="u">Япония, Корея или Вьетнам — ноябрь, $2k?</div>
+            <div>
+              <div class="k-who">kai</div>
+              <div class="k-txt">Сравниваю все три:</div>
+              <!-- Triple fork card -->
+              <div class="fc">
+                <div class="fc-h">
+                  <span class="ldot"></span>
+                  <span class="lbl">3 варианта</span>
+                  <span class="fresh">✓ сегодня</span>
+                </div>
+                <div class="fc-triple">
+                  <div class="fc-tc">
+                    <div class="tn"><div class="fc-glyph" style="width:14px;height:14px;border-radius:4px;font-size:6px;">JP</div>Япония</div>
+                    <div class="tp">$2,100</div>
+                    <div class="ts">виза нужна</div>
+                    <div class="ts">14°C</div>
+                    <div class="tdots"><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d e"></div></div>
+                  </div>
+                  <div class="fc-tc" style="border-left:1px solid var(--line);">
+                    <div class="tn"><div class="fc-glyph kr" style="width:14px;height:14px;border-radius:4px;font-size:6px;">KR</div>Корея</div>
+                    <div class="tp">$1,600</div>
+                    <div class="ts ok">без визы</div>
+                    <div class="ts">10°C</div>
+                    <div class="tdots"><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div></div>
+                  </div>
+                  <div class="fc-tc" style="border-left:1px solid var(--line);">
+                    <div class="tn"><div class="fc-glyph vn" style="width:14px;height:14px;border-radius:4px;font-size:6px;">VN</div>Вьетнам</div>
+                    <div class="tp">$1,200</div>
+                    <div class="ts ok">без визы</div>
+                    <div class="ts">28°C</div>
+                    <div class="tdots"><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d e"></div></div>
+                  </div>
+                </div>
+                <div class="fc-winner">
+                  <div class="wd"></div>
+                  <span><strong>Вьетнам</strong> → бюджет, <strong>Корея</strong> → баланс. Япония дороже всех.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="compose"><span class="ph">Спросить…</span><button class="send on"><svg width="10" height="10"><use href="#i-up"/></svg></button></div>
+          <div class="home"></div>
+        </div>
+      </div>
+      <div class="v-caption">До 3 стран в компактной сетке. При 4+ Kai переходит на вертикальный список.</div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════
+       ANATOMY
+       ═══════════════════════════════════ -->
+  <div class="anatomy">
+    <div>
+      <h2>8 атомов гибрида.</h2>
+      <p class="intro">Каждый элемент несёт смысл — убери любой, и информация пострадает. Никакой декорации.</p>
+      <div class="atom-table">
+        <div class="atom-row">
+          <div class="atom-tag"><div class="n">01</div><div class="s">live-dot</div></div>
+          <div class="atom-body"><div class="t">Живой заголовок</div><div class="d">Пульсирующая точка = данные актуальны. При устаревании >24ч заменяется на «⚠ outdated».</div></div>
+        </div>
+        <div class="atom-row">
+          <div class="atom-tag"><div class="n">02</div><div class="s">winner-tint</div></div>
+          <div class="atom-body"><div class="t">Тинт и линия победителя</div><div class="d">Tide-gradient 2px сверху + едва заметный синий фон. Выделяет без крика.</div></div>
+        </div>
+        <div class="atom-row">
+          <div class="atom-tag"><div class="n">03</div><div class="s">delta-badge</div></div>
+          <div class="atom-body"><div class="t">Дельта цены</div><div class="d">+$500 коралловый, −$500 зелёный. Разрыв читается за 0.2 секунды без арифметики.</div></div>
+        </div>
+        <div class="atom-row">
+          <div class="atom-tag"><div class="n">04</div><div class="s">fact-chips</div></div>
+          <div class="atom-body"><div class="t">Чипы-факты в два ряда</div><div class="d">Виза — первый ряд. Погода + толпы — второй. Разделены для ритма, не один длинный ряд.</div></div>
+        </div>
+        <div class="atom-row">
+          <div class="atom-tag"><div class="n">05</div><div class="s">budget-bar</div></div>
+          <div class="atom-body"><div class="t">Стековый бар бюджета</div><div class="d">Перелёт (tide-1) · жильё (tide-2) · еда (tide-3) · транспорт (accent). Пропорции реальные.</div></div>
+        </div>
+        <div class="atom-row">
+          <div class="atom-tag"><div class="n">06</div><div class="s">best-for</div></div>
+          <div class="atom-body"><div class="t">«Лучше для» теги</div><div class="d">Честно: каждая страна в чём-то лучше. Теги победителя получают tide-tint.</div></div>
+        </div>
+        <div class="atom-row">
+          <div class="atom-tag"><div class="n">07</div><div class="s">matrix</div></div>
+          <div class="atom-body"><div class="t">Матрица целей</div><div class="d">Нижняя строка: бюджет→KR · культура→JP · виза→KR · ноябрь→оба. Итог без чтения всей карточки.</div></div>
+        </div>
+        <div class="atom-row">
+          <div class="atom-tag"><div class="n">08</div><div class="s">winner</div></div>
+          <div class="atom-body"><div class="t">Строка победителя</div><div class="d">Одно предложение. Честно, без «оба хороши». Если счёт равный — Kai говорит «ничья, задай уточняющий вопрос».</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="spec">
+        <div class="spec-c"><div class="k">радиус карточки</div><div class="v"><code>--r-3 (15px)</code></div></div>
+        <div class="spec-c"><div class="k">разрыв колонок</div><div class="v">1px <code>--line</code></div></div>
+        <div class="spec-c"><div class="k">макс. стран</div><div class="v">3 компактно · 4+ → список</div></div>
+        <div class="spec-c"><div class="k">freshness check</div><div class="v">проверено при отправке</div></div>
+        <div class="spec-c"><div class="k">уровни глубины</div><div class="v">минимал · гибрид · три страны</div></div>
+        <div class="spec-c"><div class="k">moat</div><div class="v">L1 домен + L3 параллельный запрос</div></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>

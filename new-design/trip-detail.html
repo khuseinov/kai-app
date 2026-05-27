@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280,initial-scale=1">
+<title>kai · детали поездки · A</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink-1); font-family: var(--font-sans); }
+  .shell { max-width: 1280px; margin: 0 auto; padding: 56px 64px 120px; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 56px; }
+  .top .mark { font-weight: 700; font-size: 18px; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 10px; }
+  .top .meta { display: flex; gap: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+
+  .hero { padding-bottom: 48px; border-bottom: 1px solid var(--line); margin-bottom: 64px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 22px; display: inline-flex; align-items: center; gap: 8px; }
+  .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--ink-3); }
+  .hero h1 { font-size: 60px; font-weight: 600; line-height: 0.98; letter-spacing: -0.03em; max-width: 960px; margin: 0; }
+  .hero h1 .ocean { background: var(--tide-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; font-style: italic; font-weight: 500; }
+  .hero .lead { margin-top: 22px; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 720px; }
+
+  /* Layout — phone + anatomy notes */
+  .layout { display: grid; grid-template-columns: 340px 1fr; gap: 56px; align-items: start; }
+
+  .phone-frame {
+    background: var(--surface-3); border: 1px solid var(--line); border-radius: 24px;
+    padding: 32px;
+    display: flex; justify-content: center;
+  }
+  .phone {
+    width: 280px; height: 620px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 38px;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .phone .island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 90px; height: 26px; background: var(--ink-1); border-radius: 999px; z-index: 10; }
+  .phone .home { position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%); width: 90px; height: 4px; border-radius: 999px; background: var(--ink-3); opacity: 0.3; z-index: 10; }
+  .phone .tide-bar { position: absolute; top: 46px; left: 18px; width: calc(100% - 36px); height: 14px; z-index: 2; }
+
+  /* Top app bar — back + title + share */
+  .appbar {
+    position: absolute; top: 16px; left: 0; right: 0;
+    height: 28px; padding: 0 16px; z-index: 8;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .appbar .ic-btn {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--surface-2); border: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-1);
+  }
+  .appbar .ttl { font: 600 13px var(--font-sans); color: var(--ink-1); letter-spacing: -0.005em; }
+
+  /* Scrollable trip content */
+  .trip {
+    padding: 70px 18px 24px;
+    flex: 1; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+
+  /* Hero of the trip */
+  .trip-hero {
+    background: linear-gradient(135deg, rgba(43,168,201,0.08), rgba(244,181,137,0.06));
+    border: 1px solid var(--accent-line);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .trip-hero .row1 { display: flex; align-items: center; gap: 12px; }
+  .trip-hero .glyph {
+    width: 38px; height: 38px; border-radius: 11px;
+    background: var(--tide-gradient); background-size: 200% 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font: 700 13px var(--font-sans); letter-spacing: -0.02em;
+    flex-shrink: 0;
+  }
+  .trip-hero .meta { flex: 1; min-width: 0; }
+  .trip-hero .meta .name { font: 600 16px var(--font-sans); color: var(--ink-1); letter-spacing: -0.015em; line-height: 1.2; }
+  .trip-hero .meta .sub { font: 400 11px var(--font-mono); color: var(--ink-3); margin-top: 2px; }
+  .trip-hero .meta .sub .dot { color: var(--ink-4); }
+  .trip-hero .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-top: 8px; border-top: 1px solid var(--accent-line); }
+  .trip-hero .stat { display: flex; flex-direction: column; gap: 2px; }
+  .trip-hero .stat .n { font: 600 16px var(--font-sans); color: var(--ink-1); letter-spacing: -0.01em; line-height: 1; }
+  .trip-hero .stat .l { font: 500 9px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* Budget bar animated fill */
+  @keyframes bar-reveal {
+    from { clip-path: inset(0 100% 0 0); }
+    to   { clip-path: inset(0 0% 0 0); }
+  }
+  .budget-bar { animation: bar-reveal 1.2s cubic-bezier(.2,0,0,1) 0.6s both; }
+
+  /* Budget legend items stagger */
+  .budget-legend .li { animation: kai-fade-in 0.3s ease both; }
+  .budget-legend .li:nth-child(1) { animation-delay: 0.9s; }
+  .budget-legend .li:nth-child(2) { animation-delay: 1.0s; }
+  .budget-legend .li:nth-child(3) { animation-delay: 1.1s; }
+  .budget-legend .li:nth-child(4) { animation-delay: 1.2s; }
+  .budget-legend .li:nth-child(5) { animation-delay: 1.3s; }
+  .budget {
+    background: var(--surface-2); border-radius: 12px; padding: 12px 12px 10px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .budget .brow { display: flex; align-items: baseline; justify-content: space-between; }
+  .budget .brow .bl { font: 600 13px var(--font-sans); color: var(--ink-1); letter-spacing: -0.01em; }
+  .budget .brow .br { font: 500 10px var(--font-mono); color: var(--ink-3); }
+  .budget-bar { height: 6px; background: var(--surface-3); border-radius: 999px; overflow: hidden; display: flex; gap: 1px; }
+  .budget-bar .seg { height: 100%; border-radius: 999px; }
+  .budget-bar .seg.flights { background: var(--tide-1); flex: 3.5; }
+  .budget-bar .seg.stays { background: var(--tide-2); flex: 2.5; }
+  .budget-bar .seg.food { background: var(--tide-3); flex: 1.5; }
+  .budget-bar .seg.local { background: var(--accent); flex: 0.8; }
+  .budget-bar .seg.rem { background: var(--surface-3); flex: 4; }
+  .budget-legend { display: flex; gap: 8px; flex-wrap: wrap; }
+  .budget-legend .li { display: flex; align-items: center; gap: 4px; font: 400 9px var(--font-mono); color: var(--ink-3); }
+  .budget-legend .li i { display: inline-block; width: 6px; height: 6px; border-radius: 2px; flex-shrink: 0; }
+  .budget .bwarn { font: 500 10px var(--font-sans); color: var(--warning); margin-top: 2px; }
+  .s-label {
+    font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 8px 4px 2px;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .s-label .ct { color: var(--ink-4); }
+
+  /* Trip facts — locked memory for this trip */
+  .facts {
+    background: var(--surface-2); border-radius: 12px;
+    padding: 4px;
+    display: flex; flex-direction: column;
+  }
+  .fact {
+    padding: 8px 10px;
+    display: grid; grid-template-columns: 14px 1fr auto; gap: 8px; align-items: center;
+    border-radius: 8px;
+  }
+  .fact svg { color: var(--ink-3); }
+  .fact .k { font-size: 11px; color: var(--ink-3); font-family: var(--font-mono); }
+  .fact .v { font-size: 11.5px; color: var(--ink-1); font-weight: 500; letter-spacing: -0.005em; }
+
+  /* Chats list */
+  .chats {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .chat-item {
+    padding: 9px 10px; background: var(--surface-2); border-radius: 10px;
+    display: flex; flex-direction: column; gap: 2px;
+    border-left: 2px solid transparent;
+  }
+  .chat-item.active { border-left-color: var(--accent); background: var(--accent-wash); }
+  .chat-item .t { font: 500 12px var(--font-sans); color: var(--ink-1); letter-spacing: -0.005em; line-height: 1.35; }
+  .chat-item.active .t { color: var(--accent); font-weight: 600; }
+  .chat-item .preview { font: 400 10.5px var(--font-sans); color: var(--ink-3); line-height: 1.4; }
+  .chat-item .meta { font: 400 9px var(--font-mono); color: var(--ink-4); display: flex; gap: 8px; margin-top: 2px; }
+
+  /* Sources / tool runs for this trip */
+  .sources-list {
+    background: var(--surface-2); border-radius: 12px;
+    padding: 4px;
+    display: flex; flex-direction: column;
+  }
+  .src-item {
+    padding: 8px 10px; display: grid; grid-template-columns: 16px 1fr auto; gap: 8px; align-items: center;
+  }
+  .src-item .ic {
+    width: 16px; height: 16px; border-radius: 4px;
+    background: var(--surface); border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-3);
+  }
+  .src-item .u { font: 500 11px var(--font-mono); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .src-item .when { font: 400 9.5px var(--font-mono); color: var(--ink-3); }
+  .src-item .when.ok { color: var(--positive); }
+
+  /* Quick actions row */
+  .actions-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+    padding: 12px 0 4px;
+  }
+  .actions-row .qa {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 9px 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer;
+  }
+  .actions-row .qa svg { color: var(--ink-1); }
+  .actions-row .qa .l { font: 500 10px var(--font-sans); color: var(--ink-1); letter-spacing: -0.005em; }
+
+  .ask-btn {
+    width: 100%; padding: 11px;
+    background: var(--ink-1); color: var(--surface);
+    border: 0; border-radius: 12px;
+    font: 600 13px var(--font-sans); letter-spacing: -0.005em;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 8px;
+  }
+
+  /* Notes column */
+  .notes h3 { font-size: 24px; font-weight: 600; letter-spacing: -0.018em; margin-bottom: 18px; }
+  .notes p { font-size: 14.5px; color: var(--ink-2); line-height: 1.55; margin-bottom: 22px; max-width: 560px; }
+  .anatomy-list { display: flex; flex-direction: column; gap: 22px; }
+  .anatomy-item {
+    border-left: 2px solid var(--line);
+    padding: 4px 0 4px 18px;
+  }
+  .anatomy-item.kept { border-left-color: var(--tide-2); }
+  .anatomy-item.new  { border-left-color: var(--tide-3); }
+  .anatomy-item .ref {
+    font-family: var(--font-mono); font-size: 10px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;
+  }
+  .anatomy-item.kept .ref { color: var(--tide-2); }
+  .anatomy-item.new  .ref { color: #C68B4A; }
+  .anatomy-item h4 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 6px; }
+  .anatomy-item p  { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin: 0; max-width: 560px; }
+
+  /* Footer */
+  .next { margin-top: 72px; padding: 40px 0 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: 220px 1fr; gap: 64px; }
+  .next .idx { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .next .copy h3 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 10px; }
+  .next .copy p { font-size: 14.5px; color: var(--ink-2); line-height: 1.55; max-width: 620px; }
+
+  /* ── Shared entrance animations ── */
+  @keyframes kai-fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes kai-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes kai-scale-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Phone frames fade up with stagger */
+  .phone, .frame-card {
+    animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) both;
+  }
+  .frame-card:nth-child(1) { animation-delay: 0.02s; }
+  .frame-card:nth-child(2) { animation-delay: 0.04s; }
+  .frame-card:nth-child(3) { animation-delay: 0.07s; }
+  .frame-card:nth-child(4) { animation-delay: 0.10s; }
+
+  /* Phone-frame wrappers */
+  .phone-frame .phone { animation: kai-fade-up 0.5s cubic-bezier(.2,0,0,1) 0.1s both; }
+  .layout .phone-frame { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.06s both; }
+  .layout .notes       { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.18s both; }
+
+
+  /* Tide curve entrance — already animates; just ensure visibility */
+  .phone .tide-bar, .phone .tide-svg { animation: kai-fade-in 0.6s ease 0.2s both; }
+
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-tide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1B4FB0"/><stop offset="0.5" stop-color="#2BA8C9"/><stop offset="1" stop-color="#F4B589"/></linearGradient>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 21V4M4 4h12l-3 5 3 5H4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="1.8"/><line x1="8" y1="3" x2="8" y2="7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="16" y1="3" x2="16" y2="7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-money" viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M17 7H9.5a2.5 2.5 0 0 0 0 5h5a2.5 2.5 0 0 1 0 5H7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><ellipse cx="12" cy="12" rx="4" ry="9" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="i-verify" viewBox="0 0 24 24"><path d="M12 2l9 4v6c0 5-3.5 9-9 10-5.5-1-9-5-9-10V6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><line x1="9" y1="4" x2="9" y2="18" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><circle cx="6" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="19" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><line x1="9" y1="11" x2="15" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="9" y1="13" x2="15" y2="18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v14M5 10l7 7 7-7M5 21h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8" fill="none" stroke="currentColor" stroke-width="1.8"/><line x1="10" y1="13" x2="14" y2="13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 2v6h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell">
+
+  <div class="top">
+    <div class="mark">
+      <svg width="28" height="6" viewBox="0 0 28 6"><path d="M 1 3 Q 7 0, 14 3 T 27 3" stroke="url(#g-tide)" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      <span>kai</span>
+      <span style="color:var(--ink-3);font-weight:500;letter-spacing:0;">— детали поездки · A</span>
+    </div>
+    <div class="meta">
+      <span>творческое дополнение · A</span>
+      <span style="color:var(--ink-1)">·</span>
+      <span>содержимое папки</span>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="eyebrow">творческое · A — экран деталей поездки</div>
+    <h1>Что <span class="ocean">внутри</span> папки.</h1>
+    <p class="lead">
+      Папка поездки из панели — открытая. Герой поездки со статистикой, заблокированные факты (виза, даты, бюджет) хранимые Kai, чаты внутри, источники для этой поездки и быстрые действия (поделиться, экспорт, архив).
+    </p>
+  </header>
+
+  <div class="layout">
+
+    <!-- Phone -->
+    <div class="phone-frame">
+      <div class="phone">
+        <div class="island"></div>
+        <div class="appbar">
+          <button class="ic-btn"><svg width="14" height="14"><use href="#i-back"/></svg></button>
+          <div class="ttl">Trip</div>
+          <button class="ic-btn"><svg width="14" height="14"><use href="#i-dots"/></svg></button>
+        </div>
+        <svg class="tide-bar" viewBox="0 0 244 14" preserveAspectRatio="none"><path d="M 2 8 Q 30 4, 56 8 T 110 8 T 168 8 T 244 6" stroke="url(#g-tide)" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.45"/></svg>
+
+        <div class="trip">
+
+          <!-- Trip hero -->
+          <div class="trip-hero">
+            <div class="row1">
+              <div class="glyph">JP</div>
+              <div class="meta">
+                <div class="name">Япония · Ноябрь 2026</div>
+                <div class="sub">Ноя 12 — 19 <span class="dot">·</span> 7 дней <span class="dot">·</span> активно</div>
+              </div>
+            </div>
+            <div class="stats">
+              <div class="stat"><span class="n">7</span><span class="l">чаты</span></div>
+              <div class="stat"><span class="n">12</span><span class="l">источники</span></div>
+              <div class="stat"><span class="n">5</span><span class="l">факты</span></div>
+            </div>
+          </div>
+
+          <!-- Budget Guard (F-L3-05) -->
+          <div class="budget">
+            <div class="brow">
+              <span class="bl">Budget · Japan Nov 2026</span>
+              <span class="br">¥190,000 of ¥240,000</span>
+            </div>
+            <div class="budget-bar">
+              <div class="seg flights"></div>
+              <div class="seg stays"></div>
+              <div class="seg food"></div>
+              <div class="seg local"></div>
+              <div class="seg rem"></div>
+            </div>
+            <div class="budget-legend">
+              <div class="li"><i style="background:var(--tide-1)"></i>flights ¥84k</div>
+              <div class="li"><i style="background:var(--tide-2)"></i>stays ¥60k</div>
+              <div class="li"><i style="background:var(--tide-3)"></i>food ¥36k</div>
+              <div class="li"><i style="background:var(--accent)"></i>local ¥10k</div>
+              <div class="li"><i style="background:var(--surface-3);border:1px solid var(--line)"></i>left ¥50k</div>
+            </div>
+          </div>
+
+          <!-- Trip facts (locked memory) -->
+          <div>
+            <div class="s-label">факты <span class="ct">5</span></div>
+            <div class="facts">
+              <div class="fact"><svg width="13" height="13"><use href="#i-flag"/></svg><span class="k">паспорт</span><span class="v">Российский</span></div>
+              <div class="fact"><svg width="13" height="13"><use href="#i-cal"/></svg><span class="k">даты</span><span class="v">Nov 12 — 19, 2026</span></div>
+              <div class="fact"><svg width="13" height="13"><use href="#i-money"/></svg><span class="k">бюджет</span><span class="v">~$2,400</span></div>
+              <div class="fact"><svg width="13" height="13"><use href="#i-verify"/></svg><span class="k">виза</span><span class="v">нужна · ¥3,000</span></div>
+              <div class="fact"><svg width="13" height="13"><use href="#i-map"/></svg><span class="k">маршрут</span><span class="v">Токио → Киото → Осака</span></div>
+            </div>
+          </div>
+
+          <!-- Chats in this trip -->
+          <div>
+            <div class="s-label">чаты <span class="ct">7</span></div>
+            <div class="chats">
+              <div class="chat-item active">
+                <div class="t">Виза в Японию — Российский паспорт</div>
+                <div class="preview">Виза нужна. 4 рабочих дня, ¥3,000.</div>
+                <div class="meta"><span>now</span><span>·</span><span>4 источника</span></div>
+              </div>
+              <div class="chat-item">
+                <div class="t">Цена JR Pass на 14 дней</div>
+                <div class="preview">¥80,000 Green Pass. Стоит того при 4+ поездках на синкансэне.</div>
+                <div class="meta"><span>12m</span><span>·</span><span>jrpass.com</span></div>
+              </div>
+              <div class="chat-item">
+                <div class="t">Лучшая уличная еда в Токио после 21:00</div>
+                <div class="preview">Golden Gai · Omoide Yokocho · Memory Lane.</div>
+                <div class="meta"><span>yesterday</span></div>
+              </div>
+              <div class="chat-item">
+                <div class="t">Токио → Киото через Хаконе</div>
+                <div class="preview">2-дневный крюк. Hakone Free Pass ¥6,100.</div>
+                <div class="meta"><span>2 дня</span><span>·</span><span>2 sources</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tool runs / sources for this trip -->
+          <div>
+            <div class="s-label">использованные источники <span class="ct">12</span></div>
+            <div class="sources-list">
+              <div class="src-item"><span class="ic"><svg width="10" height="10"><use href="#i-globe"/></svg></span><span class="u">visa.go.jp</span><span class="when ok">✓ fresh</span></div>
+              <div class="src-item"><span class="ic"><svg width="10" height="10"><use href="#i-globe"/></svg></span><span class="u">jrpass.com</span><span class="when ok">12m</span></div>
+              <div class="src-item"><span class="ic"><svg width="10" height="10"><use href="#i-globe"/></svg></span><span class="u">timatic.iata.org</span><span class="when ok">2h</span></div>
+              <div class="src-item"><span class="ic"><svg width="10" height="10"><use href="#i-globe"/></svg></span><span class="u">hakonefreepass.jp</span><span class="when">2 дня</span></div>
+            </div>
+          </div>
+
+          <!-- Quick actions -->
+          <div>
+            <div class="s-label">действия с поездкой</div>
+            <div class="actions-row">
+              <button class="qa"><svg width="15" height="15"><use href="#i-share"/></svg><span class="l">Поделиться</span></button>
+              <button class="qa"><svg width="15" height="15"><use href="#i-download"/></svg><span class="l">Экспорт</span></button>
+              <button class="qa"><svg width="15" height="15"><use href="#i-archive"/></svg><span class="l">Архив</span></button>
+            </div>
+            <button class="ask-btn"><svg width="13" height="13"><use href="#i-plus"/></svg>Спросить об этой поездке</button>
+          </div>
+
+        </div>
+        <div class="home"></div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="notes">
+      <h3>Раздел за разделом.</h3>
+      <p>Что заслуживает места на экране деталей поездки. Взято из существующих молекул — только один новый элемент (полоска «факты»).</p>
+
+      <div class="anatomy-list">
+        <div class="anatomy-item kept">
+          <div class="ref">оставлено · из панели</div>
+          <h4>Герой поездки · большой градиентный глиф + статистика</h4>
+          <p>Тот же паттерн тайлов с инициалами JP / TR / EU как в закреплённой поездке панели. Три показателя: чаты · источники · факты. Однострочник отвечает «что это за поездка?» без прокрутки.</p>
+        </div>
+        <div class="anatomy-item new">
+          <div class="ref">новое · этот экран</div>
+          <h4>Факты · заблокированная память</h4>
+          <p>Структурированные данные Kai об ЭТОЙ поездке. Паспорт · даты · бюджет · виза · маршрут. Каждый факт получен из разговора или установлен явно. Пользователь может долго нажать для исправления или удаления.</p>
+        </div>
+        <div class="anatomy-item kept">
+          <div class="ref">оставлено · из строки чата панели</div>
+          <h4>Список чатов · ограниченный поездкой</h4>
+          <p>Тот же компонент строки чата, но только чаты этой поездки. Активная сессия подсвечена. Превью показывает первую строку ответа — удобно для быстрого возврата.</p>
+        </div>
+        <div class="anatomy-item kept">
+          <div class="ref">оставлено · из карточки источника сообщения</div>
+          <h4>Использованные источники · квитанции</h4>
+          <p>Все URL, которые Kai получил для этой поездки, без дублей. Маркеры свежести. Тот же визуальный язык карточки источника. Нажмите, чтобы открыть страницу.</p>
+        </div>
+        <div class="anatomy-item new">
+          <div class="ref">новое · этот экран</div>
+          <h4>Действия с поездкой · поделиться / экспорт / архив</h4>
+          <p>Share trip as link (other users can preview). Export as Markdown / PDF. Archive when done. "Спросить об этой поездке" starts a new chat scoped to this folder, with all facts auto-loaded as context.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="next">
+    <div class="idx">→ next</div>
+    <div class="copy">
+      <h3>Детали поездки готовы. Что дальше?</h3>
+      <p>Приложение Память на полный экран? Настройки на полный экран? Или перейти к <strong>шагу 03 · передача в разработку</strong> с тем, что есть?</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

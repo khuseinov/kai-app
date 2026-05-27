@@ -1,0 +1,1942 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1320,initial-scale=1">
+<title>kai · дизайн-ревизия · 2026.05.26</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink-1); font-family: var(--font-sans); }
+
+  /* ── Page shell ─────────────────────────────────── */
+  .shell { max-width: 1280px; margin: 0 auto; padding: 48px 56px 160px; }
+
+  /* ── Top ─────────────────────────────────── */
+  .top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 48px; }
+  .top .mark { font-weight: 700; font-size: 18px; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 10px; }
+  .top .meta { display: flex; gap: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+
+  /* ── Hero ─────────────────────────────────── */
+  .hero { padding-bottom: 56px; border-bottom: 1px solid var(--line); margin-bottom: 56px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 22px; display: inline-flex; align-items: center; gap: 8px; }
+  .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--ink-3); }
+  .hero h1 { font-size: 64px; font-weight: 600; line-height: 0.98; letter-spacing: -0.03em; max-width: 980px; margin: 0; }
+  .hero h1 .ocean { background: var(--tide-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; font-style: italic; font-weight: 500; }
+  .hero .lead { margin-top: 22px; font-size: 18px; line-height: 1.55; color: var(--ink-2); max-width: 760px; }
+  .hero .stats { margin-top: 36px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .hero .stats .st { background: var(--bg); padding: 22px 4px 6px; }
+  .hero .stats .st .n { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  .hero .stats .st .v { font-size: 32px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink-1); line-height: 1; }
+  .hero .stats .st.alarm .v { color: var(--negative); }
+  .hero .stats .st.warn .v { color: var(--warning); }
+  .hero .stats .st.ok .v { color: var(--positive); }
+
+  /* ── Sticky tab nav ─────────────────────────────────── */
+  .navbar {
+    position: sticky; top: 0; z-index: 80;
+    background: rgba(250,250,249,0.92); backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    margin: 0 -56px 56px; padding: 0 56px;
+    display: flex; gap: 2px; overflow-x: auto;
+  }
+  .navbar .nb {
+    padding: 16px 14px; font: 500 13px var(--font-sans); color: var(--ink-3);
+    text-decoration: none; letter-spacing: -0.005em;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer;
+    background: transparent; border-top: 0; border-left: 0; border-right: 0;
+  }
+  .navbar .nb .nbn { font-family: var(--font-mono); font-size: 10px; color: var(--ink-4); }
+  .navbar .nb:hover { color: var(--ink-1); }
+  .navbar .nb.active { color: var(--ink-1); border-bottom-color: var(--ink-1); }
+  .navbar .nb.active .nbn { color: var(--accent); }
+
+  /* ── Sections (hidden tabs) ─────────────────────────────────── */
+  .sec { display: none; }
+  .sec.active { display: block; animation: fade-in 0.32s cubic-bezier(.2,0,0,1); }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .sec-head { display: grid; grid-template-columns: 200px 1fr; gap: 56px; margin-bottom: 40px; align-items: baseline; }
+  .sec-head .idx { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .sec-head h2 { font-size: 40px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.05; }
+  .sec-head .blurb { font-size: 16px; color: var(--ink-2); line-height: 1.6; max-width: 720px; margin-top: 14px; }
+
+  /* ── Issue card ─────────────────────────────────── */
+  .issue {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    display: grid; grid-template-columns: 80px 1fr; gap: 28px;
+  }
+  .issue .tag {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .issue .tag .sev {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    padding: 4px 8px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    display: inline-flex; align-items: center; gap: 5px;
+    width: fit-content;
+  }
+  .issue .tag .sev.high { background: var(--negative-wash); color: var(--negative); }
+  .issue .tag .sev.med  { background: var(--warning-wash); color: var(--warning); }
+  .issue .tag .sev.low  { background: var(--surface-2); color: var(--ink-3); }
+  .issue .tag .num {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); margin-top: 6px;
+  }
+  .issue .tag .fixed {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    padding: 4px 8px; border-radius: 999px;
+    background: var(--positive-wash); color: var(--positive);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    display: inline-flex; align-items: center; gap: 5px; margin-top: 6px;
+    width: fit-content;
+  }
+  .issue.done h3 { color: var(--ink-2); }
+  .issue.done .fix { background: var(--positive-wash); color: var(--positive); }
+  .issue.done .fix b { color: var(--positive); }
+  .issue.done .fix code { background: rgba(27,142,78,0.12); color: var(--positive); }
+  .issue h3 {
+    font-size: 19px; font-weight: 600; letter-spacing: -0.012em; color: var(--ink-1);
+    margin: 0 0 8px;
+  }
+  .issue .where {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); margin-bottom: 14px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .issue .where code {
+    background: var(--surface-2); padding: 2px 7px; border-radius: 4px; color: var(--accent);
+    font-size: 11px;
+  }
+  .issue .desc { font-size: 14.5px; color: var(--ink-2); line-height: 1.55; margin-bottom: 14px; }
+  .issue .desc strong { color: var(--ink-1); font-weight: 600; }
+  .issue .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+  .issue .cmp {
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 18px 16px;
+    background: var(--bg);
+    position: relative;
+  }
+  .issue .cmp .lbl {
+    font-family: var(--font-mono); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 3px 7px; border-radius: 999px;
+    position: absolute; top: 10px; right: 10px;
+  }
+  .issue .cmp .lbl.bad { background: var(--negative-wash); color: var(--negative); }
+  .issue .cmp .lbl.good { background: var(--positive-wash); color: var(--positive); }
+  .issue .cmp .note { font-size: 12px; color: var(--ink-3); font-family: var(--font-mono); line-height: 1.5; margin-top: 12px; }
+  .issue .fix {
+    margin-top: 14px; padding: 12px 14px;
+    background: var(--accent-wash); border-radius: 10px;
+    font: 500 13px var(--font-sans); color: var(--accent);
+    display: flex; align-items: flex-start; gap: 10px;
+    line-height: 1.5;
+  }
+  .issue .fix code {
+    background: rgba(44,91,229,0.12); padding: 1px 6px; border-radius: 4px; font-size: 12px;
+  }
+  .issue .fix b { color: var(--accent-deep); font-weight: 600; }
+
+  /* ── Compose-island demo (live) ─────────────────────────────────── */
+  .ci-demo {
+    height: 110px;
+    background: var(--bg);
+    border-radius: 8px;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .ci-mock {
+    position: relative; width: 90%; max-width: 240px;
+    background: var(--surface); border: 1px solid var(--line);
+    padding: 7px 7px 7px 14px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ci-mock.r20 { border-radius: 20px; }
+  .ci-mock.r999 { border-radius: 999px; }
+  .ci-mock .ph { flex: 1; font: 400 12px var(--font-sans); color: var(--ink-4); }
+  .ci-mock .mic-btn, .ci-mock .send-btn {
+    width: 30px; height: 30px; border-radius: 50%; border: 0;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .ci-mock .mic-btn { background: transparent; color: var(--ink-3); }
+  .ci-mock .send-btn.gray { background: var(--ink-1); color: white; }
+  .ci-mock .send-btn.tide { background: var(--tide-gradient); color: white; }
+  /* clipping highlight when wrong */
+  .ci-mock.bad::after {
+    content: ""; position: absolute; right: 2px; top: 50%; transform: translateY(-50%);
+    width: 38px; height: 38px;
+    border: 2px dashed var(--negative);
+    border-radius: 999px;
+    pointer-events: none;
+    animation: shake 1.6s ease-in-out infinite;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateY(-50%) rotate(0); }
+    25% { transform: translateY(-50%) rotate(-3deg); }
+    75% { transform: translateY(-50%) rotate(3deg); }
+  }
+
+  /* ── Tide states gallery ─────────────────────────────────── */
+  .tide-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+    margin-top: 28px;
+  }
+  .tide-cell {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .tide-cell .ts-label {
+    font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3);
+  }
+  .tide-cell .ts-name { font-size: 14px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.005em; }
+  .tide-cell .ts-svg { height: 28px; }
+  .tide-cell .ts-svg svg { width: 100%; height: 100%; }
+  .tide-cell .ts-desc { font-size: 11.5px; color: var(--ink-2); line-height: 1.5; }
+  .tide-cell.dark { background: #08080A; border-color: #25252A; }
+  .tide-cell.dark .ts-name { color: white; }
+  .tide-cell.dark .ts-label { color: rgba(255,255,255,0.4); }
+  .tide-cell.dark .ts-desc { color: rgba(255,255,255,0.55); }
+
+  /* ── Component card grid (Section 3) ─────────────────────────────────── */
+  .comp-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;
+  }
+  .comp {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    padding: 24px 26px;
+  }
+  .comp .top-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+  .comp h3 { font-size: 19px; font-weight: 600; letter-spacing: -0.012em; }
+  .comp .badge {
+    font-family: var(--font-mono); font-size: 10px; padding: 3px 8px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .comp .badge.ok { background: var(--positive-wash); color: var(--positive); }
+  .comp .badge.warn { background: var(--warning-wash); color: var(--warning); }
+  .comp .badge.bad { background: var(--negative-wash); color: var(--negative); }
+  .comp .filename { font-family: var(--font-mono); font-size: 11px; color: var(--accent); margin-bottom: 14px; }
+  .comp .desc { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; margin-bottom: 14px; }
+  .comp .desc strong { color: var(--ink-1); font-weight: 600; }
+  .comp .specs {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--ink-3);
+    background: var(--bg); border-radius: 8px; padding: 10px 12px;
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  .comp .specs strong { color: var(--ink-1); font-weight: 600; }
+  .comp .findings { display: flex; flex-direction: column; gap: 6px; }
+  .comp .findings .f {
+    display: grid; grid-template-columns: 14px 1fr; gap: 8px; align-items: baseline;
+    font-size: 12.5px; line-height: 1.5; color: var(--ink-2);
+  }
+  .comp .findings .f::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--positive); margin-top: 6px;
+  }
+  .comp .findings .f.warn::before { background: var(--warning); }
+  .comp .findings .f.bad::before { background: var(--negative); }
+  .comp .findings .f b { color: var(--ink-1); font-weight: 600; }
+
+  /* ── Zero-UI audit ─────────────────────────────────── */
+  .zui-table {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+  }
+  .zui-row {
+    display: grid; grid-template-columns: 200px 110px 1fr 1fr;
+    border-bottom: 1px solid var(--line);
+  }
+  .zui-row:last-child { border-bottom: 0; }
+  .zui-row.head {
+    background: var(--bg); font-family: var(--font-mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .zui-row .cell { padding: 18px 22px; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+  .zui-row .cell.name { font-weight: 600; color: var(--ink-1); font-size: 14.5px; letter-spacing: -0.005em; }
+  .zui-row .cell.verdict {
+    font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .zui-row .cell.verdict .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .zui-row .cell.verdict.ok { color: var(--positive); }
+  .zui-row .cell.verdict.ok .dot { background: var(--positive); }
+  .zui-row .cell.verdict.warn { color: var(--warning); }
+  .zui-row .cell.verdict.warn .dot { background: var(--warning); }
+  .zui-row .cell.verdict.bad { color: var(--negative); }
+  .zui-row .cell.verdict.bad .dot { background: var(--negative); }
+
+  /* ── Plan timeline ─────────────────────────────────── */
+  .plan-block {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    padding: 28px 32px; margin-bottom: 22px;
+  }
+  .plan-block .plan-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; gap: 18px; }
+  .plan-block .plan-head h3 { font-size: 22px; font-weight: 600; letter-spacing: -0.015em; }
+  .plan-block .plan-head .meta {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line);
+  }
+  .plan-block .plan-head .meta.now { background: var(--accent-wash); color: var(--accent); border-color: var(--accent-line); }
+  .plan-block .plan-head .meta.soon { background: var(--warning-wash); color: var(--warning); border-color: rgba(181,122,11,0.25); }
+  .plan-block .plan-head .meta.later { background: var(--surface-2); color: var(--ink-3); border-color: var(--line); }
+  .plan-block .desc {
+    font-size: 14.5px; color: var(--ink-2); line-height: 1.6; margin-bottom: 18px;
+  }
+  .plan-block .desc strong { color: var(--ink-1); font-weight: 600; }
+  .plan-block .screens {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  }
+  .plan-block .screen {
+    background: var(--bg); border-radius: 12px; padding: 16px 18px;
+    border: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .plan-block .screen .num { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); letter-spacing: 0.08em; text-transform: uppercase; }
+  .plan-block .screen .t { font-size: 14.5px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.005em; }
+  .plan-block .screen .why { font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+  .plan-block .screen .moat { font-family: var(--font-mono); font-size: 10px; color: var(--accent); margin-top: 4px; }
+
+  /* ── Animation review ─────────────────────────────────── */
+  .anim-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .anim {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 18px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .anim .head { display: flex; align-items: baseline; justify-content: space-between; }
+  .anim .head h4 { font-size: 15px; font-weight: 600; letter-spacing: -0.005em; }
+  .anim .stage {
+    background: var(--bg); border-radius: 10px; height: 96px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .anim .spec { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); line-height: 1.5; }
+  .anim .spec code { color: var(--accent); }
+  .anim .verdict {
+    font-family: var(--font-mono); font-size: 10px; padding: 3px 8px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .anim .verdict.have { background: var(--positive-wash); color: var(--positive); }
+  .anim .verdict.need { background: var(--warning-wash); color: var(--warning); }
+
+  /* tide curves for anim demo */
+  .demo-curve { width: 80%; height: 28px; }
+
+  /* gradient pulse glyph */
+  .glyph-pulse {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--tide-gradient); background-size: 200% 100%;
+    animation: pulse-out 2s ease-in-out infinite;
+  }
+  @keyframes pulse-out {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(43,168,201,0.6); }
+    50% { transform: scale(1.08); box-shadow: 0 0 0 12px rgba(43,168,201,0); }
+  }
+
+  /* memory-saved flash */
+  .flash-anim {
+    width: 100%; max-width: 220px;
+    background: var(--ink-1); border-radius: 12px;
+    padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px;
+    color: white; font-size: 12px;
+    animation: slide-in 3s ease-in-out infinite;
+  }
+  @keyframes slide-in {
+    0% { transform: translateY(40px); opacity: 0; }
+    15%, 70% { transform: translateY(0); opacity: 1; }
+    85%, 100% { transform: translateY(-20px); opacity: 0; }
+  }
+  .flash-anim .g {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--tide-gradient); flex-shrink: 0;
+  }
+
+  /* press feedback */
+  .press-btn {
+    padding: 10px 18px; border-radius: 14px; background: var(--ink-1); color: white;
+    font: 600 13px var(--font-sans); border: 0; cursor: pointer;
+    transition: transform 120ms linear, opacity 120ms linear;
+  }
+  .press-btn:active, .press-btn.demo {
+    transform: scale(0.97); opacity: 0.92;
+  }
+  .press-btn.demo { animation: press 1.6s ease-in-out infinite; }
+  @keyframes press {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(0.97); opacity: 0.85; }
+  }
+
+  /* sheet rise */
+  .sheet-stage {
+    background: var(--surface-2); border-radius: 10px;
+    height: 96px; position: relative; overflow: hidden;
+  }
+  .sheet-stage .sh {
+    position: absolute; left: 10%; right: 10%; bottom: 0;
+    height: 50%;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px 12px 0 0;
+    animation: sheet-rise 3s ease-in-out infinite;
+  }
+  @keyframes sheet-rise {
+    0%, 100% { transform: translateY(100%); }
+    25%, 65% { transform: translateY(0); }
+  }
+  .sheet-stage .sh::before {
+    content: ""; position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+    width: 28px; height: 3px; border-radius: 999px; background: var(--ink-4); opacity: 0.4;
+  }
+
+  /* panel slide */
+  .panel-stage {
+    background: var(--surface-2); border-radius: 10px;
+    height: 96px; position: relative; overflow: hidden;
+  }
+  .panel-stage .pn {
+    position: absolute; top: 0; bottom: 0; left: 0;
+    width: 60%;
+    background: var(--surface); border-right: 1px solid var(--line);
+    animation: panel-slide 3s ease-in-out infinite;
+  }
+  @keyframes panel-slide {
+    0%, 100% { transform: translateX(-100%); }
+    25%, 65% { transform: translateX(0); }
+  }
+
+  /* ── Mini bento for new screens ─────────────────────────────────── */
+  .mini-bento {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin-top: 14px;
+  }
+  .mini-bento .b {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .mini-bento .b .n { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); letter-spacing: 0.08em; text-transform: uppercase; }
+  .mini-bento .b .t { font-size: 13px; font-weight: 600; color: var(--ink-1); }
+  .mini-bento .b .s { font-size: 11.5px; color: var(--ink-2); line-height: 1.45; }
+
+  /* misc */
+  code { color: var(--accent); font-family: var(--font-mono); font-size: 0.9em; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-tide" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1B4FB0"/><stop offset="0.5" stop-color="#2BA8C9"/><stop offset="1" stop-color="#F4B589"/>
+    </linearGradient>
+    <linearGradient id="g-mute" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#A8A8AE"/><stop offset="1" stop-color="#A8A8AE"/>
+    </linearGradient>
+    <linearGradient id="g-blue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1B4FB0"/><stop offset="1" stop-color="#6FA7FF"/>
+    </linearGradient>
+    <linearGradient id="g-warm" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2BA8C9"/><stop offset="1" stop-color="#F4B589"/>
+    </linearGradient>
+    <linearGradient id="g-pos" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1B8E4E"/><stop offset="1" stop-color="#3DBE7A"/>
+    </linearGradient>
+    <linearGradient id="g-neg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#C44A3C"/><stop offset="1" stop-color="#F4B589"/>
+    </linearGradient>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 11v1a7 7 0 0 0 14 0v-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell">
+
+  <!-- ─── TOP ─── -->
+  <div class="top">
+    <div class="mark">
+      <svg width="28" height="6" viewBox="0 0 28 6"><path d="M 1 3 Q 7 0, 14 3 T 27 3" stroke="url(#g-tide)" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      <span>kai</span>
+      <span style="color:var(--ink-3);font-weight:500;letter-spacing:0;">— дизайн-ревизия + план</span>
+    </div>
+    <div class="meta">
+      <span>2026.05.26</span>
+      <span style="color:var(--ink-1)">·</span>
+      <span>15 артефактов · 8 пиксель-проблем</span>
+    </div>
+  </div>
+
+  <!-- ─── HERO ─── -->
+  <header class="hero">
+    <div class="eyebrow">ревизия · все экраны и компоненты · v2 · <span style="color:var(--positive);">✓ фиксы применены</span></div>
+    <h1>Пиксели выровнены,<br>система <span class="ocean">согласована</span>.</h1>
+    <p class="lead">
+      Все 8 пиксель-проблем из ревизии закрыты. Compose-island везде pill, send-button имеет чёткое правило состояний
+      (ready=tide / disabled=ink-4), phone-frame size-токены добавлены в CSS, type-scale в foundations.html берёт значения
+      из .t-* classes, старая crisis-card убрана, memory-badge везде dot, tide-curve добавлен в memory и settings,
+      status-bar как SVG-бары. <code>CLAUDE.md</code> обновлён. Секция 02 ниже — детали по каждому фиксу.
+    </p>
+    <div class="stats">
+      <div class="st ok"><div class="n">все 8 проблем</div><div class="v">✓</div></div>
+      <div class="st ok"><div class="n">закрыты</div><div class="v">8/8</div></div>
+      <div class="st ok"><div class="n">артефактов в норме</div><div class="v">15/15</div></div>
+      <div class="st"><div class="n">новых экранов в плане</div><div class="v">9</div></div>
+    </div>
+  </header>
+
+  <!-- ─── NAV ─── -->
+  <nav class="navbar" id="nav">
+    <button class="nb active" data-tab="overview"><span class="nbn">01</span>обзор</button>
+    <button class="nb" data-tab="pixels"><span class="nbn">02</span>пиксель-проблемы</button>
+    <button class="nb" data-tab="components"><span class="nbn">03</span>покомпонентно</button>
+    <button class="nb" data-tab="zero-ui"><span class="nbn">04</span>zero-UI аудит</button>
+    <button class="nb" data-tab="animations"><span class="nbn">05</span>анимации</button>
+    <button class="nb" data-tab="backend"><span class="nbn">06</span>привязка к backend</button>
+    <button class="nb" data-tab="plan"><span class="nbn">07</span>план: экраны / маркетинг / handoff</button>
+  </nav>
+
+  <!-- ════════════════════════════════════════════════
+       SECTION 01 — OVERVIEW
+       ════════════════════════════════════════════════ -->
+  <section class="sec active" id="overview">
+    <div class="sec-head">
+      <div class="idx">01 — обзор</div>
+      <div>
+        <h2>Краткое резюме ревизии.</h2>
+        <p class="blurb">
+          Система в целом крепкая: токены закрыты в CSS, четыре опорных экрана собраны,
+          dark mode сделан как ремап токенов, brand-anchor зафиксирован. Но при тщательном
+          разборе всплыли <strong>несостыковки между файлами</strong> — одно и то же место (compose-island,
+          phone-frame, send-button) выглядит по-разному в разных артефактах. Также:
+          часть жёстких правил из CLAUDE.md нарушается в продакшен-фреймах, а не только в
+          вспомогательных demo.
+        </p>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:28px 32px;">
+        <h3 style="font-size:18px;font-weight:600;letter-spacing:-0.012em;margin-bottom:14px;">🟢 Что хорошо</h3>
+        <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;">
+          <li style="display:grid;grid-template-columns:18px 1fr;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--positive);">01</span>
+            <span><strong>Токены.</strong> 47 CSS custom properties в одном файле, JSON-парность для Flutter. Light/dark/tide зафиксированы.</span>
+          </li>
+          <li style="display:grid;grid-template-columns:18px 1fr;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--positive);">02</span>
+            <span><strong>Tide gradient.</strong> Единственный градиент, восемь живых состояний, заявлены и в design-tokens.json.</span>
+          </li>
+          <li style="display:grid;grid-template-columns:18px 1fr;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--positive);">03</span>
+            <span><strong>Zero-UI принцип.</strong> Панель — full-screen по жесту, compose — sheet по swipe-up. Никакого закрепленного хрома.</span>
+          </li>
+          <li style="display:grid;grid-template-columns:18px 1fr;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--positive);">04</span>
+            <span><strong>Crisis pattern.</strong> C3 in-conversation решение закреплено и хорошо проиллюстрировано в edge-states.</span>
+          </li>
+          <li style="display:grid;grid-template-columns:18px 1fr;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--positive);">05</span>
+            <span><strong>Voice.</strong> Karaoke-reveal + timeline transcript — чисто, без шума, на тёмном фоне для контраста.</span>
+          </li>
+          <li style="display:grid;grid-template-columns:18px 1fr;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--positive);">06</span>
+            <span><strong>Nav audit.</strong> "Tools" вырезаны, source-card перенесён в сообщение. Логика правильная.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:28px 32px;">
+        <h3 style="font-size:18px;font-weight:600;letter-spacing:-0.012em;margin-bottom:14px;">🔴 Что не так</h3>
+        <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;">
+          <li style="display:grid;grid-template-columns:18px 1fr;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--negative);">01</span>
+            <span><strong>Compose-island не везде pill.</strong> CLAUDE.md требует <code>r-pill</code>. В room.html — <code>r-4 (20px)</code>. Это нарушение жёсткого правила.</span>
+          </li>
+          <li style="display:grid;grid-template-columns:18px 1fr;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--negative);">02</span>
+            <span><strong>Send-button разный в каждом файле.</strong> В одном tide-gradient, в другом ink-1, в третьем с opacity. Нет единого правила "когда какой".</span>
+          </li>
+          <li style="display:grid;grid-template-columns:18px 1fr;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--negative);">03</span>
+            <span><strong>Phone-frame размер плавает.</strong> 290×580 → 240×460 → 240×500 → 240×480. CLAUDE.md заявляет 280×620 как дефолт.</span>
+          </li>
+          <li style="display:grid;grid-template-columns:18px 1fr;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--warning);">04</span>
+            <span><strong>Type-scale в foundations.html врёт.</strong> Прописаны размеры (72/44/32/22), но в CSS-токенах другие (88/56/36/24).</span>
+          </li>
+          <li style="display:grid;grid-template-columns:18px 1fr;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--warning);">05</span>
+            <span><strong>Crisis: две версии.</strong> components.html содержит standalone-карточку (старая C1), edge-states.html — care-block (актуальная C3). Старая должна уйти.</span>
+          </li>
+          <li style="display:grid;grid-template-columns:18px 1fr;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--warning);">06</span>
+            <span><strong>Memory badge: dot vs "2 new".</strong> Решение в nav.html было "dot only", но во всех файлах остался badge с числом.</span>
+          </li>
+          <li style="display:grid;grid-template-columns:18px 1fr;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--warning);">07</span>
+            <span><strong>Tide-curve не во всех экранах.</strong> CLAUDE.md: "tide at top of every product screen". Memory, settings, brand — без неё.</span>
+          </li>
+          <li style="display:grid;grid-template-columns:18px 1fr;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--warning);">08</span>
+            <span><strong>Backend-фичи не покрыты UI.</strong> HITL Money Gate ($100+), Confidence Display, Multi-Country Fork, PII proof — есть в коде, нет на экранах.</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div style="margin-top:32px;padding:24px 28px;background:var(--accent-wash);border:1px solid var(--accent-line);border-radius:14px;">
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">→ как читать дальше</div>
+      <p style="margin:0;font-size:14.5px;color:var(--ink-1);line-height:1.6;">
+        Дальше — семь секций. Можно скакать по табам сверху. Главные две — <strong>«Пиксель-проблемы»</strong> (что чинить
+        в первую очередь) и <strong>«План»</strong> (новые экраны, маркетинг, handoff к Flutter). Остальные пять — справочно.
+      </p>
+    </div>
+
+  </section>
+
+  <!-- ════════════════════════════════════════════════
+       SECTION 02 — PIXEL ISSUES
+       ════════════════════════════════════════════════ -->
+  <section class="sec" id="pixels">
+    <div class="sec-head">
+      <div class="idx">02 — пиксель-проблемы</div>
+      <div>
+        <h2>Восемь несостыковок,<br>от критических к мелким.</h2>
+        <p class="blurb">
+          Каждая проблема: где находится, чем это нарушает закон системы, как должно
+          быть. Live-демо «до vs после» там, где можно показать визуально.
+        </p>
+      </div>
+    </div>
+
+    <!-- ISSUE 01 — Compose-island radius -->
+    <div class="issue done">
+      <div class="tag">
+        <span class="sev high">высокая</span>
+        <span class="num">01 / 08</span>
+        <span class="fixed">✓ закрыто</span>
+      </div>
+      <div>
+        <h3>Compose-island: радиус не pill там, где должен быть pill</h3>
+        <div class="where">
+          <code>room.html · f01</code>
+          <code>room.html · f02</code>
+          <code>components.html · compose-sheet</code>
+        </div>
+        <div class="desc">
+          CLAUDE.md явно требует: <strong>«Buttons inside inputs hug the edge. Use border-radius: 999px (pill) on compose-island.»</strong>
+          Это сделано в <code>edge-states.html</code> (правильно), но в <code>room.html</code> frame 01 и frame 02 — стоит <code>border-radius: 20px</code> (r-4).
+          В <code>components.html</code> sheet.compose-sheet — <code>18px</code>. При круглой кнопке 30–32 px внутри input высотой 44–50 px и радиусом всего 20 px — край кнопки визуально режется углом контейнера, особенно на правом мик/send.
+        </div>
+
+        <div class="compare">
+          <div class="cmp">
+            <span class="lbl bad">сейчас (room.html)</span>
+            <div class="ci-demo">
+              <div class="ci-mock r20 bad">
+                <span class="ph">Ask Kai…</span>
+                <button class="mic-btn"><svg width="14" height="14"><use href="#i-mic"/></svg></button>
+                <button class="send-btn gray"><svg width="13" height="13"><use href="#i-arrow-up"/></svg></button>
+              </div>
+            </div>
+            <div class="note">r-4 (20px) · кнопки 30px<br>пунктир показывает где кнопка касается края</div>
+          </div>
+          <div class="cmp">
+            <span class="lbl good">должно (edge-states.html)</span>
+            <div class="ci-demo">
+              <div class="ci-mock r999">
+                <span class="ph">Ask Kai…</span>
+                <button class="mic-btn"><svg width="14" height="14"><use href="#i-mic"/></svg></button>
+                <button class="send-btn tide"><svg width="13" height="13"><use href="#i-arrow-up"/></svg></button>
+              </div>
+            </div>
+            <div class="note">r-pill (999px) · кнопки естественно сидят в фигуре</div>
+          </div>
+        </div>
+
+        <div class="fix">
+          <span style="flex-shrink:0;">🔧</span>
+          <span><b>Фикс:</b> в <code>room.html .f01 .compose-island</code>, <code>.f02 .compose-island</code>, <code>.f04 .sheet .compose-row</code>, <code>components.html .sheet.compose-sheet .compose</code> — везде <code>border-radius: 999px</code>. Внутренний padding соответственно <code>4px 4px 4px 14px</code> (как в edge-states.html).</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ISSUE 02 — Send button inconsistency -->
+    <div class="issue done">
+      <div class="tag">
+        <span class="sev high">высокая</span>
+        <span class="num">02 / 08</span>
+        <span class="fixed">✓ закрыто</span>
+      </div>
+      <div>
+        <h3>Send-button: 4 разных стиля без правила</h3>
+        <div class="where">
+          <code>room.html · f01 · ink-1 (заливка)</code>
+          <code>room.html · f02 · ink-1 + opacity 0.4</code>
+          <code>room.html · f04 · tide-gradient</code>
+          <code>edge-states.html · ink-1 + opacity 0.4</code>
+          <code>components.html · tide-gradient</code>
+        </div>
+        <div class="desc">
+          CLAUDE.md: <strong>«Only one button per screen carries the Tide gradient (typically Send).»</strong> — кажется, что
+          send всегда tide. Но на деле в продакшен-фреймах он часто чёрный (<code>--ink-1</code>) или вообще полупрозрачный.
+          Это нелогично: либо send — это <em>тот самый</em> single primary action c tide, либо tide резервируется только для compose-sheet
+          (отдельной поверхности). Сейчас файлы спорят между собой.
+        </div>
+
+        <div class="compare" style="grid-template-columns:1fr 1fr 1fr;">
+          <div class="cmp">
+            <span class="lbl bad">f01 · ink-1</span>
+            <div class="ci-demo">
+              <div class="ci-mock r999">
+                <span class="ph">Ask…</span>
+                <button class="mic-btn"><svg width="13" height="13"><use href="#i-mic"/></svg></button>
+                <button class="send-btn gray"><svg width="12" height="12"><use href="#i-arrow-up"/></svg></button>
+              </div>
+            </div>
+            <div class="note">empty state · ничего не написано</div>
+          </div>
+          <div class="cmp">
+            <span class="lbl bad">f02 · ink-1 0.4</span>
+            <div class="ci-demo">
+              <div class="ci-mock r999">
+                <span class="ph">Reply…</span>
+                <button class="mic-btn"><svg width="13" height="13"><use href="#i-mic"/></svg></button>
+                <button class="send-btn gray" style="opacity:0.4"><svg width="12" height="12"><use href="#i-arrow-up"/></svg></button>
+              </div>
+            </div>
+            <div class="note">live · disabled</div>
+          </div>
+          <div class="cmp">
+            <span class="lbl good">f04 · tide</span>
+            <div class="ci-demo">
+              <div class="ci-mock r999">
+                <span class="ph">Tokyo → Kyoto…</span>
+                <button class="mic-btn"><svg width="13" height="13"><use href="#i-mic"/></svg></button>
+                <button class="send-btn tide"><svg width="12" height="12"><use href="#i-arrow-up"/></svg></button>
+              </div>
+            </div>
+            <div class="note">compose · ready</div>
+          </div>
+        </div>
+
+        <div class="fix">
+          <span style="flex-shrink:0;">🔧</span>
+          <span><b>Правило:</b> send-button = <code>tide-gradient</code> когда есть текст для отправки (<em>ready</em>). При пустом input — <code>--ink-4</code> placeholder fill, opacity 0.4 (disabled). При активной отправке — <code>tide-gradient</code> с пульс-анимацией. Никакого ink-1: чёрная кнопка в input — антипаттерн для zero-UI.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ISSUE 03 — Phone frame sizes -->
+    <div class="issue done">
+      <div class="tag">
+        <span class="sev high">высокая</span>
+        <span class="num">03 / 08</span>
+        <span class="fixed">✓ закрыто</span>
+      </div>
+      <div>
+        <h3>Phone-frame: 4 разных размера, дефолт нигде не зафиксирован</h3>
+        <div class="where">
+          <code>room.html · 290×580 · r-38</code>
+          <code>voice.html · 240×500 · r-32</code>
+          <code>edge-states.html · 240×480 · r-32</code>
+          <code>components.html · 240×460 · r-30</code>
+        </div>
+        <div class="desc">
+          CLAUDE.md заявляет дефолт <strong>280×620</strong>. Реальность: ни один файл его не использует. <code>room.html</code>
+          ближе всех (290×580), но остальные просто сжаты «под клетку» в 4-колоночную решётку. Для презентационной согласованности
+          это норма (можно жертвовать размером ради компоновки), но в файле передачи разработчикам нужен <em>один</em> исходный
+          размер, относительно которого все паддинги и токены посчитаны.
+        </div>
+        <div class="fix">
+          <span style="flex-shrink:0;">🔧</span>
+          <span><b>Решение:</b> объявить два размера: (1) <b>canonical</b> 390×844 (iPhone 14/15 viewport, 1:1) — для эталонных макетов в спецификации компонентов; (2) <b>display</b> 280×620 — для visual-катастра в 2-колоночной сетке, и 240×480 для 4-колоночной. В <code>colors_and_type.css</code> добавить токены <code>--phone-w-cv: 390px</code>, <code>--phone-w-md: 280px</code>, <code>--phone-w-sm: 240px</code> и зафиксировать в CLAUDE.md.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ISSUE 04 — Type scale mismatch -->
+    <div class="issue done">
+      <div class="tag">
+        <span class="sev med">средняя</span>
+        <span class="num">04 / 08</span>
+        <span class="fixed">✓ закрыто</span>
+      </div>
+      <div>
+        <h3>Type-scale: foundations.html рисует одно, CSS-токены — другое</h3>
+        <div class="where">
+          <code>foundations.html · type-scale section</code>
+          <code>colors_and_type.css · .t-* classes</code>
+        </div>
+        <div class="desc">
+          В <code>foundations.html § 04</code> в таблице type-scale указаны: hero 72/600/-0.035em, display 44/600/-0.025em, h1 32, h2 22, h3 18.
+          В CSS: <code>.t-hero</code> = clamp(56, 8vw, <b>88</b>) — другой, <code>.t-display</code> = clamp(40, 5vw, <b>56</b>) — другой,
+          <code>.t-h1</code> = <b>36px</b>, <code>.t-h2</code> = <b>24px</b>, <code>.t-h3</code> = <b>18px</b>. То есть документация
+          живёт отдельно от исходника. Любой агент, который придёт читать foundations.html и копировать спеки, получит неправильные значения.
+        </div>
+        <div class="fix">
+          <span style="flex-shrink:0;">🔧</span>
+          <span><b>Фикс:</b> переписать таблицу в <code>foundations.html § 04</code> чтобы значения <em>в точности</em> совпадали с <code>.t-*</code> классами. Альтернатива: в foundations.html сэмплы рисовать через сами classes (<code>class="t-h1"</code>), тогда они физически берутся из токенов и расхождение невозможно.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ISSUE 05 — Crisis card duplicate -->
+    <div class="issue done">
+      <div class="tag">
+        <span class="sev med">средняя</span>
+        <span class="num">05 / 08</span>
+        <span class="fixed">✓ закрыто</span>
+      </div>
+      <div>
+        <h3>Crisis: устаревшая standalone-карточка в components.html</h3>
+        <div class="where">
+          <code>components.html · § 03.10 .crisis</code>
+          <code>edge-states.html · § 04 .crisis-chat</code>
+        </div>
+        <div class="desc">
+          CLAUDE.md фиксирует <strong>C3 in-conversation pattern</strong>: care-block внутри обычного ответа Kai, compose остаётся,
+          никакого takeover-экрана. <code>edge-states.html</code> следует этому. Но в <code>components.html § 03.10</code> до сих пор
+          живёт <em>предыдущая</em> версия — standalone-карточка с заголовком «I hear you — this is hard.», двумя кнопками-actions и
+          закрывающей фразой. Это противоречит правилу «Kai stays in the chat — never a takeover screen». Любой разработчик,
+          который пойдёт собирать crisis по components.html, соберёт неправильно.
+        </div>
+        <div class="fix">
+          <span style="flex-shrink:0;">🔧</span>
+          <span><b>Фикс:</b> в <code>components.html</code> заменить раздел «Crisis card» на <em>ссылку</em> на edge-states.html: «Crisis pattern lives in edge-states.html § 04 (C3 in-conversation)». Карточку как Layer-2 molecule убрать — она не молекула, это особый режим conversation.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ISSUE 06 — Memory badge -->
+    <div class="issue done">
+      <div class="tag">
+        <span class="sev med">средняя</span>
+        <span class="num">06 / 08</span>
+        <span class="fixed">✓ закрыто</span>
+      </div>
+      <div>
+        <h3>Memory-badge: решение принято «dot», реальность — «2 new»</h3>
+        <div class="where">
+          <code>nav.html · audit Q5</code>
+          <code>room.html · panel · "2 new"</code>
+          <code>nav.html · panel · "2"</code>
+          <code>components.html · drawer · "2 new"</code>
+        </div>
+        <div class="desc">
+          В <code>nav.html</code> аудит Q5 явно решено: <em>«dot only, count appears inside the Memory app itself»</em>. Аргумент: счётчик
+          стимулирует «inbox-zero»-поведение, а Kai — спокойный. Но во всех файлах badge так и остался с числом (или с «2 new»),
+          dot нигде не применили. Это маленькое нарушение собственного дизайн-решения.
+        </div>
+        <div class="fix">
+          <span style="flex-shrink:0;">🔧</span>
+          <span><b>Фикс:</b> в <code>room.html .panel .app-row .dot</code>, <code>nav.html .app-row .badge.accent</code>, <code>components.html .drawer .nav-row .b</code> — заменить text-badge на <em>точку 6×6 accent-color</em>. Точку убирать когда Memory открыт.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ISSUE 07 — Tide curve coverage -->
+    <div class="issue done">
+      <div class="tag">
+        <span class="sev med">средняя</span>
+        <span class="num">07 / 08</span>
+        <span class="fixed">✓ закрыто</span>
+      </div>
+      <div>
+        <h3>Tide-curve есть не на всех экранах</h3>
+        <div class="where">
+          <code>memory.html</code>
+          <code>settings.html</code>
+          <code>trip-detail.html</code>
+        </div>
+        <div class="desc">
+          CLAUDE.md: <strong>«Tide at top of every product screen. Even on settings, voice, etc.»</strong>. На <code>room.html</code>,
+          <code>voice.html</code>, <code>edge-states.html</code> — есть. На Memory/Settings/Trip-detail — нет (или есть только в шапке как маленький логотип, не как state-carrier).
+          Это правило существует чтобы tide был анкором бренда на каждом продуктовом экране, и одновременно нёс state. Без неё Memory выглядит как обычный list-screen, не как часть Kai.
+        </div>
+        <div class="fix">
+          <span style="flex-shrink:0;">🔧</span>
+          <span><b>Фикс:</b> добавить tide-curve в верхнюю часть Memory/Settings/Trip-detail в состоянии <code>idle</code> (mute gradient, low amplitude, static). Это и фирменный анкор, и сигнал что Kai активен.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ISSUE 08 — Status bar -->
+    <div class="issue done">
+      <div class="tag">
+        <span class="sev low">низкая</span>
+        <span class="num">08 / 08</span>
+        <span class="fixed">✓ закрыто</span>
+      </div>
+      <div>
+        <h3>Status bar: текст "5G" слева от батареи — упрощение, не похоже на iOS</h3>
+        <div class="where">
+          <code>room.html · phone .sb</code>
+        </div>
+        <div class="desc">
+          На iPhone в status bar тип сети показывается как иконка-баров или иконка 5G в специальном стиле, не как обычный
+          моно-текст. Сейчас выглядит как макет в Figma, нарисованный без референса. Для design-review это норма, для
+          presskit-скриншотов App Store — нет.
+        </div>
+        <div class="fix">
+          <span style="flex-shrink:0;">🔧</span>
+          <span><b>Фикс:</b> заменить <code>&lt;span&gt;5G&lt;/span&gt;</code> на SVG-иконку signal-bars (4 чёрточки) + опционально мини "5G" в SF Pro 8px курсивом. Или просто убрать сети, оставить только время и батарею.</span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ════════════════════════════════════════════════
+       SECTION 03 — COMPONENTS DEEP DIVE
+       ════════════════════════════════════════════════ -->
+  <section class="sec" id="components">
+    <div class="sec-head">
+      <div class="idx">03 — покомпонентно</div>
+      <div>
+        <h2>Все 15 артефактов,<br>каждый разобран.</h2>
+        <p class="blurb">
+          По каждому файлу: что внутри, в каком статусе, какие конкретные проблемы, рекомендации.
+          Группировка: <strong>токены</strong>, <strong>опорные экраны</strong> (foundations/components/nav/room), <strong>специализированные</strong> (voice/edge-states/onboarding), <strong>app-экраны</strong> (memory/settings/trip-detail/brand), <strong>хэндофф</strong> (dark/handoff).
+        </p>
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--font-mono);font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;margin:8px 0 14px;">токены и манифест</h3>
+    <div class="comp-grid">
+
+      <div class="comp">
+        <div class="top-row">
+          <h3>colors_and_type.css</h3>
+          <span class="badge ok">в норме</span>
+        </div>
+        <div class="filename">colors_and_type.css · 199 строк · 47 CSS custom properties</div>
+        <div class="desc">
+          <strong>Сердце системы.</strong> Сюда импортируется Manrope + JetBrains Mono, объявлены все surface/ink/accent/tide токены, light + dark + auto-dark via prefers-color-scheme, spacing 4-step scale (sp-1..sp-11), radii (r-1..r-pill), type classes (.t-hero..t-mono).
+        </div>
+        <div class="specs">
+          <strong>Tide:</strong> #1B4FB0 → #2BA8C9 → #F4B589 · 115deg<br>
+          <strong>Accent:</strong> #2C5BE5 (light) · #5C8EFF (dark)<br>
+          <strong>Negative:</strong> #C44A3C (никакого красного)<br>
+          <strong>Шрифты:</strong> Manrope 300–800 · JetBrains Mono 400/500
+        </div>
+        <div class="findings">
+          <div class="f"><span><b>✓ Light + dark в одном файле</b> через <code>[data-theme="dark"]</code>. Чисто.</span></div>
+          <div class="f"><span><b>✓ Auto-dark</b> через <code>@media (prefers-color-scheme)</code> с opt-out на <code>:root:not([data-theme="light"])</code>.</span></div>
+          <div class="f warn"><span><b>⚠ Legacy aliases</b> <code>--spark-*</code> ещё в коде («keep until all pages migrate»). Можно сейчас убрать — все pages мигрировали.</span></div>
+        </div>
+      </div>
+
+      <div class="comp">
+        <div class="top-row">
+          <h3>design-tokens.json</h3>
+          <span class="badge ok">в норме</span>
+        </div>
+        <div class="filename">design-tokens.json · JSON-парность для Flutter</div>
+        <div class="desc">
+          <strong>Машино-читаемая копия токенов.</strong> Из неё build_runner кодген запускает Dart constants. Содержит дополнительно
+          <code>tide-states</code> (восемь живых состояний с параметрами анимации).
+        </div>
+        <div class="specs">
+          <strong>color · light + dark · 18 + 18</strong><br>
+          <strong>radius · 6 значений + pill</strong><br>
+          <strong>spacing · 11 значений</strong><br>
+          <strong>tide-states · idle/listening/thinking/responding/success/error/memory/sleep</strong>
+        </div>
+        <div class="findings">
+          <div class="f"><span><b>✓ Покрытие парное</b> с CSS. Изменения в одном требуют изменения в другом — задокументировано в CLAUDE.md.</span></div>
+          <div class="f warn"><span><b>⚠ Нет automated sync-check</b>. При расхождении CSS и JSON никакой тест не упадёт. Возможно стоит добавить простой test в kai-app build_runner.</span></div>
+        </div>
+      </div>
+
+      <div class="comp" style="grid-column:1/-1;">
+        <div class="top-row">
+          <h3>foundations.html</h3>
+          <span class="badge warn">требует фикса · type-scale</span>
+        </div>
+        <div class="filename">foundations.html · 776 строк · визуальный манифест</div>
+        <div class="desc">
+          <strong>Главный документ системы.</strong> Hero, 4 принципа, voice (do/don't/status), цвет (3 palette), tide gradient,
+          type specimen + scale, space + radii, motion, brand-anchor, index всех 15 артефактов.
+        </div>
+        <div class="findings">
+          <div class="f"><span><b>✓ Sections нумерованы 01–08</b>. Каждая с idx-grid вкладкой.</span></div>
+          <div class="f"><span><b>✓ Tide-curve локед в § 07</b> с примером анимации stroke-dashoffset.</span></div>
+          <div class="f"><span><b>✓ § 08 index содержит все 15 файлов</b> с описаниями.</span></div>
+          <div class="f bad"><span><b>✗ § 04 type-scale врёт.</b> Цифры в таблице не совпадают с <code>.t-*</code> в CSS. Фикс — Issue #04.</span></div>
+          <div class="f warn"><span><b>⚠ Anchor variants (A wordmark / B ribbon / C monogram) в § 07</b> — это исторический срез, выбор сделан в пользу curve. Удалить или вынести в archive/.</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <h3 style="font-family:var(--font-mono);font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;margin:32px 0 14px;">опорные экраны</h3>
+    <div class="comp-grid">
+
+      <div class="comp">
+        <div class="top-row">
+          <h3>components.html</h3>
+          <span class="badge warn">требует фикса · crisis</span>
+        </div>
+        <div class="filename">components.html · 723 строки · Layer 1 + Layer 2 molecules</div>
+        <div class="desc">
+          <strong>Каталог компонентов.</strong> Message-bubbles (user/kai/system), sheets (compose/actions/detail), full surfaces (crisis card/memory toast), drawer.
+        </div>
+        <div class="findings">
+          <div class="f"><span><b>✓ Bubble system правильный</b>: user = pill right-aligned, Kai = no bg + tide glyph, system = inline note.</span></div>
+          <div class="f"><span><b>✓ Sheets анимированы</b> внутри phone-frame, с scrim и handle.</span></div>
+          <div class="f"><span><b>✓ Drawer (sessions list) с tide-tint highlight</b> на active session.</span></div>
+          <div class="f bad"><span><b>✗ Crisis card устарела</b>. Standalone version противоречит C3 pattern. Фикс — Issue #05.</span></div>
+          <div class="f warn"><span><b>⚠ Compose-sheet radius 18px</b> вместо 999px. Фикс — Issue #01.</span></div>
+        </div>
+      </div>
+
+      <div class="comp">
+        <div class="top-row">
+          <h3>nav.html</h3>
+          <span class="badge warn">audit-документ, не финал</span>
+        </div>
+        <div class="filename">nav.html · 514 строк · Panel · before/after + audit</div>
+        <div class="desc">
+          <strong>Документ-аудит панели.</strong> Слева — старая версия с tools, справа — новая без них. Внизу — table с per-section verdict (keep/cut/merge) и 6 открытых вопросов.
+        </div>
+        <div class="findings">
+          <div class="f"><span><b>✓ Аудит чёткий</b>: tools cut, source-card moved into message, memory/settings keep.</span></div>
+          <div class="f"><span><b>✓ Hover-tooltip с трактовкой</b> зачем cut/keep.</span></div>
+          <div class="f warn"><span><b>⚠ 6 open questions ещё не закрыты</b>. По крайней мере Q5 (memory dot) — решение принято, но не применено.</span></div>
+          <div class="f warn"><span><b>⚠ Pin-trip subtitle</b> сейчас "7 chats · active". Решено: убрать "active" если нет live state — пересмотреть на этапе production.</span></div>
+        </div>
+      </div>
+
+      <div class="comp" style="grid-column:1/-1;">
+        <div class="top-row">
+          <h3>room.html</h3>
+          <span class="badge bad">критические фиксы · 3 шт</span>
+        </div>
+        <div class="filename">room.html · 625 строк · The room · Layer 3 · 4 frames</div>
+        <div class="desc">
+          <strong>Самый важный экран.</strong> Сюда смотрят первым делом разработчики при handoff. Четыре кадра:
+          empty (Kai's invitation + 3 suggestions), live conversation (с source card), panel slid in (с pinned trip),
+          compose sheet open (tide send).
+        </div>
+        <div class="findings">
+          <div class="f bad"><span><b>✗ Compose-island radius 20px вместо pill (999px).</b> Issue #01. Это самый критичный из всех — потому что room.html — главный референс.</span></div>
+          <div class="f bad"><span><b>✗ Send-button непоследователен между f01/f02/f04.</b> Issue #02.</span></div>
+          <div class="f bad"><span><b>✗ Status bar 5G как текст.</b> Issue #08.</span></div>
+          <div class="f warn"><span><b>⚠ Memory badge "2 new".</b> Issue #06 — должна быть dot.</span></div>
+          <div class="f"><span><b>✓ Tide curve states правильные</b>: idle/responding (streaming dashed)/idle/idle для 4 кадров.</span></div>
+          <div class="f"><span><b>✓ Source card под сообщением</b> с favicon + verify chip + цитата + дата. Хорошая работа transparency.</span></div>
+          <div class="f"><span><b>✓ Component map в конце</b> перечисляет Layer 1/2/3 ингредиенты — полезно для handoff.</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <h3 style="font-family:var(--font-mono);font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;margin:32px 0 14px;">специализированные экраны</h3>
+    <div class="comp-grid">
+
+      <div class="comp">
+        <div class="top-row">
+          <h3>voice.html</h3>
+          <span class="badge ok">в норме</span>
+        </div>
+        <div class="filename">voice.html · 275 строк · voice mode · 4 frames</div>
+        <div class="desc">
+          <strong>Voice mode, всегда тёмный.</strong> Tide-only state (никаких слов вроде "LISTENING"), karaoke text reveal (текущее слово highlighted в warm tide), timeline rail transcript (vertical, gradient dot = Kai, gray = you).
+        </div>
+        <div class="findings">
+          <div class="f"><span><b>✓ Тёмный фон</b> <code>#08080A</code> зашит, не реагирует на theme. Воспринимается как «другое пространство».</span></div>
+          <div class="f"><span><b>✓ 4 состояния показаны:</b> idle (mute gray) → listening (cool blue +30% amp) → speaking (warm + dashed) → transcript (timeline).</span></div>
+          <div class="f"><span><b>✓ Hints в углах</b> "tap to speak" / "swipe ↑" opacity 0.25 — обучают без объяснений.</span></div>
+          <div class="f warn"><span><b>⚠ Не указано в CLAUDE.md</b>, что voice — единственный экран всегда-dark. Стоит добавить.</span></div>
+        </div>
+      </div>
+
+      <div class="comp">
+        <div class="top-row">
+          <h3>edge-states.html</h3>
+          <span class="badge ok">эталон</span>
+        </div>
+        <div class="filename">edge-states.html · 326 строк · offline · error · rate · crisis</div>
+        <div class="desc">
+          <strong>Все edge cases в одном файле, спокойно.</strong> Offline (tide mute + pinned strip), error (tide wobble coral + continue button), rate limit (warm framing + reset time), crisis (C3 in-conversation с care-block).
+        </div>
+        <div class="findings">
+          <div class="f"><span><b>✓ Compose-island правильный pill</b>. Это эталон.</span></div>
+          <div class="f"><span><b>✓ Inline-note molecule</b> переиспользуется для offline/rate/error.</span></div>
+          <div class="f"><span><b>✓ Crisis C3 правильный</b>: kai-msg + care-block + closing. Compose остаётся.</span></div>
+          <div class="f"><span><b>✓ Tide-states для каждого случая</b>: mute / wobble coral / mute.</span></div>
+        </div>
+      </div>
+
+      <div class="comp" style="grid-column:1/-1;">
+        <div class="top-row">
+          <h3>onboarding.html</h3>
+          <span class="badge ok">в норме</span>
+        </div>
+        <div class="filename">onboarding.html · 4 screens · first-run</div>
+        <div class="desc">
+          <strong>Welcome / Tide / Gestures / Context.</strong> Минимальный onboarding: представление, объяснение tide-curve, обучение жестам (swipe-left / swipe-up), сбор контекста (язык + интересы).
+        </div>
+        <div class="findings">
+          <div class="f warn"><span><b>⚠ Не читал детально</b> — проверить отдельно. Beep если найдёшь там что-то странное.</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <h3 style="font-family:var(--font-mono);font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;margin:32px 0 14px;">app-экраны</h3>
+    <div class="comp-grid">
+
+      <div class="comp">
+        <div class="top-row">
+          <h3>memory.html</h3>
+          <span class="badge warn">нет tide-curve</span>
+        </div>
+        <div class="filename">memory.html · Memory app · grouped facts + sources + GDPR forget</div>
+        <div class="desc">
+          <strong>Все факты, что Kai о тебе знает.</strong> Группировка по категориям (travel-prefs, dietary, accessibility), per-fact source (где Kai это узнал), edit / forget на каждый, "forget all" внизу.
+        </div>
+        <div class="findings">
+          <div class="f bad"><span><b>✗ Нет tide-curve в шапке.</b> Issue #07.</span></div>
+          <div class="f warn"><span><b>⚠ Не показывает 24h TTL</b> для свежих фактов (фича F-L4-02 из launch_scope). Можно добавить chip "expires in 18h".</span></div>
+        </div>
+      </div>
+
+      <div class="comp">
+        <div class="top-row">
+          <h3>settings.html</h3>
+          <span class="badge warn">нет tide-curve</span>
+        </div>
+        <div class="filename">settings.html · account / appearance / voice / data / about</div>
+        <div class="desc">
+          <strong>Маленькая поверхность, большой trust contract.</strong> Account (avatar + plan + sign out), appearance (theme auto/light/dark), voice (mode + register pref), data (export / forget all), about (version + links).
+        </div>
+        <div class="findings">
+          <div class="f bad"><span><b>✗ Нет tide-curve в шапке.</b> Issue #07.</span></div>
+          <div class="f warn"><span><b>⚠ Нет 30-day PII audit visibility</b> — фича F-L4-04 из backend. Можно добавить section "Privacy audit · 0 PII leaks in last 30 days".</span></div>
+        </div>
+      </div>
+
+      <div class="comp">
+        <div class="top-row">
+          <h3>trip-detail.html</h3>
+          <span class="badge warn">нет tide + нет budget</span>
+        </div>
+        <div class="filename">trip-detail.html · Внутри trip folder · facts + chats + sources + actions</div>
+        <div class="desc">
+          <strong>Что внутри «Japan · Nov 2026».</strong> Заголовок trip + dates, секции facts (что мы выяснили), chats (sessions в этом trip), sources (verified urls), actions (book, share, archive).
+        </div>
+        <div class="findings">
+          <div class="f bad"><span><b>✗ Нет tide-curve.</b> Issue #07.</span></div>
+          <div class="f warn"><span><b>⚠ Нет budget-guard виджета</b> — фича F-L3-05 из backend. Trip имеет бюджет, Kai отслеживает «потрачено vs план». Нужен chart/bar.</span></div>
+        </div>
+      </div>
+
+      <div class="comp">
+        <div class="top-row">
+          <h3>brand.html</h3>
+          <span class="badge ok">в норме</span>
+        </div>
+        <div class="filename">brand.html · App icon (3 variants × 7 sizes) · splash · OG · rules</div>
+        <div class="desc">
+          <strong>Brand kit.</strong> Три варианта иконки (curve / tide-circle / monogram-k), 7 размеров каждая (16/32/64/120/180/512/1024), splash screen, Open Graph card 1200×630, do/don't rules.
+        </div>
+        <div class="findings">
+          <div class="f"><span><b>✓ Production-ready иконки</b> со всеми размерами для App Store и Play Store.</span></div>
+          <div class="f"><span><b>✓ Do/don't правила</b> закреплены: no recolors, no holiday variants, fixed gradient direction.</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <h3 style="font-family:var(--font-mono);font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;margin:32px 0 14px;">handoff и dark</h3>
+    <div class="comp-grid">
+
+      <div class="comp">
+        <div class="top-row">
+          <h3>dark.html</h3>
+          <span class="badge ok">в норме</span>
+        </div>
+        <div class="filename">dark.html · Dark mode pass · palette + 4 frames</div>
+        <div class="desc">
+          <strong>Тёмная тема как ремап токенов.</strong> Те же 4 frame из room.html, но через <code>[data-theme="dark"]</code>. Palette ladder показан рядом с product views.
+        </div>
+        <div class="findings">
+          <div class="f"><span><b>✓ Tide gradient остался unchanged</b>. Бренд-мейкер константен.</span></div>
+          <div class="f"><span><b>✓ Те же spacing/radii</b>. Это не отдельный дизайн, это та же геометрия.</span></div>
+          <div class="f warn"><span><b>⚠ Унаследует все пиксельные баги room.html</b>. При фиксах Issue #01–08 нужно обновить и dark-версию.</span></div>
+        </div>
+      </div>
+
+      <div class="comp">
+        <div class="top-row">
+          <h3>handoff.html</h3>
+          <span class="badge ok">в норме</span>
+        </div>
+        <div class="filename">handoff.html · Flutter widget specs · 7 widgets</div>
+        <div class="desc">
+          <strong>Спека для разработчика.</strong> KaiTheme, KaiTokens, KaiTideCurve, KaiButton, KaiBubble, KaiCompose, KaiMotion — каждый с props, states, code-snippet.
+        </div>
+        <div class="findings">
+          <div class="f"><span><b>✓ Покрывает все ключевые widgets</b>.</span></div>
+          <div class="f warn"><span><b>⚠ Build_runner instructions не подробно</b>. Можно расширить шагами: 1) <code>flutter pub get</code>, 2) копировать design-tokens.json, 3) запустить <code>kai_tokens_gen</code> generator, 4) импортировать KaiTheme в MaterialApp.</span></div>
+          <div class="f warn"><span><b>⚠ Нет упоминания motion-tokens в KaiMotion</b>. m-1 (240ms cubic-bezier .2,0,0,1), m-2 (2.6s ease-in-out loop), m-3 (120ms linear) — должны стать Dart constants.</span></div>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ════════════════════════════════════════════════
+       SECTION 04 — ZERO-UI AUDIT
+       ════════════════════════════════════════════════ -->
+  <section class="sec" id="zero-ui">
+    <div class="sec-head">
+      <div class="idx">04 — zero-ui аудит</div>
+      <div>
+        <h2>Кто из экранов<br>реально zero-UI?</h2>
+        <p class="blurb">
+          Zero-UI значит: <em>«никакого закреплённого хрома, поверхности вызываются жестом»</em>.
+          Не значит «вообще ничего нет». Кнопка send в compose-island — это OK, она часть compose,
+          а compose — это поверхность, вызванная пользователем. Постоянный bottom-tab был бы плох.
+          Ниже — что в каждом артефакте соблюдается, что нарушает.
+        </p>
+      </div>
+    </div>
+
+    <div class="zui-table">
+      <div class="zui-row head">
+        <div class="cell">артефакт</div>
+        <div class="cell">вердикт</div>
+        <div class="cell">что соответствует</div>
+        <div class="cell">что нарушает / на что обратить внимание</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">room.html</div>
+        <div class="cell verdict ok"><span class="dot"></span>чисто</div>
+        <div class="cell">Compose-island внизу — единственный закрепленный элемент, и он смысловой (туда печатают). Панель вызывается жестом swipe-left, compose-sheet — swipe-up. Никаких bottom-tabs.</div>
+        <div class="cell">Send button в empty state — chrome или нет? Сейчас выглядит как кнопка с эмодзи-стрелкой. Это OK, но проверь что она не доминирует.</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">voice.html</div>
+        <div class="cell verdict ok"><span class="dot"></span>чисто</div>
+        <div class="cell">Только тёмный фон + tide + опциональные hints (opacity 0.25, fade after first session). Никаких labels вроде "LISTENING".</div>
+        <div class="cell">—</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">edge-states.html</div>
+        <div class="cell verdict ok"><span class="dot"></span>чисто</div>
+        <div class="cell">Inline-note внутри chat. Crisis care-block внутри сообщения. Никаких takeover-модалок.</div>
+        <div class="cell">—</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">nav.html (panel)</div>
+        <div class="cell verdict ok"><span class="dot"></span>чисто</div>
+        <div class="cell">Полноэкранная панель, вызывается жестом. После аудита tools убраны. Source-card перенесён в сообщение.</div>
+        <div class="cell">—</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">components.html</div>
+        <div class="cell verdict warn"><span class="dot"></span>спорно</div>
+        <div class="cell">Каталог компонентов — это не product screen, документация. Сам по себе zero-UI не применим.</div>
+        <div class="cell">Crisis card как standalone — нарушает C3 pattern (см. Issue #05). Это сам по себе нарушение zero-UI принципа «Kai stays in the chat».</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">trip-detail.html</div>
+        <div class="cell verdict warn"><span class="dot"></span>проверить</div>
+        <div class="cell">App-screen, имеет sections (facts/chats/sources/actions). Логично что есть структура.</div>
+        <div class="cell">Не закрепляй sticky top-bar. Не добавляй bottom-tabs. Sections-header может быть, но без button-bar внизу.</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">memory.html</div>
+        <div class="cell verdict warn"><span class="dot"></span>проверить</div>
+        <div class="cell">Список фактов — OK, это контент.</div>
+        <div class="cell">«Forget all» внизу — это destructive action. Должна быть один раз в самом низу, не sticky кнопкой.</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">settings.html</div>
+        <div class="cell verdict warn"><span class="dot"></span>проверить</div>
+        <div class="cell">List of toggles / inputs / pickers — норма.</div>
+        <div class="cell">Никаких "Save" buttons в конце. Изменения настроек применяются <em>immediately</em>, как в iOS. Это часть zero-UI.</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">onboarding.html</div>
+        <div class="cell verdict warn"><span class="dot"></span>спорно</div>
+        <div class="cell">Onboarding — единственный момент, когда правило «zero-UI» нарушать можно. У тебя есть «Next» buttons.</div>
+        <div class="cell">Но: после onboarding он не должен возвращаться. Никаких «replay tutorial» в settings.</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">brand.html / dark.html / handoff.html / foundations.html</div>
+        <div class="cell verdict ok"><span class="dot"></span>n/a</div>
+        <div class="cell">Документы, не продакшен-экраны. Zero-UI не применим.</div>
+        <div class="cell">—</div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ════════════════════════════════════════════════
+       SECTION 05 — ANIMATIONS
+       ════════════════════════════════════════════════ -->
+  <section class="sec" id="animations">
+    <div class="sec-head">
+      <div class="idx">05 — анимации</div>
+      <div>
+        <h2>Что уже анимировано,<br>и что нужно добавить.</h2>
+        <p class="blurb">
+          В CLAUDE.md тип анимаций: <strong>m-1 standard</strong> (240ms cubic-bezier для UI: панели, sheets), <strong>m-2 ambient</strong>
+          (2.6s loop для tide), <strong>m-3 micro</strong> (120ms linear для press/feedback). Ниже — инвентаризация. Каждая
+          ячейка живая: анимация бегает прямо в браузере.
+        </p>
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--font-mono);font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;margin:8px 0 14px;">tide-curve · все 8 состояний</h3>
+    <div class="tide-grid">
+      <div class="tide-cell">
+        <span class="ts-label">m-2 · ambient</span>
+        <span class="ts-name">01 · idle</span>
+        <div class="ts-svg">
+          <svg viewBox="0 0 200 28" preserveAspectRatio="none">
+            <path d="M 4 16 Q 30 10, 56 16 T 108 16 T 196 12" stroke="url(#g-mute)" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.45"/>
+          </svg>
+        </div>
+        <span class="ts-desc">mute gray · static · opacity 0.45 · 2.5px</span>
+      </div>
+
+      <div class="tide-cell">
+        <span class="ts-label">m-2 · ambient</span>
+        <span class="ts-name">02 · listening</span>
+        <div class="ts-svg">
+          <svg viewBox="0 0 200 28" preserveAspectRatio="none">
+            <path stroke="url(#g-blue)" stroke-width="2.5" stroke-linecap="round" fill="none">
+              <animate attributeName="d" dur="6s" repeatCount="indefinite" values="
+                M 4 16 Q 30 6, 56 16 T 108 16 T 196 10;
+                M 4 14 Q 30 22, 56 14 T 108 10 T 196 18;
+                M 4 16 Q 30 6, 56 16 T 108 16 T 196 10"/>
+            </path>
+          </svg>
+        </div>
+        <span class="ts-desc">cool blue · +30% amplitude · 6s undulation</span>
+      </div>
+
+      <div class="tide-cell">
+        <span class="ts-label">m-2 · ambient</span>
+        <span class="ts-name">03 · thinking</span>
+        <div class="ts-svg">
+          <svg viewBox="0 0 200 28" preserveAspectRatio="none">
+            <path d="M 4 16 Q 30 10, 56 16 T 108 16 T 196 12" stroke="url(#g-tide)" stroke-width="2.2" stroke-linecap="round" fill="none">
+              <animate attributeName="opacity" values="0.4;1;0.4" dur="1.8s" repeatCount="indefinite"/>
+            </path>
+          </svg>
+        </div>
+        <span class="ts-desc">full tide · opacity pulse 0.4↔1 · 1.8s</span>
+      </div>
+
+      <div class="tide-cell">
+        <span class="ts-label">m-2 · ambient</span>
+        <span class="ts-name">04 · responding</span>
+        <div class="ts-svg">
+          <svg viewBox="0 0 200 28" preserveAspectRatio="none">
+            <path d="M 4 16 Q 30 10, 56 16 T 108 16 T 196 12" stroke="url(#g-tide)" stroke-width="2.8" stroke-linecap="round" fill="none" stroke-dasharray="12 4">
+              <animate attributeName="stroke-dashoffset" from="0" to="-32" dur="1.4s" repeatCount="indefinite"/>
+            </path>
+          </svg>
+        </div>
+        <span class="ts-desc">streaming dash · L→R · 1.4s</span>
+      </div>
+
+      <div class="tide-cell">
+        <span class="ts-label">m-3 · micro</span>
+        <span class="ts-name">05 · success</span>
+        <div class="ts-svg">
+          <svg viewBox="0 0 200 28" preserveAspectRatio="none">
+            <path d="M 4 16 Q 30 10, 56 16 T 108 16 T 196 12" stroke="url(#g-pos)" stroke-width="2.4" stroke-linecap="round" fill="none">
+              <animate attributeName="stroke-width" values="2.4;3.6;2.4" dur="0.8s" repeatCount="2"/>
+            </path>
+          </svg>
+        </div>
+        <span class="ts-desc">positive tint · 1× pulse · 0.8s × 2</span>
+      </div>
+
+      <div class="tide-cell">
+        <span class="ts-label">m-3 · micro</span>
+        <span class="ts-name">06 · error</span>
+        <div class="ts-svg">
+          <svg viewBox="0 0 200 28" preserveAspectRatio="none">
+            <path d="M 4 16 Q 30 10, 56 16 T 108 16 T 196 12" stroke="url(#g-neg)" stroke-width="2.4" stroke-linecap="round" fill="none">
+              <animate attributeName="transform" type="translate" values="0,0;-2,0;2,0;-1,0;1,0;0,0" dur="0.4s" repeatCount="indefinite"/>
+            </path>
+          </svg>
+        </div>
+        <span class="ts-desc">coral · wobble shake · 0.4s once</span>
+      </div>
+
+      <div class="tide-cell">
+        <span class="ts-label">m-3 · micro</span>
+        <span class="ts-name">07 · memory</span>
+        <div class="ts-svg">
+          <svg viewBox="0 0 200 28" preserveAspectRatio="none">
+            <path d="M 4 16 Q 30 10, 56 16 T 108 16 T 196 12" stroke="url(#g-warm)" stroke-width="2.6" stroke-linecap="round" fill="none">
+              <animate attributeName="opacity" values="0.3;1;0.3" dur="1s" repeatCount="2"/>
+            </path>
+          </svg>
+        </div>
+        <span class="ts-desc">warm flash 2× · «memory saved»</span>
+      </div>
+
+      <div class="tide-cell dark">
+        <span class="ts-label">m-2 · ambient</span>
+        <span class="ts-name">08 · sleep</span>
+        <div class="ts-svg">
+          <svg viewBox="0 0 200 28" preserveAspectRatio="none">
+            <path d="M 4 16 Q 30 12, 56 16 T 108 16 T 196 14" stroke="url(#g-mute)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.25"/>
+          </svg>
+        </div>
+        <span class="ts-desc">app backgrounded · opacity 0.25 · static</span>
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--font-mono);font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;margin:32px 0 14px;">прочие анимации в системе</h3>
+    <div class="anim-grid">
+
+      <div class="anim">
+        <div class="head">
+          <h4>Memory toast slide-in</h4>
+          <span class="verdict have">есть</span>
+        </div>
+        <div class="stage">
+          <div class="flash-anim">
+            <span class="g"></span>
+            <span><b>Saved.</b> Mid-range guesthouses.</span>
+          </div>
+        </div>
+        <div class="spec">slide-up + fade · 240ms in · 600ms hold · 240ms out<br>auto-dismiss · 4s total · <code>m-1</code></div>
+      </div>
+
+      <div class="anim">
+        <div class="head">
+          <h4>Compose sheet rise</h4>
+          <span class="verdict have">есть</span>
+        </div>
+        <div class="stage">
+          <div class="sheet-stage" style="width:100%;height:96px;">
+            <div class="sh"></div>
+          </div>
+        </div>
+        <div class="spec">bottom → up · 240ms <code>cubic-bezier(.2,0,0,1)</code><br>scrim fade 0 → 0.18 · <code>m-1</code></div>
+      </div>
+
+      <div class="anim">
+        <div class="head">
+          <h4>Panel slide-in</h4>
+          <span class="verdict have">есть</span>
+        </div>
+        <div class="stage">
+          <div class="panel-stage" style="width:100%;height:96px;">
+            <div class="pn"></div>
+          </div>
+        </div>
+        <div class="spec">left edge → fullscreen · 280ms <code>m-1</code><br>fades tide curve at top simultaneously</div>
+      </div>
+
+      <div class="anim">
+        <div class="head">
+          <h4>Memory glyph pulse</h4>
+          <span class="verdict have">есть</span>
+        </div>
+        <div class="stage">
+          <div class="glyph-pulse"></div>
+        </div>
+        <div class="spec">scale 1 ↔ 1.08 + box-shadow ring · 2s loop<br>used in memory toast · <code>m-2</code></div>
+      </div>
+
+      <div class="anim">
+        <div class="head">
+          <h4>Button press feedback</h4>
+          <span class="verdict have">есть</span>
+        </div>
+        <div class="stage">
+          <button class="press-btn demo">Send</button>
+        </div>
+        <div class="spec">scale 1 → 0.97 + opacity 1 → 0.92<br>120ms linear · <code>m-3</code></div>
+      </div>
+
+      <div class="anim">
+        <div class="head">
+          <h4>Streaming text cursor</h4>
+          <span class="verdict have">есть</span>
+        </div>
+        <div class="stage" style="font-size:14px;color:var(--ink-1);">
+          <span>отвечаю<span style="display:inline-block;width:5px;height:14px;background:var(--ink-1);vertical-align:text-bottom;margin-left:2px;animation:cursor-blink 1s steps(1) infinite;"></span></span>
+        </div>
+        <div class="spec">caret blink · 1s steps(1) · only when Kai is streaming · <code>m-3</code></div>
+      </div>
+
+      <div class="anim">
+        <div class="head">
+          <h4>Source card expand</h4>
+          <span class="verdict need">добавить</span>
+        </div>
+        <div class="stage" style="background:var(--surface-2);">
+          <div style="font-size:11px;color:var(--ink-3);">long-press → детали раскрываются</div>
+        </div>
+        <div class="spec">collapsed → expanded · height auto + content fade-in<br>240ms · <code>m-1</code> · в room.html сейчас нет</div>
+      </div>
+
+      <div class="anim">
+        <div class="head">
+          <h4>Karaoke word highlight</h4>
+          <span class="verdict have">есть</span>
+        </div>
+        <div class="stage" style="font-size:13px;color:white;background:#08080A;border-radius:10px;">
+          <span style="color:white;">"Shinkansen is</span>
+          <span style="color:white;background:rgba(244,181,137,0.28);padding:1px 4px;border-radius:4px;margin:0 2px;">fastest</span>
+          <span style="color:rgba(255,255,255,0.32);">…"</span>
+        </div>
+        <div class="spec">background-color transition synced to TTS<br>per-word duration ≈ 280–450ms · <code>m-1</code></div>
+      </div>
+
+      <div class="anim">
+        <div class="head">
+          <h4>Tide colour transition</h4>
+          <span class="verdict need">добавить</span>
+        </div>
+        <div class="stage">
+          <svg class="demo-curve" viewBox="0 0 200 28" preserveAspectRatio="none">
+            <path d="M 4 16 Q 30 10, 56 16 T 108 16 T 196 12" stroke="url(#g-tide)" stroke-width="2.5" stroke-linecap="round" fill="none">
+              <animate attributeName="stroke-width" values="2.5;3.2;2.5" dur="2.4s" repeatCount="indefinite"/>
+            </path>
+          </svg>
+        </div>
+        <div class="spec">переход между state-цветами · 320ms · <code>m-1</code><br>сейчас переключение скачком — нужен плавный crossfade</div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:24px;padding:18px 22px;background:var(--accent-wash);border:1px solid var(--accent-line);border-radius:12px;font-size:13.5px;color:var(--ink-1);line-height:1.55;">
+      <strong>Что добавить в systeme:</strong> (1) плавный crossfade между tide-states, не скачком — особенно idle↔listening↔responding. (2) Long-press detail-sheet animation для source-card. (3) reduce-motion media-query — отключить ambient pulse / undulation, оставить только functional (sheet rise, press feedback).
+    </div>
+
+    <style>
+      @keyframes cursor-blink { 50% { opacity: 0; } }
+    </style>
+  </section>
+
+  <!-- ════════════════════════════════════════════════
+       SECTION 06 — BACKEND
+       ════════════════════════════════════════════════ -->
+  <section class="sec" id="backend">
+    <div class="sec-head">
+      <div class="idx">06 — привязка к backend</div>
+      <div>
+        <h2>19 фич едут в v1.0,<br>но не все имеют UI.</h2>
+        <p class="blurb">
+          Прошёлся по <code>kai-agent/docs/specs/launch_scope_v1.md</code>. Backend идёт к запуску в ноябре 2026 с 19 фичами
+          (14 Tier 1 + 5 Tier 2). Ниже — мапинг фич на дизайн-артефакты: что уже покрыто, что нужно нарисовать.
+        </p>
+      </div>
+    </div>
+
+    <div class="zui-table">
+      <div class="zui-row head">
+        <div class="cell">фича</div>
+        <div class="cell">moat</div>
+        <div class="cell">backend</div>
+        <div class="cell">дизайн</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">F-L1-01 · 6 Domain Tools</div>
+        <div class="cell" style="color:var(--ink-2);font-family:var(--font-mono);font-size:12px;">L1</div>
+        <div class="cell" style="font-family:var(--font-mono);font-size:12px;color:var(--positive);">built ✅</div>
+        <div class="cell">Используется внутри ответов Kai через <code>source-card</code> · room.html § f02 ✓</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">F-L1-02 · Anti-Domain Refusal</div>
+        <div class="cell" style="color:var(--ink-2);font-family:var(--font-mono);font-size:12px;">L1</div>
+        <div class="cell" style="font-family:var(--font-mono);font-size:12px;color:var(--positive);">built ✅</div>
+        <div class="cell" style="color:var(--warning);"><strong>нет дизайна.</strong> Нужен паттерн «kai вежливо отказывается отвечать вне домена». Можно сделать как warning inline-note + ссылка на правильный ресурс.</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">F-L1-05 · Multi-Country Fork</div>
+        <div class="cell" style="color:var(--ink-2);font-family:var(--font-mono);font-size:12px;">L1 + L3</div>
+        <div class="cell" style="font-family:var(--font-mono);font-size:12px;color:var(--positive);">built ✅</div>
+        <div class="cell" style="color:var(--negative);"><strong>нет дизайна.</strong> Differentiated UX moment по словам launch_scope. Нужен экран сравнения «Japan vs Korea» с раздельными ответами + side-by-side facts. <em>Приоритет 1.</em></div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">F-L2-04 · HITL Money Gate</div>
+        <div class="cell" style="color:var(--ink-2);font-family:var(--font-mono);font-size:12px;">L2</div>
+        <div class="cell" style="font-family:var(--font-mono);font-size:12px;color:var(--positive);">built ✅</div>
+        <div class="cell" style="color:var(--negative);"><strong>нет дизайна.</strong> При действиях >$100 Kai требует явное «yes». Нужен confirm-sheet с суммой + breakdown + explicit-yes button. <em>Приоритет 1.</em></div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">F-L3-01 · Source Attribution</div>
+        <div class="cell" style="color:var(--ink-2);font-family:var(--font-mono);font-size:12px;">L3</div>
+        <div class="cell" style="font-family:var(--font-mono);font-size:12px;color:var(--positive);">built ✅</div>
+        <div class="cell">Source-card под ответом Kai · components.html § 03.8 + room.html § f02 ✓</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">F-L3-02 · Staleness Tracking</div>
+        <div class="cell" style="color:var(--ink-2);font-family:var(--font-mono);font-size:12px;">L3</div>
+        <div class="cell" style="font-family:var(--font-mono);font-size:12px;color:var(--positive);">built ✅</div>
+        <div class="cell">Chip «✓ fresh» / «⚠ 5d old» в source-card · components.html § 03.9 ✓</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">F-L3-03 · Cross-Source Verify</div>
+        <div class="cell" style="color:var(--ink-2);font-family:var(--font-mono);font-size:12px;">L3</div>
+        <div class="cell" style="font-family:var(--font-mono);font-size:12px;color:var(--positive);">built ✅</div>
+        <div class="cell" style="color:var(--warning);"><strong>частично.</strong> Сейчас source-card показывает 1 источник. Для critical facts (visa/health) нужно показывать 2–3 источника + status «verified across N sources».</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">F-L3-05 · Budget Guard</div>
+        <div class="cell" style="color:var(--ink-2);font-family:var(--font-mono);font-size:12px;">L3</div>
+        <div class="cell" style="font-family:var(--font-mono);font-size:12px;color:var(--positive);">built ✅</div>
+        <div class="cell" style="color:var(--negative);"><strong>нет дизайна.</strong> Нужен budget-bar внутри trip-detail.html: spent / planned / over. <em>Приоритет 2.</em></div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">F-L3-06 · Confidence Display</div>
+        <div class="cell" style="color:var(--ink-2);font-family:var(--font-mono);font-size:12px;">L3</div>
+        <div class="cell" style="font-family:var(--font-mono);font-size:12px;color:var(--positive);">built ✅</div>
+        <div class="cell" style="color:var(--negative);"><strong>нет дизайна.</strong> Per-message confidence chip (high/medium/low) — «the UI artifact users see every message» по launch_scope. <em>Приоритет 1.</em></div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">F-L4-01 · 3-Layer PII Tokenization</div>
+        <div class="cell" style="color:var(--ink-2);font-family:var(--font-mono);font-size:12px;">L4</div>
+        <div class="cell" style="font-family:var(--font-mono);font-size:12px;color:var(--positive);">built ✅</div>
+        <div class="cell" style="color:var(--warning);"><strong>частично.</strong> Невидимый бэкенд-механизм, но privacy-claim это L4 moat. Нужно showcase в settings.html (Privacy section с audit-metric «0 leaks in 30d»).</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">F-L4-02 · 24h TTL Forgetting</div>
+        <div class="cell" style="color:var(--ink-2);font-family:var(--font-mono);font-size:12px;">L4</div>
+        <div class="cell" style="font-family:var(--font-mono);font-size:12px;color:var(--positive);">built ✅</div>
+        <div class="cell" style="color:var(--warning);"><strong>частично.</strong> В memory.html на каждом ephemeral-факте надо chip «expires in 18h».</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">F-L4-03 · Silent Context Application</div>
+        <div class="cell" style="color:var(--ink-2);font-family:var(--font-mono);font-size:12px;">L4</div>
+        <div class="cell" style="font-family:var(--font-mono);font-size:12px;color:var(--positive);">built ✅</div>
+        <div class="cell">Memory применяется в ответах Kai силенциально (никаких «I remember you said…»). Это <em>отсутствие UI</em>, что и нужно. ✓</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">F-L5-02 · Crisis Response</div>
+        <div class="cell" style="color:var(--ink-2);font-family:var(--font-mono);font-size:12px;">L5</div>
+        <div class="cell" style="font-family:var(--font-mono);font-size:12px;color:var(--positive);">built ✅</div>
+        <div class="cell">C3 pattern в edge-states.html § 04 ✓ · по-стране crisis hotline number = backend задача</div>
+      </div>
+
+      <div class="zui-row">
+        <div class="cell name">F-L5-04 · Memory Across Sessions</div>
+        <div class="cell" style="color:var(--ink-2);font-family:var(--font-mono);font-size:12px;">L5</div>
+        <div class="cell" style="font-family:var(--font-mono);font-size:12px;color:var(--positive);">built ✅</div>
+        <div class="cell">memory.html ✓</div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:24px;padding:18px 22px;background:var(--accent-wash);border:1px solid var(--accent-line);border-radius:12px;font-size:13.5px;color:var(--ink-1);line-height:1.55;">
+      <strong>Резюме:</strong> 9 фич полностью закрыты дизайном, 3 частично, <strong>5 без UI вообще</strong> — Multi-Country Fork, HITL Money Gate, Confidence Display, Anti-Domain Refusal, Budget Guard. Это план следующего этапа.
+    </div>
+
+  </section>
+
+  <!-- ════════════════════════════════════════════════
+       SECTION 07 — PLAN
+       ════════════════════════════════════════════════ -->
+  <section class="sec" id="plan">
+    <div class="sec-head">
+      <div class="idx">07 — план</div>
+      <div>
+        <h2>Что делаем дальше:<br>9 экранов + маркетинг + handoff.</h2>
+        <p class="blurb">
+          Три параллельные траектории к ноябрьскому запуску. <strong>Фиксы пиксель-проблем</strong> (1 день),
+          <strong>9 новых экранов</strong> (2–3 недели), <strong>marketing surface</strong> (1 неделя), <strong>production handoff</strong> (1 неделя).
+          Можно идти в этом порядке, можно параллельно.
+        </p>
+      </div>
+    </div>
+
+    <!-- TRACK 0 — fixes -->
+    <div class="plan-block">
+      <div class="plan-head">
+        <h3>🔧 Трек 0 · Пиксель-фиксы</h3>
+        <span class="meta now">сейчас · 1 день</span>
+      </div>
+      <div class="desc">
+        Перед всем остальным — закрыть восемь проблем из секции «Пиксель-проблемы». Это не творческая работа, это
+        правка по существующим правилам. Делается одной сессией, потом и dark.html заодно обновляется.
+      </div>
+      <div class="mini-bento">
+        <div class="b"><div class="n">issue 01</div><div class="t">Compose-island = pill</div><div class="s">room.html · components.html — везде r-pill</div></div>
+        <div class="b"><div class="n">issue 02</div><div class="t">Send rule</div><div class="s">ready=tide · disabled=ink-4 op0.4 · sending=tide+pulse</div></div>
+        <div class="b"><div class="n">issue 03</div><div class="t">Phone sizes</div><div class="s">токены --phone-w-cv/md/sm · 390/280/240</div></div>
+        <div class="b"><div class="n">issue 04</div><div class="t">Type-scale fix</div><div class="s">foundations.html § 04 через .t-* classes</div></div>
+        <div class="b"><div class="n">issue 05</div><div class="t">Crisis cleanup</div><div class="s">убрать standalone из components.html</div></div>
+        <div class="b"><div class="n">issue 06</div><div class="t">Memory dot</div><div class="s">badge "2 new" → 6×6 dot</div></div>
+        <div class="b"><div class="n">issue 07</div><div class="t">Tide везде</div><div class="s">memory/settings/trip-detail — добавить</div></div>
+        <div class="b"><div class="n">issue 08</div><div class="t">Status bar</div><div class="s">SVG bars или убрать "5G"</div></div>
+      </div>
+    </div>
+
+    <!-- TRACK 1 — new screens -->
+    <div class="plan-block">
+      <div class="plan-head">
+        <h3>🎯 Трек 1 · 9 новых экранов</h3>
+        <span class="meta soon">далее · 2–3 недели</span>
+      </div>
+      <div class="desc">
+        Каждый экран привязан к backend-фиче из <code>launch_scope_v1.md</code> с указанием L1–L5 moat. Приоритет 1 — то, без чего
+        v1.0 не запустить.<br><br>
+        <strong>Приоритет 1 (4 экрана):</strong> Multi-Country Fork · HITL Money Gate · Confidence Display · Anti-Domain Refusal<br>
+        <strong>Приоритет 2 (3 экрана):</strong> Budget Guard · PII Privacy proof · 24h TTL Memory chip<br>
+        <strong>Приоритет 3 (2 экрана):</strong> Soft-launch waitlist · Affiliate booking handoff
+      </div>
+      <div class="screens">
+
+        <div class="screen">
+          <div class="num">01 · prio 1</div>
+          <div class="t">Multi-Country Fork</div>
+          <div class="why">Side-by-side comparison «Japan vs Korea» — два колонки с per-country фактами + raised primary actions. Differentiated moment, который ChatGPT не делает.</div>
+          <div class="moat">L1 + L3 · F-L1-05</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">02 · prio 1</div>
+          <div class="t">HITL Money Gate</div>
+          <div class="why">Confirm-sheet когда Kai готов inicировать действие >$100. Сумма + breakdown + explicit «yes» button (никакого «sounds good»). Прерывание для денег = доверие.</div>
+          <div class="moat">L2 · F-L2-04</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">03 · prio 1</div>
+          <div class="t">Confidence Display</div>
+          <div class="why">Per-message chip: high (tide 1px line) / medium (нейтральный) / low («not sure, here's why»). Калибрует доверие на каждый ответ.</div>
+          <div class="moat">L3 · F-L3-06</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">04 · prio 1</div>
+          <div class="t">Anti-Domain Refusal</div>
+          <div class="why">Что показать когда пользователь спрашивает не про travel. Warning inline-note + redirect + ссылка на правильный инструмент. Без снобизма.</div>
+          <div class="moat">L1 · F-L1-02</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">05 · prio 2</div>
+          <div class="t">Budget Guard</div>
+          <div class="why">Внутри trip-detail.html: бар «spent / planned / projected». Когда Kai видит overrun — quiet warning в чате. Никаких графиков ради графиков.</div>
+          <div class="moat">L3 · F-L3-05</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">06 · prio 2</div>
+          <div class="t">Privacy / PII Audit</div>
+          <div class="why">В settings.html → section «Privacy». «0 PII leaks · 30-day rolling». Делает L4 moat видимым пользователю.</div>
+          <div class="moat">L4 · F-L4-01/02/04</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">07 · prio 2</div>
+          <div class="t">24h TTL Memory chip</div>
+          <div class="why">В memory.html на каждом ephemeral-факте chip «expires in 18h». GDPR-discipline без помпы.</div>
+          <div class="moat">L4 · F-L4-02</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">08 · prio 3</div>
+          <div class="t">Soft-launch waitlist</div>
+          <div class="why">Sprint 10 (сентябрь) — 100 invited users. Нужна landing-page с тур-by-tour и signup. Можно совместить с Marketing surface.</div>
+          <div class="moat">launch · Sprint 10</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">09 · prio 3</div>
+          <div class="t">Affiliate handoff</div>
+          <div class="why">Когда Kai советует book — экран handoff к Kiwi/Booking/GetYourGuide. Source-card style, но с CTA + transparent commission disclosure.</div>
+          <div class="moat">revenue · Sprint 12</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TRACK 2 — marketing -->
+    <div class="plan-block">
+      <div class="plan-head">
+        <h3>📣 Трек 2 · Marketing surface</h3>
+        <span class="meta soon">далее · 1 неделя</span>
+      </div>
+      <div class="desc">
+        Лендинг к публичному запуску в ноябре 2026. По launch_scope каналы — <strong>ProductHunt</strong>, <strong>HackerNews</strong>,
+        <strong>русские Telegram-каналы</strong>. Это значит — две версии лендинга (EN + RU), один OG-card, один App Store / Play Store
+        listing с скриншотами.
+      </div>
+      <div class="screens">
+
+        <div class="screen">
+          <div class="num">m1</div>
+          <div class="t">Landing page (EN)</div>
+          <div class="why">Hero c tide-curve, демо conversation, 3 differentiators (sources / privacy / character), waitlist CTA. Brutally минималистично, в духе экранов.</div>
+          <div class="moat">PH + HN launch</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">m2</div>
+          <div class="t">Landing page (RU)</div>
+          <div class="why">RU-перевод, плюс russian-specific use case: «виза, маршруты, шенген 90/180». Telegram-friendly OG card.</div>
+          <div class="moat">Telegram launch</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">m3</div>
+          <div class="t">App Store screenshots</div>
+          <div class="why">5 скриншотов по гайдлайнам Apple: hero · live answer · sources · voice · memory. Используем brand.html стилистику.</div>
+          <div class="moat">iOS launch</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">m4</div>
+          <div class="t">Play Store screenshots</div>
+          <div class="why">8 скриншотов, тот же набор + 3 дополнительных. Аналогично, но в android-frame.</div>
+          <div class="moat">Android launch</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">m5</div>
+          <div class="t">Press kit / OG cards</div>
+          <div class="why">Готовый brand.html у тебя есть, дополнить пресс-кардом для ProductHunt + 3 ready-made твитов / Telegram-постов.</div>
+          <div class="moat">launch day</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">m6</div>
+          <div class="t">Pricing page</div>
+          <div class="why">Free $0 / Explorer $12 / Nomad $29. Простая 3-колоночная таблица с честным «что в каждом». От launch_scope.</div>
+          <div class="moat">conversion</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TRACK 3 — handoff -->
+    <div class="plan-block">
+      <div class="plan-head">
+        <h3>🚀 Трек 3 · Production handoff</h3>
+        <span class="meta later">далее · 1 неделя</span>
+      </div>
+      <div class="desc">
+        Перевод дизайна в Flutter-код. <code>handoff.html</code> уже описывает 7 widgets. Нужно дополнить и
+        подготовить kai-app PR с готовым <code>KaiTheme</code>.
+      </div>
+      <div class="screens">
+
+        <div class="screen">
+          <div class="num">h1</div>
+          <div class="t">build_runner kai_tokens_gen</div>
+          <div class="why">Codegen-генератор из design-tokens.json → Dart constants. Один источник правды.</div>
+          <div class="moat">kai-app/lib/theme/</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">h2</div>
+          <div class="t">KaiTheme + ThemeData</div>
+          <div class="why">Material 3 ThemeData с переопределёнными colorScheme + textTheme + components. Light/dark switch через <code>ThemeMode</code>.</div>
+          <div class="moat">handoff.html § 02</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">h3</div>
+          <div class="t">KaiTideCurve widget</div>
+          <div class="why">CustomPainter с 8 animated states. Reduce-motion respected. Position 4px below safe area через MediaQuery.padding.top.</div>
+          <div class="moat">handoff.html § 04</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">h4</div>
+          <div class="t">KaiCompose pill widget</div>
+          <div class="why">TextField + mic + send в pill. Send-state = tide gradient via ShaderMask. Auto-grow до 4 строк.</div>
+          <div class="moat">handoff.html § 06</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">h5</div>
+          <div class="t">KaiBubble + KaiSourceCard</div>
+          <div class="why">Streaming text via StreamBuilder. Long-press → modal bottom sheet detail. Verify chip + freshness.</div>
+          <div class="moat">handoff.html § 05</div>
+        </div>
+
+        <div class="screen">
+          <div class="num">h6</div>
+          <div class="t">KaiMotion constants</div>
+          <div class="why">Duration / Curve constants для m-1/m-2/m-3. Используются повсюду через AnimatedX widgets.</div>
+          <div class="moat">handoff.html § 07</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="margin-top:36px;padding:24px 32px;background:var(--ink-1);color:white;border-radius:18px;">
+      <div style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">→ предложение по очерёдности</div>
+      <h3 style="font-size:24px;font-weight:600;letter-spacing:-0.015em;margin-bottom:14px;">
+        Сначала фиксы (1 день) → потом 4 приоритет-1 экрана (1 неделя) → потом маркетинг (1 неделя) → потом остальные экраны + handoff параллельно (2 недели).
+      </h3>
+      <p style="margin:0;font-size:14.5px;color:rgba(255,255,255,0.85);line-height:1.6;">
+        Скажи «поехали», и я начну с <strong>пиксель-фиксов</strong> — закрою все 8 проблем за одну сессию.
+        Дальше выберем по одному экрану из приоритет-1 для глубокой проработки. Marketing surface можно начать
+        параллельно если хочешь — она не блокируется фиксами.
+      </p>
+    </div>
+
+  </section>
+
+</div>
+
+<script>
+  // Tab switching
+  const tabs = document.querySelectorAll('#nav .nb');
+  const secs = document.querySelectorAll('.sec');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      tabs.forEach(x => x.classList.remove('active'));
+      secs.forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      const id = t.dataset.tab;
+      document.getElementById(id).classList.add('active');
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    });
+  });
+</script>
+
+</body>
+</html>

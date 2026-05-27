@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1320,initial-scale=1">
+<title>kai · панель · аудит · оставить, убрать, объединить</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink-1); font-family: var(--font-sans); }
+  .shell { max-width: 1320px; margin: 0 auto; padding: 56px 64px 120px; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 56px; }
+  .top .mark { font-weight: 700; font-size: 18px; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 10px; }
+  .top .meta { display: flex; gap: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+
+  .hero { padding-bottom: 48px; border-bottom: 1px solid var(--line); margin-bottom: 56px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 22px; display: inline-flex; align-items: center; gap: 8px; }
+  .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--ink-3); }
+  .hero h1 { font-size: 56px; font-weight: 600; line-height: 0.98; letter-spacing: -0.03em; max-width: 920px; margin: 0; }
+  .hero h1 .ocean { background: var(--tide-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; font-style: italic; font-weight: 500; }
+  .hero .lead { margin-top: 22px; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 720px; }
+  .hero .your { margin-top: 22px; padding: 16px 20px; border: 1px solid var(--accent-line); background: var(--accent-wash); border-radius: 14px; font-size: 14px; color: var(--ink-1); line-height: 1.5; max-width: 720px; }
+  .hero .your strong { color: var(--accent); font-weight: 600; }
+
+  /* Before / After side by side ------------------------------ */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; margin-bottom: 56px; }
+  .ver-frame {
+    background: var(--surface-3); border: 1px solid var(--line); border-radius: 22px;
+    padding: 28px 0 22px; display: flex; flex-direction: column; align-items: center;
+  }
+  .ver-frame .ver-cap {
+    margin-top: 14px; font-family: var(--font-mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .ver-frame .ver-cap .pill {
+    padding: 2px 8px; border-radius: 999px; font-size: 9px; font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .ver-frame .ver-cap .pill.before { background: var(--surface-2); color: var(--ink-3); }
+  .ver-frame .ver-cap .pill.after { background: var(--positive-wash); color: var(--positive); }
+
+  /* Panel — same as previous, reused */
+  .panel {
+    width: 270px; min-height: 560px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 28px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+  .panel .status {
+    height: 36px; padding: 0 22px; display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-2);
+  }
+  .panel .status .dots { display: flex; gap: 3px; }
+  .panel .status .dots i { width: 4px; height: 4px; border-radius: 50%; background: var(--ink-2); }
+  .panel .inner { flex: 1; overflow-y: auto; padding-bottom: 8px; }
+
+  .new-chat {
+    margin: 8px 14px 12px;
+    width: calc(100% - 28px);
+    background: var(--ink-1); color: var(--surface);
+    border: 0; border-radius: 12px;
+    padding: 11px;
+    font: 600 13px var(--font-sans); letter-spacing: -0.005em;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .search-box {
+    margin: 0 14px 8px;
+    background: var(--surface-2); border-radius: 10px;
+    padding: 9px 12px; display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px; color: var(--ink-3);
+  }
+  .search-box svg { color: var(--ink-3); flex-shrink: 0; }
+  .sec-label {
+    font-family: var(--font-mono); font-size: 9px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 12px 18px 6px;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .sec-label .ct { color: var(--ink-4); font-family: var(--font-mono); font-size: 9px; }
+
+  .pin-trip {
+    margin: 0 14px 4px;
+    padding: 11px 12px;
+    background: linear-gradient(135deg, rgba(43,168,201,0.06), rgba(244,181,137,0.04));
+    border: 1px solid var(--accent-line);
+    border-radius: 12px;
+    display: grid; grid-template-columns: 30px 1fr; gap: 11px; align-items: center;
+  }
+  .pin-trip .gl {
+    width: 30px; height: 30px; border-radius: 9px;
+    background: var(--tide-gradient-corner);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 11px; font-weight: 700;
+  }
+  .pin-trip .t { font-size: 13px; color: var(--ink-1); font-weight: 600; letter-spacing: -0.005em; }
+  .pin-trip .s { font-size: 10.5px; color: var(--ink-3); font-family: var(--font-mono); margin-top: 1px; }
+
+  .folder-row {
+    padding: 9px 18px;
+    display: grid; grid-template-columns: 18px 1fr auto; gap: 11px; align-items: center;
+  }
+  .folder-row svg { color: var(--ink-3); }
+  .folder-row .t { font-size: 12.5px; color: var(--ink-1); font-weight: 500; letter-spacing: -0.005em; }
+  .folder-row .badge {
+    font-family: var(--font-mono); font-size: 9px; color: var(--ink-3);
+    padding: 1px 6px; background: var(--surface-2); border-radius: 999px;
+  }
+
+  .chat-row {
+    padding: 8px 18px; cursor: pointer;
+    border-left: 2px solid transparent;
+  }
+  .chat-row.active {
+    background: var(--accent-wash);
+    border-left-color: var(--accent);
+  }
+  .chat-row .t { font-size: 12.5px; color: var(--ink-1); font-weight: 500; letter-spacing: -0.005em; line-height: 1.35; }
+  .chat-row.active .t { color: var(--accent); font-weight: 600; }
+  .chat-row .s { font-size: 9.5px; color: var(--ink-3); font-family: var(--font-mono); margin-top: 1px; }
+
+  .tool-row {
+    padding: 8px 18px;
+    display: grid; grid-template-columns: 18px 1fr auto; gap: 9px; align-items: center;
+  }
+  .tool-row .ic {
+    width: 18px; height: 18px; border-radius: 5px;
+    background: var(--surface-2);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-3);
+  }
+  .tool-row .u { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tool-row .when { font-family: var(--font-mono); font-size: 9px; color: var(--ink-3); }
+
+  .app-row {
+    padding: 9px 18px;
+    display: grid; grid-template-columns: 18px 1fr auto; gap: 11px; align-items: center;
+  }
+  .app-row svg { color: var(--ink-3); }
+  .app-row .t { font-size: 12.5px; color: var(--ink-1); font-weight: 500; letter-spacing: -0.005em; }
+  .app-row .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 2px var(--surface);
+  }
+  .app-row .badge.accent {
+    font-family: var(--font-mono); font-size: 9px; color: var(--accent);
+    padding: 1px 6px; background: var(--accent-wash); border-radius: 999px;
+  }
+
+  .account {
+    border-top: 1px solid var(--line);
+    padding: 11px 14px; display: grid; grid-template-columns: 30px 1fr 16px; gap: 10px; align-items: center;
+  }
+  .account .av {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--tide-gradient-corner);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 11px; font-weight: 700;
+  }
+  .account .n { font-size: 13px; color: var(--ink-1); font-weight: 500; letter-spacing: -0.005em; }
+  .account .plan { font-size: 9.5px; color: var(--ink-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* Strikethrough overlay for BEFORE rows being cut */
+  .cut-row { position: relative; opacity: 0.4; }
+  .cut-row::after {
+    content: ""; position: absolute; left: 12px; right: 12px; top: 50%;
+    height: 1px; background: var(--negative);
+  }
+
+  /* Audit table -------------------------------------------- */
+  .audit-section { padding: 56px 0; border-top: 1px solid var(--line); }
+  .audit-head { margin-bottom: 36px; }
+  .audit-head h2 { font-size: 38px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.05; margin-bottom: 14px; }
+  .audit-head .blurb { font-size: 16px; color: var(--ink-2); line-height: 1.55; max-width: 720px; }
+
+  .audit-table {
+    border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+    background: var(--surface);
+  }
+  .audit-row {
+    display: grid; grid-template-columns: 200px 110px 1fr 1fr;
+    border-bottom: 1px solid var(--line);
+  }
+  .audit-row:last-child { border-bottom: 0; }
+  .audit-row.head {
+    background: var(--bg);
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .audit-row .cell { padding: 18px 20px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+  .audit-row .cell.name { font-weight: 600; color: var(--ink-1); font-size: 15px; letter-spacing: -0.005em; }
+  .audit-row .cell.verdict { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 6px; }
+  .audit-row .cell.verdict .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .audit-row .cell.verdict.keep { color: var(--positive); }
+  .audit-row .cell.verdict.keep .dot { background: var(--positive); }
+  .audit-row .cell.verdict.cut { color: var(--negative); }
+  .audit-row .cell.verdict.cut .dot { background: var(--negative); }
+  .audit-row .cell.verdict.merge { color: var(--warning); }
+  .audit-row .cell.verdict.merge .dot { background: var(--warning); }
+  .audit-row .cell .meta {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    margin-top: 4px; line-height: 1.4;
+  }
+
+  /* Open questions block */
+  .qbox {
+    margin-top: 48px;
+    padding: 32px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+    display: grid; grid-template-columns: 200px 1fr; gap: 56px; align-items: start;
+  }
+  .qbox .ttl { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .qbox h3 { font-size: 22px; font-weight: 600; letter-spacing: -0.018em; margin-bottom: 18px; }
+  .qbox .q { padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .qbox .q:last-child { border-bottom: 0; }
+  .qbox .q .label { font-family: var(--font-mono); font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .qbox .q .ask { font-size: 15px; color: var(--ink-1); font-weight: 500; margin-bottom: 4px; letter-spacing: -0.005em; }
+  .qbox .q .note { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+
+  /* Footer */
+  .next { margin-top: 64px; padding: 36px 0 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: 200px 1fr; gap: 56px; }
+  .next .idx { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .next .copy h3 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 10px; }
+  .next .copy p { font-size: 14.5px; color: var(--ink-2); line-height: 1.55; max-width: 620px; }
+  .next .copy .how {
+    margin-top: 20px; padding: 14px 18px;
+    background: var(--accent-wash); border-radius: 12px;
+    display: inline-flex; align-items: center; gap: 12px;
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent); letter-spacing: 0.02em;
+  }
+
+  /* ── Shared entrance animations ── */
+  @keyframes kai-fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes kai-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes kai-scale-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Phone frames fade up with stagger */
+  .phone, .frame-card {
+    animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) both;
+  }
+  .frame-card:nth-child(1) { animation-delay: 0.02s; }
+  .frame-card:nth-child(2) { animation-delay: 0.04s; }
+  .frame-card:nth-child(3) { animation-delay: 0.07s; }
+  .frame-card:nth-child(4) { animation-delay: 0.10s; }
+
+  /* Phone-frame wrappers */
+  .phone-frame .phone { animation: kai-fade-up 0.5s cubic-bezier(.2,0,0,1) 0.1s both; }
+  .layout .phone-frame { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.06s both; }
+  .layout .notes       { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.18s both; }
+
+
+  /* Tide curve entrance — already animates; just ensure visibility */
+  .phone .tide-bar, .phone .tide-svg { animation: kai-fade-in 0.6s ease 0.2s both; }
+
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-tide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1B4FB0"/><stop offset="0.5" stop-color="#2BA8C9"/><stop offset="1" stop-color="#F4B589"/></linearGradient>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><ellipse cx="12" cy="12" rx="4" ry="9" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><line x1="9" y1="4" x2="9" y2="18" stroke="currentColor" stroke-width="1.5"/><line x1="15" y1="6" x2="15" y2="20" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="i-verify" viewBox="0 0 24 24"><path d="M12 2l9 4v6c0 5-3.5 9-9 10-5.5-1-9-5-9-10V6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 12l3 3 5-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-tool" viewBox="0 0 24 24"><path d="M14 7l3 3-9 9-3-3 9-9zM14 7l3-3 3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></symbol>
+    <symbol id="i-mem" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-set" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell">
+
+  <div class="top">
+    <div class="mark">
+      <svg width="28" height="6" viewBox="0 0 28 6"><path d="M 1 3 Q 7 0, 14 3 T 27 3" stroke="url(#g-tide)" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      <span>kai</span>
+      <span style="color:var(--ink-3);font-weight:500;letter-spacing:0;">— панель · аудит · что остаётся, что убирается</span>
+    </div>
+    <div class="meta">
+      <span>панель · переосмысление</span>
+      <span style="color:var(--ink-1)">·</span>
+      <span>убрать то, что принадлежит бэкенду</span>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="eyebrow">панель · аудит · оставить / убрать / объединить</div>
+    <h1>Если Kai управляет этим,<br><span class="ocean">это не место в навигации.</span></h1>
+    <p class="lead">
+      Честный аудит каждой секции гибридной панели. Запуски инструментов и «Приложения · Инструменты» убираются —
+      выполнение инструментов Kai — это дело бэкенда, и показывать это здесь формирует
+      неправильную ментальную модель. Прозрачность принадлежит сообщению (квитанция источника), не навигации.
+    </p>
+    <div class="your">
+      <strong>Ваш аргумент —</strong> Kai управляет инструментами в бэкенде (Tool Executor, предохранители, повтор). Пользователь не выбирает, какой инструмент запускать — Kai решает. Секция «Инструменты» приглашает пользователя управлять тем, чем он не управляет.
+    </div>
+  </header>
+
+  <!-- BEFORE / AFTER ---------------------------------------- -->
+  <div class="compare">
+
+    <!-- BEFORE -->
+    <div class="ver-frame">
+      <div class="panel">
+        <div class="status"><span>9:41</span><div class="dots"><i></i><i></i><i></i></div></div>
+        <div class="inner">
+          <button class="new-chat"><svg width="13" height="13"><use href="#i-plus"/></svg>Новый чат</button>
+          <div class="search-box"><svg width="12" height="12"><use href="#i-search"/></svg>Поиск поездок, чатов, инструментов</div>
+
+          <div class="sec-label">закреплено</div>
+          <div class="pin-trip"><div class="gl">JP</div><div><div class="t">Япония · Ноябрь 2026</div><div class="s">7 чатов · 4 запуска инструментов · активно</div></div></div>
+
+          <div class="sec-label">поездки</div>
+          <div class="folder-row"><svg width="14" height="14"><use href="#i-folder"/></svg><span class="t">Турция · зима</span><span class="badge">3</span></div>
+          <div class="folder-row"><svg width="14" height="14"><use href="#i-folder"/></svg><span class="t">Шенген — открытый</span><span class="badge">5</span></div>
+
+          <div class="sec-label">сегодня</div>
+          <div class="chat-row active"><div class="t">Виза для Японии</div><div class="s">сейчас · 4 источника</div></div>
+          <div class="chat-row"><div class="t">Цена JR Pass</div></div>
+
+          <div class="sec-label cut-row">tool runs <span class="ct">last 8</span></div>
+          <div class="tool-row cut-row"><span class="ic"><svg width="11" height="11"><use href="#i-globe"/></svg></span><span class="u">jrpass.com</span><span class="when">2m</span></div>
+          <div class="tool-row cut-row"><span class="ic"><svg width="11" height="11"><use href="#i-verify"/></svg></span><span class="u">visa.go.jp</span><span class="when">5m</span></div>
+          <div class="tool-row cut-row"><span class="ic"><svg width="11" height="11"><use href="#i-map"/></svg></span><span class="u">route → Kyoto</span><span class="when">22m</span></div>
+
+          <div class="sec-label">apps</div>
+          <div class="app-row cut-row"><svg width="14" height="14"><use href="#i-tool"/></svg><span class="t">Tools</span><span></span></div>
+          <div class="app-row"><svg width="14" height="14"><use href="#i-mem"/></svg><span class="t">Память</span><span class="dot"></span></div>
+          <div class="app-row"><svg width="14" height="14"><use href="#i-set"/></svg><span class="t">Настройки</span><span></span></div>
+        </div>
+        <div class="account">
+          <div class="av">A</div>
+          <div><div class="n">Aibek</div><div class="plan">kai · plus</div></div>
+          <svg width="12" height="12"><use href="#i-chev"/></svg>
+        </div>
+      </div>
+      <div class="ver-cap"><span class="pill before">до</span>запуски инструментов + приложение инструментов · шумно</div>
+    </div>
+
+    <!-- AFTER -->
+    <div class="ver-frame">
+      <div class="panel">
+        <div class="status"><span>9:41</span><div class="dots"><i></i><i></i><i></i></div></div>
+        <div class="inner">
+          <button class="new-chat"><svg width="13" height="13"><use href="#i-plus"/></svg>Новый чат</button>
+          <div class="search-box"><svg width="12" height="12"><use href="#i-search"/></svg>Поиск поездок и чатов</div>
+
+          <div class="sec-label">закреплено</div>
+          <div class="pin-trip"><div class="gl">JP</div><div><div class="t">Япония · Ноябрь 2026</div><div class="s">7 чатов · активно</div></div></div>
+
+          <div class="sec-label">trips <span class="ct">3</span></div>
+          <div class="folder-row"><svg width="14" height="14"><use href="#i-folder"/></svg><span class="t">Турция · зима</span><span class="badge">3</span></div>
+          <div class="folder-row"><svg width="14" height="14"><use href="#i-folder"/></svg><span class="t">Шенген — открытый</span><span class="badge">5</span></div>
+          <div class="folder-row"><svg width="14" height="14"><use href="#i-folder"/></svg><span class="t">Кавказ — когда-нибудь</span><span class="badge">2</span></div>
+
+          <div class="sec-label">сегодня</div>
+          <div class="chat-row active"><div class="t">Виза для Японии</div><div class="s">сейчас · 4 источника</div></div>
+          <div class="chat-row"><div class="t">Цена JR Pass</div><div class="s">12m</div></div>
+
+          <div class="sec-label">вчера</div>
+          <div class="chat-row"><div class="t">Лучшая уличная еда Токио</div></div>
+          <div class="chat-row"><div class="t">Расчёт дней Шенгена 90/180</div></div>
+
+          <div class="sec-label">предыдущие 7</div>
+          <div class="chat-row"><div class="t">Тбилиси vs. Ереван как база</div></div>
+
+          <div class="app-row" style="margin-top:14px;"><svg width="14" height="14"><use href="#i-mem"/></svg><span class="t">Память</span><span class="dot"></span></div>
+          <div class="app-row"><svg width="14" height="14"><use href="#i-set"/></svg><span class="t">Настройки</span><span></span></div>
+        </div>
+        <div class="account">
+          <div class="av">A</div>
+          <div><div class="n">Aibek</div><div class="plan">kai · plus</div></div>
+          <svg width="12" height="12"><use href="#i-chev"/></svg>
+        </div>
+      </div>
+      <div class="ver-cap"><span class="pill after">после</span>инструменты убраны · место для большего числа чатов</div>
+    </div>
+
+  </div>
+
+  <!-- AUDIT TABLE -->
+  <div class="audit-section">
+    <div class="audit-head">
+      <h2>Вердикт по каждой секции.</h2>
+      <p class="blurb">Каждая секция панели оценена. <strong style="color:var(--positive)">Оставить</strong> = пользователь взаимодействует напрямую. <strong style="color:var(--negative)">Убрать</strong> = принадлежит Kai в бэкенде. <strong style="color:var(--warning)">Объединить</strong> = существует, но находится в другом месте.</p>
+    </div>
+
+    <div class="audit-table">
+      <div class="audit-row head">
+        <div class="cell">секция</div>
+        <div class="cell">вердикт</div>
+        <div class="cell">почему</div>
+        <div class="cell">где живёт вместо этого</div>
+      </div>
+
+      <div class="audit-row">
+        <div class="cell name">Новый чат</div>
+        <div class="cell verdict keep"><span class="dot"></span>оставить</div>
+        <div class="cell">Основное действие пользователя — начало разговора. Чисто пользовательская поверхность.</div>
+        <div class="cell">Верхняя часть панели, кнопка ink-1. <div class="meta">без изменений</div></div>
+      </div>
+
+      <div class="audit-row">
+        <div class="cell name">Search</div>
+        <div class="cell verdict keep"><span class="dot"></span>оставить</div>
+        <div class="cell">Пользователь ищет свою историю. С убранными инструментами область поиска упрощается до «поездки и чаты» — более чёткий ярлык.</div>
+        <div class="cell">Below Новый чат. Scope reduced. <div class="meta">метка обновлена</div></div>
+      </div>
+
+      <div class="audit-row">
+        <div class="cell name">Pinned trip</div>
+        <div class="cell verdict keep"><span class="dot"></span>оставить</div>
+        <div class="cell">User-pinned focus. Subtitle simplified — drop "4 tool runs" (backend detail). Keep "7 чатов · активно".</div>
+        <div class="cell">Same slot. <div class="meta">подзаголовок очищен</div></div>
+      </div>
+
+      <div class="audit-row">
+        <div class="cell name">Trips · folders</div>
+        <div class="cell verdict keep"><span class="dot"></span>оставить</div>
+        <div class="cell">Созданные пользователем группы связанных чатов. Чистая организационная поверхность. Наивысшая семантическая ценность в панели.</div>
+        <div class="cell">Unchanged. <div class="meta">ключевая функция</div></div>
+      </div>
+
+      <div class="audit-row">
+        <div class="cell name">Recent · date-grouped</div>
+        <div class="cell verdict keep"><span class="dot"></span>оставить</div>
+        <div class="cell">Свободные чаты по дате. Привычный паттерн. Убрать подзаголовки с запусками инструментов вроде "просматриваю jrpass.com" — они принадлежат самому чату.</div>
+        <div class="cell">Форма без изменений. <div class="meta">подзаголовки чище</div></div>
+      </div>
+
+      <div class="audit-row">
+        <div class="cell name">Tool runs · receipts</div>
+        <div class="cell verdict cut"><span class="dot"></span>убрать</div>
+        <div class="cell">Именно ваш аргумент — Kai управляет инструментами в бэкенде. Пользователь не управляет выполнением инструментов. Показывать это в панели представляет Kai как запускатель инструментов, а не агента.</div>
+        <div class="cell">В самом сообщении. <div class="meta">карточка источника под каждым ответом Kai · долгое нажатие → полная цепочка</div></div>
+      </div>
+
+      <div class="audit-row">
+        <div class="cell name">Apps · Tools entry</div>
+        <div class="cell verdict cut"><span class="dot"></span>убрать</div>
+        <div class="cell">Та же логика — нет пользовательской поверхности «Инструменты» для входа. Если пользователь хочет знать, что использовал Kai, квитанция сообщения отвечает на это. Отдельное приложение Инструменты будет пустым.</div>
+        <div class="cell">Removed. <div class="meta">ничто не заменяет это</div></div>
+      </div>
+
+      <div class="audit-row">
+        <div class="cell name">Apps · Memory</div>
+        <div class="cell verdict keep"><span class="dot"></span>оставить</div>
+        <div class="cell">Пользовательская поверхность. Редактировать / удалять элементы памяти, «забыть всё», GDPR-удаление. Настоящее приложение, не утечка бэкенда. Бейдж для непросмотренных элементов остаётся.</div>
+        <div class="cell">Same slot. <div class="meta">без изменений</div></div>
+      </div>
+
+      <div class="audit-row">
+        <div class="cell name">Apps · Settings</div>
+        <div class="cell verdict keep"><span class="dot"></span>оставить</div>
+        <div class="cell">Тема, голос, аккаунт, данные, язык. Всегда для пользователя.</div>
+        <div class="cell">Same slot. <div class="meta">без изменений</div></div>
+      </div>
+
+      <div class="audit-row">
+        <div class="cell name">Account anchor</div>
+        <div class="cell verdict keep"><span class="dot"></span>оставить</div>
+        <div class="cell">Идентификация + тарифный план. Всегда видно.</div>
+        <div class="cell">Зафиксировано снизу. <div class="meta">без изменений</div></div>
+      </div>
+
+      <div class="audit-row">
+        <div class="cell name">Per-message source card</div>
+        <div class="cell verdict merge"><span class="dot"></span>перенесено</div>
+        <div class="cell">«Прозрачность инструментов», которую все хотят — но на правильном уровне. Встроено в каждый ответ Kai. Показывает что было получено, свежесть, полную цепочку при долгом нажатии.</div>
+        <div class="cell">В пузыре сообщения. <div class="meta">уже спроектировано в Слое 2 · components.html § 03.8</div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- OPEN QUESTIONS -->
+  <div class="qbox">
+    <div class="ttl">→ still open</div>
+    <div>
+      <h3>Другие моменты для решения.</h3>
+
+      <div class="q">
+        <div class="label">q1 · the open trip</div>
+        <div class="ask">"Шенген — открытый" — is "open" a real category, or a regular trip?</div>
+        <div class="note">Open trips are rolling questions (running Schengen day counter, recurring visa-status checks). Different from a finite trip. Two options: <strong>оставить</strong> a special "open" badge / <strong>убрать</strong> the concept and treat as a regular trip with a different name. My vote: keep — the rolling nature is real and worth surfacing.</div>
+      </div>
+
+      <div class="q">
+        <div class="label">q2 · pinned trip · how many</div>
+        <div class="ask">Всегда 1? До N? Или без закрепления совсем?</div>
+        <div class="note">Сейчас показываем 1. Может быть 0–3 (пользователь закрепляет вручную) или всегда-1 (авто = последняя активная). Мой голос: <strong>0–3, пользователь закрепляет</strong>. Иначе это становится дублем «недавних».</div>
+      </div>
+
+      <div class="q">
+        <div class="label">q3 · tool transparency</div>
+        <div class="ask">Где именно живёт «что получил Kai?»?</div>
+        <div class="note">После удаления Запусков инструментов из навигации: каждый ответ Kai получает <strong>карточку источника</strong> прямо под ним (мы уже спроектировали в Слое 2 — полоска источников + детальный лист при долгом нажатии). Пользователь получает прозрачность в нужный момент, не в панели.</div>
+      </div>
+
+      <div class="q">
+        <div class="label">q4 · subtitle on recent chats</div>
+        <div class="ask">Должны ли подзаголовки строк чата показывать текущее состояние ("просматриваю jrpass.com")?</div>
+        <div class="note">It's tempting — but it crosses the same line. The active session's status belongs at the top of the chat itself (tide curve state). My vote: <strong>cut subtitle entirely on idle chats</strong>; keep only on the active one ("сейчас · 4 источника").</div>
+      </div>
+
+      <div class="q">
+        <div class="label">q5 · memory badge</div>
+        <div class="ask">Показывать счётчик ("2 новых") или только точку?</div>
+        <div class="note">Счётчик информативен, но поощряет поведение «входящих до нуля». Точка мягче — «что-то произошло, посмотрите». Мой голос: <strong>только точка</strong>, счётчик появляется внутри приложения Память.</div>
+      </div>
+
+      <div class="q">
+        <div class="label">q6 · search scope</div>
+        <div class="ask">Должен ли поиск охватывать элементы памяти?</div>
+        <div class="note">Да — факты памяти это контент пользователя, доступный для поиска. С убранными инструментами область становится «поездки, чаты, память». Метка: <strong>«Поиск Kai»</strong>. Или буквальнее: «Поиск чатов и памяти».</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- NEXT -->
+  <div class="next">
+    <div class="idx">→ next</div>
+    <div class="copy">
+      <h3>Решите шесть вопросов, заблокируйте панель.</h3>
+      <p>
+        Ответьте на шесть (или просто скажите <em>на ваше усмотрение</em>) и я заблокирую итоговую панель: анатомия + состояния (пустая / много / тёмная) + анимация. Затем переходим к Слою 3 — комнате чата со всем собранным.
+      </p>
+      <div class="how">→ ответьте на в1–в6 · или «на ваше усмотрение»</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

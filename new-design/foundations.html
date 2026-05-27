@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1200,initial-scale=1">
+<title>kai · основы</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  /* Page shell ---------------------------------------------- */
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink-1);
+    font-family: var(--font-sans);
+  }
+
+  .shell {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 56px 64px 120px;
+  }
+
+  /* Top nav — barely there */
+  .top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 96px;
+  }
+  .top .mark {
+    font-weight: 700; font-size: 18px; letter-spacing: -0.02em; color: var(--ink-1);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .top .mark .glyph {
+    font-size: 16px; line-height: 1;
+    background: var(--spark-gradient);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .top .meta {
+    display: flex; gap: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3);
+  }
+  .top .meta span { letter-spacing: 0; }
+
+  /* Hero ---------------------------------------------------- */
+  .hero {
+    padding-bottom: 120px;
+    position: relative;
+  }
+  .hero .eyebrow {
+    font-family: var(--font-mono); font-size: 12px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 32px;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .hero .eyebrow::before {
+    content: ""; width: 24px; height: 1px; background: var(--ink-3);
+  }
+  .hero h1 {
+    font-size: 96px; font-weight: 600; line-height: 0.95;
+    letter-spacing: -0.04em;
+    max-width: 980px;
+    color: var(--ink-1);
+  }
+  .hero h1 .spark {
+    background: var(--spark-gradient);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-style: italic;
+    font-weight: 500;
+  }
+  .hero .lead {
+    margin-top: 40px;
+    font-size: 22px; font-weight: 400; line-height: 1.45;
+    color: var(--ink-2);
+    max-width: 680px;
+    letter-spacing: -0.005em;
+  }
+  .hero .principles {
+    margin-top: 64px;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+    background: var(--line);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .hero .principles .p {
+    background: var(--bg);
+    padding: 28px 0 4px;
+  }
+  .hero .principles .p .n {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px;
+  }
+  .hero .principles .p .l {
+    font-size: 18px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;
+  }
+
+  /* Section scaffolding ------------------------------------- */
+  section { padding: 88px 0; border-top: 1px solid var(--line); }
+  section:first-of-type { border-top: 0; padding-top: 0; }
+  .head {
+    display: grid; grid-template-columns: 200px 1fr; gap: 64px;
+    margin-bottom: 56px; align-items: baseline;
+  }
+  .head .index {
+    font-family: var(--font-mono); font-size: 12px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .head h2 {
+    font-size: 44px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.05;
+    color: var(--ink-1);
+  }
+  .head .blurb {
+    font-size: 17px; line-height: 1.55; color: var(--ink-2);
+    max-width: 580px; margin-top: 16px;
+  }
+
+  /* Color section ------------------------------------------- */
+  .palette {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .swatch {
+    background: var(--surface);
+    padding: 20px 20px 18px;
+    display: flex; flex-direction: column; gap: 10px; min-height: 140px;
+  }
+  .swatch .chip {
+    width: 100%; height: 56px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .swatch .name {
+    font-size: 14px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;
+  }
+  .swatch .hex {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    margin-top: -8px;
+  }
+  .swatch.dark { background: var(--ink-1); color: white; }
+  .swatch.dark .name { color: white; }
+  .swatch.dark .hex { color: rgba(255,255,255,0.55); }
+  .swatch.dark .chip { border-color: rgba(255,255,255,0.15); }
+
+  .palette-label {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin: 40px 0 14px;
+  }
+
+  /* Spark gradient showcase */
+  .spark-row {
+    display: grid; grid-template-columns: 1.4fr 1fr; gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin-top: 24px;
+  }
+  .spark-cell {
+    background: var(--surface);
+    padding: 36px 32px;
+    display: flex; flex-direction: column; gap: 16px; justify-content: center;
+    min-height: 200px;
+  }
+  .spark-cell .demo {
+    background: var(--spark-gradient);
+    height: 96px;
+    border-radius: 16px;
+  }
+  .spark-cell .stops {
+    display: flex; gap: 10px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+  }
+  .spark-cell .stops span { display: inline-flex; align-items: center; gap: 6px; }
+  .spark-cell .stops i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+  .spark-uses { padding: 32px; }
+  .spark-uses .use {
+    display: grid; grid-template-columns: 90px 1fr; gap: 16px; padding: 10px 0;
+    border-bottom: 1px solid var(--line); align-items: baseline;
+  }
+  .spark-uses .use:last-child { border-bottom: 0; }
+  .spark-uses .use .when { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 0; }
+  .spark-uses .use .what { font-size: 14px; color: var(--ink-1); }
+
+  /* Type section -------------------------------------------- */
+  .specimen {
+    padding: 56px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 56px;
+  }
+  .specimen .big {
+    font-size: 140px; font-weight: 700; letter-spacing: -0.06em; line-height: 0.86;
+    color: var(--ink-1);
+  }
+  .specimen .meta-row {
+    display: flex; gap: 32px; margin-top: 24px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .specimen .ax {
+    display: flex; gap: 32px; margin-top: 48px;
+    font-size: 28px; font-weight: 400; color: var(--ink-2); flex-wrap: wrap;
+  }
+  .specimen .ax span { display: inline-flex; align-items: baseline; gap: 8px; }
+  .specimen .ax span small { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
+
+  .type-scale {
+    display: grid; gap: 0;
+  }
+  .type-scale .row {
+    display: grid; grid-template-columns: 140px 1fr 200px;
+    gap: 32px; padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+    align-items: baseline;
+  }
+  .type-scale .row:last-child { border-bottom: 0; }
+  .type-scale .row .token {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .type-scale .row .sample { color: var(--ink-1); }
+  .type-scale .row .spec {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); text-align: right;
+  }
+
+  /* Space + radii ------------------------------------------- */
+  .splash {
+    display: grid; grid-template-columns: 1.4fr 1fr; gap: 56px;
+  }
+  .space-rule {
+    display: flex; align-items: flex-end; gap: 14px; padding: 32px 0;
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  }
+  .space-rule .col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .space-rule .col .bar { width: 32px; background: var(--ink-1); }
+  .space-rule .col .lbl { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); line-height: 1.3; text-align: center; }
+
+  .radii-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 24px; padding: 32px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .radii-grid .col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .radii-grid .shape { width: 100%; aspect-ratio: 1; background: var(--surface-2); border: 1px solid var(--line); }
+  .radii-grid .lbl { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); }
+
+  /* Motion section ------------------------------------------ */
+  .motion-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 1px;
+    background: var(--line); border: 1px solid var(--line);
+  }
+  .motion-card { background: var(--surface); padding: 32px 28px; min-height: 200px; display: flex; flex-direction: column; gap: 14px; }
+  .motion-card .num { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .motion-card .ttl { font-size: 20px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em; }
+  .motion-card .body { font-size: 14px; color: var(--ink-2); line-height: 1.55; }
+  .motion-card .ease { font-family: var(--font-mono); font-size: 11px; color: var(--accent); margin-top: auto; padding-top: 14px; }
+
+  /* Brand anchor proposals ---------------------------------- */
+  .anchors { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+  .anchor {
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--surface);
+    display: flex; flex-direction: column;
+  }
+  .anchor .stage {
+    aspect-ratio: 4/3;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .anchor .body { padding: 24px 24px 28px; }
+  .anchor .num {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .anchor h3 {
+    font-size: 22px; font-weight: 600; letter-spacing: -0.015em;
+    margin: 6px 0 10px;
+  }
+  .anchor h3 .small { color: var(--ink-3); font-weight: 500; }
+  .anchor p { font-size: 14px; color: var(--ink-2); line-height: 1.55; }
+  .anchor .traits {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px;
+  }
+  .anchor .traits span {
+    font-family: var(--font-mono); font-size: 10px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 4px 8px; border: 1px solid var(--line); border-radius: 999px;
+  }
+
+  /* Anchor A — wordmark + sparkle */
+  .a-wordmark {
+    font-size: 96px; font-weight: 700; letter-spacing: -0.04em;
+    color: var(--ink-1); display: inline-flex; align-items: center; gap: 14px;
+  }
+  .a-spark {
+    width: 36px; height: 36px;
+    display: inline-block;
+    color: transparent;
+    background: var(--spark-gradient);
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 0 L13.6 9.4 L22 12 L13.6 14.6 L12 24 L10.4 14.6 L2 12 L10.4 9.4 Z'/></svg>") center / contain no-repeat;
+            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 0 L13.6 9.4 L22 12 L13.6 14.6 L12 24 L10.4 14.6 L2 12 L10.4 9.4 Z'/></svg>") center / contain no-repeat;
+    animation: spark-pulse 2.6s ease-in-out infinite;
+  }
+  @keyframes spark-pulse {
+    0%,100% { transform: rotate(0) scale(1); opacity: 1; }
+    50%     { transform: rotate(180deg) scale(1.15); opacity: 0.85; }
+  }
+
+  /* Anchor B — horizon ribbon */
+  .b-stage { padding: 0; flex-direction: column; gap: 0; }
+  .b-phone {
+    width: 70%; height: 80%; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 28px;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .b-ribbon {
+    height: 4px; background: var(--spark-gradient);
+    border-radius: 999px;
+    margin: 18px 24px 0;
+    background-size: 200% 100%;
+    animation: ribbon-shift 4s ease-in-out infinite;
+  }
+  @keyframes ribbon-shift {
+    0%,100% { background-position: 0% 50%; transform: scaleX(0.85); opacity: 0.55; }
+    50%     { background-position: 100% 50%; transform: scaleX(1);   opacity: 1; }
+  }
+  .b-content { flex: 1; padding: 20px 24px; }
+  .b-content .line {
+    height: 8px; background: var(--surface-2); border-radius: 999px; margin-bottom: 8px;
+  }
+  .b-content .line.short { width: 60%; }
+  .b-content .line.shorter { width: 40%; }
+
+  /* Anchor C — geometric "k" monogram */
+  .c-mark {
+    width: 140px; height: 140px;
+    border: 1.5px solid var(--ink-1);
+    border-radius: 28px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    background: var(--surface);
+  }
+  .c-mark .k {
+    font-size: 96px; font-weight: 800; letter-spacing: -0.06em;
+    line-height: 1;
+    background: var(--spark-gradient);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    transform: translateY(-4px);
+  }
+  .c-mark .corner {
+    position: absolute; top: 12px; right: 12px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--spark-gradient);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 0.4; transform: scale(0.8); }
+    50%     { opacity: 1;   transform: scale(1.2); }
+  }
+
+  /* Footer / next ------------------------------------------- */
+  .next {
+    margin-top: 80px;
+    padding: 40px 0 0;
+    border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: 200px 1fr; gap: 64px;
+  }
+  .next .index {
+    font-family: var(--font-mono); font-size: 12px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .next .copy h3 {
+    font-size: 28px; font-weight: 600; letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  .next .copy p {
+    font-size: 16px; color: var(--ink-2); line-height: 1.55; max-width: 620px;
+  }
+  .next ul {
+    margin-top: 24px; padding: 0; list-style: none;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .next ul li {
+    display: grid; grid-template-columns: 36px 1fr; gap: 14px; align-items: baseline;
+    font-size: 15px; color: var(--ink-1);
+  }
+  .next ul li .n {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+
+  /* ── Shared entrance animations ── */
+  @keyframes kai-fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes kai-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes kai-scale-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Phone frames fade up with stagger */
+  .phone, .frame-card {
+    animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) both;
+  }
+  .frame-card:nth-child(1) { animation-delay: 0.02s; }
+  .frame-card:nth-child(2) { animation-delay: 0.04s; }
+  .frame-card:nth-child(3) { animation-delay: 0.07s; }
+  .frame-card:nth-child(4) { animation-delay: 0.10s; }
+
+  /* Phone-frame wrappers */
+  .phone-frame .phone { animation: kai-fade-up 0.5s cubic-bezier(.2,0,0,1) 0.1s both; }
+  .layout .phone-frame { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.06s both; }
+  .layout .notes       { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.18s both; }
+
+
+  /* Tide curve entrance — already animates; just ensure visibility */
+  .phone .tide-bar, .phone .tide-svg { animation: kai-fade-in 0.6s ease 0.2s both; }
+
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Top -->
+  <div class="top">
+    <div class="mark">
+      <span class="glyph">✦</span>
+      <span>kai</span>
+      <span style="color:var(--ink-3);font-weight:500;letter-spacing:0;">— дизайн-система v2</span>
+    </div>
+    <div class="meta">
+      <span>основы</span>
+      <span style="color:var(--ink-1)">·</span>
+      <span>2026.05.25</span>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="eyebrow">01 — манифест</div>
+    <h1>Тихая система,<br>с <span class="spark">моментами прилива</span>.</h1>
+    <p class="lead">
+      Kai — компаньон путешественника. Тёплый. Умелый. Ненавязчивый.
+      Интерфейс остаётся тихим — спокойный документ из почти-белых и графита.
+      Цвет появляется только когда Kai что-то делает: думает, вспоминает, предлагает.
+    </p>
+
+    <div class="principles">
+      <div class="p"><div class="n">01</div><div class="l">Свет — основа.</div></div>
+      <div class="p"><div class="n">02</div><div class="l">Гуманистический шрифт.</div></div>
+      <div class="p"><div class="n">03</div><div class="l">Плоский и точный.</div></div>
+      <div class="p"><div class="n">04</div><div class="l">Нулевой UI.</div></div>
+    </div>
+  </header>
+
+  <!-- 02 Voice -->
+  <section>
+    <div class="head">
+      <div class="index">02 — голос</div>
+      <div>
+        <h2>Компаньон, не консьерж.</h2>
+        <p class="blurb">
+          Kai говорит как хорошо путешествующий друг, знающий ответ — короткие фразы,
+          от первого лица, без восклицательных знаков. Уверенность без показухи.
+          Простой язык. Строчной статус. Всегда рядом, никогда не громко.
+        </p>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+      <div style="border:1px solid var(--line);padding:24px;border-radius:16px;background:var(--surface);">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--positive);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">do</div>
+        <div style="font-size:18px;color:var(--ink-1);line-height:1.5;letter-spacing:-0.01em;">"Токио в ноябре — одевайтесь слоями. Утром будет 8°C."</div>
+      </div>
+      <div style="border:1px solid var(--line);padding:24px;border-radius:16px;background:var(--surface);">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--negative);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">don't</div>
+        <div style="font-size:18px;color:var(--ink-3);line-height:1.5;letter-spacing:-0.01em;">"Буду рад помочь вам спланировать поездку в Токио! 🎌"</div>
+      </div>
+      <div style="border:1px solid var(--line);padding:24px;border-radius:16px;background:var(--surface);">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">status</div>
+        <div style="font-size:14px;color:var(--ink-2);line-height:1.6;">
+          проверяю визовые правила…<br>
+          сравниваю маршруты…<br>
+          почти готово.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 Color -->
+  <section>
+    <div class="head">
+      <div class="index">03 — цвет</div>
+      <div>
+        <h2>Тёплые белые, глубокий графит,<br>один синий акцент.</h2>
+        <p class="blurb">
+          Поверхности — тёплые почти-белые, никогда не чистый #FFF кроме поднятого контента.
+          Текст — тёплый графит, не чёрный. У бренда один акцент для действий — утончённый
+          синий — и один градиент для моментов прилива.
+        </p>
+      </div>
+    </div>
+
+    <div class="palette-label">поверхности и чернила</div>
+    <div class="palette">
+      <div class="swatch"><div class="chip" style="background:#FAFAF9"></div><div class="name">bg</div><div class="hex">#FAFAF9</div></div>
+      <div class="swatch"><div class="chip" style="background:#FFFFFF;border-color:#E8E8E5"></div><div class="name">surface</div><div class="hex">#FFFFFF</div></div>
+      <div class="swatch"><div class="chip" style="background:#F3F3F1"></div><div class="name">surface-2</div><div class="hex">#F3F3F1</div></div>
+      <div class="swatch"><div class="chip" style="background:#ECECEA"></div><div class="name">surface-3</div><div class="hex">#ECECEA</div></div>
+      <div class="swatch dark"><div class="chip" style="background:#111114"></div><div class="name">ink-1</div><div class="hex">#111114</div></div>
+      <div class="swatch"><div class="chip" style="background:#43434A"></div><div class="name">ink-2</div><div class="hex">#43434A</div></div>
+      <div class="swatch"><div class="chip" style="background:#76767E"></div><div class="name">ink-3</div><div class="hex">#76767E</div></div>
+      <div class="swatch"><div class="chip" style="background:#A8A8AE"></div><div class="name">ink-4</div><div class="hex">#A8A8AE</div></div>
+    </div>
+
+    <div class="palette-label">акцент · семантика</div>
+    <div class="palette">
+      <div class="swatch"><div class="chip" style="background:#2C5BE5"></div><div class="name">accent</div><div class="hex">#2C5BE5</div></div>
+      <div class="swatch"><div class="chip" style="background:#EEF2FD"></div><div class="name">accent-wash</div><div class="hex">#EEF2FD</div></div>
+      <div class="swatch"><div class="chip" style="background:#1B8E4E"></div><div class="name">positive</div><div class="hex">#1B8E4E</div></div>
+      <div class="swatch"><div class="chip" style="background:#B57A0B"></div><div class="name">warning</div><div class="hex">#B57A0B</div></div>
+      <div class="swatch"><div class="chip" style="background:#C44A3C"></div><div class="name">negative</div><div class="hex">#C44A3C</div></div>
+      <div class="swatch"><div class="chip" style="background:#E8E8E5"></div><div class="name">line</div><div class="hex">#E8E8E5</div></div>
+      <div class="swatch"><div class="chip" style="background:#D2D2CE"></div><div class="name">line-strong</div><div class="hex">#D2D2CE</div></div>
+      <div class="swatch"><div class="chip" style="background:#FAFAF9;border-color:#E8E8E5"></div><div class="name">— blank —</div><div class="hex" style="color:transparent">.</div></div>
+    </div>
+
+    <div class="palette-label">прилив · единственный градиент · заблокирован</div>
+    <div class="spark-row">
+      <div class="spark-cell">
+        <div class="demo" style="background:var(--tide-gradient);"></div>
+        <div class="stops">
+          <span><i style="background:#1B4FB0"></i> tide-1 · #1B4FB0 · deep ocean</span>
+          <span><i style="background:#2BA8C9"></i> tide-2 · #2BA8C9 · sea-glass</span>
+          <span><i style="background:#F4B589"></i> tide-3 · #F4B589 · warm horizon</span>
+        </div>
+      </div>
+      <div class="spark-uses">
+        <div class="use"><div class="when">do</div><div class="what">кривая прилива — знак бренда вверху каждого экрана</div></div>
+        <div class="use"><div class="when">do</div><div class="what">акцент на заголовке — максимум одно слово</div></div>
+        <div class="use"><div class="when">do</div><div class="what">одно основное действие — кнопка отправки, аватар аккаунта</div></div>
+        <div class="use"><div class="when">do</div><div class="what">вспышка сохранения памяти · состояния успеха</div></div>
+        <div class="use"><div class="when">don't</div><div class="what">фоны страниц, заливки кнопок, большие блоки</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 Type -->
+  <section>
+    <div class="head">
+      <div class="index">04 — шрифт</div>
+      <div>
+        <h2>Manrope · один гарнитур,<br>используется точно.</h2>
+        <p class="blurb">
+          Гуманистический шрифт с тёплым характером — дружелюбный без излишней милоты.
+          Пять насыщенностей, шесть размеров. Отрицательный трекинг на крупных размерах
+          для современного вида. JetBrains Mono для кода и технических меток.
+        </p>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="big">Aa Kk 24/7</div>
+      <div class="meta-row">
+        <span>manrope</span>
+        <span>variable · 300–800</span>
+        <span>+ jetbrains mono</span>
+      </div>
+      <div class="ax">
+        <span style="font-weight:300;">300 Light <small>тихие метки</small></span>
+        <span style="font-weight:400;">400 Regular <small>основной текст</small></span>
+        <span style="font-weight:500;">500 Medium <small>метки</small></span>
+        <span style="font-weight:600;">600 SemiBold <small>заголовки</small></span>
+        <span style="font-weight:700;">700 Bold <small>герой</small></span>
+        <span style="font-weight:800;">800 ExtraBold <small>логотип</small></span>
+      </div>
+    </div>
+
+    <div class="type-scale">
+      <div class="row"><div class="token">hero</div><div class="sample t-hero" style="font-size:64px;">Тихая система.</div><div class="spec">clamp(56, 8vw, 88) / 600 / -0.035em / 0.96</div></div>
+      <div class="row"><div class="token">display</div><div class="sample t-display" style="font-size:48px;">Тёплые белые, глубокий графит.</div><div class="spec">clamp(40, 5vw, 56) / 600 / -0.025em / 1.02</div></div>
+      <div class="row"><div class="token">h1</div><div class="sample t-h1">Токио в ноябре</div><div class="spec">36px / 600 / -0.022em / 1.1</div></div>
+      <div class="row"><div class="token">h2</div><div class="sample t-h2">Одевайтесь слоями — утром 8°C.</div><div class="spec">24px / 600 / -0.015em / 1.2</div></div>
+      <div class="row"><div class="token">h3</div><div class="sample t-h3">Память обновлена</div><div class="spec">18px / 600 / -0.01em / 1.3</div></div>
+      <div class="row"><div class="token">lead</div><div class="sample t-lead">Российские документы требуют бумажного приглашения, оформление 5 рабочих дней.</div><div class="spec">20px / 400 / -0.005em / 1.5</div></div>
+      <div class="row"><div class="token">body</div><div class="sample t-body">Виза выдаётся на 90 дней, однократная. Нужны обратные билеты.</div><div class="spec">16px / 400 / 1.55</div></div>
+      <div class="row"><div class="token">small</div><div class="sample t-small">12 минут назад</div><div class="spec">14px / 400 / 1.5</div></div>
+      <div class="row"><div class="token">micro</div><div class="sample t-micro">проверяю источники</div><div class="spec">12px / 500 / 0.02em / uppercase</div></div>
+      <div class="row"><div class="token">mono</div><div class="sample t-mono">--accent: #2C5BE5</div><div class="spec">jetbrains · 12px / 400</div></div>
+    </div>
+  </section>
+
+  <!-- 05 Space + radii -->
+  <section>
+    <div class="head">
+      <div class="index">05 — отступы и форма</div>
+      <div>
+        <h2>Основа 4px. Скруглённый, но не мягкий.</h2>
+        <p class="blurb">
+          Отступы — 4-шаговые модульные, легко считать и вкладывать.
+          Радиусы мягче утилитарных, но не воздушные.
+          Кнопки скруглены на 14px — современно, но не игриво.
+        </p>
+      </div>
+    </div>
+
+    <div class="splash">
+      <div>
+        <div class="palette-label">отступы — основа 4px</div>
+        <div class="space-rule">
+          <div class="col"><div class="bar" style="height:4px"></div><div class="lbl">sp-1<br>4</div></div>
+          <div class="col"><div class="bar" style="height:8px"></div><div class="lbl">sp-2<br>8</div></div>
+          <div class="col"><div class="bar" style="height:12px"></div><div class="lbl">sp-3<br>12</div></div>
+          <div class="col"><div class="bar" style="height:16px"></div><div class="lbl">sp-4<br>16</div></div>
+          <div class="col"><div class="bar" style="height:20px"></div><div class="lbl">sp-5<br>20</div></div>
+          <div class="col"><div class="bar" style="height:24px"></div><div class="lbl">sp-6<br>24</div></div>
+          <div class="col"><div class="bar" style="height:32px"></div><div class="lbl">sp-7<br>32</div></div>
+          <div class="col"><div class="bar" style="height:40px"></div><div class="lbl">sp-8<br>40</div></div>
+          <div class="col"><div class="bar" style="height:56px"></div><div class="lbl">sp-9<br>56</div></div>
+          <div class="col"><div class="bar" style="height:80px"></div><div class="lbl">sp-10<br>80</div></div>
+          <div class="col"><div class="bar" style="height:120px"></div><div class="lbl">sp-11<br>120</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="palette-label">радиусы</div>
+        <div class="radii-grid">
+          <div class="col"><div class="shape" style="border-radius:6px"></div><div class="lbl">r-1 · 6</div></div>
+          <div class="col"><div class="shape" style="border-radius:10px"></div><div class="lbl">r-2 · 10</div></div>
+          <div class="col"><div class="shape" style="border-radius:14px"></div><div class="lbl">r-3 · 14</div></div>
+          <div class="col"><div class="shape" style="border-radius:20px"></div><div class="lbl">r-4 · 20</div></div>
+          <div class="col"><div class="shape" style="border-radius:28px"></div><div class="lbl">r-5 · 28</div></div>
+          <div class="col"><div class="shape" style="border-radius:999px"></div><div class="lbl">pill</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 Motion -->
+  <section>
+    <div class="head">
+      <div class="index">06 — анимация</div>
+      <div>
+        <h2>Тихая по умолчанию,<br>живая в нужный момент.</h2>
+        <p class="blurb">
+          Анимации существуют по двум причинам: ориентировать пользователя (панель приходит откуда надо)
+          и сигнализировать о Kai (кривая прилива, пульс градиента). Всё остальное —
+          мгновенно. Никаких пружин. Никаких отскоков. Одна кривая Безье, две длительности.
+        </p>
+      </div>
+    </div>
+
+    <div class="motion-grid">
+      <div class="motion-card">
+        <div class="num">м-1 · стандарт</div>
+        <div class="ttl">UI-анимация</div>
+        <div class="body">Панели появляются, листы поднимаются, ящики скользят. Расстояние × 1.</div>
+        <div class="ease">240ms · cubic-bezier(.2, 0, 0, 1)</div>
+      </div>
+      <div class="motion-card">
+        <div class="num">м-2 · фоновая</div>
+        <div class="ttl">Пульс Kai</div>
+        <div class="body">Кривая прилива цикличная — плавная, без стробоскопа. Уменьшается при reduceMotion.</div>
+        <div class="ease">2.6s loop · ease-in-out</div>
+      </div>
+      <div class="motion-card">
+        <div class="num">м-3 · микро</div>
+        <div class="ttl">Обратная связь</div>
+        <div class="body">Состояния нажатия, тост копирования, реакция на касание. Быстрое подтверждение, без перелёта.</div>
+        <div class="ease">120ms · linear</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 Anchor — LOCKED -->
+  <section>
+    <div class="head">
+      <div class="index">07 — якорь бренда · заблокирован</div>
+      <div>
+        <h2>Кривая прилива — знак бренда.</h2>
+        <p class="blurb">
+          The chosen anchor. A single SVG curve in the Tide gradient, living at the top edge
+          of every screen — 4 px below the safe area. Eight live states (idle, listening, thinking,
+          responding, success, error, memory, sleep) communicate what Kai is doing without text.
+          Cross-platform (iOS + Android, no hardware dependency). Full eight-state spec is captured
+          in <code>design-tokens.json § tide-states</code>; assembled product views in <code>room.html</code>.
+        </p>
+        <p class="blurb" style="margin-top:12px;font-size:14px;color:var(--ink-3);padding:10px 14px;background:var(--surface-2);border-radius:8px;font-family:var(--font-mono);">
+          → Note: the three anchor proposals below (A wordmark / B horizon ribbon / C monogram) are <strong>historical</strong> — they were the exploration phase before the tide curve was chosen. Do not use them. The canonical brand mark is the SVG curve only.
+        </p>
+      </div>
+    </div>
+
+    <div style="padding: 56px 64px; background: var(--surface); border: 1px solid var(--line); border-radius: 24px; display: flex; flex-direction: column; align-items: center; gap: 28px;">
+      <svg width="560" height="32" viewBox="0 0 560 32" preserveAspectRatio="none">
+        <defs><linearGradient id="tide-locked" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1B4FB0"/><stop offset="0.5" stop-color="#2BA8C9"/><stop offset="1" stop-color="#F4B589"/></linearGradient></defs>
+        <path d="M 6 18 Q 70 6, 140 18 T 280 18 T 420 18 T 554 12" stroke="url(#tide-locked)" stroke-width="3" stroke-linecap="round" fill="none" stroke-dasharray="12 4">
+          <animate attributeName="stroke-dashoffset" from="0" to="-32" dur="1.6s" repeatCount="indefinite"/>
+        </path>
+      </svg>
+      <div style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em;">активное состояние · отвечает · поток слева → вправо</div>
+    </div>
+  </section>
+
+  <!-- 08 Index — current state of design system -->
+  <section>
+    <div class="head">
+      <div class="index">08 — система · текущее состояние</div>
+      <div>
+        <h2>Что входит в систему.</h2>
+        <p class="blurb">
+          Все слои заблокированы. Ниже — манифест. Нажмите на файл для просмотра.
+        </p>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 16px; overflow: hidden;">
+      <a href="foundations.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--positive); text-transform: uppercase; letter-spacing: 0.08em;">foundations.html · текущий</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Токены, шрифт, цвет, отступы, анимация, якорь бренда</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Фундамент. Всё строится на этом.</div>
+      </a>
+      <a href="components.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--positive); text-transform: uppercase; letter-spacing: 0.08em;">components.html · слой 1 + 2</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Атомы · молекулы · пузыри, листы, поверхности, ящик</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Каждый компонент из комнаты, в боевом масштабе.</div>
+      </a>
+      <a href="nav.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--positive); text-transform: uppercase; letter-spacing: 0.08em;">nav.html · заблокирован</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Панель · полноэкранная · поездки + даты · аудит применён</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Инструменты убраны (бэкенд), поездки оставлены (пользовательские).</div>
+      </a>
+      <a href="room.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em;">room.html · слой 3 · 6 кадров</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Комната чата · пустая / активная / панель / ввод / стриминг / ошибка</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Все слои работают как один продукт. Tide: 6 из 8 состояний.</div>
+      </a>
+      <a href="voice.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--positive); text-transform: uppercase; letter-spacing: 0.08em;">voice.html · заблокирован</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Голосовой режим · только прилив · раскрытие слов · транскрипт</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Голосовая поверхность Zero-UI, без лишнего хрома.</div>
+      </a>
+      <a href="edge-states.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--positive); text-transform: uppercase; letter-spacing: 0.08em;">edge-states.html · шаг 06</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Офлайн · ошибка · лимит · кризис (C3 в разговоре)</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Когда что-то идёт не так — спокойно.</div>
+      </a>
+      <a href="onboarding.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--positive); text-transform: uppercase; letter-spacing: 0.08em;">onboarding.html · шаг 04</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Первый запуск · приветствие · прилив · жесты · контекст</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Четыре экрана, затем Kai уходит в сторону.</div>
+      </a>
+      <a href="dark.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--positive); text-transform: uppercase; letter-spacing: 0.08em;">dark.html · шаг 01 · готово</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Тёмная тема · палитра + 4 кадра + токены</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Полная смена темы через data-theme="dark".</div>
+      </a>
+      <a href="brand.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--positive); text-transform: uppercase; letter-spacing: 0.08em;">brand.html · шаг 02 · готово</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Набор бренда · иконка (3 варианта) · сплэш · og · readme</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Готовые брендовые ресурсы + правила использования.</div>
+      </a>
+      <a href="trip-detail.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em;">trip-detail.html · творческий</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Внутри папки поездки · факты + чаты + источники + действия</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Как выглядит открытая "Япония · Ноябрь 2026".</div>
+      </a>
+      <a href="memory.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em;">memory.html · творческий</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Приложение Память · факты + источники + GDPR-удаление</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Каждый факт Kai — видимый и удаляемый.</div>
+      </a>
+      <a href="handoff.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; grid-column: 1 / -1;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em;">handoff.html · шаг 03 · продакшн</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Спецификации Flutter-виджетов · KaiTheme, KaiTideCurve, KaiCompose · быстрый старт</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Токены дизайна становятся Dart — готово к внедрению в kai-app.</div>
+      </a>
+      <a href="settings.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em;">settings.html · творческий</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Приложение Настройки · аккаунт / внешний вид / голос / данные / приватность</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Маленькая поверхность, большой договор доверия. + PII audit + 24h TTL.</div>
+      </a>
+      <a href="fork.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--positive); text-transform: uppercase; letter-spacing: 0.08em;">fork.html · новый · F-L1-05</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Сравнение стран · fork-card в чате</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Japan vs Korea. Чипы виз, стоимость, доты рейтинга, выбор Kai. Moat L1+L3.</div>
+      </a>
+      <a href="landing.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; grid-column: 1 / -1;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--positive); text-transform: uppercase; letter-spacing: 0.08em;">landing.html · маркетинг · EN</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Маркетинг landing page · герой + демо + 3 пиллара + waitlist</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Поверхность для запуска ноябрь 2026. ProductHunt / HackerNews / Telegram.</div>
+      </a>
+      <a href="tide-states.html" style="background: linear-gradient(135deg, rgba(27,79,176,0.06), rgba(43,168,201,0.04), rgba(244,181,137,0.06)); border: 1px solid var(--accent-line); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--tide-2); text-transform: uppercase; letter-spacing: 0.08em;">tide-states.html · SYS-02 · новый</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Tide curve · 8 живых состояний · CSS/SMIL анимации · токены</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">idle / listening / thinking / responding / success / error / memory / sleep — все с живыми анимациями.</div>
+      </a>
+      <a href="notifications-chat.html" style="background: var(--surface); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--positive); text-transform: uppercase; letter-spacing: 0.08em;">notifications-chat.html · N-01 · новый</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Alert Card · уведомления в чат-ленте</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Проактивные алерты Kai — 4 типа: urgent / warning / positive / neutral. Zero-UI, в потоке разговора.</div>
+      </a>
+      <a href="roadmap.html" style="background: var(--surface-2); padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; grid-column: 1 / -1;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em;">roadmap.html · планирование</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em;">Дорожная карта · 8 новых экранов · 8 компонентов · 6 улучшений · 5 системных задач</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">С вариантами реализации, приоритетами P0/P1/P2 и оценками усилий.</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- Next -->
+  <div class="next">
+    <div class="index">→ далее</div>
+    <div class="copy">
+      <h3>Система растёт.</h3>
+      <p>
+        18 канонических артефактов. Новые в этой итерации: <code>tide-states.html</code> (8 живых состояний), <code>notifications-chat.html</code> (Alert Card N-01), <code>room.html</code> +2 кадра (стриминг + ошибка). <code>roadmap.html</code> — план следующей очереди. Новые агенты начинают с <code>CLAUDE.md</code>.
+      </p>
+      <ul>
+        <li><span class="n">01</span><span><b>Тёмная тема</b> — готово ✓</span></li>
+        <li><span class="n">02</span><span><b>Набор бренда</b> — готово ✓</span></li>
+        <li><span class="n">03</span><span><b>Передача в разработку</b> — готово ✓</span></li>
+        <li><span class="n">04</span><span><b>Онбординг</b> — готово ✓</span></li>
+        <li><span class="n">05</span><span><b>Голосовой режим</b> — готово ✓</span></li>
+        <li><span class="n">06</span><span><b>Граничные состояния</b> — готово ✓</span></li>
+        <li><span class="n">07</span><span><b>Tide states</b> — 8 анимированных состояний – готово ✓</span></li>
+        <li><span class="n">08</span><span><b>Alert Card N-01</b> — алерты в чате – готово ✓</span></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
