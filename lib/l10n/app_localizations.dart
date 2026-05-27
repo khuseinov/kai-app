@@ -203,7 +203,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingNext.
   ///
   /// In en, this message translates to:
-  /// **'Next'**
+  /// **'Continue'**
   String get onboardingNext;
 
   /// No description provided for @onboardingStart.
@@ -211,6 +211,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start using Kai'**
   String get onboardingStart;
+
+  /// No description provided for @onboardingStep1CTA.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get onboardingStep1CTA;
 
   /// No description provided for @onboardingStep0Title.
   ///
@@ -233,7 +239,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingStep1Body.
   ///
   /// In en, this message translates to:
-  /// **'The flowing curve at the top shows Kai’s state — idle, thinking, or responding.'**
+  /// **'The flowing curve at the top shows Kai\'s state — idle, thinking, or responding.'**
   String get onboardingStep1Body;
 
   /// No description provided for @onboardingStep2Title.
@@ -251,7 +257,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingStep3Title.
   ///
   /// In en, this message translates to:
-  /// **'Let’s begin'**
+  /// **'Let\'s begin'**
   String get onboardingStep3Title;
 
   /// No description provided for @onboardingStep3Body.
@@ -263,91 +269,139 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to Kai'**
+  /// **'Meet Kai.'**
   String get onboardingWelcomeTitle;
 
   /// No description provided for @onboardingWelcomeBody.
   ///
   /// In en, this message translates to:
-  /// **'Kai is your personal AI assistant — always ready to help with plans, questions, and ideas.'**
+  /// **'Your travel companion.\nKnowledgeable. Honest. Quiet when not needed.'**
   String get onboardingWelcomeBody;
 
   /// No description provided for @onboardingTideTitle.
   ///
   /// In en, this message translates to:
-  /// **'Kai is always here'**
+  /// **'The line above is Kai.'**
   String get onboardingTideTitle;
 
-  /// No description provided for @onboardingTideChipThinking.
+  /// No description provided for @onboardingTideBody.
   ///
   /// In en, this message translates to:
-  /// **'Thinking'**
-  String get onboardingTideChipThinking;
+  /// **'Still when waiting. Alive when Kai is doing something — listening, thinking, responding, learning.'**
+  String get onboardingTideBody;
 
-  /// No description provided for @onboardingTideChipResponding.
+  /// No description provided for @onboardingTideStateIdleName.
   ///
   /// In en, this message translates to:
-  /// **'Responding'**
-  String get onboardingTideChipResponding;
+  /// **'idle'**
+  String get onboardingTideStateIdleName;
 
-  /// No description provided for @onboardingTideChipListening.
+  /// No description provided for @onboardingTideStateIdleDesc.
   ///
   /// In en, this message translates to:
-  /// **'Listening'**
-  String get onboardingTideChipListening;
+  /// **'nothing happening'**
+  String get onboardingTideStateIdleDesc;
+
+  /// No description provided for @onboardingTideStateThinkingName.
+  ///
+  /// In en, this message translates to:
+  /// **'thinking'**
+  String get onboardingTideStateThinkingName;
+
+  /// No description provided for @onboardingTideStateThinkingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'processing'**
+  String get onboardingTideStateThinkingDesc;
+
+  /// No description provided for @onboardingTideStateRespondingName.
+  ///
+  /// In en, this message translates to:
+  /// **'responding'**
+  String get onboardingTideStateRespondingName;
+
+  /// No description provided for @onboardingTideStateRespondingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'tokens streaming'**
+  String get onboardingTideStateRespondingDesc;
 
   /// No description provided for @onboardingGesturesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Gestures'**
+  /// **'Three gestures.'**
   String get onboardingGesturesTitle;
+
+  /// No description provided for @onboardingGesturesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything else is hidden until needed.'**
+  String get onboardingGesturesBody;
 
   /// No description provided for @onboardingGestureNavLabel.
   ///
   /// In en, this message translates to:
-  /// **'Open navigation'**
+  /// **'Swipe right · from edge'**
   String get onboardingGestureNavLabel;
 
   /// No description provided for @onboardingGestureNavHint.
   ///
   /// In en, this message translates to:
-  /// **'Swipe right'**
+  /// **'opens panel — trips, chats, settings'**
   String get onboardingGestureNavHint;
 
   /// No description provided for @onboardingGestureInputLabel.
   ///
   /// In en, this message translates to:
-  /// **'Open input'**
+  /// **'Swipe up · from bottom'**
   String get onboardingGestureInputLabel;
 
   /// No description provided for @onboardingGestureInputHint.
   ///
   /// In en, this message translates to:
-  /// **'Swipe up'**
+  /// **'opens input sheet'**
   String get onboardingGestureInputHint;
 
   /// No description provided for @onboardingGestureActionsLabel.
   ///
   /// In en, this message translates to:
-  /// **'Quick actions'**
+  /// **'Long press · on Kai\'s reply'**
   String get onboardingGestureActionsLabel;
 
   /// No description provided for @onboardingGestureActionsHint.
   ///
   /// In en, this message translates to:
-  /// **'Long press'**
+  /// **'sources, copy, re-ask'**
   String get onboardingGestureActionsHint;
 
   /// No description provided for @onboardingContextTitle.
   ///
   /// In en, this message translates to:
-  /// **'Settings'**
+  /// **'Two facts.\nThen we begin.'**
   String get onboardingContextTitle;
+
+  /// No description provided for @onboardingContextBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Used in every answer about visas, routes and prices. Editable later.'**
+  String get onboardingContextBody;
+
+  /// No description provided for @onboardingContextPassportLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'passport'**
+  String get onboardingContextPassportLabel;
+
+  /// No description provided for @onboardingContextLangsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'languages I speak'**
+  String get onboardingContextLangsLabel;
 
   /// No description provided for @onboardingContextCountryPlaceholder.
   ///
   /// In en, this message translates to:
-  /// **'🌍 Country'**
+  /// **'Russian Federation'**
   String get onboardingContextCountryPlaceholder;
 }
 

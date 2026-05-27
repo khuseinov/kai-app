@@ -63,10 +63,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get crisisResourceNumber => '988';
 
   @override
-  String get onboardingNext => 'Next';
+  String get onboardingNext => 'Continue';
 
   @override
   String get onboardingStart => 'Start using Kai';
+
+  @override
+  String get onboardingStep1CTA => 'Got it';
 
   @override
   String get onboardingStep0Title => 'Meet Kai';
@@ -80,7 +83,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingStep1Body =>
-      'The flowing curve at the top shows Kai’s state — idle, thinking, or responding.';
+      'The flowing curve at the top shows Kai\'s state — idle, thinking, or responding.';
 
   @override
   String get onboardingStep2Title => 'Gestures';
@@ -90,55 +93,82 @@ class AppLocalizationsEn extends AppLocalizations {
       'Swipe from the left edge to open your trip history.';
 
   @override
-  String get onboardingStep3Title => 'Let’s begin';
+  String get onboardingStep3Title => 'Let\'s begin';
 
   @override
   String get onboardingStep3Body =>
       'Ask Kai anything — from visas to must-see spots.';
 
   @override
-  String get onboardingWelcomeTitle => 'Welcome to Kai';
+  String get onboardingWelcomeTitle => 'Meet Kai.';
 
   @override
   String get onboardingWelcomeBody =>
-      'Kai is your personal AI assistant — always ready to help with plans, questions, and ideas.';
+      'Your travel companion.\nKnowledgeable. Honest. Quiet when not needed.';
 
   @override
-  String get onboardingTideTitle => 'Kai is always here';
+  String get onboardingTideTitle => 'The line above is Kai.';
 
   @override
-  String get onboardingTideChipThinking => 'Thinking';
+  String get onboardingTideBody =>
+      'Still when waiting. Alive when Kai is doing something — listening, thinking, responding, learning.';
 
   @override
-  String get onboardingTideChipResponding => 'Responding';
+  String get onboardingTideStateIdleName => 'idle';
 
   @override
-  String get onboardingTideChipListening => 'Listening';
+  String get onboardingTideStateIdleDesc => 'nothing happening';
 
   @override
-  String get onboardingGesturesTitle => 'Gestures';
+  String get onboardingTideStateThinkingName => 'thinking';
 
   @override
-  String get onboardingGestureNavLabel => 'Open navigation';
+  String get onboardingTideStateThinkingDesc => 'processing';
 
   @override
-  String get onboardingGestureNavHint => 'Swipe right';
+  String get onboardingTideStateRespondingName => 'responding';
 
   @override
-  String get onboardingGestureInputLabel => 'Open input';
+  String get onboardingTideStateRespondingDesc => 'tokens streaming';
 
   @override
-  String get onboardingGestureInputHint => 'Swipe up';
+  String get onboardingGesturesTitle => 'Three gestures.';
 
   @override
-  String get onboardingGestureActionsLabel => 'Quick actions';
+  String get onboardingGesturesBody =>
+      'Everything else is hidden until needed.';
 
   @override
-  String get onboardingGestureActionsHint => 'Long press';
+  String get onboardingGestureNavLabel => 'Swipe right · from edge';
 
   @override
-  String get onboardingContextTitle => 'Settings';
+  String get onboardingGestureNavHint => 'opens panel — trips, chats, settings';
 
   @override
-  String get onboardingContextCountryPlaceholder => '🌍 Country';
+  String get onboardingGestureInputLabel => 'Swipe up · from bottom';
+
+  @override
+  String get onboardingGestureInputHint => 'opens input sheet';
+
+  @override
+  String get onboardingGestureActionsLabel => 'Long press · on Kai\'s reply';
+
+  @override
+  String get onboardingGestureActionsHint => 'sources, copy, re-ask';
+
+  @override
+  String get onboardingContextTitle => 'Two facts.\nThen we begin.';
+
+  @override
+  String get onboardingContextBody =>
+      'Used in every answer about visas, routes and prices. Editable later.';
+
+  @override
+  String get onboardingContextPassportLabel => 'passport';
+
+  @override
+  String get onboardingContextLangsLabel => 'languages I speak';
+
+  @override
+  String get onboardingContextCountryPlaceholder => 'Russian Federation';
 }

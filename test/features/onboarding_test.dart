@@ -79,8 +79,8 @@ void main() {
     await tester.pumpWidget(_buildOnboardingTest());
     await tester.pump();
 
-    // Step 0 (Welcome) shows "Добро пожаловать в Kai".
-    expect(find.text('Добро пожаловать в Kai'), findsOneWidget);
+    // Step 0 (Welcome) shows the new design title.
+    expect(find.text('Познакомьтесь с Kai.'), findsOneWidget);
   });
 
   testWidgets('onComplete advances to step 1', (tester) async {
@@ -88,7 +88,7 @@ void main() {
     await tester.pump();
 
     // Step 0 shows welcome text.
-    expect(find.text('Добро пожаловать в Kai'), findsOneWidget);
+    expect(find.text('Познакомьтесь с Kai.'), findsOneWidget);
 
     // Access the PageView controller via the widget.
     final pageView = tester.widget<PageView>(find.byType(PageView));
@@ -98,8 +98,8 @@ void main() {
     controller.jumpToPage(1);
     await tester.pump(const Duration(milliseconds: 50));
 
-    // Step 1 shows "Kai всегда здесь".
-    expect(find.text('Kai всегда здесь'), findsOneWidget);
+    // Step 1 shows the new tide title.
+    expect(find.text('Линия вверху — это Kai.'), findsOneWidget);
   });
 
   testWidgets('step 3 onComplete saves onboarded=true', (tester) async {
@@ -115,14 +115,14 @@ void main() {
     pageView.controller!.jumpToPage(3);
     await tester.pump(const Duration(milliseconds: 50));
 
-    // Step 3 (Context step) has a "Начать" button.
-    expect(find.text('Начать'), findsOneWidget);
+    // Step 3 (Context step) has the "Начать использовать Kai" button.
+    expect(find.text('Начать использовать Kai'), findsOneWidget);
 
-    // Tapping "Начать" calls _finish() which saves onboarded=true.
+    // Tapping it calls _finish() which saves onboarded=true.
     // Use runAsync so the async Hive write future can complete outside
     // of FakeAsync (hive_test boxes are async even though they're in-memory).
     await tester.runAsync(() async {
-      await tester.tap(find.text('Начать'));
+      await tester.tap(find.text('Начать использовать Kai'));
       // Give the async _finish() a moment to execute box.put().
       await Future<void>.delayed(const Duration(milliseconds: 50));
     });

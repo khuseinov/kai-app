@@ -9,8 +9,11 @@ Future<void> _pump(
   Widget child, {
   ThemeMode mode = ThemeMode.light,
 }) async {
+  // OnboardingCard uses Spacer() and requires bounded height — do NOT wrap in
+  // SingleChildScrollView. buildTestWidget wraps in Scaffold which gives
+  // the correct bounded height context.
   await tester.pumpWidget(
-    buildTestWidget(SingleChildScrollView(child: child), themeMode: mode),
+    buildTestWidget(child, themeMode: mode),
   );
   await tester.pump();
 }
@@ -24,7 +27,8 @@ void main() {
         const OnboardingCard(stepIndex: 0),
       );
       expect(find.byType(OnboardingCard), findsOneWidget);
-      expect(find.text('Добро пожаловать в Kai'), findsOneWidget);
+      // Updated to match new design copy from new-design/onboarding.html
+      expect(find.text('Познакомьтесь с Kai.'), findsOneWidget);
     });
 
     testWidgets('step 1 (tide) renders without throwing',
@@ -34,8 +38,8 @@ void main() {
         const OnboardingCard(stepIndex: 1),
       );
       expect(find.byType(OnboardingCard), findsOneWidget);
-      expect(find.text('Kai всегда здесь'), findsOneWidget);
-      // Pump a few frames to let animation tick
+      expect(find.text('Линия вверху — это Kai.'), findsOneWidget);
+      // Pump a few frames to let animation tick.
       await tester.pump(const Duration(milliseconds: 100));
     });
 
@@ -46,7 +50,7 @@ void main() {
         const OnboardingCard(stepIndex: 2),
       );
       expect(find.byType(OnboardingCard), findsOneWidget);
-      expect(find.text('Жесты'), findsOneWidget);
+      expect(find.text('Три жеста.'), findsOneWidget);
     });
 
     testWidgets('step 3 (context) renders without throwing',
@@ -56,18 +60,19 @@ void main() {
         const OnboardingCard(stepIndex: 3),
       );
       expect(find.byType(OnboardingCard), findsOneWidget);
-      expect(find.text('Настройки'), findsOneWidget);
+      // Title is a multi-line string — check for the first part.
+      expect(find.textContaining('Два факта'), findsOneWidget);
     });
 
     testWidgets(
-        'step 3 "Начать" button fires onComplete callback',
+        'step 3 "Начать использовать Kai" button fires onComplete callback',
         (WidgetTester tester) async {
       var fired = 0;
       await _pump(
         tester,
         OnboardingCard(stepIndex: 3, onComplete: () => fired++),
       );
-      await tester.tap(find.text('Начать'));
+      await tester.tap(find.text('Начать использовать Kai'));
       // Use pump instead of pumpAndSettle — AnimationController.repeat() never
       // settles; pump a few frames to process the tap.
       await tester.pump();
@@ -77,11 +82,7 @@ void main() {
 
     testWidgets('dots indicator shows 4 dots', (WidgetTester tester) async {
       await _pump(tester, const OnboardingCard(stepIndex: 0));
-      // The _StepDots widget renders 4 AnimatedContainer children.
-      // We verify by finding containers sized 6×6 (the dots) — all 4 present.
-      // We count via the _StepDots Row's children count indirectly
-      // by checking 4 AnimatedContainers inside the dots row.
-      // Easier: find exactly 4 dot containers via their size.
+      // The _StepDots widget renders 4 AnimatedContainer children without a child.
       final dotFinder = find.descendant(
         of: find.byType(OnboardingCard),
         matching: find.byWidgetPredicate(

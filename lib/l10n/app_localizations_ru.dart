@@ -63,10 +63,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get crisisResourceNumber => '8-800-2000-122';
 
   @override
-  String get onboardingNext => 'Далее';
+  String get onboardingNext => 'Продолжить';
 
   @override
-  String get onboardingStart => 'Начать';
+  String get onboardingStart => 'Начать использовать Kai';
+
+  @override
+  String get onboardingStep1CTA => 'Понятно';
 
   @override
   String get onboardingStep0Title => 'Знакомьтесь: Kai';
@@ -97,48 +100,77 @@ class AppLocalizationsRu extends AppLocalizations {
       'Спросите Kai что угодно — от виз до must-see мест.';
 
   @override
-  String get onboardingWelcomeTitle => 'Добро пожаловать в Kai';
+  String get onboardingWelcomeTitle => 'Познакомьтесь с Kai.';
 
   @override
   String get onboardingWelcomeBody =>
-      'Kai — ваш персональный ИИ-помощник. Он всегда рядом, чтобы помочь с планами, вопросами и идеями.';
+      'Ваш компаньон путешественника.\nЗнающий. Честный. Тихий, когда не нужен.';
 
   @override
-  String get onboardingTideTitle => 'Kai всегда здесь';
+  String get onboardingTideTitle => 'Линия вверху — это Kai.';
 
   @override
-  String get onboardingTideChipThinking => 'Думает';
+  String get onboardingTideBody =>
+      'Тихая в ожидании. Живая когда Kai что-то делает — слушает, думает, отвечает, обучается.';
 
   @override
-  String get onboardingTideChipResponding => 'Отвечает';
+  String get onboardingTideStateIdleName => 'idle';
 
   @override
-  String get onboardingTideChipListening => 'Слушает';
+  String get onboardingTideStateIdleDesc => 'ничего не происходит';
 
   @override
-  String get onboardingGesturesTitle => 'Жесты';
+  String get onboardingTideStateThinkingName => 'thinking';
 
   @override
-  String get onboardingGestureNavLabel => 'Открыть навигацию';
+  String get onboardingTideStateThinkingDesc => 'обрабатывает';
 
   @override
-  String get onboardingGestureNavHint => 'Свайп вправо';
+  String get onboardingTideStateRespondingName => 'responding';
 
   @override
-  String get onboardingGestureInputLabel => 'Открыть ввод';
+  String get onboardingTideStateRespondingDesc => 'токены стримятся';
 
   @override
-  String get onboardingGestureInputHint => 'Свайп вверх';
+  String get onboardingGesturesTitle => 'Три жеста.';
 
   @override
-  String get onboardingGestureActionsLabel => 'Быстрые действия';
+  String get onboardingGesturesBody =>
+      'Всё остальное скрыто, пока не понадобится.';
 
   @override
-  String get onboardingGestureActionsHint => 'Долгое нажатие';
+  String get onboardingGestureNavLabel => 'Свайп вправо · от края';
 
   @override
-  String get onboardingContextTitle => 'Настройки';
+  String get onboardingGestureNavHint =>
+      'открывает панель — поездки, чаты, настройки';
 
   @override
-  String get onboardingContextCountryPlaceholder => '🌍 Страна';
+  String get onboardingGestureInputLabel => 'Свайп вверх · снизу';
+
+  @override
+  String get onboardingGestureInputHint => 'открывает лист ввода';
+
+  @override
+  String get onboardingGestureActionsLabel => 'Долгое нажатие · на ответ Kai';
+
+  @override
+  String get onboardingGestureActionsHint =>
+      'источники, копировать, переспросить';
+
+  @override
+  String get onboardingContextTitle => 'Два факта.\nЗатем начнём.';
+
+  @override
+  String get onboardingContextBody =>
+      'Используется в каждом ответе о визе, маршруте и цене. Можно редактировать позже.';
+
+  @override
+  String get onboardingContextPassportLabel => 'паспорт';
+
+  @override
+  String get onboardingContextLangsLabel => 'владею языками';
+
+  @override
+  String get onboardingContextCountryPlaceholder => 'Российская Федерация';
 }
