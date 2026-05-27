@@ -148,5 +148,55 @@ void main() {
       // plan is rendered as .toUpperCase() → "FREE"
       expect(find.text('FREE'), findsOneWidget);
     });
+
+    // H1: sessions > 7 days old must appear in "РАНЕЕ" bucket (not silently dropped)
+    testWidgets('sessions older than 7 days appear in РАНЕЕ bucket',
+        (WidgetTester tester) async {
+      final old = DateTime.now().subtract(const Duration(days: 30));
+      final sessions = [
+        SessionPreview(
+          id: 'old1',
+          title: 'Старый чат',
+          timeLabel: '3 апр',
+          createdAt: old,
+        ),
+      ];
+      await _pump(tester, NavPanel(sessions: sessions));
+      // The session row should be visible.
+      expect(find.text('Старый чат'), findsOneWidget);
+      // Section label "РАНЕЕ" should be shown.
+      expect(find.text('РАНЕЕ'), findsOneWidget);
+    });
+
+    // M3: future-dated sessions (clock skew) go into today bucket
+    testWidgets('future-dated sessions (clock skew) appear in СЕГОДНЯ bucket',
+        (WidgetTester tester) async {
+      final future = DateTime.now().add(const Duration(hours: 2));
+      final sessions = [
+        SessionPreview(
+          id: 'future1',
+          title: 'Будущий чат',
+          timeLabel: '23:59',
+          createdAt: future,
+        ),
+      ];
+      await _pump(tester, NavPanel(sessions: sessions));
+      expect(find.text('Будущий чат'), findsOneWidget);
+      expect(find.text('СЕГОДНЯ'), findsOneWidget);
+    });
+
+    // L2: TripInfo.initial truncated to first char — multi-char initial renders
+    testWidgets('pinned trip shows only first char of initial',
+        (WidgetTester tester) async {
+      const trip = TripInfo(
+        id: 't1',
+        title: 'Токио',
+        subtitle: '3 чата',
+        initial: 'ТО', // Multi-char — should render only 'Т'
+      );
+      await _pump(tester, NavPanel(pinnedTrip: trip));
+      expect(find.text('Т'), findsOneWidget);
+      expect(find.text('ТО'), findsNothing);
+    });
   });
 }

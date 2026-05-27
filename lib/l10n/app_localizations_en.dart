@@ -258,4 +258,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noChats => 'No chats';
+
+  @override
+  String get dateOlder => 'OLDER';
+
+  @override
+  String get streamingStatusThinking => 'thinking';
 }

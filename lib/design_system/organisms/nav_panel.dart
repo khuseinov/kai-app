@@ -64,19 +64,27 @@ List<_DateGroup> _groupSessionsByDate(
   final today = DateTime(now.year, now.month, now.day);
   final yesterday = today.subtract(const Duration(days: 1));
   final lastWeek = today.subtract(const Duration(days: 7));
+  final tomorrow = today.add(const Duration(days: 1));
 
   final todayList = <SessionPreview>[];
   final yesterdayList = <SessionPreview>[];
   final previousList = <SessionPreview>[];
+  final olderList = <SessionPreview>[];
 
   for (final s in sessions) {
     final d = DateTime(s.createdAt.year, s.createdAt.month, s.createdAt.day);
-    if (d.isAtSameMomentAs(today)) {
+    if (d.isAtSameMomentAs(today) ||
+        (d.isAfter(today) && d.isBefore(tomorrow.add(const Duration(days: 1))))) {
+      // Future-dated (clock skew) → still treated as today.
       todayList.add(s);
     } else if (d.isAtSameMomentAs(yesterday)) {
       yesterdayList.add(s);
-    } else if (d.isAfter(lastWeek)) {
+    } else if (!d.isBefore(lastWeek)) {
+      // Inclusive of day −7: d >= lastWeek.
       previousList.add(s);
+    } else {
+      // Fallback bucket — sessions > 7 days old still visible.
+      olderList.add(s);
     }
   }
 
@@ -87,6 +95,8 @@ List<_DateGroup> _groupSessionsByDate(
       _DateGroup(label: l10n.dateYesterday, sessions: yesterdayList),
     if (previousList.isNotEmpty)
       _DateGroup(label: l10n.datePrevious7, sessions: previousList),
+    if (olderList.isNotEmpty)
+      _DateGroup(label: l10n.dateOlder, sessions: olderList),
   ];
 }
 
@@ -446,7 +456,7 @@ class _PinnedTripCard extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    initial,
+                    initial.isNotEmpty ? initial[0] : 'A',
                     style: const TextStyle(
                       fontFamily: 'Manrope',
                       color: Colors.white,
@@ -593,6 +603,8 @@ class _ChatRow extends StatelessWidget {
           children: [
             Text(
               title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontFamily: 'Manrope',
                 fontSize: 11,
@@ -727,7 +739,7 @@ class _AccountAnchor extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  initial,
+                  initial.isNotEmpty ? initial[0] : 'A',
                   style: const TextStyle(
                     fontFamily: 'Manrope',
                     color: Colors.white,

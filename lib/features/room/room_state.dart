@@ -38,6 +38,20 @@ class RoomStateData {
   final Duration? rateLimitRetryAfter;
   final bool isCrisis;
 
+  /// The accumulated partial text of the Kai message being streamed.
+  ///
+  /// Derived from [messages]: finds the message with [streamingMessageId] and
+  /// returns its current `content`. Null when not streaming.
+  String? get streamingPartial {
+    if (!isStreaming || streamingMessageId == null) return null;
+    for (final msg in messages) {
+      if (msg['id'] == streamingMessageId) {
+        return msg['content'] as String?;
+      }
+    }
+    return null;
+  }
+
   RoomStateData copyWith({
     List<Map<String, dynamic>>? messages,
     RoomFrame? currentFrame,

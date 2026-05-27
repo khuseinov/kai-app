@@ -75,11 +75,13 @@ class _OfflineSurface extends StatelessWidget {
     final c = tokens.colors;
     final l10n = AppLocalizations.of(context);
     // Canon: edge-states.html § .inline-note.warning — warning-wash bg + border
+    // H3: padding 14×11, borderRadius 12, body 12.5px (was 13×11, KaiRadius.br3, 11px)
+    // H4: bare wifi-off icon, no circle wrapper (matches .inline-note bare svg)
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
         color: c.warningWash,
-        borderRadius: KaiRadius.br3,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: c.warning.withValues(alpha: 0.18),
           width: 1,
@@ -91,18 +93,8 @@ class _OfflineSurface extends StatelessWidget {
         children: [
           Row(
             children: [
-              // wifi-off icon in a small circle — canon: 18×18 icon-circle
-              Container(
-                width: 18,
-                height: 18,
-                decoration: BoxDecoration(
-                  color: c.warning.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: KaiIcon(KaiIconName.wifiOff, size: 10, color: c.warning),
-                ),
-              ),
+              // H4: bare icon, no circle container — matches .inline-note svg pattern
+              KaiIcon(KaiIconName.wifiOff, size: 18, color: c.warning),
               const SizedBox(width: KaiSpace.s2),
               Text(
                 l10n.offlineTitle,
@@ -117,12 +109,12 @@ class _OfflineSurface extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 7),
-          // Body copy — canon: offlineBody
+          // Body copy — H3: 12.5px (was 11px)
           Text(
             l10n.offlineBody,
             style: TextStyle(
               fontFamily: 'Manrope',
-              fontSize: 11,
+              fontSize: 12.5,
               color: c.ink2,
               height: 1.45,
             ),

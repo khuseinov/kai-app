@@ -26,8 +26,10 @@ Future<void> _pump(
   await tester.pump();
 }
 
+/// Returns the background colour of the outermost AlertCard Container.
+/// In the 2-zone layout the outer Container carries [bg] (wash colour).
 Color _backgroundOf(WidgetTester tester) {
-  // The AlertCard root is a Container with BoxDecoration carrying our wash.
+  // The outermost Container inside AlertCard carries the wash colour.
   final container = tester.widget<Container>(
     find.descendant(
       of: find.byType(AlertCard),
@@ -91,7 +93,22 @@ void main() {
       expect(border.top.color, KaiTokens.light.colors.line);
     });
 
-    testWidgets('renders title, body and action together',
+    testWidgets('renders title and body text',
+        (WidgetTester tester) async {
+      await _pump(
+        tester,
+        const AlertCard(
+          type: AlertType.warning,
+          title: 'Title',
+          body: 'Some description',
+        ),
+      );
+      expect(find.text('Title'), findsOneWidget);
+      expect(find.text('Some description'), findsOneWidget);
+    });
+
+    // Legacy `action` widget param still accepted without error.
+    testWidgets('renders title, body and legacy action together',
         (WidgetTester tester) async {
       await _pump(
         tester,
@@ -104,7 +121,58 @@ void main() {
       );
       expect(find.text('Title'), findsOneWidget);
       expect(find.text('Some description'), findsOneWidget);
-      expect(find.text('Action'), findsOneWidget);
+      // action is accepted but not rendered (replaced by cta)
+      expect(find.byType(AlertCard), findsOneWidget);
+    });
+
+    // New API: time parameter shown in header
+    testWidgets('time param renders in header', (WidgetTester tester) async {
+      await _pump(
+        tester,
+        const AlertCard(
+          type: AlertType.urgent,
+          title: 'Test',
+          time: '9:41',
+        ),
+      );
+      expect(find.text('9:41'), findsOneWidget);
+    });
+
+    // New API: cta pill renders
+    testWidgets('cta param renders pill button', (WidgetTester tester) async {
+      var taps = 0;
+      await _pump(
+        tester,
+        AlertCard(
+          type: AlertType.urgent,
+          title: 'Test',
+          cta: 'Подробнее',
+          onCtaTap: () => taps++,
+        ),
+      );
+      expect(find.text('Подробнее'), findsOneWidget);
+      await tester.tap(find.text('Подробнее'));
+      await tester.pump();
+      expect(taps, 1);
+    });
+
+    // 2-zone structure: head + body columns present
+    testWidgets('renders 2-zone structure (head + body)',
+        (WidgetTester tester) async {
+      await _pump(
+        tester,
+        const AlertCard(
+          type: AlertType.neutral,
+          title: 'Zone test',
+          body: 'Body text',
+          time: '10:00',
+        ),
+      );
+      // Both the type label and title should be visible.
+      expect(find.text('NOTE'), findsOneWidget);
+      expect(find.text('Zone test'), findsOneWidget);
+      expect(find.text('Body text'), findsOneWidget);
+      expect(find.text('10:00'), findsOneWidget);
     });
   });
 }

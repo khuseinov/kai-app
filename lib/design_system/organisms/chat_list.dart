@@ -88,7 +88,12 @@ class _ChatListState extends State<ChatList>
       }
     } else {
       if (_tideBarController.isAnimating) _tideBarController.stop();
-      if (_cursorController.isAnimating) _cursorController.stop();
+      if (_cursorController.isAnimating) {
+        // L1: Force cursor to invisible state before stopping to prevent
+        // single-frame freeze artifact where cursor remains visible.
+        _cursorController.value = 1.0; // >= 0.5 → invisible in steps(1)
+        _cursorController.stop();
+      }
     }
   }
 
@@ -333,7 +338,8 @@ class _LiveFrame extends StatelessWidget {
 /// Shows previous messages via _LiveFrame (Expanded) +
 /// a streaming Kai bubble at bottom with:
 ///   - Animated tide bar (10→22px, 1.6s ease-in-out reverse)
-///   - "kai" label (mono 9 ink3 uppercase)
+///   - "KAI" label (mono 9 ink3 uppercase)
+///   - Optional status text suffix (italic Manrope 9 ink4) — H6
 ///   - Partial content text + blinking cursor (2×14px, 0.9s)
 class _StreamingFrame extends StatelessWidget {
   const _StreamingFrame({
@@ -350,6 +356,7 @@ class _StreamingFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         if (messages.isNotEmpty)
@@ -360,6 +367,8 @@ class _StreamingFrame extends StatelessWidget {
           partialContent: partialContent,
           tideBarController: tideBarController,
           cursorController: cursorController,
+          // H6: pass l10n status text; shown as "· думаю" italic suffix
+          statusText: l10n.streamingStatusThinking,
         ),
       ],
     );
@@ -367,16 +376,23 @@ class _StreamingFrame extends StatelessWidget {
 }
 
 /// Streaming Kai bubble — partial response with animated tide bar + cursor.
+///
+/// [statusText] — optional italic suffix after "KAI" label (H6 canon:
+/// room.html § .f05 .who .st — italic, ink4, text-transform: none).
 class _StreamingKaiBubble extends StatelessWidget {
   const _StreamingKaiBubble({
     required this.partialContent,
     required this.tideBarController,
     required this.cursorController,
+    this.statusText,
   });
 
   final String partialContent;
   final AnimationController tideBarController;
   final AnimationController cursorController;
+
+  /// Optional status text shown as "· <statusText>" after the KAI label.
+  final String? statusText;
 
   @override
   Widget build(BuildContext context) {
@@ -397,7 +413,7 @@ class _StreamingKaiBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // .who row: animated tide bar + "kai" label
+          // .who row: animated tide bar + "KAI" label + optional status suffix
           Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -428,6 +444,20 @@ class _StreamingKaiBubble extends StatelessWidget {
                   color: c.ink3,
                 ),
               ),
+              // H6: · statusText — italic Manrope 9 ink4 (canon: .f05 .who .st)
+              if (statusText != null) ...[
+                const SizedBox(width: 6),
+                Text(
+                  '· $statusText',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 9,
+                    fontWeight: FontWeight.w400,
+                    fontStyle: FontStyle.italic,
+                    color: c.ink4,
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 5),

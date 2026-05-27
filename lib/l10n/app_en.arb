@@ -95,5 +95,9 @@
   "settingsAppLabel": "Settings",
   "accountAnonymous": "Anonymous",
   "accountFreePlan": "Free",
-  "noChats": "No chats"
+  "noChats": "No chats",
+  "dateOlder": "OLDER",
+  "@dateOlder": {"description": "Nav panel date group label for sessions older than 7 days"},
+  "streamingStatusThinking": "thinking",
+  "@streamingStatusThinking": {"description": "Italic status suffix shown next to KAI label while streaming"}
 }

@@ -262,4 +262,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get noChats => 'Нет чатов';
+
+  @override
+  String get dateOlder => 'РАНЕЕ';
+
+  @override
+  String get streamingStatusThinking => 'думаю';
 }

@@ -110,6 +110,8 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                     child: ChatList(
                       frame: roomState.currentFrame,
                       messages: roomState.messages,
+                      // M1: wire accumulated partial text from streaming message
+                      partialContent: roomState.streamingPartial,
                       onRetry: () {
                         final messages = roomState.messages;
                         var lastUserText = '';

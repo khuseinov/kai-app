@@ -577,6 +577,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No chats'**
   String get noChats;
+
+  /// Nav panel date group label for sessions older than 7 days
+  ///
+  /// In en, this message translates to:
+  /// **'OLDER'**
+  String get dateOlder;
+
+  /// Italic status suffix shown next to KAI label while streaming
+  ///
+  /// In en, this message translates to:
+  /// **'thinking'**
+  String get streamingStatusThinking;
 }
 
 class _AppLocalizationsDelegate
