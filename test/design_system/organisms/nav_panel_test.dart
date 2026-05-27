@@ -1,27 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/core/providers/root.dart';
+import 'package:kai_app/design_system/atoms/kai_icon.dart';
 import 'package:kai_app/design_system/organisms/nav_panel.dart';
-import 'package:kai_app/design_system/theme/kai_theme.dart';
+
+import '../../test_helpers.dart';
 
 Future<void> _pump(
   WidgetTester tester,
   Widget child, {
   ThemeMode mode = ThemeMode.light,
 }) async {
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: <Override>[
-        themeModeProvider.overrideWith((ref) => mode),
-      ],
-      child: MaterialApp(
-        home: KaiTheme(
-          child: Scaffold(body: child),
-        ),
-      ),
-    ),
-  );
+  await tester.pumpWidget(buildTestWidget(child, themeMode: mode));
   await tester.pump();
 }
 
@@ -40,26 +29,15 @@ void main() {
     testWidgets('close button tap fires onClose', (WidgetTester tester) async {
       var closes = 0;
       await _pump(tester, NavPanel(onClose: () => closes++));
-      // The close button is a 28×28 circle GestureDetector containing a
-      // close icon. Find it by locating GestureDetectors with a small size
-      // (the outer panel GestureDetector has a much larger hit area).
-      // Strategy: find the close button by locating a Container with a 28×28
-      // circular shape that contains the close KaiIcon.
-      final closeIconFinder = find.descendant(
-        of: find.byType(NavPanel),
-        matching: find.byWidgetPredicate(
-          (widget) =>
-              widget is Container &&
-              widget.constraints != null &&
-              widget.constraints!.maxWidth == 28,
+      // Find the close button via the KaiIcon with KaiIconName.close — reliable
+      // regardless of container size/constraints.
+      final closeButton = find.ancestor(
+        of: find.byWidgetPredicate(
+          (w) => w is KaiIcon && w.name == KaiIconName.close,
         ),
-      );
-      if (closeIconFinder.evaluate().isNotEmpty) {
-        await tester.tap(closeIconFinder.first);
-      } else {
-        // Fallback: tap the second GestureDetector (first is the outer swipe handler)
-        await tester.tap(find.byType(GestureDetector).at(1));
-      }
+        matching: find.byType(GestureDetector),
+      ).first;
+      await tester.tap(closeButton);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
       expect(closes, 1);

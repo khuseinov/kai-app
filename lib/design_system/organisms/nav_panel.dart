@@ -25,7 +25,7 @@ class NavPanel extends StatelessWidget {
     this.onClose,
     this.onNewChat,
     this.sessions = const [],
-    this.activeSessions,
+    this.activeSessionId,
     this.onSessionTap,
     super.key,
   });
@@ -37,7 +37,7 @@ class NavPanel extends StatelessWidget {
   final List<Map<String, String>> sessions;
 
   /// The session id that is currently active (for highlighting).
-  final String? activeSessions;
+  final String? activeSessionId;
 
   final ValueChanged<String>? onSessionTap;
 
@@ -94,7 +94,7 @@ class NavPanel extends StatelessWidget {
               ),
               Expanded(child: _SessionsList(
                 sessions: sessions,
-                activeSessions: activeSessions,
+                activeSessionId: activeSessionId,
                 onSessionTap: onSessionTap,
                 tokens: tokens,
               )),
@@ -189,13 +189,13 @@ class _SearchBox extends StatelessWidget {
 class _SessionsList extends StatelessWidget {
   const _SessionsList({
     required this.sessions,
-    required this.activeSessions,
+    required this.activeSessionId,
     required this.onSessionTap,
     required this.tokens,
   });
 
   final List<Map<String, String>> sessions;
-  final String? activeSessions;
+  final String? activeSessionId;
   final ValueChanged<String>? onSessionTap;
   final KaiTokens tokens;
 
@@ -212,7 +212,7 @@ class _SessionsList extends StatelessWidget {
         final session = sessions[index];
         final id = session['id'] ?? '';
         final title = session['title'] ?? '';
-        final isActive = id == activeSessions;
+        final isActive = id == activeSessionId;
         return NavItem(
           label: title,
           active: isActive,

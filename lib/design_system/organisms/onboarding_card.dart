@@ -45,8 +45,19 @@ class _OnboardingCardState extends State<OnboardingCard>
   void initState() {
     super.initState();
     _chipController = AnimationController(vsync: this, duration: _kChipDuration)
-      ..addStatusListener(_onChipCycle)
-      ..repeat();
+      ..addStatusListener(_onChipCycle);
+    _syncController();
+  }
+
+  void _syncController() {
+    if (widget.stepIndex == 1) {
+      if (!_chipController.isAnimating) _chipController.repeat();
+    } else {
+      if (_chipController.isAnimating) {
+        _chipController.stop();
+        _chipController.reset();
+      }
+    }
   }
 
   void _onChipCycle(AnimationStatus status) {
@@ -54,6 +65,12 @@ class _OnboardingCardState extends State<OnboardingCard>
       if (!mounted) return;
       setState(() => _activeChip = (_activeChip + 1) % 3);
     }
+  }
+
+  @override
+  void didUpdateWidget(covariant OnboardingCard old) {
+    super.didUpdateWidget(old);
+    if (old.stepIndex != widget.stepIndex) _syncController();
   }
 
   @override
@@ -402,7 +419,7 @@ class _LangChip extends StatelessWidget {
       child: Text(
         label,
         style: KaiType.small(
-          color: selected ? const Color(0xFFFFFFFF) : tokens.colors.ink4,
+          color: selected ? tokens.colors.surface : tokens.colors.ink4,
         ),
       ),
     );

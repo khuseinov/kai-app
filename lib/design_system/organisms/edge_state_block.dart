@@ -88,8 +88,8 @@ class _OfflineSurface extends StatelessWidget {
               Container(
                 width: 8,
                 height: 8,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFFBF00),
+                decoration: BoxDecoration(
+                  color: tokens.colors.warning,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -136,9 +136,9 @@ class _ErrorSurface extends StatelessWidget {
                   color: tokens.colors.ink1,
                 ),
                 const SizedBox(height: KaiSpace.s3),
-                KaiButton.ink1(
+                KaiButton.ghost(
                   onPressed: onRetry,
-                  label: 'Продолжить',
+                  label: 'Повторить',
                 ),
               ],
             ),

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/design_system/molecules/care_block.dart';
 import 'package:kai_app/design_system/organisms/edge_state_block.dart';
-import 'package:kai_app/design_system/theme/kai_theme.dart';
+
+import '../../test_helpers.dart';
 
 Future<void> _pump(
   WidgetTester tester,
@@ -12,16 +11,7 @@ Future<void> _pump(
   ThemeMode mode = ThemeMode.light,
 }) async {
   await tester.pumpWidget(
-    ProviderScope(
-      overrides: <Override>[
-        themeModeProvider.overrideWith((ref) => mode),
-      ],
-      child: MaterialApp(
-        home: KaiTheme(
-          child: Scaffold(body: SingleChildScrollView(child: child)),
-        ),
-      ),
-    ),
+    buildTestWidget(SingleChildScrollView(child: child), themeMode: mode),
   );
   await tester.pump();
 }
@@ -76,7 +66,7 @@ void main() {
         // pumpAndSettle which would time out waiting for the timer.
         // Pump a few frames to let the initial animation run, then tap.
         await tester.pump(const Duration(milliseconds: 100));
-        await tester.tap(find.text('Продолжить'));
+        await tester.tap(find.text('Повторить'));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 50));
         expect(retries, 1);

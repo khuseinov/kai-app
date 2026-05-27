@@ -31,9 +31,9 @@ enum RoomFrame {
 
 /// Organism: the scrollable chat message list.
 ///
-/// Switches rendering based on [frame]. Phase 5 will replace `List<Object>`
-/// messages with typed `List<Message>` — for now, each message is treated as
-/// `Map<String, dynamic>` with `role` ('user'|'kai') and `content` (String).
+/// Switches rendering based on [frame]. Phase 5 will replace
+/// `List<Map<String, dynamic>>` messages with typed `List<Message>` — for now,
+/// each message map must contain `role` ('user'|'kai') and `content` (String).
 class ChatList extends StatefulWidget {
   const ChatList({
     required this.frame,
@@ -43,7 +43,7 @@ class ChatList extends StatefulWidget {
   });
 
   final RoomFrame frame;
-  final List<Object> messages;
+  final List<Map<String, dynamic>> messages;
   final VoidCallback? onRetry;
 
   @override
@@ -60,7 +60,22 @@ class _ChatListState extends State<ChatList>
     _streamController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
-    )..repeat(reverse: true);
+    );
+    _syncStream();
+  }
+
+  void _syncStream() {
+    if (widget.frame == RoomFrame.streaming) {
+      if (!_streamController.isAnimating) _streamController.repeat(reverse: true);
+    } else {
+      if (_streamController.isAnimating) _streamController.stop();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant ChatList old) {
+    super.didUpdateWidget(old);
+    if (old.frame != widget.frame) _syncStream();
   }
 
   @override
@@ -109,7 +124,7 @@ class _ChatListState extends State<ChatList>
 class _EmptyFrame extends StatelessWidget {
   const _EmptyFrame({required this.messages});
 
-  final List<Object> messages;
+  final List<Map<String, dynamic>> messages;
 
   @override
   Widget build(BuildContext context) {
@@ -185,7 +200,7 @@ class _SuggestionChip extends StatelessWidget {
 class _LiveFrame extends StatelessWidget {
   const _LiveFrame({required this.messages});
 
-  final List<Object> messages;
+  final List<Map<String, dynamic>> messages;
 
   @override
   Widget build(BuildContext context) {
@@ -213,8 +228,7 @@ class _LiveFrame extends StatelessWidget {
             itemCount: messages.length,
             itemBuilder: (context, index) {
               // Build bottom-up: index 0 = last message
-              final msg =
-                  messages[messages.length - 1 - index] as Map<String, dynamic>;
+              final msg = messages[messages.length - 1 - index];
               final role = msg['role'] as String? ?? 'kai';
               final content = msg['content'] as String? ?? '';
               return Padding(
@@ -240,7 +254,7 @@ class _StreamingFrame extends StatelessWidget {
     required this.controller,
   });
 
-  final List<Object> messages;
+  final List<Map<String, dynamic>> messages;
   final AnimationController controller;
 
   @override
@@ -283,7 +297,7 @@ class _ErrorFrame extends StatelessWidget {
     this.onRetry,
   });
 
-  final List<Object> messages;
+  final List<Map<String, dynamic>> messages;
   final VoidCallback? onRetry;
 
   @override

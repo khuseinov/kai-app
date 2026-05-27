@@ -1,28 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/design_system/atoms/kai_bubble.dart';
 import 'package:kai_app/design_system/organisms/chat_list.dart';
-import 'package:kai_app/design_system/theme/kai_theme.dart';
+
+import '../../test_helpers.dart';
 
 Future<void> _pump(
   WidgetTester tester,
   Widget child, {
   ThemeMode mode = ThemeMode.light,
 }) async {
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: <Override>[
-        themeModeProvider.overrideWith((ref) => mode),
-      ],
-      child: MaterialApp(
-        home: KaiTheme(
-          child: Scaffold(body: child),
-        ),
-      ),
-    ),
-  );
+  await tester.pumpWidget(buildTestWidget(child, themeMode: mode));
   await tester.pump();
 }
 
@@ -60,7 +48,7 @@ void main() {
 
       testWidgets('with messages renders KaiBubble widgets',
           (WidgetTester tester) async {
-        final messages = <Object>[
+        final messages = <Map<String, dynamic>>[
           {'role': 'user', 'content': 'Привет!'},
           {'role': 'kai', 'content': 'Привет! Чем могу помочь?'},
         ];
@@ -74,7 +62,7 @@ void main() {
 
       testWidgets('user bubble renders user content',
           (WidgetTester tester) async {
-        final messages = <Object>[
+        final messages = <Map<String, dynamic>>[
           {'role': 'user', 'content': 'Hello user'},
         ];
         await _pump(
@@ -126,7 +114,7 @@ void main() {
       });
 
       testWidgets('with messages still renders', (WidgetTester tester) async {
-        final messages = <Object>[
+        final messages = <Map<String, dynamic>>[
           {'role': 'user', 'content': 'Streaming test'},
         ];
         await _pump(
