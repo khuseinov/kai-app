@@ -56,13 +56,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   /// Maps onboarding step index to the appropriate tide state.
   ///
-  /// Step 0 (welcome): no tide overlay — placeholder SizedBox rendered instead.
-  /// Step 1 (tide intro): responding — live animated dashed stream per onboarding.html canon.
-  /// Steps 2-3 (gestures / context): idle.
+  /// Matches `new-design/onboarding.html` step-by-step:
+  /// - Step 0 (welcome): no tide overlay — hidden via AnimatedOpacity.
+  /// - Step 1 (tide intro): `responding` — live dashed stream.
+  /// - Steps 2-3 (gestures / context): `muted` — static gradient at 0.4
+  ///   opacity (canon: `stroke-width="1.8" opacity="0.4"`). NOT idle, which
+  ///   in the tide-states canon is a solid-gray breathing curve.
   KaiTideState _tideForStep(int step) {
     switch (step) {
       case 1:
         return KaiTide.responding;
+      case 2:
+      case 3:
+        return KaiTide.muted;
       default:
         return KaiTide.idle;
     }

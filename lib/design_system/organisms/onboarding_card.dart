@@ -35,18 +35,21 @@ class OnboardingCard extends StatelessWidget {
     final tokens = KaiTheme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    // Steps 1–3 have the tide-bar overlay above them (height ~40px from safe
-    // area top).  Add extra top padding so content clears the overlay.
-    // Step 0: no tide bar → tighter top gap.
-    final topPad = stepIndex == 0 ? 40.0 : 60.0;
+    // Steps 1–3 have the tide-bar overlay above them.  Minimum top inset
+    // keeps content clear of the curve; weighted Spacers center the step
+    // body vertically in the available area so the gap between the body
+    // and the CTA doesn't blow up on tall screens (390×844) the way it
+    // does when the body is top-anchored with a single bottom Spacer.
+    final topPad = stepIndex == 0 ? 24.0 : 36.0;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(22, topPad, 22, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const Spacer(flex: 1),
           _buildStep(context, tokens, l10n),
-          const Spacer(),
+          const Spacer(flex: 1),
           _StepDots(count: 4, active: stepIndex),
           const SizedBox(height: 12),
           _buildCTA(tokens, l10n),
@@ -401,7 +404,7 @@ class _GesturesStep extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _GestureRow(
-          icon: KaiIconName.menu,
+          icon: KaiIconName.press,
           label: l10n.onboardingGestureActionsLabel,
           hint: l10n.onboardingGestureActionsHint,
           tokens: tokens,

@@ -24,7 +24,8 @@ enum KaiIconName {
   clock('clock'),
   folder('folder'),
   chev('chev'),
-  memory('memory');
+  memory('memory'),
+  press('press');
 
   const KaiIconName(this.assetName);
   final String assetName;

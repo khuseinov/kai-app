@@ -38,6 +38,7 @@ class KaiTideState {
     this.durationMs,
     this.dashPattern,
     this.ephemeral = false,
+    this.useGradient = false,
     // For breathe states only.
     this.breatheStrokeFrom,
     this.breatheStrokeTo,
@@ -56,6 +57,12 @@ class KaiTideState {
 
   /// True if the state should auto-dismiss after [durationMs].
   final bool ephemeral;
+
+  /// If true, the curve renders with the tide gradient even for animation
+  /// types that default to solid (none / breathe). Used by [KaiTide.muted]
+  /// to paint a static gradient curve at low opacity, e.g. onboarding
+  /// header overlays on passive steps.
+  final bool useGradient;
 
   // Breathe-specific fields (HTML-derived, for idle/sleep).
   final double? breatheStrokeFrom;
@@ -175,7 +182,21 @@ class KaiTide {
     breatheOpacityTo: 0.24,
   );
 
-  /// All 8 states, ordered.
+  /// Static gradient curve at low opacity.
+  ///
+  /// Used by the onboarding header overlay on passive steps (gestures /
+  /// context) where the tide should be visible as a brand anchor but not
+  /// communicate any active state. Matches `new-design/onboarding.html`
+  /// steps 03–04: `stroke="url(#g-tide)" stroke-width="1.8" opacity="0.4"`.
+  static const KaiTideState muted = KaiTideState(
+    name: 'muted',
+    strokePx: 1.8,
+    opacity: 0.4,
+    animation: KaiTideAnimation.none,
+    useGradient: true,
+  );
+
+  /// All 8 canonical states, ordered.
   static const List<KaiTideState> all = [
     idle,
     listening,

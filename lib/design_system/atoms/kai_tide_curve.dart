@@ -247,7 +247,7 @@ double _lerp(double a, double b, double t) => a + (b - a) * t;
 _TideFrame _frameNone(KaiTideState s, KaiTokens tokens) => _TideFrame(
       strokeWidth: s.strokePx,
       opacity: s.opacity,
-      useGradient: false,
+      useGradient: s.useGradient,
       solidColor: tokens.colors.ink4,
       dashPattern: s.dashPattern,
       dashOffset: 0,
