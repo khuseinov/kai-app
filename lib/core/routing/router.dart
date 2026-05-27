@@ -9,18 +9,35 @@ import '../../features/dev/atoms_showcase_screen.dart';
 import '../../features/dev/molecules_showcase_screen.dart';
 import '../../features/dev/organisms_showcase_screen.dart';
 import '../../features/dev/theme_showcase_screen.dart';
+import '../../features/onboarding/onboarding_screen.dart';
+import '../../features/room/room_screen.dart';
+import '../storage/entities/settings.dart';
+import '../storage/hive_setup.dart';
 
-/// Phase 2 router stub.
-///
-/// `/` redirects to `/_dev` (a simple hub of dev showcases).
-/// Real app routes land in Phase 5.
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/_dev',
+    initialLocation: '/',
     routes: <RouteBase>[
       GoRoute(
         path: '/',
-        redirect: (_, __) => '/_dev',
+        redirect: (context, state) {
+          final settings =
+              HiveSetup.settings.get(HiveSetup.settingsKey) ?? const AppSettings();
+          return settings.onboarded ? '/room' : '/onboarding';
+        },
+      ),
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/room',
+        builder: (context, state) => const RoomScreen(),
+      ),
+      GoRoute(
+        path: '/room/:tripId',
+        builder: (context, state) =>
+            RoomScreen(tripId: state.pathParameters['tripId']),
       ),
       GoRoute(
         path: '/_dev',
