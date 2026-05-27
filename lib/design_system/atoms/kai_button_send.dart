@@ -21,7 +21,10 @@ enum KaiSendState {
 
 /// Specialised send button — 4-state lifecycle with optional pulse animation.
 ///
-/// Tap callback only fires when [state] is [KaiSendState.ready].
+/// Tap callback only fires when [state] is [KaiSendState.ready]. The atom
+/// internally gates the tap on state, so callers may pass `null` as an
+/// additional defensive layer when their own state derivation says "disabled"
+/// — see `ComposeIsland` for the double-gate pattern.
 class KaiButtonSend extends StatefulWidget {
   const KaiButtonSend({
     required this.state,
@@ -33,8 +36,10 @@ class KaiButtonSend extends StatefulWidget {
   /// Current lifecycle state. Drives visuals + tap behaviour.
   final KaiSendState state;
 
-  /// Fires only when [state] == [KaiSendState.ready].
-  final VoidCallback onPressed;
+  /// Fires only when [state] == [KaiSendState.ready]. Nullable so callers
+  /// can explicitly opt out at the call site even before the atom's
+  /// internal state gate runs.
+  final VoidCallback? onPressed;
 
   /// Total tap-target size (square). Default 44 (HIG min).
   final double size;
@@ -115,13 +120,15 @@ class _KaiButtonSendState extends State<KaiButtonSend>
       ),
     );
 
+    final onPressed = widget.onPressed;
     return Semantics(
       button: true,
-      enabled: widget.state == KaiSendState.ready,
+      enabled: widget.state == KaiSendState.ready && onPressed != null,
       label: 'send',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: widget.state == KaiSendState.ready ? widget.onPressed : null,
+        onTap:
+            widget.state == KaiSendState.ready ? onPressed : null,
         child: core,
       ),
     );

@@ -114,9 +114,14 @@ class ComposeIsland extends StatelessWidget {
             listenable: controller,
             builder: (_, __) {
               final sendState = _sendStateFrom(controller.text);
+              // Defensive double-gate: KaiButtonSend already ignores taps
+              // outside [KaiSendState.ready], but we also drop the callback
+              // at the molecule level so the intent ("disabled means no
+              // send") is explicit and the inner GestureDetector won't even
+              // attach a handler.
               return KaiButtonSend(
                 state: sendState,
-                onPressed: onSend,
+                onPressed: sendState == KaiSendState.disabled ? null : onSend,
                 size: buttonSize,
               );
             },

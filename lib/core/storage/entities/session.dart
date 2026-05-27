@@ -29,6 +29,11 @@ class Session with _$Session {
 
 /// Hive TypeAdapter for [Session]. Maintained by hand — keep in sync with the
 /// `@HiveField` annotations above. Field count: 4 (0-3).
+///
+/// Required fields use the nullable-cast-with-default pattern (matching
+/// [AppSettingsAdapter]). If the cast falls back to its default sentinel,
+/// the record is from a previous schema version and may need explicit
+/// migration — but the read won't crash on a missing/typed-wrong field.
 class SessionAdapter extends TypeAdapter<Session> {
   @override
   final int typeId = 0;
@@ -40,9 +45,10 @@ class SessionAdapter extends TypeAdapter<Session> {
       for (var i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Session(
-      id: fields[0] as String,
-      title: fields[1] as String,
-      createdAt: fields[2] as DateTime,
+      id: fields[0] as String? ?? '',
+      title: fields[1] as String? ?? '',
+      createdAt:
+          fields[2] as DateTime? ?? DateTime.fromMillisecondsSinceEpoch(0),
       tripId: fields[3] as String?,
     );
   }

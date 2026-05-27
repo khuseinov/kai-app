@@ -63,6 +63,11 @@ class Message with _$Message {
 }
 
 /// Hive TypeAdapter for [Message]. Field count: 6 (0-5).
+///
+/// Required fields use the nullable-cast-with-default pattern (matching
+/// [AppSettingsAdapter]). If the cast falls back to its default sentinel,
+/// the record is from a previous schema version and may need explicit
+/// migration — but the read won't crash on a missing/typed-wrong field.
 class MessageAdapter extends TypeAdapter<Message> {
   @override
   final int typeId = 1;
@@ -74,12 +79,13 @@ class MessageAdapter extends TypeAdapter<Message> {
       for (var i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Message(
-      id: fields[0] as String,
-      sessionId: fields[1] as String,
-      role: fields[2] as MessageRole,
-      status: fields[3] as MessageStatus,
-      content: fields[4] as String,
-      createdAt: fields[5] as DateTime,
+      id: fields[0] as String? ?? '',
+      sessionId: fields[1] as String? ?? '',
+      role: fields[2] as MessageRole? ?? MessageRole.system,
+      status: fields[3] as MessageStatus? ?? MessageStatus.error,
+      content: fields[4] as String? ?? '',
+      createdAt:
+          fields[5] as DateTime? ?? DateTime.fromMillisecondsSinceEpoch(0),
     );
   }
 
