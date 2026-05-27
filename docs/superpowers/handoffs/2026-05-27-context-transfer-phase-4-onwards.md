@@ -1,25 +1,25 @@
-# Kai App Rebuild v3 — Context Transfer for Phase 4b+
+# Kai App Rebuild v3 — Context Transfer for Phase 5+
 
-**Date**: 2026-05-27 (updated after Phase 4a completion)
-**From session**: Phase 4a controller (Phases 0-3 review + Phase 4a organisms)
-**To**: new agent session starting Phase 4b
+**Date**: 2026-05-27 (updated after Phase 5 completion)
+**From session**: Phase 5 controller (Phases 0-5 complete)
+**To**: new agent session starting Phase 6
 **Reason**: каждая фаза = новая сессия (user requirement)
 
 ---
 
 ## 1 · Your job
 
-You are the SDD (subagent-driven-development) **controller** continuing execution of the Kai app rebuild v3 plan from **Phase 4b** onwards. Phases 0–4a are DONE. You inherit state, not history.
+You are the SDD (subagent-driven-development) **controller** continuing execution of the Kai app rebuild v3 plan from **Phase 6** onwards. Phases 0–5 are DONE. You inherit state, not history.
 
 **Mandatory first action**: read these files before doing anything else:
 1. `docs/superpowers/specs/2026-05-26-kai-app-rebuild-v3-design.md` (design spec)
-2. `docs/superpowers/plans/2026-05-26-kai-app-rebuild-v3-implementation.md` (134-task plan)
+2. `docs/superpowers/plans/2026-05-26-kai-app-rebuild-v3-implementation.md` (134-task plan, Phase 6 section)
 3. `new-design/CLAUDE.md` (design system hard rules — non-negotiable)
 4. This file in full.
 
 Then verify state with `git log --oneline -6` and `flutter test` before dispatching any implementer.
 
-**Do NOT run a Phase 0-3 review** — that was already done by the previous controller. Go straight to Phase 4b.
+**Do NOT run a Phase 0-5 review** — that was already done. Go straight to Phase 6.
 
 ---
 
@@ -27,11 +27,11 @@ Then verify state with `git log --oneline -6` and `flutter test` before dispatch
 
 ### Branch & worktree
 
-- **Work ONLY on branch `claude/hungry-lamport-e41998`** (the worktree branch). User explicitly said: "только в одной ветке работаем" (one branch only).
+- **Work ONLY on branch `claude/hungry-lamport-e41998`** (the worktree branch).
 - Working directory: `E:\startup\kai-app\.claude\worktrees\hungry-lamport-e41998`
 - DO NOT create new branches.
 - DO NOT touch `master` — it's the legacy app, the backup if rebuild fails.
-- DO NOT push tags to origin. Phase tags are LOCAL ONLY. The previous wipe (2026-05-26) was caused by force-deleting origin tags; we avoid the scenario entirely.
+- DO NOT push tags to origin. Phase tags are LOCAL ONLY.
 
 ### Lock-list (NEVER edit)
 
@@ -52,28 +52,21 @@ User is on **Windows 11**. `gh` CLI is NOT installed. Cannot programmatically ve
 
 ---
 
-## 3 · Current state (as of 2026-05-27 — after Phase 4b)
+## 3 · Current state (as of 2026-05-27 — after Phase 5)
 
 ### Branch position
 
-- HEAD: `dcfa341` on `origin/claude/hungry-lamport-e41998`
-- 15 commits since branch off master:
+- HEAD: `8f96882` on `origin/claude/hungry-lamport-e41998`
+- 19 commits since branch off master:
   ```
+  8f96882 phase-5b fix: concurrency race + takeWhile cancel + ref.watch + T33 rename
+  cfea1aa phase-5b: real repositories + SSE pipeline
+  c9ad2b5 phase-5a fix: subscription leak + streaming frame + color literal + nav barrier
+  555bdb2 phase-5a: RoomScreen + OnboardingScreen + NavScreen + SseParser + router
+  45bebda docs(handoff): update for Phase 5 controller — Phase 4b state + next steps
   dcfa341 phase-4b fix: controller leak + tautological cancel test
   7590b69 phase-4b: repo interfaces + mocks + showcase
-  9d5df26 docs(handoff): update for Phase 4b controller — Phase 4a state + next steps
-  d62e867 phase-4a fix: review findings (spec + code quality)
-  bc119e9 phase-4a: organisms (onboarding_card, chat_list, nav_panel, edge_state_block)
-  f37086d phase-3 fix-2: design canon + ephemeral race
-  9f6fdf1 docs(handoff): context transfer for Phase 4+ controller
-  cf6ab20 phase-3 fix: error resilience + adapter consistency
-  54332c8 phase-3: molecules + storage
-  9468721 phase-2 fix: ephemeral cycle stale controller + error wobble duration
-  46a2ec5 phase-2: atoms + anonymous session
-  25d569d phase-1 fix: code review issues (Important x3, Minor x2)
-  1d215dd phase-1: foundation (tokens, theme, fonts, dio skeleton)
-  b91b6a2 phase-0 fix: align bootstrap signature with plan T0.3
-  cd8ba93 phase-0: wipe lib/ + scaffold blank shell
+  ...
   ```
 
 ### Local tags (NOT pushed to origin)
@@ -84,8 +77,9 @@ User is on **Windows 11**. `gh` CLI is NOT installed. Cannot programmatically ve
 - `phase-3-molecules` → `54332c8`
 - `phase-4a-organisms` → `d62e867`
 - `phase-4-organisms` → `dcfa341`
+- `phase-5-screens` → `8f96882`
 
-### Worktree setup note (NEW — learned in Phase 4b)
+### Worktree setup note
 
 When creating a new worktree for this branch, you MUST run:
 ```bash
@@ -96,8 +90,8 @@ Both steps are required before `flutter test` and `flutter analyze` will succeed
 
 ### Test + lint state
 
-- `flutter analyze` → "No issues found!" (verified at `d62e867`)
-- `flutter test` → 131/131 passing (verified at `d62e867`)
+- `flutter analyze` → "No issues found!" (verified at `8f96882`)
+- `flutter test` → 184/184 passing (verified at `8f96882`)
 
 ### iOS CI
 
@@ -105,183 +99,113 @@ Status unknown to controller (no `gh` CLI). User verifies manually at https://gi
 
 ---
 
-## 4 · What's been built (Phase 0-3 summary)
+## 4 · What's been built (Phase 0-5 summary)
 
-### Phase 0 — Wipe ✅
+### Phase 0-4b — See previous handoff sections (unchanged)
 
-- `git rm -rf lib/ test/` — wiped legacy
-- Scaffold: `lib/main.dart` + `lib/bootstrap.dart` (returns `Future<ProviderContainer>`) + `lib/app.dart`
-- `pubspec.yaml`: removed `google_fonts`, `shimmer`; added `flutter_dotenv ^5.1.0`, `flutter_svg ^2.0.10`
-- `ios/Runner/Info.plist`: removed `NSMicrophoneUsageDescription`
-- `.env.example` tracked; `.env` ignored; `.gitignore` has `!.env.example` negation
-- `assets/fonts/.gitkeep`, `assets/icons/.gitkeep`
+All Phase 0-4b content remains valid. Summary: tokens, theme, fonts, network skeleton, atoms, molecules, organisms, repo interfaces + mocks are complete.
 
-### Phase 1 — Foundation ✅
+### Phase 5a — Screens + Router + SSE Parser ✅ (commits 555bdb2 + c9ad2b5)
 
-- **Tokens** (7 files in `lib/design_system/tokens/`):
-  - `kai_colors.dart` — Light + Dark records, all 20+ colors exact hex from `new-design/colors_and_type.css`
-  - `kai_space.dart` — s1..s11 as `double` (4-120, for const EdgeInsets composability)
-  - `kai_radius.dart` — r1..r5 + pill, plus `static const BorderRadius` `br1..brPill` (NOT getters — true compile-time const)
-  - `kai_motion.dart` — durations + curves (ambient/exit identical-by-design per comment)
-  - `kai_type.dart` — 10 TextStyle factories (hero/display/h1..h3/lead/body/small/micro/mono) with em→absolute px letterSpacing
-  - `kai_tide.dart` — 3-stop gradient at 115° via `Alignment(-0.906, -0.423)→(0.906, 0.423)` + 8 state configs. `KaiTideState` class (NOT enum) with const instances `KaiTide.idle / .listening / ...`. Idle/sleep have breathe animation per HTML canon (JSON null but HTML wins).
-  - `kai_tokens.dart` — composite `KaiTokens` record
+**New files:**
+- `lib/features/room/room_state.dart` — `RoomStateData` + `RoomNotifier` (plain `NotifierProvider`)
+  - Fields: `messages` (List<Map<String,dynamic>>), `currentFrame` (RoomFrame), `tideState` (KaiTideState), `isStreaming`, `activeSessionId`, `streamingMessageId`
+  - Methods: `sendMessage`, `cancelStreaming`, `openNavPanel`, `closeNavPanel`, `switchSession`
+  - `_subscription` field stored; `ref.onDispose` cancels subscription + completer
+  - `currentFrame` = `RoomFrame.streaming` immediately on `sendMessage` (not `live`)
+  - `ChatEventCorrection` REPLACES content (not appends)
+  - `ChatEventDone`: frame = `empty` if no messages, else `live`
+  - `closeNavPanel` called via `.then()` on `NavPanelRoute` push — works for barrier/back too
+  - Retry guard: `if (lastUserText.isNotEmpty)` before calling sendMessage
 
-- **Theme** (2 files in `lib/design_system/theme/`):
-  - `kai_theme.dart` — InheritedWidget `KaiTheme.of(context)`, ConsumerWidget pulling `themeModeProvider`
-  - `kai_theme_ext.dart` — Material `ThemeExtension` bridge + `materialLight()` / `materialDark()` factories
+- `lib/features/room/room_screen.dart` — `ConsumerStatefulWidget`
+  - KaiTideCurve (top) + ChatList + ComposeIsland
+  - Left-edge swipe (dragStart.dx < 24, velocity > 200) → push `NavPanelRoute`, `.then()` calls `closeNavPanel`
 
-- **Fonts** (in `assets/fonts/`):
-  - `Manrope.ttf` — variable 300-800, renamed from `Manrope[wght].ttf` (lessons learned: tooling breaks on `[wght]`)
-  - `JetBrainsMono.ttf` — variable 400-500, renamed similarly
-  - Registered in `pubspec.yaml` with explicit per-weight entries (so variable axis used, no synthetic bold)
+- `lib/features/onboarding/onboarding_screen.dart` — 4-step `PageView`
+  - `OnboardingCard` steps 0-3, `_DotsIndicator` (uses `colors.accent`, NOT raw Color literal)
+  - Step 3 finish: `HiveSetup.settings.put(settingsKey, settings.copyWith(onboarded: true))` → `context.go('/room')`
 
-- **Backend skeleton** (in `lib/core/network/`):
-  - `dio_client.dart` — factory `buildDioClient(baseUrl, interceptors)`, 30s connect / 300s receive
-  - 5 interceptors in `lib/core/network/interceptors/`: auth (pass-through TODO), logging (correlation IDs via uuid, debug-only), retry (exp backoff max 3, skip 401/403/429, **attaches Dio via `attach(dio)` to retry through full chain**), connectivity (offline early-fail via connectivity_plus), error (NetworkFailure enum + NetworkException)
+- `lib/features/nav/nav_screen.dart` — `NavScreen` + `NavPanelRoute`
+  - `NavPanelRoute extends PageRoute<void>` with slide-from-left transition (250ms)
+  - `NavScreen`: reads `sessionListProvider`, renders `NavPanel`, tap → `switchSession` + pop
+  - New chat: `switchSession('session-${DateTime.now().millisecondsSinceEpoch}')` + pop
 
-- **Riverpod** (in `lib/core/providers/root.dart`):
-  - `envProvider` → `EnvConfig`
-  - `dioProvider` → Dio with interceptor chain; calls `retry.attach(dio)`
-  - `themeModeProvider` → `StateProvider<ThemeMode>` default `ThemeMode.system`
-  - `routerProvider` → GoRouter from `lib/core/routing/router.dart`
+- `lib/core/network/sse_parser.dart` — `SseParser.parse(Stream<List<int>>) → Stream<ChatEvent>`
+  - Standard SSE: `event:` + `data:` lines, blank line separates events
+  - Handles all 8 event types; unknown types return null (skipped)
 
-- **App wiring**:
-  - `lib/app.dart` — ConsumerWidget; `MaterialApp.router` with theme + `builder: (ctx, child) => KaiTheme(child: ...)` **inside MaterialApp** (Phase 1 fix: KaiTheme outside breaks `MediaQuery.platformBrightnessOf`)
-  - `lib/bootstrap.dart` — `Future<ProviderContainer> bootstrap()`, loads `.env` (try/catch), calls `HiveSetup.init()` (try/catch, logger.e + rethrow on fail), returns ProviderContainer
-  - `lib/core/routing/router.dart` — go_router with `/_dev` hub + `/_dev/theme-showcase` + `/_dev/atoms` + `/_dev/molecules` routes
+- `lib/core/providers/session_provider.dart` — `sessionListProvider` (`FutureProvider<List<ChatSession>>`)
 
-- **Showcases**:
-  - `lib/features/dev/theme_showcase_screen.dart` — Colors/Type/Space/Radius/Tide sections + theme cycle
+- `lib/core/routing/router.dart` — updated
+  - `/` → redirect: `HiveSetup.settings.get(settingsKey)?.onboarded == true ? '/room' : '/onboarding'`
+  - `/onboarding`, `/room`, `/room/:tripId`, `/_dev/*` routes all present
+  - Dev routes NOT guarded by `kReleaseMode` yet (Phase 6 task T6.X or defer to post-v1)
 
-- **Tests**: 15 passing in `test/design_system/tokens_test.dart` + `test/design_system/theme_test.dart`
+**Tests added:** 13 (room: 3, onboarding: 3, sse_parser: 10)
 
-### Phase 2 — Atoms ✅
+### Phase 5b — Real Repositories + SSE Pipeline ✅ (commits cfea1aa + 8f96882)
 
-- **6 atom files** in `lib/design_system/atoms/`:
-  - `kai_text.dart` — StatelessWidget with named constructors per style; resolves color via `KaiTheme.of(context)`
-  - `kai_icon.dart` — `KaiIconName` enum (14 values) + `KaiIcon` widget using flutter_svg + ColorFilter
-  - `kai_button.dart` — 4 variants (.tide/.ink1/.ghost/.icon); imports ONLY `KaiIconName` enum from kai_icon.dart (NOT the widget — atomic boundary preserved); inline `SvgPicture.asset(...)` for icon rendering
-  - `kai_button_send.dart` — separate atom; `KaiSendState` enum (ready/disabled/sending/streaming); `onPressed: VoidCallback?` (nullable for ComposeIsland double-gate); pulse animation via AnimationController on sending/streaming
-  - `kai_input.dart` — KaiTextField with pillRadius toggle + maxLines
-  - `kai_bubble.dart` — 3 variants (.user/.kai/.system); kai uses flutter_markdown MarkdownBody
-  - `kai_tide_curve.dart` — CustomPainter with 8 animated states. **The crown jewel.** Key implementation details:
-    - SVG path `M 0 14 Q 60 8 120 14 T 240 12` → `quadraticBezierTo` (T reflected as `Q 180 20 240 12`)
-    - ViewBox 240×28 → scaled to widget size via sx/sy
-    - Gradient stroke (not fill), `strokeCap.round`, `PaintingStyle.stroke`
-    - Dashed paths via `PathMetric.extractPath` iteration
-    - 8 animations: idle (5.5s breathe HTML canon), sleep (7s breathe HTML canon), listening (2.2s bob), thinking (3s flow dash 6/4), responding (1.4s stream dash 12/4), success (1.2s flash × 3 ephemeral), error (700ms wobble × 2 with 1s delay ephemeral), memory (0.9s pop × 3 with 0.5s delay ephemeral)
-    - Ephemeral states track `_restoreToState` and revert via `_runEphemeralCycle` with mounted guards (fixed in 9468721: no-gap branch uses fresh recursive call, not stale captured controller)
-    - `MediaQuery.disableAnimationsOf` respected — static frame when true
+**New files:**
+- `lib/core/repositories/real_chat_repository.dart` — `RealChatRepository`
+  - `SseStreamOpener` typedef for testability; `factory .withDio(Dio)` for production
+  - 8 anti-regression patterns baked in (see §7 tech debt for T36 note)
+  - **Critical concurrency fix**: completer claimed synchronously BEFORE first `await`
+  - **Cancel safety**: `takeWhile((_) => !cancelCompleter.isCompleted)` — stall-safe
+  - **finally identity check**: only removes own completer, never evicts successor's
 
-- **Anonymous session** in `lib/core/session/anonymous_session_provider.dart`:
-  - `secureStorageProvider` → `FlutterSecureStorage`
-  - `anonymousSessionProvider` → FutureProvider<String> generating + persisting uuid v4 under key `anonymous_session_id_v1`
-  - NOT using `@Riverpod(keepAlive: true)` annotation — plain FutureProvider keeps state alive while listened, simpler
+- `lib/core/repositories/real_session_repository.dart` — Hive-backed
+  - `list()` sorts by `createdAt` desc, returns `List.unmodifiable`
+  - `create()` generates UUID, persists `Session` entity, returns `ChatSession`
+  - `delete(id)` removes from box
 
-- **Showcase**: `lib/features/dev/atoms_showcase_screen.dart` with tide state cycle button
-- **Tests**: 58 passing (28 widget tests across atoms + session tests)
-- **Tech debt**: golden tests deferred (cross-platform CustomPaint shader variance). Behavior tests substitute.
+- `lib/core/providers/root.dart` — updated
+  - `EnvConfig.useRealChat` field → reads `USE_REAL_CHAT` from dotenv
+  - `chatRepositoryProvider`: switches mock↔real via `env.useRealChat`
+  - `sessionRepositoryProvider`: same
+  - Uses `ref.watch(envProvider)` and `ref.watch(dioProvider)` correctly (not `ref.read`)
 
-### Phase 3 — Molecules + Storage ✅
+- `.env.example` — `USE_REAL_CHAT=false` added
 
-- **5 molecules** in `lib/design_system/molecules/`:
-  - `compose_island.dart` — pill input + mic LEFT + send RIGHT, ListenableBuilder for reactive send state, double-gate disabled via `onPressed: sendState == disabled ? null : onSend`
-  - `nav_item.dart` — icon + label + trailing slots, active state with accent-wash + left border
-  - `source_card.dart` — index badge mono + url + timestamp + freshness icon
-  - `alert_card.dart` — N-01 4 types (urgent → negativeWash, warning → warningWash, positive → positiveWash, neutral → accentWash)
-  - `care_block.dart` — crisis C3 left-border 2px coral `#C44A3C`, heart icon, mono resources, NEVER red
+**Tests added:** 25 (sse_pipeline: 18, real_session_repository: 7)
 
-- **Storage** in `lib/core/storage/`:
-  - 3 versioned Hive boxes: `chat_sessions_v1`, `messages_v1`, `settings_v1`
-  - Entities with `@HiveType`/`@HiveField` annotations (Session typeId 0, Message typeId 1, MessageStatus typeId 2, MessageRole typeId 3, AppThemeMode typeId 4, AppSettings typeId 5)
-  - **CRITICAL deviation from plan**: Hive adapters are **HAND-ROLLED**, not generated via build_runner. Reason: `hive_generator ^2.0.1` pins `analyzer <7` which conflicts with `freezed ^2.5.6`'s `analyzer ^7.0.0`. The `@HiveType`/`@HiveField` annotations remain as documentation of wire layout. When you add new fields to entities in future phases, you MUST hand-edit the adapter `read()`/`write()` methods to match. There's no build_runner safety net for these.
-  - All adapters use **nullable-cast-with-default pattern** (e.g., `fields[0] as String? ?? ''`) for migration safety. AppSettings/Session/Message adapters all consistent.
-  - `hive_setup.dart` — `HiveSetup.init()` with `_initialized` guard; opens all 3 boxes via `Future.wait`
-  - `bootstrap.dart` — wraps `HiveSetup.init()` in try/catch with `logger.e + rethrow`
-
-- **Showcase**: `lib/features/dev/molecules_showcase_screen.dart`
-- **Tests**: 91 passing after fix-2 (storage roundtrips for all enum values, per-molecule behavior, per-entity adapter roundtrips + B1 regression test)
-
-### Phase 4a — Organisms ✅ (commits bc119e9 + d62e867)
-
-- **4 organism files** in `lib/design_system/organisms/`:
-  - `onboarding_card.dart` — 4-step wizard (welcome/tide/gestures/context). Step 1 auto-cycles 3 tide chips every 2400ms, KaiTideCurve tracks active chip. `_syncController()` + `didUpdateWidget` ensures animation only runs on step 1. Props: `stepIndex (int 0-3)`, `onComplete (VoidCallback?)`.
-  - `chat_list.dart` — 6 frames via `RoomFrame` enum (empty/live/panel/compose/streaming/error). `RoomFrame` enum defined in this file. Messages typed as `List<Map<String, dynamic>>` (Phase 5 will replace with `List<Message>`). `_syncStream()` + `didUpdateWidget` ensures streaming animation only runs on streaming frame. Panel frame uses `IgnorePointer(child: Opacity(0.25, ...))`.
-  - `nav_panel.dart` — full-screen drawer: close button (28px circle) + "Kai" title + new chat (KaiButton.ink1) + read-only search box + sessions list (NavItem per session) + apps section (Memory/Settings) + account anchor pushed to bottom via Expanded sessions. Prop name: `activeSessionId` (String?, singular). Swipe-left (velocity < -200) fires onClose.
-  - `edge_state_block.dart` — 4 surfaces via `EdgeSurface` enum (offline/error/rateLimit/crisis). Offline: `tokens.colors.warning` dot + retry ghost button. Error: negativeWash + KaiTideCurve(KaiTide.error) + **KaiButton.ghost('Повторить')** (not ink1). RateLimit: warningWash + countdown text if provided. Crisis: KaiTideCurve at 0.3 opacity + CareBlock embedded.
-
-- **Shared test helper** created: `test/test_helpers.dart` — `buildTestWidget(Widget)` wraps with ProviderScope + KaiTheme + Scaffold (was missing from codebase; created in Phase 4a).
-
-- **Tests**: 131 passing (+40 organism tests; all use `buildTestWidget` from test/test_helpers.dart).
-
-- **Key design decisions**:
-  - `Color(0xFFC44A3C)` coral: established allowed raw color (CareBlock + EdgeStateBlock error icon)
-  - `tokens.colors.warning` used for offline yellow dot (confirmed token exists: `#B57A0B` light / `#D69E3E` dark)
-  - `tokens.colors.surface` for selected language chip text in OnboardingCard step 3
-
-### Phase 4b — Repo interfaces + mocks + showcase ✅ (commits 7590b69 + dcfa341)
-
-- **Repository interfaces** in `lib/core/repositories/`:
-  - `chat_repository.dart` — hand-written sealed `ChatEvent` (8 variants: Message/Thinking/State/Metadata/Approval/Correction/Done/Error) + `abstract ChatRepository` with `sendMessage` / `cancelStreaming`.
-  - `mock_chat_repository.dart` — implements ChatRepository with async fake stream: state→thinking→state→3 chunks→correction→done. Error path on sessionId ':error'. `sendMessage` closes any existing controller for the same sessionId before starting new one (prevents listener leak on retry). `cancelStreaming` closes stream immediately.
-  - `session_repository.dart` — `abstract SessionRepository` (list/create/delete) + `ChatSession` model (id/createdAt/tripId/title). Phase 5 will replace `ChatSession` with Hive-backed entity.
-  - `mock_session_repository.dart` — in-memory list, seeded with 2 sessions. `list()` sorts by createdAt desc and returns `List.unmodifiable`.
-
-- **Providers** in `lib/core/providers/root.dart`:
-  - `chatRepositoryProvider = Provider<ChatRepository>` → MockChatRepository
-  - `sessionRepositoryProvider = Provider<SessionRepository>` → MockSessionRepository
-  - Phase 5: switch both to real implementations behind env flag.
-
-- **Showcase** in `lib/features/dev/organisms_showcase_screen.dart`:
-  - Route `/_dev/organisms`, tile in `_DevHubScreen`.
-  - Interactive ChoiceChip selectors for OnboardingCard step, ChatList frame, EdgeStateBlock surface.
-  - NavPanel opened via 'Open NavPanel' button, overlaid in Stack.
-
-- **Tests**: 143 passing (131 + 5 chat repo + 7 session repo).
-
-- **Key implementation notes**:
-  - `NavPanel.sessions` is `List<Map<String, String>>` (must include 'date' key per comment in nav_panel.dart). Showcase uses const list with 3 keys.
-  - `*.freezed.dart` and `*.g.dart` are gitignored — must run `dart run build_runner build` in fresh worktrees.
-  - `.env` is gitignored — must `cp .env.example .env` in fresh worktrees before `flutter test`.
+**Total tests: 184/184**
 
 ---
 
 ## 5 · What's still pending
 
-### Phase 4b — Repo Interfaces + Mocks ✅ (commits 7590b69 + dcfa341)
+### Phase 5 — COMPLETE ✅
 
-All T4.30-T4.44 complete. See §4 "Phase 4b" above for details.
+All T5.1-T5.41 done. T5.37 (local device smoke test) skipped — no device available in controller environment.
 
-### Phase 5 — Screens + Real SSE backend (41 sub-tasks T5.1-T5.41) ← NEXT
+### Phase 6 — Edge States + Polish (final phase) ← NEXT
 
-Plan section around line 370-415. The biggest deliverable phase: real SSE chat with the 8 baked-in legacy patterns from T8-T37 (optimistic persist-then-stream, cancel-aware drain via Future.any + cancelCompleter, session-switch guard, microtask yield for cognitive status, correction-replaces-not-appends, _safelyPersistMessages, stream-started guard, emit failedUserMessage first).
+Plan section lines ~367-393. 26 sub-tasks T6.1-T6.26.
 
 Components:
-- `lib/features/onboarding/onboarding_screen.dart` — 4-step PageView
-- `lib/features/room/room_screen.dart` + `room_state.dart` — Riverpod notifier driving ChatList frame + tide state
-- `lib/features/nav/nav_screen.dart` — side panel host
-- Router: `/`, `/onboarding`, `/room`, `/room/:tripId` with bootstrap redirect on `settings.onboarded` flag
-- `lib/core/network/sse_parser.dart` — UTF-8 line splitter, 8 event types
-- `lib/core/repositories/real_chat_repository.dart` — implements ChatRepository with all 8 legacy patterns
-- `lib/core/repositories/real_session_repository.dart` — Hive-backed
-- Switch mocks → real in providers/root.dart
-
-### Phase 6 — Edge States + Polish (26 sub-tasks T6.1-T6.26)
-
-Plan section around line 415-440. Final phase:
-- Offline detection → EdgeStateBlock inline
-- Rate-limit (429) → soft message + disable compose
-- Crisis pattern detection → CareBlock in Kai bubble
-- Tide state transitions wired to RoomState
-- 60s inactivity → sleep state
-- l10n setup (en + ru ARBs)
+- `lib/core/network/connectivity_listener.dart` — connectivity_plus stream → provider
+- Wire offline detection in RoomState → EdgeStateBlock(offline) inline
+- Rate-limit (429) handling in real_chat_repository → emit rate-limit event
+- Wire rate-limit edge surface — disable compose, show countdown
+- Error edge surface routing
+- Crisis pattern detection (`.metadata` event with `crisis: true`)
+- Wire crisis → CareBlock in Kai bubble + EdgeStateBlock(crisis)
+- Tide state transitions: idle (no stream), listening (mic), thinking (request pending), responding (streaming), error (abnormal termination)
+- Success ephemeral trigger (responding→done → 1200ms flash then revert)
+- Memory ephemeral trigger (`.metadata` with `memory_saved=true` → 900ms pop)
+- 60s inactivity timer → sleep tide state
+- Tests: edge_states + tide_states
+- l10n setup (l10n.yaml + app_en.arb + app_ru.arb)
+- Replace hardcoded UI strings with AppLocalizations
 - Telemetry hook placeholder
-- Final smoke test, coverage thresholds (design_system 70%, features 60%, core/repositories 80%)
+- Final iOS smoke test (manual)
+- Coverage thresholds: 70% design_system, 60% features, 80% core/repositories
+- Commit phase-6, push, local tag, wait for user approval before PR to master
 
 ### Final review + finishing-a-development-branch
 
-After Phase 6: dispatch full-implementation code reviewer agent. Then user decides: PR to master, or merge inline, or leave as-is on branch.
+After Phase 6: dispatch full-implementation code reviewer. Then user decides: PR to master, merge inline, or leave as-is on branch.
 
 ---
 
@@ -289,7 +213,7 @@ After Phase 6: dispatch full-implementation code reviewer agent. Then user decid
 
 For each phase:
 
-1. **Mark phase task in_progress** in TodoWrite/TaskList
+1. **Mark phase task in_progress** in TaskList
 2. **Dispatch implementer subagent** with:
    - Full task text inline (don't make them read plan file)
    - Working dir absolute path
@@ -301,57 +225,49 @@ For each phase:
 3. **Receive report** — possible statuses: DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT
    - If BLOCKED or NEEDS_CONTEXT: provide context, re-dispatch
    - If DONE_WITH_CONCERNS: read concerns, decide if blockers or notes
-4. **Dispatch spec compliance reviewer** (general-purpose agent)
-   - "Don't trust implementer's report — verify by reading actual code"
-   - Specifies what to verify
+4. **Dispatch spec compliance reviewer** (general-purpose agent) + **code quality reviewer** (`feature-dev:code-reviewer`) **IN PARALLEL**
 5. **If spec ❌**: implementer fixes, spec re-reviews
-6. **Once spec ✅, dispatch code quality reviewer** (`feature-dev:code-reviewer` agent)
-   - Focuses on craft, not spec compliance
-7. **If code quality ❌**: implementer fixes, code quality re-reviews
-8. **Mark phase complete, checkpoint with user** — show summary, ask about CI verification + next phase
-9. **Repeat for next phase**
-
-### Implementer dispatch tips
-
-- Embed full task text — don't make subagent open plan file (preserves their context budget)
-- Be explicit about file paths
-- Mention that previous phase work is already in HEAD — they can read existing files
-- Tell them what to do if they run out of budget mid-task (report what's working, BLOCK with details)
-- Limit code-gen complexity (e.g., for Hive adapters, hand-rolled is the established pattern in Phase 3 due to analyzer conflict)
+6. **If code quality ❌**: implementer fixes, code quality re-reviews
+7. **Mark phase complete, checkpoint with user** — show summary, ask about CI verification + next phase
 
 ### Commit + push pattern (per phase)
 
 - Phase implementer commits with format: `phase-N: <name>\n\n<body>\n\nRefs: docs/.../...md Phase N\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`
 - Fix commits: `phase-N fix: <issue>\n\n<body>\n\nCo-Authored-By: ...`
-- `git push -u origin claude/hungry-lamport-e41998` (NEVER `--tags`)
+- `git push origin claude/hungry-lamport-e41998` (NEVER `--tags`)
 - `git tag phase-N-<name>` — LOCAL only
 
 ---
 
 ## 7 · Known tech debt (don't forget)
 
-1. **Golden tests deferred** (Phase 2). Behavior tests substitute. Document for follow-up after v1 — generate on macOS CI runner.
-2. **Hive adapters hand-rolled** (Phase 3). Must hand-edit adapters when adding fields. Watch for the analyzer pin conflict if upgrading deps.
-3. **`google_fonts` and `shimmer` removed from pubspec** (Phase 0). If a future feature wants them, re-add explicitly.
-4. **Voice mode not in v1** — `NSMicrophoneUsageDescription` removed from Info.plist. If voice is added later, restore the key.
-5. **No `--tags` push** — all phase tags are LOCAL. Don't push them to avoid replaying the 2026-05-26 wipe incident.
-6. **`HiveSetup._initialized` is process-wide static** — risks flaky tests if any future test calls `HiveSetup.init()` after `tearDownTestHive()`. No fix today (no current test triggers it). Recommended: add test-only `reset()` if Phase 5+ tests need full re-init.
-7. **anonymousSessionProvider not keepAlive** — in Riverpod 2.x plain FutureProvider does not autodispose by default (handoff §4 is correct), but in Phase 5 the AuthInterceptor will read sessionId via `container.read` — that's a one-shot read with no listener. Add `ref.keepAlive()` defensively to the provider when wiring AuthInterceptor in Phase 5, OR establish a long-lived listener in app bootstrap.
-8. **freezed entity field additions require BOTH `build_runner` AND hand-edited Hive adapter** — `.g.dart` / `.freezed.dart` regenerate on `dart run build_runner build`, but the hand-rolled Hive adapter is silent if a field is added to the freezed class. Update comment in session/message/settings adapter files (or hive_setup.dart) to mention this explicitly.
-9. **`/_dev/*` routes have no `kReleaseMode` guard** — known Phase 5 work. The current `/` redirect targets `/_dev` unconditionally; Phase 5 implementer must rewire to `/onboarding` or `/room` based on `settings.onboarded` flag AND guard dev routes behind `kReleaseMode` (or strip via build flavor).
-10. **AlertCard is structurally simpler than canon N-01** — current impl is single Column (icon + title + body + action). Canon `notifications-chat.html` has 4 zones: `.ac-head` (type chip + timestamp + dismiss), `.ac-icon`, `.ac-body`, `.ac-actions`. Acceptable for current scope; revisit when AlertCard is composed into Phase 4 organisms or first real proactive alert use-case lands.
-11. **AlertCard always uses `KaiIconName.alert` glyph** — canon N-01 has per-type glyphs (alert-triangle / info / check / bell). Either expose `icon` param to caller or derive from type. Some icons may need adding to `KaiIconName` enum.
-12. **Idle/sleep `strokePx`/`opacity` in `kai_tide.dart` are dead during breathe** — values declared but overridden by `breatheStroke/Opacity From/To` at runtime. Confusing for readers. Add inline comment OR drop the base values.
+1. **Golden tests deferred** (Phase 2). Behavior tests substitute.
+2. **Hive adapters hand-rolled** (Phase 3). Must hand-edit adapters when adding fields.
+3. **`google_fonts` and `shimmer` removed** (Phase 0). Re-add if needed.
+4. **Voice mode not in v1** — NSMicrophoneUsageDescription removed from Info.plist.
+5. **No `--tags` push** — all phase tags are LOCAL.
+6. **`HiveSetup._initialized` is process-wide static** — risk of flaky tests if re-init needed.
+7. **anonymousSessionProvider not keepAlive** — if AuthInterceptor ever reads it via `container.read`, add `ref.keepAlive()` defensively. Phase 5 didn't wire it; Phase 6 may need to.
+8. **freezed + hand-rolled Hive adapter** — adding fields requires BOTH `build_runner` AND hand-editing the adapter `read()`/`write()`.
+9. **`/_dev/*` routes no `kReleaseMode` guard** — Phase 6 should add or defer to post-v1.
+10. **AlertCard structural simplification** — current impl is single Column; canon N-01 has 4 zones. Acceptable for v1.
+11. **AlertCard always uses `KaiIconName.alert`** — per-type glyphs deferred.
+12. **Idle/sleep `strokePx`/`opacity` in `kai_tide.dart` are dead** — overridden by breathe animation.
+13. **T36 microtask yield placement** — fires BEFORE `yield event` in `real_chat_repository.dart`. Spec says "after state event." Current placement pre-flushes cognitive queue before the event is delivered. Non-blocking — acceptable for v1.
+14. **T33 test doesn't test error-swallowing** — the T33 group's happy-path test was renamed to accurately reflect what it covers. Genuine error-injection test deferred (requires Hive box override).
+15. **messages still typed as `List<Map<String,dynamic>>`** — Phase 5 kept the prototype type. Phase 6 or post-v1: switch `ChatList.messages` and `RoomStateData.messages` to `List<Message>` (the Hive entity).
+16. **NavScreen uses `sessionListProvider`** which calls `SessionRepository.list()` — this reads from mock (or real Hive if `USE_REAL_CHAT=true`). Nav panel session list only updates when provider is re-read. Phase 6 may want a watchable stream instead of a one-shot FutureProvider.
 
 ---
 
-## 8 · Lessons learned during Phase 0-3 execution
+## 8 · Lessons learned during Phase 0-5 execution
 
-- **Implementer budget**: Phase 2 implementer hit budget mid-T2.5 without committing. Symptom: agent returns abruptly with partial work in untracked files. Recovery: dispatch fresh agent with explicit "pick up from T2.X" prompt, verify untracked state, finish remaining tasks. **Recommendation**: for Phase 4 (44 sub-tasks), pre-emptively split into 4a + 4b.
-- **Code reviewer is sharp**: caught a real bug each phase (Phase 1 KaiTheme above MaterialApp, Phase 2 stale controller in ephemeral, Phase 3 bootstrap no try/catch). Trust their findings; verify with grep/read; dispatch fix; re-review.
-- **Spec reviewer rigour**: also caught real things (Phase 0 bootstrap signature didn't match plan T0.3 — my mistake in implementer prompt). Always verify against the plan text, not just the implementer's summary.
-- **flutter analyze must stay clean**: every phase must keep `flutter analyze` returning "No issues found!". Lints are strict (prefer_single_quotes, omit_local_variable_types, always_declare_return_types, avoid_print).
-- **HTML > JSON for design canon**: when `new-design/tide-states.html` and `new-design/design-tokens.json` disagree, HTML wins (e.g. idle/sleep breathe in HTML even though JSON says `animation: null`).
+- **Phase 5a implementer deviated on buildTestWidget**: feature-level tests used custom harnesses instead of `buildTestWidget`. Custom harnesses are legitimate (need provider overrides), but the spec required `buildTestWidget`. Going forward: tell implementers that custom wrappers are acceptable IF they're derived from or equivalent to `buildTestWidget`'s ProviderScope+MaterialApp+KaiTheme+Scaffold wrapping.
+- **Spec reviewer is sharp**: caught `RoomFrame.live` vs `RoomFrame.streaming` bug — a state machine error invisible to casual reading.
+- **Code quality reviewer is sharp**: caught StreamSubscription leak (ref.onDispose missing), raw Color literal, NavPanelRoute barrier not calling closeNavPanel. Trust their findings.
+- **Concurrency in async* generators**: Dart generators suspend at every `await`. Mutable shared state (like `_cancelCompleters` map) must be claimed synchronously BEFORE the first `await` to avoid race windows. Lesson learned in Phase 5b.
+- **`takeWhile` for cancel-safe `await for`**: checked-flag approach (`cancelCompleter.isCompleted`) works only between events. For a stalled stream, the generator hangs. `takeWhile((_) => !flag)` closes the stream at the Dart level on the next event boundary — sufficient for SSE (server always sends keepalives or closes).
+- **`ref.read` vs `ref.watch` in Provider body**: using `ref.read` in Provider body breaks Riverpod's override mechanism (for tests). Always use `ref.watch`.
 
 ---
 
@@ -368,24 +284,23 @@ User communicates in Russian. Respond in Russian. Code/commits stay English.
 
 ---
 
-## 10 · Your immediate next steps (Phase 5 controller)
+## 10 · Your immediate next steps (Phase 6 controller)
 
-1. Read: spec (`docs/superpowers/specs/2026-05-26-kai-app-rebuild-v3-design.md`), plan (`docs/superpowers/plans/2026-05-26-kai-app-rebuild-v3-implementation.md` § Phase 5 lines ~324-365), `new-design/CLAUDE.md`, this file in full.
-2. Create worktree setup:
+1. Read: spec (`docs/superpowers/specs/2026-05-26-kai-app-rebuild-v3-design.md`), plan (`docs/superpowers/plans/2026-05-26-kai-app-rebuild-v3-implementation.md` § Phase 6 lines ~367-393), `new-design/CLAUDE.md`, this file in full.
+2. Worktree setup (if fresh environment):
    ```bash
-   # The worktree already exists at E:/startup/kai-app/.claude/worktrees/hungry-lamport-e41998
-   # If re-entering a fresh environment, run these first:
    cp .env.example .env
    dart run build_runner build
    ```
-3. Run `git log --oneline -6` — confirm HEAD is `dcfa341`. Run `flutter test` — confirm 143 passing. Run `flutter analyze` — confirm clean (only .env warning is OK).
-4. **No Phase 0-4 review needed** — go straight to Phase 5.
-5. Phase 5 has 41 sub-tasks (T5.1-T5.41) — consider splitting into 5a + 5b if implementer budget is a concern (happened in Phase 2). A natural split: T5.1-T5.19 (state + screens + router) vs T5.20-T5.41 (SSE + real repositories + tests).
-6. Dispatch Phase 5 implementer subagent — embed full task text inline, don't make them open the plan file.
+3. Run `git log --oneline -6` — confirm HEAD is `8f96882`. Run `flutter test` — confirm 184 passing. Run `flutter analyze` — confirm clean.
+4. **No Phase 0-5 review needed** — go straight to Phase 6.
+5. Phase 6 has 26 sub-tasks (T6.1-T6.26) — consider splitting into 6a + 6b if implementer budget is a concern. Natural split: T6.1-T6.13 (connectivity, edge states, tide wiring, timer) vs T6.14-T6.26 (l10n, telemetry, coverage, final smoke, commit).
+6. Dispatch Phase 6 implementer — embed full task text inline.
 7. After implementer: dispatch spec + code quality reviewers in parallel.
-8. Fix issues, re-review if needed.
-9. Checkpoint with user: CI зелёный? Продолжаем Phase 6?
+8. Fix, re-review, checkpoint.
+9. After Phase 6: dispatch `finishing-a-development-branch` skill OR dispatch a full-codebase code reviewer.
+10. Checkpoint with user: "Phase 6 done. CI зелёный? Продолжаем к финальному review и PR?"
 
-**КАЖДАЯ ФАЗА = НОВАЯ СЕССИЯ.** После Phase 5 обновляй этот handoff-документ (Section 3, 4, 5, 10) и пиши контекст-промпт для следующей сессии.
+**КАЖДАЯ ФАЗА = НОВАЯ СЕССИЯ.** После Phase 6 обновляй этот handoff и пиши промпт для финального review.
 
 Good luck.
