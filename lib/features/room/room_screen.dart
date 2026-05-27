@@ -64,7 +64,9 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
 
   void _openNav() {
     ref.read(roomNotifierProvider.notifier).openNavPanel();
-    Navigator.of(context).push(NavPanelRoute());
+    Navigator.of(context).push(NavPanelRoute()).then((_) {
+      ref.read(roomNotifierProvider.notifier).closeNavPanel();
+    });
   }
 
   ComposeState _composeStateFrom(bool isStreaming) {
@@ -97,9 +99,11 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                       break;
                     }
                   }
-                  ref
-                      .read(roomNotifierProvider.notifier)
-                      .sendMessage(lastUserText);
+                  if (lastUserText.isNotEmpty) {
+                    ref
+                        .read(roomNotifierProvider.notifier)
+                        .sendMessage(lastUserText);
+                  }
                 },
               ),
             ),

@@ -58,9 +58,18 @@ final roomNotifierProvider =
 
 class RoomNotifier extends Notifier<RoomStateData> {
   Completer<void>? _cancelCompleter;
+  StreamSubscription<ChatEvent>? _subscription;
 
   @override
-  RoomStateData build() => const RoomStateData();
+  RoomStateData build() {
+    ref.onDispose(() {
+      _subscription?.cancel();
+      if (_cancelCompleter != null && !_cancelCompleter!.isCompleted) {
+        _cancelCompleter!.complete();
+      }
+    });
+    return const RoomStateData();
+  }
 
   Future<void> sendMessage(String text) async {
     if (state.isStreaming) return;
@@ -83,7 +92,7 @@ class RoomNotifier extends Notifier<RoomStateData> {
 
     state = state.copyWith(
       messages: withKai,
-      currentFrame: RoomFrame.live,
+      currentFrame: RoomFrame.streaming,
       tideState: KaiTide.thinking,
       isStreaming: true,
       streamingMessageId: kaiMsgId,
@@ -94,13 +103,12 @@ class RoomNotifier extends Notifier<RoomStateData> {
     final chatRepository = ref.read(chatRepositoryProvider);
 
     try {
-      final subscription = chatRepository.sendMessage(text, sessionId).listen(
+      _subscription = chatRepository.sendMessage(text, sessionId).listen(
         _handleEvent,
         onDone: _onStreamDone,
         onError: (Object e) => _onStreamError(),
         cancelOnError: true,
       );
-      _cancelCompleter!.future.then((_) => subscription.cancel());
     } catch (_) {
       _setErrorState();
     }
@@ -142,11 +150,15 @@ class RoomNotifier extends Notifier<RoomStateData> {
         state = current.copyWith(messages: updated);
       case ChatEventDone():
         _markKaiMessageDone(status: 'ok');
+        _subscription?.cancel();
+        _subscription = null;
         if (_cancelCompleter != null && !_cancelCompleter!.isCompleted) {
           _cancelCompleter!.complete();
         }
       case ChatEventError():
         _setErrorState();
+        _subscription?.cancel();
+        _subscription = null;
         if (_cancelCompleter != null && !_cancelCompleter!.isCompleted) {
           _cancelCompleter!.complete();
         }
@@ -161,6 +173,7 @@ class RoomNotifier extends Notifier<RoomStateData> {
     // If we're still streaming after stream closes, treat it as done.
     if (state.isStreaming) {
       _markKaiMessageDone(status: 'ok');
+      _subscription = null;
       if (_cancelCompleter != null && !_cancelCompleter!.isCompleted) {
         _cancelCompleter!.complete();
       }
@@ -179,10 +192,11 @@ class RoomNotifier extends Notifier<RoomStateData> {
       }
       return msg;
     }).toList();
+    final nextFrame = updated.isEmpty ? RoomFrame.empty : RoomFrame.live;
     state = state.copyWith(
       messages: updated,
       isStreaming: false,
-      currentFrame: RoomFrame.live,
+      currentFrame: nextFrame,
       tideState: KaiTide.idle,
       streamingMessageId: null,
     );
@@ -224,6 +238,8 @@ class RoomNotifier extends Notifier<RoomStateData> {
   }
 
   Future<void> cancelStreaming() async {
+    await _subscription?.cancel();
+    _subscription = null;
     if (_cancelCompleter != null && !_cancelCompleter!.isCompleted) {
       _cancelCompleter!.complete();
     }

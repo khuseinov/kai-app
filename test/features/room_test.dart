@@ -75,8 +75,8 @@ void main() {
       notifier.sendMessage('hello');
       await tester.pump();
 
-      // Frame immediately transitions to live (user message added).
-      expect(container!.read(roomNotifierProvider).currentFrame, RoomFrame.live);
+      // Frame immediately transitions to streaming (streaming begins).
+      expect(container!.read(roomNotifierProvider).currentFrame, RoomFrame.streaming);
 
       // Pump through the full mock stream (total ~800ms delays).
       await tester.pump(const Duration(milliseconds: 1200));

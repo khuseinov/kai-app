@@ -61,6 +61,32 @@ void main() {
       expect(events, isEmpty);
     });
 
+    test('parses thinking event', () async {
+      const raw = 'event: thinking\ndata: {"step":"planning"}\n\n';
+      final events = await SseParser.parse(_toStream(raw)).toList();
+      expect(events, hasLength(1));
+      final e = events.first as ChatEventThinking;
+      expect(e.step, 'planning');
+    });
+
+    test('parses metadata event', () async {
+      const raw = 'event: metadata\ndata: {"memory_saved":true}\n\n';
+      final events = await SseParser.parse(_toStream(raw)).toList();
+      expect(events, hasLength(1));
+      final e = events.first as ChatEventMetadata;
+      expect(e.data['memory_saved'], true);
+    });
+
+    test('parses approval event', () async {
+      const raw =
+          'event: approval\ndata: {"prompt":"Book this flight?","requestId":"req-1"}\n\n';
+      final events = await SseParser.parse(_toStream(raw)).toList();
+      expect(events, hasLength(1));
+      final e = events.first as ChatEventApproval;
+      expect(e.prompt, 'Book this flight?');
+      expect(e.requestId, 'req-1');
+    });
+
     test('handles multi-event stream', () async {
       const raw = 'event: state\ndata: {"state":"thinking"}\n\n'
           'event: message\ndata: {"content":"Hello","messageId":"m3"}\n\n'

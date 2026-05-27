@@ -123,7 +123,7 @@ class _DotsIndicator extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: isActive
-                ? const Color(0xFF1B4FB0)
+                ? colors.accent
                 : colors.ink4.withValues(alpha: 0.3),
           ),
         );
