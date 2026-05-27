@@ -138,5 +138,47 @@ void main() {
       await tester.pump(const Duration(milliseconds: 60));
       await tester.pump(const Duration(milliseconds: 60));
     });
+
+    testWidgets('pill variant: send button size = 30', (WidgetTester tester) async {
+      final controller = TextEditingController();
+      await _pump(
+        tester,
+        ComposeIsland(
+          controller: controller,
+          onSend: () {},
+          variant: ComposeIslandVariant.pill,
+        ),
+      );
+      final send = tester.widget<KaiButtonSend>(find.byType(KaiButtonSend));
+      expect(send.size, 30);
+      expect(send.iconSize, 12);
+    });
+
+    testWidgets('sheet variant: send button size = 32', (WidgetTester tester) async {
+      final controller = TextEditingController();
+      await _pump(
+        tester,
+        ComposeIsland(
+          controller: controller,
+          onSend: () {},
+          variant: ComposeIslandVariant.sheet,
+        ),
+      );
+      final send = tester.widget<KaiButtonSend>(find.byType(KaiButtonSend));
+      expect(send.size, 32);
+      expect(send.iconSize, 16);
+    });
+
+    testWidgets('pill is the default variant (buttonSize=30)',
+        (WidgetTester tester) async {
+      final controller = TextEditingController();
+      await _pump(
+        tester,
+        ComposeIsland(controller: controller, onSend: () {}),
+      );
+      // Default variant = pill → send.size = 30.
+      final send = tester.widget<KaiButtonSend>(find.byType(KaiButtonSend));
+      expect(send.size, 30);
+    });
   });
 }

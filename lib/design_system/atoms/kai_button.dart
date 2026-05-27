@@ -6,14 +6,16 @@ import '../tokens/kai_tokens.dart';
 import 'kai_icon.dart' show KaiIconName;
 
 /// Internal variant selector.
-enum _KaiButtonVariant { tide, ink1, ghost, icon }
+enum _KaiButtonVariant { tide, ink1, ghost, icon, iconTransparent }
 
-/// Atomic button — four visual variants:
+/// Atomic button — five visual variants:
 ///
 /// - `KaiButton.tide` — primary action, tide gradient + soft shadow + white text.
 /// - `KaiButton.ink1` — solid ink-1 fill + white text.
-/// - `KaiButton.ghost` — transparent + 1px ink-3 border + ink-1 text.
-/// - `KaiButton.icon` — icon-only pill, ink-2 tint.
+/// - `KaiButton.ghost` — transparent + 1px line border + ink-1 text.
+/// - `KaiButton.icon` — icon-only pill, ink-2 tint, surface-2 bg.
+/// - `KaiButton.iconTransparent` — icon-only, no background, ink-3 icon. Use
+///   for mic in compose-island (HTML canon: `background: transparent; color: var(--ink-3)`).
 ///
 /// `onPressed == null` disables the button (opacity 0.5, no tap).
 ///
@@ -55,6 +57,19 @@ class KaiButton extends StatefulWidget {
         label = '',
         _iconSize = size;
 
+  /// Transparent icon-only button — no background, no border.
+  ///
+  /// HTML canon: `.compose-island .mic { background: transparent; color: var(--ink-3); }`
+  /// Use for mic affordance in [ComposeIsland].
+  const KaiButton.iconTransparent({
+    required this.onPressed,
+    required KaiIconName this.icon,
+    double? size,
+    super.key,
+  })  : _variant = _KaiButtonVariant.iconTransparent,
+        label = '',
+        _iconSize = size;
+
   final VoidCallback? onPressed;
   final String label;
   final KaiIconName? icon;
@@ -78,7 +93,9 @@ class _KaiButtonState extends State<KaiButton> {
     final tokens = KaiTheme.of(context);
     final enabled = widget.onPressed != null;
     final decoration = _buildDecoration(tokens, enabled);
-    final padding = widget._variant == _KaiButtonVariant.icon
+    final isIconVariant = widget._variant == _KaiButtonVariant.icon ||
+        widget._variant == _KaiButtonVariant.iconTransparent;
+    final padding = isIconVariant
         // Canon: room.html `.compose-island .mic, .send { width: 30px;
         // height: 30px; }` — with an 18px glyph that means 6px padding.
         ? const EdgeInsets.all(KaiSpace.s1 + 2)
@@ -87,9 +104,7 @@ class _KaiButtonState extends State<KaiButton> {
             horizontal: KaiSpace.s5,
           );
 
-    final content = widget._variant == _KaiButtonVariant.icon
-        ? _iconOnly(tokens)
-        : _labelAndIcon(tokens);
+    final content = isIconVariant ? _iconOnly(tokens) : _labelAndIcon(tokens);
 
     final core = AnimatedScale(
       scale: _pressed && enabled ? 0.97 : 1.0,
@@ -108,9 +123,7 @@ class _KaiButtonState extends State<KaiButton> {
     return Semantics(
       button: true,
       enabled: enabled,
-      label: widget._variant == _KaiButtonVariant.icon
-          ? (widget.icon?.assetName ?? 'button')
-          : widget.label,
+      label: isIconVariant ? (widget.icon?.assetName ?? 'button') : widget.label,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTapDown: enabled ? (_) => _setPressed(true) : null,
@@ -143,16 +156,21 @@ class _KaiButtonState extends State<KaiButton> {
           borderRadius: KaiRadius.br3,
         );
       case _KaiButtonVariant.ghost:
+        // Canon: components.html `.l-pill { border: 1px solid var(--line); }`
+        // line = #E8E8E5 (not ink3 = #76767E which is 4× darker).
         return BoxDecoration(
           color: Colors.transparent,
           borderRadius: KaiRadius.br3,
-          border: Border.all(color: c.ink3, width: 1),
+          border: Border.all(color: c.line, width: 1),
         );
       case _KaiButtonVariant.icon:
         return BoxDecoration(
           color: c.surface2,
           borderRadius: KaiRadius.brPill,
         );
+      case _KaiButtonVariant.iconTransparent:
+        // Canon: room.html `.compose-island .mic { background: transparent; }`
+        return const BoxDecoration(color: Colors.transparent);
     }
   }
 
@@ -189,11 +207,16 @@ class _KaiButtonState extends State<KaiButton> {
   Widget _iconOnly(KaiTokens tokens) {
     final c = tokens.colors;
     final size = widget._iconSize ?? 18;
+    // iconTransparent uses ink-3 (HTML canon: `color: var(--ink-3)`).
+    // icon (surface-2 pill) uses ink-2.
+    final iconColor = widget._variant == _KaiButtonVariant.iconTransparent
+        ? c.ink3
+        : c.ink2;
     return SvgPicture.asset(
       'assets/icons/${widget.icon!.assetName}.svg',
       width: size,
       height: size,
-      colorFilter: ColorFilter.mode(c.ink2, BlendMode.srcIn),
+      colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
     );
   }
 
@@ -206,6 +229,8 @@ class _KaiButtonState extends State<KaiButton> {
         return tokens.colors.ink1;
       case _KaiButtonVariant.icon:
         return tokens.colors.ink2;
+      case _KaiButtonVariant.iconTransparent:
+        return tokens.colors.ink3;
     }
   }
 }

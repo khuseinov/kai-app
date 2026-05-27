@@ -30,6 +30,7 @@ class KaiButtonSend extends StatefulWidget {
     required this.state,
     required this.onPressed,
     this.size = 44,
+    this.iconSize = 16,
     super.key,
   });
 
@@ -43,6 +44,12 @@ class KaiButtonSend extends StatefulWidget {
 
   /// Total tap-target size (square). Default 44 (HIG min).
   final double size;
+
+  /// SVG icon size inside the circle. Default 16.
+  ///
+  /// Pill compose uses 12 (HTML canon: frame01/02 send icon ≈ 12–13 px inside
+  /// a 30×30 circle).
+  final double iconSize;
 
   @override
   State<KaiButtonSend> createState() => _KaiButtonSendState();
@@ -113,8 +120,8 @@ class _KaiButtonSendState extends State<KaiButtonSend>
           alignment: Alignment.center,
           child: SvgPicture.asset(
             'assets/icons/send.svg',
-            width: 20,
-            height: 20,
+            width: widget.iconSize,
+            height: widget.iconSize,
             colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
           ),
         ),

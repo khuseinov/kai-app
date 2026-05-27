@@ -17,6 +17,14 @@ import '../tokens/kai_tokens.dart';
 /// - [disabled] — compose is blocked (offline or rate-limited); send is always disabled.
 enum ComposeState { idle, recording, sending, streaming, disabled }
 
+/// Layout variant of the compose island.
+///
+/// - [pill] — bottom-of-chat pill, surface bg + 1px line border, radius 999.
+///   Padding `5/5/5/16`, button size 30, gap 4. HTML canon: `room.html .compose-island`.
+/// - [sheet] — compose-sheet inside frame04, surface-2 bg, radius 24.
+///   Padding `6/6/6/16`, button size 32, gap 6. HTML canon: `room.html .compose-row`.
+enum ComposeIslandVariant { pill, sheet }
+
 /// Pill-shaped composer used at the bottom of every conversation surface.
 ///
 /// Layout matches `new-design/components.html § compose-sheet`:
@@ -40,6 +48,7 @@ class ComposeIsland extends StatelessWidget {
     this.state = ComposeState.idle,
     this.placeholder = 'Сообщение Kai…',
     this.showMic = true,
+    this.variant = ComposeIslandVariant.pill,
     super.key,
   });
 
@@ -60,6 +69,10 @@ class ComposeIsland extends StatelessWidget {
 
   /// Whether to render the mic affordance on the left side.
   final bool showMic;
+
+  /// Layout variant. [ComposeIslandVariant.pill] (default) — bottom-of-chat pill.
+  /// [ComposeIslandVariant.sheet] — full-width compose row inside a sheet.
+  final ComposeIslandVariant variant;
 
   /// Maps [state] + current text to the send-button lifecycle state.
   KaiSendState _sendStateFrom(String text) {
@@ -82,25 +95,40 @@ class ComposeIsland extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
     final c = tokens.colors;
-    const buttonSize = 32.0;
+
+    // Canon sizes from room.html:
+    // pill → .mic/.send 30×30, padding 5/5/5/16, gap 4
+    // sheet → .send 32×32, padding 6/6/6/16, gap 6
+    final isPill = variant == ComposeIslandVariant.pill;
+    final buttonSize = isPill ? 30.0 : 32.0;
+    final sendIconSize = isPill ? 12.0 : 16.0;
+    final gap = isPill ? 4.0 : 6.0;
+    final padding = isPill
+        ? const EdgeInsets.fromLTRB(16, 5, 5, 5)
+        : const EdgeInsets.fromLTRB(16, 6, 6, 6);
+
+    // Decoration: pill → surface + 1px line border + brPill.
+    //             sheet → surface-2 + radius 24 (no border).
+    final decoration = isPill
+        ? BoxDecoration(
+            color: c.surface,
+            border: Border.all(color: c.line, width: 1),
+            borderRadius: KaiRadius.brPill,
+          )
+        : BoxDecoration(
+            color: c.surface2,
+            borderRadius: BorderRadius.circular(24),
+          );
+
+    // sheet aligns children to bottom (textarea grows up), pill centers.
+    final crossAxis =
+        isPill ? CrossAxisAlignment.center : CrossAxisAlignment.end;
 
     return Container(
-      // Pill container. Padding 6×8 keeps mic + send hug-edge with the
-      // outer radius (999) — radii match, no overflow.
-      // Canon: room.html elevated compose-island uses --surface (pure
-      // white) + 1px --line border. Pure #FFFFFF is reserved for elevated
-      // content like this island (see new-design/CLAUDE.md § Color).
-      decoration: BoxDecoration(
-        color: c.surface,
-        border: Border.all(color: c.line, width: 1),
-        borderRadius: KaiRadius.brPill,
-      ),
-      padding: const EdgeInsets.symmetric(
-        vertical: KaiSpace.s1 + 2, // 6
-        horizontal: KaiSpace.s2, // 8
-      ),
+      decoration: decoration,
+      padding: padding,
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: crossAxis,
         children: [
           if (showMic && onMicToggle != null) ...[
             _MicSlot(
@@ -108,7 +136,7 @@ class ComposeIsland extends StatelessWidget {
               active: state == ComposeState.recording,
               size: buttonSize,
             ),
-            const SizedBox(width: KaiSpace.s2),
+            SizedBox(width: gap),
           ],
           Expanded(
             child: _ComposeField(
@@ -116,7 +144,7 @@ class ComposeIsland extends StatelessWidget {
               placeholder: placeholder,
             ),
           ),
-          const SizedBox(width: KaiSpace.s2),
+          SizedBox(width: gap),
           ListenableBuilder(
             listenable: controller,
             builder: (_, __) {
@@ -130,6 +158,7 @@ class ComposeIsland extends StatelessWidget {
                 state: sendState,
                 onPressed: sendState == KaiSendState.disabled ? null : onSend,
                 size: buttonSize,
+                iconSize: sendIconSize,
               );
             },
           ),
@@ -139,8 +168,11 @@ class ComposeIsland extends StatelessWidget {
   }
 }
 
-/// Internal mic affordance — uses [KaiButton.icon] when idle and an
-/// accent-washed variant when [active] (i.e. recording).
+/// Internal mic affordance — transparent icon (ink-3) when idle, accent-wash
+/// pill when [active] (i.e. recording).
+///
+/// HTML canon: `room.html .compose-island .mic { background: transparent; color: var(--ink-3); }`
+/// Active (recording) mode wraps in accent-wash pill so the live state is visible.
 class _MicSlot extends StatelessWidget {
   const _MicSlot({
     required this.onTap,
@@ -155,13 +187,12 @@ class _MicSlot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
-    // When active, paint a tide-tinted pill so it reads "live" without
-    // needing a separate atom. The base KaiButton.icon already renders a
-    // pill — we wrap it in a Container only when recording.
-    final child = KaiButton.icon(
+    // iconTransparent: no surface-2 pill background — just the ink-3 icon.
+    // Active state: wrap in accent-wash pill to signal recording is live.
+    final child = KaiButton.iconTransparent(
       onPressed: onTap,
       icon: KaiIconName.mic,
-      size: 18,
+      size: 14,
       key: const ValueKey<String>('compose_mic_button'),
     );
     if (!active) return SizedBox(height: size, child: child);
@@ -193,14 +224,23 @@ class _ComposeField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
-    final bodyStyle = KaiType.body(color: c.ink1);
-    final placeholderStyle = KaiType.body(color: c.ink4);
+    // Canon: room.html `.compose-island input { font: 400 13.5px var(--font-sans);
+    //   color: var(--ink-1); letter-spacing: -0.005em; }`
+    // Canon placeholder: `color: var(--ink-4)`.
+    final inputStyle = TextStyle(
+      fontFamily: 'Manrope',
+      fontSize: 13.5,
+      fontWeight: FontWeight.w400,
+      color: c.ink1,
+      letterSpacing: -0.005 * 13.5,
+    );
+    final placeholderStyle = inputStyle.copyWith(color: c.ink4);
 
     return TextField(
       controller: controller,
       minLines: 1,
       maxLines: 4,
-      style: bodyStyle,
+      style: inputStyle,
       cursorColor: c.accent,
       textInputAction: TextInputAction.newline,
       decoration: InputDecoration(
