@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/network/connectivity_listener.dart';
 import '../../core/providers/root.dart';
 import '../../core/repositories/chat_repository.dart';
 import '../../design_system/organisms/chat_list.dart';
@@ -17,6 +18,10 @@ class RoomStateData {
     this.isStreaming = false,
     this.activeSessionId,
     this.streamingMessageId,
+    this.isOffline = false,
+    this.isRateLimited = false,
+    this.rateLimitRetryAfter,
+    this.isCrisis = false,
   }) : tideState = tideState ?? KaiTide.idle;
 
   final List<Map<String, dynamic>> messages;
@@ -28,6 +33,11 @@ class RoomStateData {
   /// id of the Kai message currently being streamed.
   final String? streamingMessageId;
 
+  final bool isOffline;
+  final bool isRateLimited;
+  final Duration? rateLimitRetryAfter;
+  final bool isCrisis;
+
   RoomStateData copyWith({
     List<Map<String, dynamic>>? messages,
     RoomFrame? currentFrame,
@@ -35,6 +45,10 @@ class RoomStateData {
     bool? isStreaming,
     Object? activeSessionId = _sentinel,
     Object? streamingMessageId = _sentinel,
+    bool? isOffline,
+    bool? isRateLimited,
+    Object? rateLimitRetryAfter = _sentinel,
+    bool? isCrisis,
   }) {
     return RoomStateData(
       messages: messages ?? this.messages,
@@ -47,6 +61,12 @@ class RoomStateData {
       streamingMessageId: streamingMessageId == _sentinel
           ? this.streamingMessageId
           : streamingMessageId as String?,
+      isOffline: isOffline ?? this.isOffline,
+      isRateLimited: isRateLimited ?? this.isRateLimited,
+      rateLimitRetryAfter: rateLimitRetryAfter == _sentinel
+          ? this.rateLimitRetryAfter
+          : rateLimitRetryAfter as Duration?,
+      isCrisis: isCrisis ?? this.isCrisis,
     );
   }
 }
@@ -59,6 +79,10 @@ final roomNotifierProvider =
 class RoomNotifier extends Notifier<RoomStateData> {
   Completer<void>? _cancelCompleter;
   StreamSubscription<ChatEvent>? _subscription;
+  Timer? _rateLimitTimer;
+  Timer? _successTimer;
+  Timer? _memoryTimer;
+  Timer? _inactivityTimer;
 
   @override
   RoomStateData build() {
@@ -67,7 +91,19 @@ class RoomNotifier extends Notifier<RoomStateData> {
       if (_cancelCompleter != null && !_cancelCompleter!.isCompleted) {
         _cancelCompleter!.complete();
       }
+      _rateLimitTimer?.cancel();
+      _successTimer?.cancel();
+      _memoryTimer?.cancel();
+      _inactivityTimer?.cancel();
     });
+
+    ref.listen<AsyncValue<bool>>(isOnlineProvider, (_, next) {
+      final online = next.valueOrNull ?? true;
+      if (state.isOffline == !online) return;
+      state = state.copyWith(isOffline: !online);
+    });
+
+    _resetInactivityTimer();
     return const RoomStateData();
   }
 
@@ -112,6 +148,8 @@ class RoomNotifier extends Notifier<RoomStateData> {
     } catch (_) {
       _setErrorState();
     }
+
+    _resetInactivityTimer();
   }
 
   void _handleEvent(ChatEvent event) {
@@ -162,9 +200,27 @@ class RoomNotifier extends Notifier<RoomStateData> {
         if (_cancelCompleter != null && !_cancelCompleter!.isCompleted) {
           _cancelCompleter!.complete();
         }
+      case ChatEventRateLimit(:final retryAfter):
+        _markKaiMessageDone(status: 'ok');
+        _subscription?.cancel();
+        _subscription = null;
+        if (_cancelCompleter != null && !_cancelCompleter!.isCompleted) {
+          _cancelCompleter!.complete();
+        }
+        state = state.copyWith(
+          isRateLimited: true,
+          rateLimitRetryAfter: retryAfter,
+        );
+        _startRateLimitCountdown(retryAfter);
+      case ChatEventMetadata(:final data):
+        if (data['crisis'] == true) {
+          state = state.copyWith(isCrisis: true);
+        }
+        if (data['memory_saved'] == true) {
+          _triggerMemoryEphemeral();
+        }
       // Ignore in Phase 5a.
       case ChatEventThinking():
-      case ChatEventMetadata():
       case ChatEventApproval():
     }
   }
@@ -197,9 +253,15 @@ class RoomNotifier extends Notifier<RoomStateData> {
       messages: updated,
       isStreaming: false,
       currentFrame: nextFrame,
-      tideState: KaiTide.idle,
+      tideState: KaiTide.success,
       streamingMessageId: null,
     );
+    _successTimer?.cancel();
+    _successTimer = Timer(const Duration(milliseconds: 1200), () {
+      if (state.tideState == KaiTide.success) {
+        state = state.copyWith(tideState: KaiTide.idle);
+      }
+    });
   }
 
   void _setErrorState() {
@@ -219,8 +281,46 @@ class RoomNotifier extends Notifier<RoomStateData> {
     );
   }
 
+  void _startRateLimitCountdown(Duration initial) {
+    _rateLimitTimer?.cancel();
+    var remaining = initial.inSeconds;
+    _rateLimitTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      remaining--;
+      if (remaining <= 0) {
+        t.cancel();
+        state = state.copyWith(
+          isRateLimited: false,
+          rateLimitRetryAfter: null,
+        );
+      } else {
+        state = state.copyWith(rateLimitRetryAfter: Duration(seconds: remaining));
+      }
+    });
+  }
+
+  void _triggerMemoryEphemeral() {
+    final previousTide = state.tideState;
+    _memoryTimer?.cancel();
+    state = state.copyWith(tideState: KaiTide.memory);
+    _memoryTimer = Timer(const Duration(milliseconds: 900), () {
+      if (state.tideState == KaiTide.memory) {
+        state = state.copyWith(tideState: previousTide);
+      }
+    });
+  }
+
+  void _resetInactivityTimer() {
+    _inactivityTimer?.cancel();
+    _inactivityTimer = Timer(const Duration(seconds: 60), () {
+      if (!state.isStreaming) {
+        state = state.copyWith(tideState: KaiTide.sleep);
+      }
+    });
+  }
+
   void openNavPanel() {
     state = state.copyWith(currentFrame: RoomFrame.panel);
+    _resetInactivityTimer();
   }
 
   void closeNavPanel() {
@@ -228,6 +328,7 @@ class RoomNotifier extends Notifier<RoomStateData> {
     state = state.copyWith(
       currentFrame: hasMessages ? RoomFrame.live : RoomFrame.empty,
     );
+    _resetInactivityTimer();
   }
 
   void switchSession(String sessionId) {
@@ -235,6 +336,7 @@ class RoomNotifier extends Notifier<RoomStateData> {
       tideState: KaiTide.idle,
       activeSessionId: sessionId,
     );
+    _resetInactivityTimer();
   }
 
   Future<void> cancelStreaming() async {
@@ -243,5 +345,6 @@ class RoomNotifier extends Notifier<RoomStateData> {
     if (_cancelCompleter != null && !_cancelCompleter!.isCompleted) {
       _cancelCompleter!.complete();
     }
+    state = state.copyWith(isStreaming: false, tideState: KaiTide.idle);
   }
 }

@@ -124,6 +124,12 @@ class RealChatRepository implements ChatRepository {
           break; // T30: error terminates stream
         }
       }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 429) {
+        yield ChatEventRateLimit(retryAfter: _parseRetryAfter(e.response));
+      } else {
+        yield const ChatEventError(message: 'Connection error');
+      }
     } catch (_) {
       // T34: on unexpected error, surface it to consumer
       yield const ChatEventError(message: 'Connection error');
@@ -155,5 +161,11 @@ class RealChatRepository implements ChatRepository {
         // Persistence failure is non-fatal — stream continues
       }
     }
+  }
+
+  Duration _parseRetryAfter(Response<dynamic>? response) {
+    final header = response?.headers.value('retry-after');
+    final secs = int.tryParse(header ?? '');
+    return secs != null ? Duration(seconds: secs) : const Duration(seconds: 60);
   }
 }

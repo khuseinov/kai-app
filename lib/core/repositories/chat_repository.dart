@@ -54,6 +54,12 @@ final class ChatEventError extends ChatEvent {
   final String message;
 }
 
+/// Rate limit reached (HTTP 429). [retryAfter] is the server-specified wait.
+final class ChatEventRateLimit extends ChatEvent {
+  const ChatEventRateLimit({this.retryAfter = const Duration(seconds: 60)});
+  final Duration retryAfter;
+}
+
 abstract class ChatRepository {
   /// Sends [text] in session [sessionId] and returns the event stream.
   Stream<ChatEvent> sendMessage(String text, String sessionId);

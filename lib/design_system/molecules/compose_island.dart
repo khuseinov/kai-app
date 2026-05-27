@@ -14,7 +14,8 @@ import '../tokens/kai_tokens.dart';
 ///   which case send remains active.
 /// - [sending] — request in flight; send button shows pulsing tide.
 /// - [streaming] — response streaming in; send button keeps pulsing.
-enum ComposeState { idle, recording, sending, streaming }
+/// - [disabled] — compose is blocked (offline or rate-limited); send is always disabled.
+enum ComposeState { idle, recording, sending, streaming, disabled }
 
 /// Pill-shaped composer used at the bottom of every conversation surface.
 ///
@@ -72,6 +73,8 @@ class ComposeIsland extends StatelessWidget {
         return KaiSendState.sending;
       case ComposeState.streaming:
         return KaiSendState.streaming;
+      case ComposeState.disabled:
+        return KaiSendState.disabled;
     }
   }
 
