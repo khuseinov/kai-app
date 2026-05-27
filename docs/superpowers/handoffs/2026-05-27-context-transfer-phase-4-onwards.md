@@ -1,24 +1,25 @@
-# Kai App Rebuild v3 — Context Transfer for Phase 4+
+# Kai App Rebuild v3 — Context Transfer for Phase 4b+
 
-**Date**: 2026-05-27
-**From session**: ran brainstorming → sp-ultraplan → SDD execution Phase 0-3
-**To**: new agent session continuing from Phase 4
-**Reason**: previous controller context approaching limits; user requested context transfer
+**Date**: 2026-05-27 (updated after Phase 4a completion)
+**From session**: Phase 4a controller (Phases 0-3 review + Phase 4a organisms)
+**To**: new agent session starting Phase 4b
+**Reason**: каждая фаза = новая сессия (user requirement)
 
 ---
 
 ## 1 · Your job
 
-You are the SDD (subagent-driven-development) **controller** continuing execution of the Kai app rebuild v3 plan from Phase 4 onwards. You did NOT do Phase 0-3 — a previous controller did. You inherit state, not history.
+You are the SDD (subagent-driven-development) **controller** continuing execution of the Kai app rebuild v3 plan from **Phase 4b** onwards. Phases 0–4a are DONE. You inherit state, not history.
 
-**Mandatory first action**: read these three files in order before doing anything else:
-1. `docs/superpowers/specs/2026-05-26-kai-app-rebuild-v3-design.md` (the design spec, commit `b5fef3b`)
-2. `docs/superpowers/plans/2026-05-26-kai-app-rebuild-v3-implementation.md` (the full 134-task plan, commit `0717601`)
-3. `new-design/CLAUDE.md` (the design system rules — non-negotiable)
+**Mandatory first action**: read these files before doing anything else:
+1. `docs/superpowers/specs/2026-05-26-kai-app-rebuild-v3-design.md` (design spec)
+2. `docs/superpowers/plans/2026-05-26-kai-app-rebuild-v3-implementation.md` (134-task plan)
+3. `new-design/CLAUDE.md` (design system hard rules — non-negotiable)
+4. This file in full.
 
-Then read this file in full.
+Then verify state with `git log --oneline -6` and `flutter test` before dispatching any implementer.
 
-After reading: **first action is to run an independent review of Phase 0-3 work** (commits `cd8ba93` through `cf6ab20`). This is the user's explicit request — they want a fresh pair of eyes to verify the state before you continue. Use a spec reviewer subagent. Only after that review approves do you start Phase 4.
+**Do NOT run a Phase 0-3 review** — that was already done by the previous controller. Go straight to Phase 4b.
 
 ---
 
@@ -51,13 +52,17 @@ User is on **Windows 11**. `gh` CLI is NOT installed. Cannot programmatically ve
 
 ---
 
-## 3 · Current state (as of 2026-05-27)
+## 3 · Current state (as of 2026-05-27 — after Phase 4a)
 
 ### Branch position
 
-- HEAD: `cf6ab20` on `origin/claude/hungry-lamport-e41998`
-- 9 commits since branch off master:
+- HEAD: `d62e867` on `origin/claude/hungry-lamport-e41998`
+- 13 commits since branch off master:
   ```
+  d62e867 phase-4a fix: review findings (spec + code quality)
+  bc119e9 phase-4a: organisms (onboarding_card, chat_list, nav_panel, edge_state_block)
+  f37086d phase-3 fix-2: design canon + ephemeral race
+  9f6fdf1 docs(handoff): context transfer for Phase 4+ controller
   cf6ab20 phase-3 fix: error resilience + adapter consistency
   54332c8 phase-3: molecules + storage
   9468721 phase-2 fix: ephemeral cycle stale controller + error wobble duration
@@ -75,15 +80,16 @@ User is on **Windows 11**. `gh` CLI is NOT installed. Cannot programmatically ve
 - `phase-1-foundation` → `1d215dd`
 - `phase-2-atoms` → `46a2ec5`
 - `phase-3-molecules` → `54332c8`
+- `phase-4a-organisms` → `d62e867`
 
 ### Test + lint state
 
-- `flutter analyze` clean
-- `flutter test` 90/90 passing (last verified at `cf6ab20`)
+- `flutter analyze` → "No issues found!" (verified at `d62e867`)
+- `flutter test` → 131/131 passing (verified at `d62e867`)
 
 ### iOS CI
 
-Status unknown to controller (no `gh` CLI). User verifies manually at https://github.com/khuseinov/kai-app/actions filtered by branch `claude/hungry-lamport-e41998`. Per user, CI has been green through Phase 0-3.
+Status unknown to controller (no `gh` CLI). User verifies manually at https://github.com/khuseinov/kai-app/actions filtered by branch `claude/hungry-lamport-e41998`.
 
 ---
 
@@ -183,29 +189,68 @@ Status unknown to controller (no `gh` CLI). User verifies manually at https://gi
   - `bootstrap.dart` — wraps `HiveSetup.init()` in try/catch with `logger.e + rethrow`
 
 - **Showcase**: `lib/features/dev/molecules_showcase_screen.dart`
-- **Tests**: 90 passing (storage roundtrips for all enum values, per-molecule behavior, per-entity adapter roundtrips)
+- **Tests**: 91 passing after fix-2 (storage roundtrips for all enum values, per-molecule behavior, per-entity adapter roundtrips + B1 regression test)
+
+### Phase 4a — Organisms ✅ (commits bc119e9 + d62e867)
+
+- **4 organism files** in `lib/design_system/organisms/`:
+  - `onboarding_card.dart` — 4-step wizard (welcome/tide/gestures/context). Step 1 auto-cycles 3 tide chips every 2400ms, KaiTideCurve tracks active chip. `_syncController()` + `didUpdateWidget` ensures animation only runs on step 1. Props: `stepIndex (int 0-3)`, `onComplete (VoidCallback?)`.
+  - `chat_list.dart` — 6 frames via `RoomFrame` enum (empty/live/panel/compose/streaming/error). `RoomFrame` enum defined in this file. Messages typed as `List<Map<String, dynamic>>` (Phase 5 will replace with `List<Message>`). `_syncStream()` + `didUpdateWidget` ensures streaming animation only runs on streaming frame. Panel frame uses `IgnorePointer(child: Opacity(0.25, ...))`.
+  - `nav_panel.dart` — full-screen drawer: close button (28px circle) + "Kai" title + new chat (KaiButton.ink1) + read-only search box + sessions list (NavItem per session) + apps section (Memory/Settings) + account anchor pushed to bottom via Expanded sessions. Prop name: `activeSessionId` (String?, singular). Swipe-left (velocity < -200) fires onClose.
+  - `edge_state_block.dart` — 4 surfaces via `EdgeSurface` enum (offline/error/rateLimit/crisis). Offline: `tokens.colors.warning` dot + retry ghost button. Error: negativeWash + KaiTideCurve(KaiTide.error) + **KaiButton.ghost('Повторить')** (not ink1). RateLimit: warningWash + countdown text if provided. Crisis: KaiTideCurve at 0.3 opacity + CareBlock embedded.
+
+- **Shared test helper** created: `test/test_helpers.dart` — `buildTestWidget(Widget)` wraps with ProviderScope + KaiTheme + Scaffold (was missing from codebase; created in Phase 4a).
+
+- **Tests**: 131 passing (+40 organism tests; all use `buildTestWidget` from test/test_helpers.dart).
+
+- **Key design decisions**:
+  - `Color(0xFFC44A3C)` coral: established allowed raw color (CareBlock + EdgeStateBlock error icon)
+  - `tokens.colors.warning` used for offline yellow dot (confirmed token exists: `#B57A0B` light / `#D69E3E` dark)
+  - `tokens.colors.surface` for selected language chip text in OnboardingCard step 3
 
 ---
 
 ## 5 · What's still pending
 
-### Phase 4 — Organisms + Mock Repositories (44 sub-tasks T4.1-T4.44)
+### Phase 4b — Repo Interfaces + Mocks (T4.30-T4.44) ← NEXT
 
-Plan section: `docs/superpowers/plans/2026-05-26-kai-app-rebuild-v3-implementation.md` § "Phase 4 — Organisms + Repo Interfaces (mocks)" around line 320-370.
+Plan section: `docs/superpowers/plans/2026-05-26-kai-app-rebuild-v3-implementation.md` § "Phase 4" around line 350-370.
 
-Components:
-- `lib/design_system/organisms/onboarding_card.dart` — 4-step wizard card (welcome/tide/gestures/context)
-- `lib/design_system/organisms/chat_list.dart` — state-driven 6 frames (empty/live/panel/compose/streaming/error) via `RoomFrame` enum
-- `lib/design_system/organisms/nav_panel.dart` — full-screen swipe-from-left drawer
-- `lib/design_system/organisms/edge_state_block.dart` — 4 surface types
-- `lib/core/repositories/chat_repository.dart` — abstract interface + `ChatEvent` sealed class with 8 variants (message/thinking/state/metadata/approval/correction/done/error)
-- `lib/core/repositories/mock_chat_repository.dart` — in-memory + faked streaming
-- `lib/core/repositories/session_repository.dart` + `mock_session_repository.dart`
-- Wire mocks in `lib/core/providers/root.dart`
-- `lib/features/dev/organisms_showcase_screen.dart`
-- Tests per organism + per repo
+**T4.30** `lib/core/repositories/chat_repository.dart` — abstract interface:
+```dart
+abstract class ChatRepository {
+  Stream<ChatEvent> sendMessage(String text, String sessionId);
+  Future<void> cancelStreaming(String sessionId);
+}
+```
 
-**RECOMMENDATION**: Split Phase 4 into 4a (T4.1-T4.29 organisms + showcase) and 4b (T4.30-T4.44 repos + mocks + tests). Phase 2 (36 sub-tasks) implementer stopped at T2.5 due to budget — Phase 4 with 44 sub-tasks has higher risk. Two separate implementer dispatches reduces budget pressure and gives a natural review checkpoint.
+**T4.31** Define `ChatEvent` sealed class — 8 variants (message/thinking/state/metadata/approval/correction/done/error). Prefer hand-written sealed class (avoids codegen). If using freezed, committed `.freezed.dart` is tracked in git.
+
+**T4.32** Run `dart run build_runner build` ONLY if using freezed codegen (plain, no `--delete-conflicting-outputs`).
+
+**T4.33** `lib/core/repositories/mock_chat_repository.dart` — in-memory + faked streaming with realistic delays (100-300ms). Cover: multi-chunk message, correction event, done, error path, cancel (cancelStreaming completes stream).
+
+**T4.34** `test/core/mock_chat_repository_test.dart` — event ordering, cancel, error scenarios
+
+**T4.35** `lib/core/repositories/session_repository.dart` — abstract: `list()`, `create({String? tripId})`, `delete(String id)`
+
+**T4.36** `lib/core/repositories/mock_session_repository.dart` — in-memory list
+
+**T4.37** `test/core/mock_session_repository_test.dart`
+
+**T4.38** Update `lib/core/providers/root.dart` — add `chatRepositoryProvider` and `sessionRepositoryProvider` pointing to mock implementations
+
+**T4.39** `lib/features/dev/organisms_showcase_screen.dart` — visual demo of all 4 organisms with switchers
+
+**T4.40** Update `lib/core/routing/router.dart` — add `/_dev/organisms` route pointing to organisms showcase
+
+**T4.41** `flutter test` — all 131+ tests pass
+
+**T4.42** Commit: `phase-4b: repo interfaces + mocks + showcase`
+
+**T4.43** Push: `git push -u origin claude/hungry-lamport-e41998` (NEVER `--tags`)
+
+**T4.44** Local tag: `git tag phase-4-organisms` (final Phase 4 tag, local only — NEVER push)
 
 ### Phase 5 — Screens + Real SSE backend (41 sub-tasks T5.1-T5.41)
 
@@ -322,13 +367,16 @@ User communicates in Russian. Respond in Russian. Code/commits stay English.
 
 ---
 
-## 10 · Your immediate next steps
+## 10 · Your immediate next steps (Phase 4b controller)
 
-1. Read the spec, plan, new-design/CLAUDE.md, and this handoff file.
-2. Run `git log --oneline -10` and `git status` to verify state matches what's described here.
-3. Run `flutter analyze` and `flutter test` from the worktree dir to confirm green state.
-4. **Dispatch a fresh spec compliance reviewer** to independently verify Phase 0-3 (covering commits `cd8ba93` through `cf6ab20`). User explicitly requested this fresh-eyes review. Brief it on what to check (entire scope of Phases 0-3 above).
-5. Report the review findings to the user. If anything's broken, fix before Phase 4. If clean, ask user about Phase 4 split strategy (recommend 4a + 4b).
-6. Proceed with Phase 4 implementer dispatch.
+1. Read: spec, plan, new-design/CLAUDE.md, this file.
+2. Run `git log --oneline -6` — confirm HEAD is `d62e867`. Run `flutter test` — confirm 131 passing. Run `flutter analyze` — confirm clean.
+3. **No Phase 0-3 review needed** — already done. Go straight to Phase 4b.
+4. Dispatch Phase 4b implementer subagent with the T4.30-T4.44 task text from Section 5 above.
+5. After implementer: dispatch spec compliance reviewer + code quality reviewer in parallel.
+6. Fix any issues found.
+7. Checkpoint with user: CI зелёный? Продолжаем Phase 5?
 
-Good luck. The plan is solid, the execution pattern is established. Phase 4 is the biggest single phase by task count — split it and you'll cruise through.
+**КАЖДАЯ ФАЗА = НОВАЯ СЕССИЯ.** После Phase 4b обновляй этот handoff-документ (Section 3, 4, 5, 10) и пиши контекст-промпт для следующей сессии.
+
+Good luck.
