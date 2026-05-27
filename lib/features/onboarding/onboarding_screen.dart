@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/storage/entities/settings.dart';
 import '../../core/storage/hive_setup.dart';
+import '../../design_system/atoms/kai_button.dart';
 import '../../design_system/atoms/kai_tide_curve.dart';
 import '../../design_system/organisms/onboarding_card.dart';
 import '../../design_system/theme/kai_theme.dart';
@@ -70,14 +71,44 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  _Page(child: OnboardingCard(stepIndex: 0, onComplete: _nextPage)),
-                  _Page(child: OnboardingCard(stepIndex: 1, onComplete: _nextPage)),
-                  _Page(child: OnboardingCard(stepIndex: 2, onComplete: _nextPage)),
-                  _Page(child: OnboardingCard(stepIndex: 3, onComplete: _finish)),
+                  _Page(
+                    child: OnboardingCard(
+                      stepIndex: 0,
+                      onComplete: _nextPage,
+                    ),
+                  ),
+                  _Page(
+                    child: OnboardingCard(
+                      stepIndex: 1,
+                      onComplete: _nextPage,
+                    ),
+                  ),
+                  _Page(
+                    child: OnboardingCard(
+                      stepIndex: 2,
+                      onComplete: _nextPage,
+                    ),
+                  ),
+                  _Page(
+                    child: OnboardingCard(
+                      stepIndex: 3,
+                      onComplete: _finish,
+                    ),
+                  ),
                 ],
               ),
             ),
             _DotsIndicator(count: 4, active: _currentPage),
+            if (_currentPage < 3)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: KaiSpace.s5,
+                ),
+                child: KaiButton.tide(
+                  onPressed: _nextPage,
+                  label: 'Далее',
+                ),
+              ),
             const SizedBox(height: KaiSpace.s6),
           ],
         ),

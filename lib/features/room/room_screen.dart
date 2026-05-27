@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../design_system/atoms/kai_tide_curve.dart';
 import '../../design_system/molecules/compose_island.dart';
 import '../../design_system/organisms/chat_list.dart';
+import '../../design_system/organisms/edge_state_block.dart';
+import '../../design_system/theme/kai_theme.dart';
+import '../../design_system/tokens/kai_tokens.dart';
 import '../nav/nav_screen.dart';
 import 'room_state.dart';
 
@@ -12,6 +15,7 @@ import 'room_state.dart';
 /// Layout (top → bottom):
 ///   KaiTideCurve  — brand mark
 ///   ChatList      — scrollable messages
+///   EdgeStateBlock — shown inline when offline / rate-limited / crisis
 ///   ComposeIsland — text input
 ///
 /// Left-edge swipe (drag start x < 24, velocity > 200 rightward) opens
@@ -69,50 +73,84 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
     });
   }
 
-  ComposeState _composeStateFrom(bool isStreaming) {
-    return isStreaming ? ComposeState.streaming : ComposeState.idle;
+  ComposeState _composeStateFrom(RoomStateData s) {
+    if (s.isOffline || s.isRateLimited) return ComposeState.disabled;
+    if (s.isStreaming) return ComposeState.streaming;
+    return ComposeState.idle;
   }
 
   @override
   Widget build(BuildContext context) {
     final roomState = ref.watch(roomNotifierProvider);
+    final colors = KaiTheme.of(context).colors;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onHorizontalDragStart: _onHorizontalDragStart,
-      onHorizontalDragEnd: _onHorizontalDragEnd,
-      child: SafeArea(
-        child: Column(
-          children: [
-            KaiTideCurve(state: roomState.tideState, height: 48),
-            Expanded(
-              child: ChatList(
-                frame: roomState.currentFrame,
-                messages: roomState.messages,
-                onRetry: () {
-                  // Find the last user message and retry.
-                  final messages = roomState.messages;
-                  var lastUserText = '';
-                  for (var i = messages.length - 1; i >= 0; i--) {
-                    if (messages[i]['role'] == 'user') {
-                      lastUserText = messages[i]['content'] as String? ?? '';
-                      break;
+    return Scaffold(
+      backgroundColor: colors.bg,
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onHorizontalDragStart: _onHorizontalDragStart,
+        onHorizontalDragEnd: _onHorizontalDragEnd,
+        child: SafeArea(
+          child: Column(
+            children: [
+              KaiTideCurve(state: roomState.tideState, height: 48),
+              Expanded(
+                child: ChatList(
+                  frame: roomState.currentFrame,
+                  messages: roomState.messages,
+                  onRetry: () {
+                    // Find the last user message and retry.
+                    final messages = roomState.messages;
+                    var lastUserText = '';
+                    for (var i = messages.length - 1; i >= 0; i--) {
+                      if (messages[i]['role'] == 'user') {
+                        lastUserText =
+                            messages[i]['content'] as String? ?? '';
+                        break;
+                      }
                     }
-                  }
-                  if (lastUserText.isNotEmpty) {
-                    ref
-                        .read(roomNotifierProvider.notifier)
-                        .sendMessage(lastUserText);
-                  }
-                },
+                    if (lastUserText.isNotEmpty) {
+                      ref
+                          .read(roomNotifierProvider.notifier)
+                          .sendMessage(lastUserText);
+                    }
+                  },
+                ),
               ),
-            ),
-            ComposeIsland(
-              controller: _composeController,
-              onSend: _onSend,
-              state: _composeStateFrom(roomState.isStreaming),
-            ),
-          ],
+              if (roomState.isOffline)
+                const Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: KaiSpace.s4,
+                    vertical: KaiSpace.s2,
+                  ),
+                  child: EdgeStateBlock(surface: EdgeSurface.offline),
+                ),
+              if (roomState.isRateLimited)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: KaiSpace.s4,
+                    vertical: KaiSpace.s2,
+                  ),
+                  child: EdgeStateBlock(
+                    surface: EdgeSurface.rateLimit,
+                    countdown: roomState.rateLimitRetryAfter,
+                  ),
+                ),
+              if (roomState.isCrisis)
+                const Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: KaiSpace.s4,
+                    vertical: KaiSpace.s2,
+                  ),
+                  child: EdgeStateBlock(surface: EdgeSurface.crisis),
+                ),
+              ComposeIsland(
+                controller: _composeController,
+                onSend: _onSend,
+                state: _composeStateFrom(roomState),
+              ),
+            ],
+          ),
         ),
       ),
     );
