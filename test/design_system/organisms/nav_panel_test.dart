@@ -194,7 +194,7 @@ void main() {
         subtitle: '3 чата',
         initial: 'ТО', // Multi-char — should render only 'Т'
       );
-      await _pump(tester, NavPanel(pinnedTrip: trip));
+      await _pump(tester, const NavPanel(pinnedTrip: trip));
       expect(find.text('Т'), findsOneWidget);
       expect(find.text('ТО'), findsNothing);
     });
