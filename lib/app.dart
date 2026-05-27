@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:kai_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'core/design/theme/app_theme.dart';
-import 'core/providers/router_provider.dart';
-import 'core/providers/settings_provider.dart';
+import 'core/providers/root.dart';
+import 'core/routing/router.dart';
+import 'design_system/theme/kai_theme.dart';
+import 'design_system/theme/kai_theme_ext.dart';
 
 class KaiApp extends ConsumerWidget {
   const KaiApp({super.key});
@@ -11,15 +13,21 @@ class KaiApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
-    final settings = ref.watch(settingsProvider);
-
+    final mode = ref.watch(themeModeProvider);
     return MaterialApp.router(
-      title: 'KAI',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: settings.themeMode,
+      title: 'KAI',
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      themeMode: mode,
+      theme: KaiThemeExt.materialLight(),
+      darkTheme: KaiThemeExt.materialDark(),
       routerConfig: router,
+      // KaiTheme sits inside MaterialApp so MediaQuery.platformBrightnessOf
+      // (called from KaiTheme.build) has the MediaQuery ancestor MaterialApp
+      // inserts. Outside MaterialApp it would throw on the first frame.
+      builder: (context, child) =>
+          KaiTheme(child: child ?? const SizedBox.shrink()),
     );
   }
 }

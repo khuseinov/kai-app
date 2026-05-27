@@ -63,7 +63,5 @@
 			</dict>
 		</dict>
 	</dict>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Kai needs microphone access for voice input</string>
 </dict>
 </plist>

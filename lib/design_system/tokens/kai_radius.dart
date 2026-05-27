@@ -1,0 +1,22 @@
+import 'package:flutter/painting.dart';
+
+/// Radius scale — soft-but-precise.
+///
+/// Source: `new-design/design-tokens.json § radius`.
+class KaiRadius {
+  const KaiRadius._();
+
+  static const double r1 = 6; // tags, small chips
+  static const double r2 = 10; // inputs
+  static const double r3 = 14; // buttons
+  static const double r4 = 20; // cards, bubbles
+  static const double r5 = 28; // sheets, hero surfaces
+  static const double pill = 999;
+
+  static const BorderRadius br1 = BorderRadius.all(Radius.circular(r1));
+  static const BorderRadius br2 = BorderRadius.all(Radius.circular(r2));
+  static const BorderRadius br3 = BorderRadius.all(Radius.circular(r3));
+  static const BorderRadius br4 = BorderRadius.all(Radius.circular(r4));
+  static const BorderRadius br5 = BorderRadius.all(Radius.circular(r5));
+  static const BorderRadius brPill = BorderRadius.all(Radius.circular(pill));
+}

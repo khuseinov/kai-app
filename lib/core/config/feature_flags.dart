@@ -1,3 +1,0 @@
-class FeatureFlags {
-  FeatureFlags._();
-}
