@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../atoms/kai_icon.dart';
-import '../atoms/kai_text.dart';
 import '../theme/kai_theme.dart';
 import '../tokens/kai_tokens.dart';
 
@@ -12,9 +11,9 @@ import '../tokens/kai_tokens.dart';
 ///
 /// Layout (left → right):
 ///
-///   [icon? 18×18]   [label]   [trailing?]
+///   [icon? 14×14]   [label 11px Manrope w500]   [trailing?]
 ///
-/// `padding: 12 horizontal × 10 vertical`.
+/// `padding: 14 horizontal × 7 vertical`.
 class NavItem extends StatelessWidget {
   const NavItem({
     required this.label,
@@ -49,17 +48,26 @@ class NavItem extends StatelessWidget {
 
     final row = Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: KaiSpace.s3,
-        vertical: KaiSpace.s2 + 2, // 10
+        horizontal: 14,
+        vertical: 7,
       ),
       child: Row(
         children: [
           if (icon != null) ...[
-            KaiIcon(icon!, color: iconColor),
-            const SizedBox(width: KaiSpace.s3),
+            KaiIcon(icon!, size: 14, color: iconColor),
+            const SizedBox(width: 9),
           ],
           Expanded(
-            child: KaiText.body(label, color: labelColor),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: labelColor,
+                letterSpacing: -0.005 * 11,
+              ),
+            ),
           ),
           if (trailing != null) ...[
             const SizedBox(width: KaiSpace.s2),

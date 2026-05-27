@@ -28,9 +28,19 @@ class _OrganismsShowcaseScreenState
     {'role': 'kai', 'content': 'Sure! Tokyo is a fantastic choice.'},
   ];
 
-  static const _navSessions = <Map<String, String>>[
-    {'id': 'session-seed-1', 'title': 'Tokyo trip planning', 'date': 'Today'},
-    {'id': 'session-seed-2', 'title': 'Visa requirements', 'date': 'Yesterday'},
+  static final _navSessions = <SessionPreview>[
+    SessionPreview(
+      id: 'session-seed-1',
+      title: 'Tokyo trip planning',
+      timeLabel: '9:41',
+      createdAt: DateTime.now(),
+    ),
+    SessionPreview(
+      id: 'session-seed-2',
+      title: 'Visa requirements',
+      timeLabel: '12 May',
+      createdAt: DateTime.now().subtract(const Duration(days: 1)),
+    ),
   ];
 
   @override
@@ -101,6 +111,22 @@ class _OrganismsShowcaseScreenState
             NavPanel(
               activeSessionId: 'session-seed-1',
               sessions: _navSessions,
+              pinnedTrip: const TripInfo(
+                id: 'trip-japan',
+                title: 'Япония · ноябрь',
+                subtitle: '12-26 ноя · черновик',
+                initial: 'Я',
+                chatCount: 3,
+              ),
+              trips: const [
+                TripInfo(
+                  id: 'trip-japan',
+                  title: 'Япония · ноябрь',
+                  subtitle: '12-26 ноя · черновик',
+                  initial: 'Я',
+                  chatCount: 3,
+                ),
+              ],
               onClose: () => setState(() => _showNav = false),
             ),
         ],

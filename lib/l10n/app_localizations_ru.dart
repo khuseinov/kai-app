@@ -33,6 +33,24 @@ class AppLocalizationsRu extends AppLocalizations {
   String get suggestionRecommendations => 'Рекомендации';
 
   @override
+  String get suggestionVisaQuestion => 'Нужна ли виза в Японию?';
+
+  @override
+  String get suggestionVisaHint => 'гражданство · сроки';
+
+  @override
+  String get suggestionTripQuestion => 'Лучшие маршруты по Японии';
+
+  @override
+  String get suggestionTripHint => '10–14 дней · оптимально';
+
+  @override
+  String get suggestionRecommendationsQuestion => 'Что посмотреть в Токио';
+
+  @override
+  String get suggestionRecommendationsHint => 'must-see · off-beat';
+
+  @override
   String get composePlaceholder => 'Сообщение Kai…';
 
   @override
@@ -43,10 +61,17 @@ class AppLocalizationsRu extends AppLocalizations {
       'Отправлю, когда выйдете в онлайн. Очередь сохранена.';
 
   @override
-  String get retry => 'Повторить';
+  String get retry => 'повторить';
 
   @override
-  String get errorTitle => 'Ошибка — попробуйте ещё раз';
+  String get errorTitle => 'Не удалось ответить';
+
+  @override
+  String get errorBody =>
+      'Возможно, проблема со связью. Можно повторить или попробовать иначе.';
+
+  @override
+  String get errorRetryHint => 'или напишите снова';
 
   @override
   String get rateLimitTitle => 'Слишком много запросов';
@@ -201,4 +226,40 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onboardingContextCountryPlaceholder => 'Российская Федерация';
+
+  @override
+  String get newChat => 'Новый чат';
+
+  @override
+  String get search => 'Поиск';
+
+  @override
+  String get tripsLabel => 'ПОЕЗДКИ';
+
+  @override
+  String get dateToday => 'СЕГОДНЯ';
+
+  @override
+  String get dateYesterday => 'ВЧЕРА';
+
+  @override
+  String get datePrevious7 => 'ПРЕДЫДУЩИЕ 7 ДНЕЙ';
+
+  @override
+  String get appsLabel => 'ПРИЛОЖЕНИЯ';
+
+  @override
+  String get memoryAppLabel => 'Память';
+
+  @override
+  String get settingsAppLabel => 'Настройки';
+
+  @override
+  String get accountAnonymous => 'Anonymous';
+
+  @override
+  String get accountFreePlan => 'Free';
+
+  @override
+  String get noChats => 'Нет чатов';
 }

@@ -33,6 +33,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get suggestionRecommendations => 'Recommendations';
 
   @override
+  String get suggestionVisaQuestion => 'Do I need a visa for Japan?';
+
+  @override
+  String get suggestionVisaHint => 'citizenship · timelines';
+
+  @override
+  String get suggestionTripQuestion => 'Best routes through Japan';
+
+  @override
+  String get suggestionTripHint => '10–14 days · optimised';
+
+  @override
+  String get suggestionRecommendationsQuestion => 'What to see in Tokyo';
+
+  @override
+  String get suggestionRecommendationsHint => 'must-see · off-beat';
+
+  @override
   String get composePlaceholder => 'Message Kai…';
 
   @override
@@ -42,10 +60,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offlineBody => 'Will send when you\'re back online. Queue saved.';
 
   @override
-  String get retry => 'Retry';
+  String get retry => 'retry';
 
   @override
-  String get errorTitle => 'Something went wrong';
+  String get errorTitle => 'Couldn\'t respond';
+
+  @override
+  String get errorBody => 'Something went wrong. Try again or rephrase.';
+
+  @override
+  String get errorRetryHint => 'or type a new message';
 
   @override
   String get rateLimitTitle => 'Too many requests';
@@ -198,4 +222,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingContextCountryPlaceholder => 'Russian Federation';
+
+  @override
+  String get newChat => 'New chat';
+
+  @override
+  String get search => 'Search';
+
+  @override
+  String get tripsLabel => 'TRIPS';
+
+  @override
+  String get dateToday => 'TODAY';
+
+  @override
+  String get dateYesterday => 'YESTERDAY';
+
+  @override
+  String get datePrevious7 => 'PREVIOUS 7 DAYS';
+
+  @override
+  String get appsLabel => 'APPS';
+
+  @override
+  String get memoryAppLabel => 'Memory';
+
+  @override
+  String get settingsAppLabel => 'Settings';
+
+  @override
+  String get accountAnonymous => 'Anonymous';
+
+  @override
+  String get accountFreePlan => 'Free';
+
+  @override
+  String get noChats => 'No chats';
 }

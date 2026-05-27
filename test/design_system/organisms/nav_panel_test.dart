@@ -63,9 +63,20 @@ void main() {
     testWidgets('session tap fires onSessionTap with correct id',
         (WidgetTester tester) async {
       String? tappedId;
+      final now = DateTime.now();
       final sessions = [
-        {'id': 'abc123', 'title': 'Планы на отпуск', 'date': '2026-01-01'},
-        {'id': 'def456', 'title': 'Вопросы по визе', 'date': '2026-01-02'},
+        SessionPreview(
+          id: 'abc123',
+          title: 'Планы на отпуск',
+          timeLabel: '9:41',
+          createdAt: now,
+        ),
+        SessionPreview(
+          id: 'def456',
+          title: 'Вопросы по визе',
+          timeLabel: '10:00',
+          createdAt: now,
+        ),
       ];
       await _pump(
         tester,
@@ -82,9 +93,20 @@ void main() {
     testWidgets('second session tap fires correct id',
         (WidgetTester tester) async {
       String? tappedId;
+      final now = DateTime.now();
       final sessions = [
-        {'id': 'abc123', 'title': 'Сессия 1', 'date': '2026-01-01'},
-        {'id': 'def456', 'title': 'Сессия 2', 'date': '2026-01-02'},
+        SessionPreview(
+          id: 'abc123',
+          title: 'Сессия 1',
+          timeLabel: '9:41',
+          createdAt: now,
+        ),
+        SessionPreview(
+          id: 'def456',
+          title: 'Сессия 2',
+          timeLabel: '10:00',
+          createdAt: now,
+        ),
       ];
       await _pump(
         tester,
@@ -123,7 +145,8 @@ void main() {
         (WidgetTester tester) async {
       await _pump(tester, const NavPanel());
       expect(find.text('Anonymous'), findsOneWidget);
-      expect(find.text('Free'), findsOneWidget);
+      // plan is rendered as .toUpperCase() → "FREE"
+      expect(find.text('FREE'), findsOneWidget);
     });
   });
 }

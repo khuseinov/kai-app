@@ -1,53 +1,158 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../atoms/kai_button.dart';
 import '../atoms/kai_icon.dart';
-import '../atoms/kai_text.dart';
-import '../molecules/nav_item.dart';
 import '../theme/kai_theme.dart';
 import '../tokens/kai_tokens.dart';
 
-/// Full-screen swipe-from-left drawer skeleton.
-///
-/// This is a StatelessWidget; gesture handling for opening lives in the screen
-/// host (Phase 5). Closing is via [onClose] or the swipe-left gesture handled
-/// internally.
+// ─── Data models ──────────────────────────────────────────────────────────────
+
+/// A trip folder shown in the trips section and as the pinned trip card.
+class TripInfo {
+  const TripInfo({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.initial,
+    this.chatCount = 0,
+  });
+
+  final String id;
+  final String title;
+  final String subtitle;
+
+  /// Single character shown inside the tide-gradient glyph.
+  final String initial;
+
+  /// Number of chats in this trip folder (used as count badge).
+  final int chatCount;
+}
+
+/// A single chat session for display in the session list.
+class SessionPreview {
+  const SessionPreview({
+    required this.id,
+    required this.title,
+    required this.timeLabel,
+    required this.createdAt,
+  });
+
+  final String id;
+  final String title;
+
+  /// Mono time or date label, e.g. "9:41" or "12 ноя".
+  final String timeLabel;
+  final DateTime createdAt;
+}
+
+// ─── Internal date-group model ────────────────────────────────────────────────
+
+class _DateGroup {
+  const _DateGroup({required this.label, required this.sessions});
+  final String label;
+  final List<SessionPreview> sessions;
+}
+
+// ─── Grouping helper ──────────────────────────────────────────────────────────
+
+List<_DateGroup> _groupSessionsByDate(
+  List<SessionPreview> sessions,
+  AppLocalizations l10n,
+) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final yesterday = today.subtract(const Duration(days: 1));
+  final lastWeek = today.subtract(const Duration(days: 7));
+
+  final todayList = <SessionPreview>[];
+  final yesterdayList = <SessionPreview>[];
+  final previousList = <SessionPreview>[];
+
+  for (final s in sessions) {
+    final d = DateTime(s.createdAt.year, s.createdAt.month, s.createdAt.day);
+    if (d.isAtSameMomentAs(today)) {
+      todayList.add(s);
+    } else if (d.isAtSameMomentAs(yesterday)) {
+      yesterdayList.add(s);
+    } else if (d.isAfter(lastWeek)) {
+      previousList.add(s);
+    }
+  }
+
+  return [
+    if (todayList.isNotEmpty)
+      _DateGroup(label: l10n.dateToday, sessions: todayList),
+    if (yesterdayList.isNotEmpty)
+      _DateGroup(label: l10n.dateYesterday, sessions: yesterdayList),
+    if (previousList.isNotEmpty)
+      _DateGroup(label: l10n.datePrevious7, sessions: previousList),
+  ];
+}
+
+// ─── NavPanel ─────────────────────────────────────────────────────────────────
+
+/// Full-screen swipe-from-left drawer.
 ///
 /// Layout (top → bottom):
-/// - Top bar: close button + "Kai" title
+/// - Top bar: close (28×28 circle) | Kai centred 14px | 28px spacer
 /// - New chat button
-/// - Search box (read-only placeholder)
-/// - Sessions list or empty state
-/// - Apps section (Память, Настройки)
-/// - Account anchor (pinned at bottom)
+/// - Search box (radius 9, mono 11, ink-3)
+/// - Pinned trip card (optional)
+/// - Trips section: sec-label + folder-rows
+/// - Date-grouped sessions: sec-label groups + chat-rows
+/// - Apps section (Memory, Settings)
+/// - Account anchor (tide-gradient avatar + initial + chev)
 class NavPanel extends StatelessWidget {
   const NavPanel({
     this.onClose,
     this.onNewChat,
+    this.pinnedTrip,
+    this.trips = const [],
     this.sessions = const [],
     this.activeSessionId,
     this.onSessionTap,
+    this.onTripTap,
+    this.accountInitial = 'A',
+    this.accountName,
+    this.accountPlan,
+    this.onAccountTap,
     super.key,
   });
 
   final VoidCallback? onClose;
   final VoidCallback? onNewChat;
 
-  /// Each session map must contain 'id', 'title', and 'date' keys.
-  final List<Map<String, String>> sessions;
+  /// Optional pinned trip shown directly below the search box.
+  final TripInfo? pinnedTrip;
 
-  /// The session id that is currently active (for highlighting).
+  /// Trip folders shown in the trips section.
+  final List<TripInfo> trips;
+
+  /// Chat sessions grouped by date internally.
+  final List<SessionPreview> sessions;
+
+  /// The session id that is currently active (highlighted).
   final String? activeSessionId;
 
   final ValueChanged<String>? onSessionTap;
+  final ValueChanged<String>? onTripTap;
+
+  /// Single character for the account avatar (first letter of user's name).
+  final String accountInitial;
+
+  final String? accountName;
+  final String? accountPlan;
+  final VoidCallback? onAccountTap;
 
   @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final dateGroups = _groupSessionsByDate(sessions, l10n);
 
     return GestureDetector(
       onHorizontalDragEnd: (details) {
-        // Right-to-left swipe: velocity.x is negative
         if ((details.primaryVelocity ?? 0) < -200) {
           onClose?.call();
         }
@@ -62,44 +167,89 @@ class NavPanel extends StatelessWidget {
             children: [
               _TopBar(onClose: onClose, tokens: tokens),
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: KaiSpace.s4,
-                  vertical: KaiSpace.s2,
-                ),
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
                 child: KaiButton.ink1(
                   onPressed: onNewChat,
-                  label: 'Новый чат',
+                  label: l10n.newChat,
                   icon: KaiIconName.plus,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: KaiSpace.s4,
-                  vertical: KaiSpace.s2,
+              _SearchBox(tokens: tokens, l10n: l10n),
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    // ── Pinned trip card ──
+                    if (pinnedTrip != null)
+                      _PinnedTripCard(
+                        title: pinnedTrip!.title,
+                        subtitle: pinnedTrip!.subtitle,
+                        initial: pinnedTrip!.initial,
+                        onTap: onTripTap == null
+                            ? null
+                            : () => onTripTap!(pinnedTrip!.id),
+                      ),
+                    // ── Trips section ──
+                    if (trips.isNotEmpty) ...[
+                      _SectionLabel(
+                        label: l10n.tripsLabel,
+                        count: trips.length,
+                      ),
+                      for (final t in trips)
+                        _FolderRow(
+                          label: t.title,
+                          count: t.chatCount,
+                          onTap: onTripTap == null
+                              ? null
+                              : () => onTripTap!(t.id),
+                        ),
+                    ],
+                    // ── Date-grouped sessions ──
+                    if (dateGroups.isNotEmpty)
+                      for (final group in dateGroups) ...[
+                        _SectionLabel(
+                          label: group.label,
+                          count: group.sessions.length,
+                        ),
+                        for (final s in group.sessions)
+                          _ChatRow(
+                            title: s.title,
+                            subtitle: s.timeLabel,
+                            active: s.id == activeSessionId,
+                            onTap: onSessionTap == null
+                                ? null
+                                : () => onSessionTap!(s.id),
+                          ),
+                      ]
+                    else if (trips.isEmpty && pinnedTrip == null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 24,
+                        ),
+                        child: Center(
+                          child: Text(
+                            l10n.noChats,
+                            style: TextStyle(
+                              fontFamily: 'Manrope',
+                              fontSize: 11,
+                              color: tokens.colors.ink4,
+                            ),
+                          ),
+                        ),
+                      ),
+                    // ── Apps section ──
+                    _AppsSection(tokens: tokens, l10n: l10n),
+                  ],
                 ),
-                child: _SearchBox(tokens: tokens),
               ),
-              // Sessions label
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  KaiSpace.s4,
-                  KaiSpace.s4,
-                  KaiSpace.s4,
-                  KaiSpace.s2,
-                ),
-                child: Text(
-                  'ЧАТЫ',
-                  style: KaiType.micro(color: tokens.colors.ink4),
-                ),
-              ),
-              Expanded(child: _SessionsList(
-                sessions: sessions,
-                activeSessionId: activeSessionId,
-                onSessionTap: onSessionTap,
+              _AccountAnchor(
                 tokens: tokens,
-              )),
-              _AppsSection(tokens: tokens),
-              _AccountAnchor(tokens: tokens),
+                initial: accountInitial,
+                name: accountName ?? l10n.accountAnonymous,
+                plan: accountPlan ?? l10n.accountFreePlan,
+                onTap: onAccountTap,
+              ),
             ],
           ),
         ),
@@ -108,7 +258,7 @@ class NavPanel extends StatelessWidget {
   }
 }
 
-// ─── Top bar ─────────────────────────────────────────────────────────────────
+// ─── Top bar ──────────────────────────────────────────────────────────────────
 
 class _TopBar extends StatelessWidget {
   const _TopBar({required this.onClose, required this.tokens});
@@ -118,35 +268,48 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: KaiSpace.s4,
-        vertical: KaiSpace.s4,
-      ),
-      child: Row(
-        children: [
-          // Close button: 28px circle
-          GestureDetector(
-            onTap: onClose,
-            child: Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: tokens.colors.surface2,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: KaiIcon(
-                  KaiIconName.close,
-                  size: 16,
-                  color: tokens.colors.ink2,
+    return SizedBox(
+      height: 44,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 22),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Close 28×28 circle
+            GestureDetector(
+              onTap: onClose,
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: tokens.colors.surface2,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: KaiIcon(
+                    KaiIconName.close,
+                    size: 14,
+                    color: tokens.colors.ink1,
+                  ),
                 ),
               ),
             ),
-          ),
-          const Expanded(child: SizedBox()),
-          KaiText.h3('Kai', color: tokens.colors.ink1),
-        ],
+            // Centred title (spaceBetween + symmetric 28px edges)
+            Text(
+              'Kai',
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: tokens.colors.ink1,
+                letterSpacing: -0.005 * 14,
+              ),
+            ),
+            // 28px spacer to balance close and keep title centred
+            const SizedBox(width: 28),
+          ],
+        ),
       ),
     );
   }
@@ -155,70 +318,303 @@ class _TopBar extends StatelessWidget {
 // ─── Search box ───────────────────────────────────────────────────────────────
 
 class _SearchBox extends StatelessWidget {
-  const _SearchBox({required this.tokens});
+  const _SearchBox({required this.tokens, required this.l10n});
 
   final KaiTokens tokens;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: KaiSpace.s4,
-        vertical: KaiSpace.s2 + 2,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: tokens.colors.surface2,
+          borderRadius: BorderRadius.circular(9),
+        ),
+        child: Row(
+          children: [
+            KaiIcon(
+              KaiIconName.search,
+              size: 14,
+              color: tokens.colors.ink3,
+            ),
+            const SizedBox(width: 7),
+            Text(
+              l10n.search,
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 11,
+                color: tokens.colors.ink3,
+              ),
+            ),
+          ],
+        ),
       ),
-      decoration: BoxDecoration(
-        color: tokens.colors.surface2,
-        borderRadius: KaiRadius.brPill,
-      ),
+    );
+  }
+}
+
+// ─── Section label ────────────────────────────────────────────────────────────
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel({required this.label, this.count});
+
+  final String label;
+  final int? count;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = KaiTheme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          KaiIcon(KaiIconName.search, size: 16, color: tokens.colors.ink4),
-          const SizedBox(width: KaiSpace.s2),
           Text(
-            'Поиск',
-            style: KaiType.body(color: tokens.colors.ink4),
+            label.toUpperCase(),
+            style: TextStyle(
+              fontFamily: 'JetBrainsMono',
+              fontSize: 8.5,
+              color: tokens.colors.ink3,
+              letterSpacing: 0.1 * 8.5,
+            ),
           ),
+          if (count != null)
+            Text(
+              count.toString(),
+              style: TextStyle(
+                fontFamily: 'JetBrainsMono',
+                fontSize: 8.5,
+                color: tokens.colors.ink4,
+              ),
+            ),
         ],
       ),
     );
   }
 }
 
-// ─── Sessions list ────────────────────────────────────────────────────────────
+// ─── Pinned trip card ─────────────────────────────────────────────────────────
 
-class _SessionsList extends StatelessWidget {
-  const _SessionsList({
-    required this.sessions,
-    required this.activeSessionId,
-    required this.onSessionTap,
-    required this.tokens,
+class _PinnedTripCard extends StatelessWidget {
+  const _PinnedTripCard({
+    required this.title,
+    required this.subtitle,
+    required this.initial,
+    this.onTap,
   });
 
-  final List<Map<String, String>> sessions;
-  final String? activeSessionId;
-  final ValueChanged<String>? onSessionTap;
-  final KaiTokens tokens;
+  final String title;
+  final String subtitle;
+  final String initial;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    if (sessions.isEmpty) {
-      return Center(
-        child: KaiText.body('Нет чатов', color: tokens.colors.ink4),
-      );
-    }
-    return ListView.builder(
-      itemCount: sessions.length,
-      itemBuilder: (context, index) {
-        final session = sessions[index];
-        final id = session['id'] ?? '';
-        final title = session['title'] ?? '';
-        final isActive = id == activeSessionId;
-        return NavItem(
-          label: title,
-          active: isActive,
-          onTap: onSessionTap == null ? null : () => onSessionTap!(id),
-        );
-      },
+    final tokens = KaiTheme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 3),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color.fromRGBO(43, 168, 201, 0.06),
+                Color.fromRGBO(244, 181, 137, 0.04),
+              ],
+            ),
+            border: Border.all(color: tokens.colors.accentLine, width: 1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            children: [
+              // Tide-gradient glyph 24×24 r-7 with destination initial
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  gradient: KaiTide.gradient,
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                child: Center(
+                  child: Text(
+                    initial,
+                    style: const TextStyle(
+                      fontFamily: 'Manrope',
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: tokens.colors.ink1,
+                        letterSpacing: -0.005 * 11,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontFamily: 'JetBrainsMono',
+                        fontSize: 9,
+                        color: tokens.colors.ink3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Folder row ───────────────────────────────────────────────────────────────
+
+class _FolderRow extends StatelessWidget {
+  const _FolderRow({
+    required this.label,
+    this.count,
+    this.onTap,
+  });
+
+  final String label;
+  final int? count;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = KaiTheme.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        child: Row(
+          children: [
+            KaiIcon(
+              KaiIconName.folder,
+              size: 14,
+              color: tokens.colors.ink3,
+            ),
+            const SizedBox(width: 9),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Manrope',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: tokens.colors.ink1,
+                  letterSpacing: -0.005 * 11,
+                ),
+              ),
+            ),
+            if (count != null)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: tokens.colors.surface2,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  count.toString(),
+                  style: TextStyle(
+                    fontFamily: 'JetBrainsMono',
+                    fontSize: 8.5,
+                    color: tokens.colors.ink3,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Chat row ─────────────────────────────────────────────────────────────────
+
+class _ChatRow extends StatelessWidget {
+  const _ChatRow({
+    required this.title,
+    required this.subtitle,
+    required this.active,
+    this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final bool active;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = KaiTheme.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? tokens.colors.accentWash : Colors.transparent,
+          border: Border(
+            left: BorderSide(
+              color: active ? tokens.colors.accent : Colors.transparent,
+              width: 2,
+            ),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 11,
+                fontWeight:
+                    active ? FontWeight.w600 : FontWeight.w500,
+                color: active ? tokens.colors.accent : tokens.colors.ink1,
+                height: 1.3,
+                letterSpacing: -0.005 * 11,
+              ),
+            ),
+            const SizedBox(height: 1),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontFamily: 'JetBrainsMono',
+                fontSize: 8.5,
+                color: tokens.colors.ink3,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -226,38 +622,67 @@ class _SessionsList extends StatelessWidget {
 // ─── Apps section ─────────────────────────────────────────────────────────────
 
 class _AppsSection extends StatelessWidget {
-  const _AppsSection({required this.tokens});
+  const _AppsSection({required this.tokens, required this.l10n});
 
   final KaiTokens tokens;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            KaiSpace.s4,
-            KaiSpace.s4,
-            KaiSpace.s4,
-            KaiSpace.s2,
-          ),
-          child: Text(
-            'ПРИЛОЖЕНИЯ',
-            style: KaiType.micro(color: tokens.colors.ink4),
-          ),
+        _SectionLabel(label: l10n.appsLabel),
+        _AppRow(
+          label: l10n.memoryAppLabel,
+          icon: KaiIconName.memory,
+          tokens: tokens,
         ),
-        const NavItem(
-          label: 'Память',
-          icon: KaiIconName.heart,
-          active: false,
-        ),
-        const NavItem(
-          label: 'Настройки',
+        _AppRow(
+          label: l10n.settingsAppLabel,
           icon: KaiIconName.settings,
-          active: false,
+          tokens: tokens,
         ),
       ],
+    );
+  }
+}
+
+// ─── App row ──────────────────────────────────────────────────────────────────
+
+class _AppRow extends StatelessWidget {
+  const _AppRow({
+    required this.label,
+    required this.icon,
+    required this.tokens,
+  });
+
+  final String label;
+  final KaiIconName icon;
+  final KaiTokens tokens;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+      child: Row(
+        children: [
+          KaiIcon(icon, size: 14, color: tokens.colors.ink3),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: tokens.colors.ink1,
+                letterSpacing: -0.005 * 11,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -265,45 +690,88 @@ class _AppsSection extends StatelessWidget {
 // ─── Account anchor ───────────────────────────────────────────────────────────
 
 class _AccountAnchor extends StatelessWidget {
-  const _AccountAnchor({required this.tokens});
+  const _AccountAnchor({
+    required this.tokens,
+    required this.initial,
+    required this.name,
+    required this.plan,
+    this.onTap,
+  });
 
   final KaiTokens tokens;
+  final String initial;
+  final String name;
+  final String plan;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(KaiSpace.s4),
-      child: Row(
-        children: [
-          // Avatar circle
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: tokens.colors.surface2,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: KaiIcon(
-                KaiIconName.person,
-                size: 18,
-                color: tokens.colors.ink3,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: tokens.colors.line, width: 1),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        child: Row(
+          children: [
+            // Tide-gradient avatar 24×24 circle with initial
+            Container(
+              width: 24,
+              height: 24,
+              decoration: const BoxDecoration(
+                gradient: KaiTide.gradient,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  initial,
+                  style: const TextStyle(
+                    fontFamily: 'Manrope',
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: KaiSpace.s3),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              KaiText.body('Anonymous', color: tokens.colors.ink1),
-              Text(
-                'Free',
-                style: KaiType.micro(color: tokens.colors.accent),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: tokens.colors.ink1,
+                      letterSpacing: -0.005 * 11,
+                    ),
+                  ),
+                  Text(
+                    plan.toUpperCase(),
+                    style: TextStyle(
+                      fontFamily: 'JetBrainsMono',
+                      fontSize: 8.5,
+                      color: tokens.colors.ink3,
+                      letterSpacing: 0.06 * 8.5,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
+            ),
+            KaiIcon(
+              KaiIconName.chev,
+              size: 11,
+              color: tokens.colors.ink3,
+            ),
+          ],
+        ),
       ),
     );
   }

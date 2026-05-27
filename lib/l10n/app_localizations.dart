@@ -146,6 +146,42 @@ abstract class AppLocalizations {
   /// **'Recommendations'**
   String get suggestionRecommendations;
 
+  /// No description provided for @suggestionVisaQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Do I need a visa for Japan?'**
+  String get suggestionVisaQuestion;
+
+  /// No description provided for @suggestionVisaHint.
+  ///
+  /// In en, this message translates to:
+  /// **'citizenship · timelines'**
+  String get suggestionVisaHint;
+
+  /// No description provided for @suggestionTripQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Best routes through Japan'**
+  String get suggestionTripQuestion;
+
+  /// No description provided for @suggestionTripHint.
+  ///
+  /// In en, this message translates to:
+  /// **'10–14 days · optimised'**
+  String get suggestionTripHint;
+
+  /// No description provided for @suggestionRecommendationsQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What to see in Tokyo'**
+  String get suggestionRecommendationsQuestion;
+
+  /// No description provided for @suggestionRecommendationsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'must-see · off-beat'**
+  String get suggestionRecommendationsHint;
+
   /// No description provided for @composePlaceholder.
   ///
   /// In en, this message translates to:
@@ -167,14 +203,26 @@ abstract class AppLocalizations {
   /// No description provided for @retry.
   ///
   /// In en, this message translates to:
-  /// **'Retry'**
+  /// **'retry'**
   String get retry;
 
   /// No description provided for @errorTitle.
   ///
   /// In en, this message translates to:
-  /// **'Something went wrong'**
+  /// **'Couldn\'t respond'**
   String get errorTitle;
+
+  /// No description provided for @errorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Try again or rephrase.'**
+  String get errorBody;
+
+  /// No description provided for @errorRetryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'or type a new message'**
+  String get errorRetryHint;
 
   /// No description provided for @rateLimitTitle.
   ///
@@ -457,6 +505,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Russian Federation'**
   String get onboardingContextCountryPlaceholder;
+
+  /// No description provided for @newChat.
+  ///
+  /// In en, this message translates to:
+  /// **'New chat'**
+  String get newChat;
+
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
+
+  /// No description provided for @tripsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'TRIPS'**
+  String get tripsLabel;
+
+  /// No description provided for @dateToday.
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY'**
+  String get dateToday;
+
+  /// No description provided for @dateYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'YESTERDAY'**
+  String get dateYesterday;
+
+  /// No description provided for @datePrevious7.
+  ///
+  /// In en, this message translates to:
+  /// **'PREVIOUS 7 DAYS'**
+  String get datePrevious7;
+
+  /// No description provided for @appsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'APPS'**
+  String get appsLabel;
+
+  /// No description provided for @memoryAppLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory'**
+  String get memoryAppLabel;
+
+  /// No description provided for @settingsAppLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsAppLabel;
+
+  /// No description provided for @accountAnonymous.
+  ///
+  /// In en, this message translates to:
+  /// **'Anonymous'**
+  String get accountAnonymous;
+
+  /// No description provided for @accountFreePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get accountFreePlan;
+
+  /// No description provided for @noChats.
+  ///
+  /// In en, this message translates to:
+  /// **'No chats'**
+  String get noChats;
 }
 
 class _AppLocalizationsDelegate

@@ -20,9 +20,9 @@ class NavScreen extends ConsumerWidget {
     final roomState = ref.watch(roomNotifierProvider);
 
     final sessions = sessionAsync.when(
-      data: (list) => _toSessionMaps(list),
-      loading: () => const <Map<String, String>>[],
-      error: (_, __) => const <Map<String, String>>[],
+      data: (list) => _toSessionPreviews(list),
+      loading: () => const <SessionPreview>[],
+      error: (_, __) => const <SessionPreview>[],
     );
 
     return Material(
@@ -45,14 +45,15 @@ class NavScreen extends ConsumerWidget {
     );
   }
 
-  List<Map<String, String>> _toSessionMaps(List<ChatSession> sessions) {
+  List<SessionPreview> _toSessionPreviews(List<ChatSession> sessions) {
     return sessions
         .map(
-          (s) => {
-            'id': s.id,
-            'title': s.title ?? 'Чат',
-            'date': _formatDate(s.createdAt),
-          },
+          (s) => SessionPreview(
+            id: s.id,
+            title: s.title ?? 'Чат',
+            timeLabel: _formatDate(s.createdAt),
+            createdAt: s.createdAt,
+          ),
         )
         .toList();
   }
