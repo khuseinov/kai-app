@@ -18,6 +18,8 @@ enum KaiIconName {
   menu('menu'),
   retry('retry'),
   alert('alert'),
+  check('check'),
+  info('info'),
   heart('heart'),
   copy('copy'),
   wifiOff('wifi-off'),

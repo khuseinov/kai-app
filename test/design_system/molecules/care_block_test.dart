@@ -61,9 +61,12 @@ void main() {
       expect(find.text('· Lifeline'), findsOneWidget);
       expect(find.text('· Crisis Text Line'), findsOneWidget);
 
-      // Each number is rendered in JetBrainsMono.
-      final mono = tester.widget<Text>(find.text('988'));
-      expect(mono.style?.fontFamily, 'JetBrainsMono');
+      // Canon: care-block numbers are Manrope 600/14 (not mono — mono reads
+      // cooler/wider, breaking the warm-feeling rule for the crisis pattern).
+      final m = tester.widget<Text>(find.text('988'));
+      expect(m.style?.fontFamily, 'Manrope');
+      expect(m.style?.fontWeight, FontWeight.w600);
+      expect(m.style?.fontSize, 14);
     });
 
     testWidgets('border colour is the negative token (coral, not red)',

@@ -6,6 +6,10 @@ import '../../design_system/atoms/kai_text.dart';
 import '../../design_system/molecules/alert_card.dart';
 import '../../design_system/molecules/care_block.dart';
 import '../../design_system/molecules/compose_island.dart';
+import '../../design_system/molecules/kai_action_sheet.dart';
+import '../../design_system/molecules/kai_message_detail_sheet.dart';
+import '../../design_system/molecules/kai_system_note.dart';
+import '../../design_system/molecules/kai_toast.dart';
 import '../../design_system/molecules/nav_item.dart';
 import '../../design_system/molecules/source_card.dart';
 import '../../design_system/theme/kai_theme.dart';
@@ -167,6 +171,162 @@ class _MoleculesShowcaseScreenState extends State<MoleculesShowcaseScreen> {
                   body: 'Kai обновил воспоминание о поездке.',
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: KaiSpace.s7),
+          _Section(
+            title: 'KaiToast — tap to show overlay',
+            child: Wrap(
+              spacing: KaiSpace.s3,
+              runSpacing: KaiSpace.s3,
+              children: [
+                KaiButton.ghost(
+                  label: 'neutral',
+                  onPressed: () => KaiToast.show(
+                    context,
+                    type: KaiToastType.neutral,
+                    label: 'Скопировано',
+                  ),
+                ),
+                KaiButton.ghost(
+                  label: 'positive',
+                  onPressed: () => KaiToast.show(
+                    context,
+                    type: KaiToastType.positive,
+                    label: 'Факт сохранён',
+                  ),
+                ),
+                KaiButton.ghost(
+                  label: 'negative',
+                  onPressed: () => KaiToast.show(
+                    context,
+                    type: KaiToastType.negative,
+                    label: 'Не отправлено',
+                    actionLabel: 'Повторить',
+                    onAction: () => debugPrint('retry'),
+                  ),
+                ),
+                KaiButton.ghost(
+                  label: 'memory',
+                  onPressed: () => KaiToast.show(
+                    context,
+                    type: KaiToastType.memory,
+                    label: 'Kai запомнил',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: KaiSpace.s7),
+          const _Section(
+            title: 'KaiSystemNote — inline chat note',
+            child: Column(
+              children: [
+                KaiSystemNote(
+                  message: 'Источники обновлены 12 минут назад.',
+                ),
+                SizedBox(height: KaiSpace.s3),
+                KaiSystemNote(
+                  type: SystemNoteType.warning,
+                  bold: 'Внимание —',
+                  message: ' сайт посольства не обновлялся 6 месяцев. '
+                      'Стоит уточнить сбор перед подачей.',
+                ),
+                SizedBox(height: KaiSpace.s3),
+                KaiSystemNote(
+                  type: SystemNoteType.negative,
+                  bold: 'Не отправлено —',
+                  message: ' проверьте подключение и попробуйте снова.',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: KaiSpace.s7),
+          _Section(
+            title: 'KaiActionSheet — tap to open',
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: KaiButton.ghost(
+                label: 'open action sheet',
+                onPressed: () => KaiActionSheet.show(
+                  context,
+                  items: [
+                    ActionSheetItem(
+                      icon: KaiIconName.plus,
+                      title: 'Новый чат',
+                      meta: '⌘N',
+                      onTap: () => debugPrint('new chat'),
+                    ),
+                    ActionSheetItem(
+                      icon: KaiIconName.settings,
+                      title: 'Тема',
+                      meta: 'auto',
+                      onTap: () => debugPrint('theme'),
+                    ),
+                    ActionSheetItem(
+                      icon: KaiIconName.mic,
+                      title: 'Голосовой режим',
+                      meta: 'off',
+                      onTap: () => debugPrint('voice'),
+                    ),
+                    ActionSheetItem(
+                      icon: KaiIconName.close,
+                      title: 'Очистить сессию',
+                      danger: true,
+                      onTap: () => debugPrint('clear'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: KaiSpace.s7),
+          _Section(
+            title: 'KaiMessageDetailSheet — tap to open',
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: KaiButton.ghost(
+                label: 'open detail sheet',
+                onPressed: () => KaiMessageDetailSheet.show(
+                  context,
+                  sources: const [
+                    MessageDetailSource(
+                      number: 1,
+                      url: 'visa.gov',
+                      freshness: SourceFreshness.fresh,
+                    ),
+                    MessageDetailSource(
+                      number: 2,
+                      url: 'timatic.iata.org',
+                      freshness: SourceFreshness.stale,
+                      freshnessLabel: '5d',
+                    ),
+                    MessageDetailSource(
+                      number: 3,
+                      url: 'embassy.jp',
+                      freshness: SourceFreshness.fresh,
+                    ),
+                  ],
+                  actions: [
+                    DetailAction(
+                      icon: KaiIconName.send,
+                      label: 'Поделиться',
+                      style: DetailActionStyle.primary,
+                      onTap: () => debugPrint('share'),
+                    ),
+                    DetailAction(
+                      icon: KaiIconName.copy,
+                      label: 'Копировать текст',
+                      onTap: () => debugPrint('copy'),
+                    ),
+                    DetailAction(
+                      icon: KaiIconName.retry,
+                      label: 'Переспросить',
+                      onTap: () => debugPrint('reask'),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
           const SizedBox(height: KaiSpace.s7),

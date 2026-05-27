@@ -126,7 +126,8 @@ class AlertCard extends StatelessWidget {
           ctaBg: c.positive,
           ctaText: const Color(0xFFFFFFFF),
           typeLabel: 'INFO',
-          icon: KaiIconName.alert,
+          // Canon: positive alerts carry a check, not a triangle-alert.
+          icon: KaiIconName.check,
         );
       case AlertType.neutral:
         // Canon: notifications-chat.html § .alert-card.neutral
@@ -141,7 +142,8 @@ class AlertCard extends StatelessWidget {
           ctaBg: c.ink1,
           ctaText: c.surface2,
           typeLabel: 'NOTE',
-          icon: KaiIconName.alert,
+          // Canon: neutral alerts use an info-circle, not a warning triangle.
+          icon: KaiIconName.info,
         );
     }
   }

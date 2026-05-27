@@ -144,11 +144,17 @@ class _ResourceRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final row = Row(
       children: [
+        // Canon: care-block resource numbers are Manrope 600/14, NOT mono.
+        // Mono renders wider + cooler; care-block must stay warm + warm/dense
+        // (CLAUDE.md: "Crisis stays warm, never alarming").
         Text(
           resource.number,
-          style: KaiType.mono(color: color).copyWith(
-            fontWeight: FontWeight.w600,
+          style: TextStyle(
+            fontFamily: 'Manrope',
             fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: color,
+            letterSpacing: -0.005 * 14,
           ),
         ),
         const SizedBox(width: KaiSpace.s2),
