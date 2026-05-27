@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kai_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../design_system/atoms/kai_tide_curve.dart';
@@ -148,6 +149,7 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                 controller: _composeController,
                 onSend: _onSend,
                 state: _composeStateFrom(roomState),
+                placeholder: AppLocalizations.of(context).composePlaceholder,
               ),
             ],
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kai_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
@@ -17,6 +18,9 @@ Widget buildTestWidget(
       themeModeProvider.overrideWith((ref) => themeMode),
     ],
     child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: const [Locale('ru'), Locale('en')],
+      locale: const Locale('ru'),
       home: KaiTheme(
         child: Scaffold(body: child),
       ),

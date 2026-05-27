@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kai_app/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/storage/entities/settings.dart';
@@ -106,7 +107,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
                 child: KaiButton.tide(
                   onPressed: _nextPage,
-                  label: 'Далее',
+                  label: AppLocalizations.of(context).onboardingNext,
                 ),
               ),
             const SizedBox(height: KaiSpace.s6),

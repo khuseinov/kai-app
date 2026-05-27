@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kai_app/l10n/app_localizations.dart';
 
 import '../atoms/kai_bubble.dart';
 import '../atoms/kai_button.dart';
@@ -129,6 +130,7 @@ class _EmptyFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(KaiSpace.s6),
@@ -146,20 +148,20 @@ class _EmptyFrame extends StatelessWidget {
             ),
             const SizedBox(height: KaiSpace.s4),
             KaiText.body(
-              'Начните разговор с Kai',
+              l10n.startConversation,
               color: tokens.colors.ink2,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: KaiSpace.s5),
             // Suggestion chips
-            const Wrap(
+            Wrap(
               spacing: KaiSpace.s2,
               runSpacing: KaiSpace.s2,
               alignment: WrapAlignment.center,
               children: [
-                _SuggestionChip(label: 'Планы на поездку'),
-                _SuggestionChip(label: 'Вопрос о визе'),
-                _SuggestionChip(label: 'Рекомендации'),
+                _SuggestionChip(label: l10n.suggestionTrip),
+                _SuggestionChip(label: l10n.suggestionVisa),
+                _SuggestionChip(label: l10n.suggestionRecommendations),
               ],
             ),
           ],
@@ -208,12 +210,13 @@ class _LiveFrame extends StatelessWidget {
       return _EmptyFrame(messages: messages);
     }
     final tokens = KaiTheme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: KaiSpace.s2),
           child: KaiText.micro(
-            'Сегодня',
+            l10n.today,
             color: tokens.colors.ink4,
             textAlign: TextAlign.center,
           ),
@@ -303,6 +306,7 @@ class _ErrorFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         Expanded(child: _LiveFrame(messages: messages)),
@@ -327,7 +331,7 @@ class _ErrorFrame extends StatelessWidget {
                     ),
                     const SizedBox(width: KaiSpace.s2),
                     KaiText.body(
-                      'Что-то пошло не так',
+                      l10n.errorTitle,
                       color: tokens.colors.ink1,
                     ),
                   ],
@@ -335,7 +339,7 @@ class _ErrorFrame extends StatelessWidget {
                 const SizedBox(height: KaiSpace.s3),
                 KaiButton.ghost(
                   onPressed: onRetry,
-                  label: 'Повторить',
+                  label: l10n.retry,
                 ),
               ],
             ),

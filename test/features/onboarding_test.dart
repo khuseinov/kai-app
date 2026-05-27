@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kai_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -35,6 +36,9 @@ Widget _buildOnboardingTest() {
       themeModeProvider.overrideWith((ref) => ThemeMode.light),
     ],
     child: MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: const [Locale('ru'), Locale('en')],
+      locale: const Locale('ru'),
       routerConfig: _makeTestRouter(),
       builder: (context, child) =>
           KaiTheme(child: child ?? const SizedBox.shrink()),

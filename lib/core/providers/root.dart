@@ -15,6 +15,7 @@ import '../repositories/mock_session_repository.dart';
 import '../repositories/real_chat_repository.dart';
 import '../repositories/real_session_repository.dart';
 import '../repositories/session_repository.dart';
+import '../telemetry/telemetry_service.dart';
 
 /// Env-loaded configuration. Populated by [bootstrap] via flutter_dotenv.
 class EnvConfig {
@@ -81,4 +82,9 @@ final sessionRepositoryProvider = Provider<SessionRepository>((ref) {
   final env = ref.watch(envProvider);
   if (env.useRealChat) return RealSessionRepository();
   return MockSessionRepository();
+});
+
+/// Telemetry service — swap NoOp for a real provider before launch.
+final telemetryProvider = Provider<TelemetryService>((ref) {
+  return const NoOpTelemetryService();
 });

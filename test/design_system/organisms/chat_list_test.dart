@@ -81,7 +81,7 @@ void main() {
           const ChatList(frame: RoomFrame.error),
         );
         expect(find.text('Повторить'), findsOneWidget);
-        expect(find.text('Что-то пошло не так'), findsOneWidget);
+        expect(find.text('Ошибка — попробуйте ещё раз'), findsOneWidget);
       });
 
       testWidgets('tap retry fires onRetry callback',

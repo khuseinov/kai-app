@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kai_app/l10n/app_localizations.dart';
 
 import '../atoms/kai_button.dart';
 import '../atoms/kai_icon.dart';
@@ -72,6 +73,7 @@ class _OfflineSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(KaiSpace.s4),
       decoration: BoxDecoration(
@@ -94,11 +96,11 @@ class _OfflineSurface extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: KaiSpace.s2),
-              KaiText.body('Нет сети', color: tokens.colors.ink1),
+              KaiText.body(l10n.offlineTitle, color: tokens.colors.ink1),
             ],
           ),
           const SizedBox(height: KaiSpace.s2),
-          KaiButton.ghost(onPressed: onRetry, label: 'Повторить'),
+          KaiButton.ghost(onPressed: onRetry, label: l10n.retry),
         ],
       ),
     );
@@ -115,6 +117,7 @@ class _ErrorSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: tokens.colors.negativeWash,
@@ -132,13 +135,13 @@ class _ErrorSurface extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 KaiText.body(
-                  'Ошибка — попробуйте ещё раз',
+                  l10n.errorTitle,
                   color: tokens.colors.ink1,
                 ),
                 const SizedBox(height: KaiSpace.s3),
                 KaiButton.ghost(
                   onPressed: onRetry,
-                  label: 'Повторить',
+                  label: l10n.retry,
                 ),
               ],
             ),
@@ -160,6 +163,7 @@ class _RateLimitSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(KaiSpace.s4),
       decoration: BoxDecoration(
@@ -180,7 +184,7 @@ class _RateLimitSurface extends StatelessWidget {
               const SizedBox(width: KaiSpace.s2),
               Expanded(
                 child: KaiText.body(
-                  'Слишком много запросов',
+                  l10n.rateLimitTitle,
                   color: tokens.colors.ink1,
                 ),
               ),
@@ -189,14 +193,14 @@ class _RateLimitSurface extends StatelessWidget {
           if (countdown != null) ...[
             const SizedBox(height: KaiSpace.s2),
             Text(
-              '${countdown!.inSeconds} сек',
+              l10n.rateLimitSecondsRemaining(countdown!.inSeconds),
               style: KaiType.micro(color: tokens.colors.ink3),
             ),
           ],
           const SizedBox(height: KaiSpace.s3),
           KaiButton.ghost(
             onPressed: onPlans,
-            label: 'Посмотреть планы',
+            label: l10n.viewPlans,
           ),
         ],
       ),
@@ -212,27 +216,30 @@ class _CrisisSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: tokens.colors.surface,
         borderRadius: KaiRadius.br3,
       ),
       clipBehavior: Clip.hardEdge,
-      child: const Column(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Opacity(
+          const Opacity(
             opacity: 0.3,
             child: KaiTideCurve(state: KaiTide.idle, height: 28),
           ),
           Padding(
-            padding: EdgeInsets.all(KaiSpace.s4),
+            padding: const EdgeInsets.all(KaiSpace.s4),
             child: CareBlock(
-              heading: 'Я слышу тебя.',
-              body: 'Если тебе сейчас тяжело, ты не один. '
-                  'Kai всегда рядом, и помощь доступна прямо сейчас.',
+              heading: l10n.crisisHeading,
+              body: l10n.crisisBody,
               resources: [
-                CareResource(label: 'Телефон доверия', number: '8-800-2000-122'),
+                CareResource(
+                  label: l10n.crisisResourceLabel,
+                  number: l10n.crisisResourceNumber,
+                ),
               ],
             ),
           ),

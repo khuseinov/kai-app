@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kai_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/core/providers/root.dart';
@@ -23,8 +24,11 @@ class _RoomTestHarness extends StatelessWidget {
       ],
       child: _ContainerCapture(
         onContainer: onContainer,
-        child: const MaterialApp(
-          home: KaiTheme(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: const [Locale('ru'), Locale('en')],
+          locale: const Locale('ru'),
+          home: const KaiTheme(
             child: Scaffold(body: RoomScreen()),
           ),
         ),
