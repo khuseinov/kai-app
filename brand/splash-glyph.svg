@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="g-tide-corner" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1B4FB0"/>
+      <stop offset="0.55" stop-color="#2BA8C9"/>
+      <stop offset="1" stop-color="#F4B589"/>
+    </linearGradient>
+    <!-- Rounded mask — splash-glyph is shown as a self-contained tile on the
+         splash screen, so it bakes in its corner radius (1024 × 20/64 = 320). -->
+    <clipPath id="rounded">
+      <rect width="1024" height="1024" rx="320" ry="320"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#rounded)">
+    <rect width="1024" height="1024" fill="url(#g-tide-corner)"/>
+    <!-- Glyph curve canon (splash variant): viewBox 36×18, path M 2 11 Q 9 3 18 11 T 34 7.
+         In a 64-glyph, SVG sits centered (margin l 14, t 23). Scaled to 1024:
+         w = 1024 * 36/64 = 576, h = 1024 * 18/64 = 288, x = 1024 * 14/64 = 224,
+         y = 1024 * 23/64 = 368. -->
+    <svg x="224" y="368" width="576" height="288" viewBox="0 0 36 18">
+      <path d="M 2 11 Q 9 3, 18 11 T 34 7" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    </svg>
+  </g>
+</svg>

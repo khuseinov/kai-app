@@ -60,6 +60,38 @@ dev_dependencies:
   json_serializable: ^6.8.0
   mockito: ^5.4.4
   hive_test: ^1.0.1
+  # Brand asset pipeline — see brand/BRAND_README.md.
+  flutter_launcher_icons: ^0.14.1
+  flutter_native_splash: ^2.4.0
+
+# Launcher-icons config — feeds platform AppIcon sets from brand/icon-1024.png.
+# Run: `dart run flutter_launcher_icons`
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "brand/icon-1024.png"
+  # Strip alpha — App Store requires opaque iOS icons.
+  remove_alpha_ios: true
+  # Android adaptive icon (Android 8+). Background = bg token light (#FAFAF9).
+  # Foreground is the same primary icon; Android masks corners automatically.
+  adaptive_icon_background: "#FAFAF9"
+  adaptive_icon_foreground: "brand/icon-1024.png"
+
+# Native-splash config — generates LaunchScreen.storyboard + launch_background.xml.
+# Run: `dart run flutter_native_splash:create`
+flutter_native_splash:
+  color: "#FAFAF9"
+  color_dark: "#0E0E11"
+  image: "brand/splash-glyph-1024.png"
+  image_dark: "brand/splash-glyph-1024.png"
+  ios: true
+  android: true
+  # Android 12+ adaptive splash — same glyph + bg colours.
+  android_12:
+    color: "#FAFAF9"
+    color_dark: "#0E0E11"
+    image: "brand/splash-glyph-1024.png"
+    image_dark: "brand/splash-glyph-1024.png"
 
 flutter:
   uses-material-design: true

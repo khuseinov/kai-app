@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="g-tide-corner" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1B4FB0"/>
+      <stop offset="0.55" stop-color="#2BA8C9"/>
+      <stop offset="1" stop-color="#F4B589"/>
+    </linearGradient>
+  </defs>
+  <!-- Square fill — iOS/Android apply their own rounded mask. -->
+  <rect width="1024" height="1024" fill="url(#g-tide-corner)"/>
+  <!-- Curve area: inset 22% top, 16% l/r, 24% bottom (canon brand.html § 02.1).
+       Inner box: x 164..860, y 225..778 = 696×553. Curve viewBox 60×16 placed
+       at xMidYMid meet inside → 696×186, centered vertically: y = 225 + (553-186)/2 = 408.5. -->
+  <svg x="164" y="408" width="696" height="186" viewBox="0 0 60 16" preserveAspectRatio="xMidYMid meet">
+    <path d="M 2 10 Q 14 2, 28 10 T 56 6" stroke="white" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </svg>
+</svg>
