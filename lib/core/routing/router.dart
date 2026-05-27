@@ -7,6 +7,7 @@ import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
 import '../../features/dev/atoms_showcase_screen.dart';
 import '../../features/dev/molecules_showcase_screen.dart';
+import '../../features/dev/organisms_showcase_screen.dart';
 import '../../features/dev/theme_showcase_screen.dart';
 
 /// Phase 2 router stub.
@@ -36,6 +37,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/_dev/molecules',
         builder: (_, __) => const MoleculesShowcaseScreen(),
+      ),
+      GoRoute(
+        path: '/_dev/organisms',
+        builder: (_, __) => const OrganismsShowcaseScreen(),
       ),
     ],
   );
@@ -78,6 +83,13 @@ class _DevHubScreen extends StatelessWidget {
             subtitle: 'ComposeIsland, NavItem, SourceCard, AlertCard, '
                 'CareBlock',
             onTap: () => context.go('/_dev/molecules'),
+          ),
+          const SizedBox(height: KaiSpace.s3),
+          _hubTile(
+            context,
+            label: 'Organisms',
+            subtitle: 'OnboardingCard, ChatList, NavPanel, EdgeStateBlock',
+            onTap: () => context.go('/_dev/organisms'),
           ),
         ],
       ),

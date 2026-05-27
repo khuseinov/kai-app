@@ -9,6 +9,10 @@ import '../network/interceptors/connectivity_interceptor.dart';
 import '../network/interceptors/error_interceptor.dart';
 import '../network/interceptors/logging_interceptor.dart';
 import '../network/interceptors/retry_interceptor.dart';
+import '../repositories/chat_repository.dart';
+import '../repositories/mock_chat_repository.dart';
+import '../repositories/mock_session_repository.dart';
+import '../repositories/session_repository.dart';
 
 /// Env-loaded configuration. Populated by [bootstrap] via flutter_dotenv.
 class EnvConfig {
@@ -55,3 +59,13 @@ final dioProvider = Provider<Dio>((ref) {
 
 /// Active theme mode. Toggled from the theme showcase screen.
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
+
+/// Chat repository. Points to mock in Phase 4; Phase 5 will switch to real.
+final chatRepositoryProvider = Provider<ChatRepository>(
+  (ref) => MockChatRepository(),
+);
+
+/// Session repository. Points to mock in Phase 4; Phase 5 will switch to Hive-backed.
+final sessionRepositoryProvider = Provider<SessionRepository>(
+  (ref) => MockSessionRepository(),
+);
