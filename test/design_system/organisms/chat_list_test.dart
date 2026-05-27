@@ -27,12 +27,12 @@ void main() {
         expect(find.text('Рекомендации'), findsOneWidget);
       });
 
-      testWidgets('renders empty prompt text', (WidgetTester tester) async {
+      testWidgets('renders invitation title', (WidgetTester tester) async {
         await _pump(
           tester,
           const ChatList(frame: RoomFrame.empty),
         );
-        expect(find.text('Начните разговор с Kai'), findsOneWidget);
+        expect(find.text('Куда едем сегодня?'), findsOneWidget);
       });
     });
 
@@ -43,7 +43,7 @@ void main() {
           tester,
           const ChatList(frame: RoomFrame.live),
         );
-        expect(find.text('Начните разговор с Kai'), findsOneWidget);
+        expect(find.text('Куда едем сегодня?'), findsOneWidget);
       });
 
       testWidgets('with messages renders KaiBubble widgets',

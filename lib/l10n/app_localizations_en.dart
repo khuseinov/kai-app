@@ -15,6 +15,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startConversation => 'Start a conversation with Kai';
 
   @override
+  String get emptyTitle => 'Where to today?';
+
+  @override
+  String get emptySubtitle => 'Ask about a destination, visa, or itinerary.';
+
+  @override
   String get today => 'Today';
 
   @override

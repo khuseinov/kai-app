@@ -92,64 +92,75 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
         onHorizontalDragStart: _onHorizontalDragStart,
         onHorizontalDragEnd: _onHorizontalDragEnd,
         child: SafeArea(
-          child: Column(
+          child: Stack(
             children: [
-              KaiTideCurve(state: roomState.tideState, height: 48),
-              Expanded(
-                child: ChatList(
-                  frame: roomState.currentFrame,
-                  messages: roomState.messages,
-                  onRetry: () {
-                    // Find the last user message and retry.
-                    final messages = roomState.messages;
-                    var lastUserText = '';
-                    for (var i = messages.length - 1; i >= 0; i--) {
-                      if (messages[i]['role'] == 'user') {
-                        lastUserText =
-                            messages[i]['content'] as String? ?? '';
-                        break;
-                      }
-                    }
-                    if (lastUserText.isNotEmpty) {
-                      ref
-                          .read(roomNotifierProvider.notifier)
-                          .sendMessage(lastUserText);
-                    }
-                  },
-                ),
+              Column(
+                children: [
+                  KaiTideCurve(state: roomState.tideState, height: 48),
+                  Expanded(
+                    child: ChatList(
+                      frame: roomState.currentFrame,
+                      messages: roomState.messages,
+                      onRetry: () {
+                        final messages = roomState.messages;
+                        var lastUserText = '';
+                        for (var i = messages.length - 1; i >= 0; i--) {
+                          if (messages[i]['role'] == 'user') {
+                            lastUserText =
+                                messages[i]['content'] as String? ?? '';
+                            break;
+                          }
+                        }
+                        if (lastUserText.isNotEmpty) {
+                          ref
+                              .read(roomNotifierProvider.notifier)
+                              .sendMessage(lastUserText);
+                        }
+                      },
+                    ),
+                  ),
+                  if (roomState.isOffline)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: KaiSpace.s4,
+                        vertical: KaiSpace.s2,
+                      ),
+                      child: EdgeStateBlock(surface: EdgeSurface.offline),
+                    ),
+                  if (roomState.isRateLimited)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: KaiSpace.s4,
+                        vertical: KaiSpace.s2,
+                      ),
+                      child: EdgeStateBlock(
+                        surface: EdgeSurface.rateLimit,
+                        countdown: roomState.rateLimitRetryAfter,
+                      ),
+                    ),
+                  if (roomState.isCrisis)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: KaiSpace.s4,
+                        vertical: KaiSpace.s2,
+                      ),
+                      child: EdgeStateBlock(surface: EdgeSurface.crisis),
+                    ),
+                  // Reserve space so chat content doesn't hide behind compose island.
+                  // 26 (bottom) + 44 (island height) + 18 (top margin) = 88
+                  const SizedBox(height: 88),
+                ],
               ),
-              if (roomState.isOffline)
-                const Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: KaiSpace.s4,
-                    vertical: KaiSpace.s2,
-                  ),
-                  child: EdgeStateBlock(surface: EdgeSurface.offline),
+              Positioned(
+                left: 18,
+                right: 18,
+                bottom: 26,
+                child: ComposeIsland(
+                  controller: _composeController,
+                  onSend: _onSend,
+                  state: _composeStateFrom(roomState),
+                  placeholder: AppLocalizations.of(context).composePlaceholder,
                 ),
-              if (roomState.isRateLimited)
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: KaiSpace.s4,
-                    vertical: KaiSpace.s2,
-                  ),
-                  child: EdgeStateBlock(
-                    surface: EdgeSurface.rateLimit,
-                    countdown: roomState.rateLimitRetryAfter,
-                  ),
-                ),
-              if (roomState.isCrisis)
-                const Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: KaiSpace.s4,
-                    vertical: KaiSpace.s2,
-                  ),
-                  child: EdgeStateBlock(surface: EdgeSurface.crisis),
-                ),
-              ComposeIsland(
-                controller: _composeController,
-                onSend: _onSend,
-                state: _composeStateFrom(roomState),
-                placeholder: AppLocalizations.of(context).composePlaceholder,
               ),
             ],
           ),

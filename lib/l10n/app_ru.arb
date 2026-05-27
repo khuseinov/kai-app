@@ -2,6 +2,8 @@
   "@@locale": "ru",
   "appTitle": "Kai",
   "startConversation": "Начните разговор с Kai",
+  "emptyTitle": "Куда едем сегодня?",
+  "emptySubtitle": "Спросите о месте, визе или маршруте.",
   "today": "Сегодня",
   "suggestionTrip": "Планы на поездку",
   "suggestionVisa": "Вопрос о визе",

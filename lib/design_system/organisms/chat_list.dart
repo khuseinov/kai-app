@@ -133,34 +133,45 @@ class _EmptyFrame extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(KaiSpace.s6),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 22,
+          vertical: KaiSpace.s4,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 48px Kai glyph
-            Container(
-              width: 48,
-              height: 48,
-              decoration: const BoxDecoration(
-                gradient: KaiTide.gradient,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(height: KaiSpace.s4),
-            KaiText.body(
-              l10n.startConversation,
-              color: tokens.colors.ink2,
+            Text(
+              l10n.emptyTitle,
               textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 26,
+                fontWeight: FontWeight.w600,
+                height: 1.2,
+                letterSpacing: 26 * -0.022,
+              ).copyWith(color: tokens.colors.ink1),
             ),
-            const SizedBox(height: KaiSpace.s5),
-            // Suggestion chips
-            Wrap(
-              spacing: KaiSpace.s2,
-              runSpacing: KaiSpace.s2,
-              alignment: WrapAlignment.center,
+            const SizedBox(height: 6),
+            Text(
+              l10n.emptySubtitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 13.5,
+                fontWeight: FontWeight.w400,
+                height: 1.5,
+                letterSpacing: 13.5 * -0.005,
+              ).copyWith(color: tokens.colors.ink3),
+            ),
+            const SizedBox(height: KaiSpace.s5 + 3),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _SuggestionChip(label: l10n.suggestionTrip),
+                const SizedBox(height: KaiSpace.s2),
                 _SuggestionChip(label: l10n.suggestionVisa),
+                const SizedBox(height: KaiSpace.s2),
                 _SuggestionChip(label: l10n.suggestionRecommendations),
               ],
             ),

@@ -110,6 +110,18 @@ abstract class AppLocalizations {
   /// **'Start a conversation with Kai'**
   String get startConversation;
 
+  /// Empty state invitation title
+  ///
+  /// In en, this message translates to:
+  /// **'Where to today?'**
+  String get emptyTitle;
+
+  /// Empty state invitation subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about a destination, visa, or itinerary.'**
+  String get emptySubtitle;
+
   /// Date separator in chat
   ///
   /// In en, this message translates to:

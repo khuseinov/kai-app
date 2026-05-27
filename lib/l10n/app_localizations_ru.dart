@@ -15,6 +15,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get startConversation => 'Начните разговор с Kai';
 
   @override
+  String get emptyTitle => 'Куда едем сегодня?';
+
+  @override
+  String get emptySubtitle => 'Спросите о месте, визе или маршруте.';
+
+  @override
   String get today => 'Сегодня';
 
   @override

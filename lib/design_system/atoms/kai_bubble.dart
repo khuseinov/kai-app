@@ -57,9 +57,9 @@ class KaiBubble extends StatelessWidget {
               decoration: BoxDecoration(
                 color: c.surface2,
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(KaiRadius.r4),
-                  topRight: Radius.circular(KaiRadius.r4),
-                  bottomLeft: Radius.circular(KaiRadius.r4),
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
                   bottomRight: Radius.circular(4),
                 ),
               ),
@@ -76,33 +76,73 @@ class KaiBubble extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: c.bg,
-      padding: const EdgeInsets.symmetric(
-        vertical: KaiSpace.s3,
-        horizontal: KaiSpace.s4,
-      ),
-      child: MarkdownBody(
-        data: content,
-        styleSheet: MarkdownStyleSheet(
-          p: KaiType.body(color: c.ink1),
-          h1: KaiType.h1(color: c.ink1),
-          h2: KaiType.h2(color: c.ink1),
-          h3: KaiType.h3(color: c.ink1),
-          code: KaiType.mono(color: c.ink1),
-          codeblockDecoration: BoxDecoration(
-            color: c.surface2,
-            borderRadius: KaiRadius.br2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(
+              left: KaiSpace.s4,
+              top: KaiSpace.s3,
+              bottom: 3,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 12,
+                  height: 3,
+                  decoration: const BoxDecoration(
+                    gradient: KaiTide.gradient,
+                    borderRadius: KaiRadius.brPill,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'KAI',
+                  style: TextStyle(
+                    fontFamily: 'JetBrainsMono',
+                    fontSize: 9,
+                    fontWeight: FontWeight.w400,
+                    height: 1.4,
+                    letterSpacing: 9 * 0.08,
+                    color: c.ink3,
+                  ),
+                ),
+              ],
+            ),
           ),
-          blockquote: KaiType.body(color: c.ink2).copyWith(
-            fontStyle: FontStyle.italic,
+          Padding(
+            padding: const EdgeInsets.only(
+              left: KaiSpace.s4,
+              right: KaiSpace.s4,
+              bottom: KaiSpace.s3,
+            ),
+            child: MarkdownBody(
+              data: content,
+              styleSheet: MarkdownStyleSheet(
+                p: KaiType.body(color: c.ink1),
+                h1: KaiType.h1(color: c.ink1),
+                h2: KaiType.h2(color: c.ink1),
+                h3: KaiType.h3(color: c.ink1),
+                code: KaiType.mono(color: c.ink1),
+                codeblockDecoration: BoxDecoration(
+                  color: c.surface2,
+                  borderRadius: KaiRadius.br2,
+                ),
+                blockquote: KaiType.body(color: c.ink2).copyWith(
+                  fontStyle: FontStyle.italic,
+                ),
+                listBullet: KaiType.body(color: c.ink1),
+                em: KaiType.body(color: c.ink1).copyWith(
+                  fontStyle: FontStyle.italic,
+                ),
+                strong: KaiType.body(color: c.ink1).copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           ),
-          listBullet: KaiType.body(color: c.ink1),
-          em: KaiType.body(color: c.ink1).copyWith(
-            fontStyle: FontStyle.italic,
-          ),
-          strong: KaiType.body(color: c.ink1).copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        ],
       ),
     );
   }

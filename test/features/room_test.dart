@@ -61,8 +61,8 @@ void main() {
       );
       await tester.pump();
 
-      // In empty frame, ChatList shows the "Начните разговор" text.
-      expect(find.text('Начните разговор с Kai'), findsOneWidget);
+      // In empty frame, ChatList shows the invitation title.
+      expect(find.text('Куда едем сегодня?'), findsOneWidget);
       expect(container!.read(roomNotifierProvider).currentFrame, RoomFrame.empty);
     });
 
