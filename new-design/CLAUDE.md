@@ -46,6 +46,7 @@ Every HTML file in this project is a **single visual reference**. They are not p
 | `notifications-chat.html` | Alert Card N-01 — proactive alerts in chat feed. 4 types (urgent/warning/positive/neutral) + anatomy + rules. | canonical |
 | `roadmap.html` | Design roadmap — gaps, 8 new screens, 8 components, 6 improvements, 5 system tasks. With variants. | planning |
 | `review.html` | Design audit 2026-05-26 — 8 issues logged and resolved. Historical reference. | reference |
+| `spec-viewer.html` | **Figma Dev Mode inspector** — 3-column layout (sidebar / preview iframe / inspector). Click any element to get Props / CSS / Flutter tabs. 5 agent-mode tools: Token Lint, JSON Export, Spacing Ruler, State Simulator, Widget Tree. Serve at `http://localhost:8743/`. | tooling |
 | `uploads/` | User-supplied character docs. Source of truth for tone, voice, character. | read-only |
 | `reference/` | Old Flutter source from pre-redesign. Backend reference only. | legacy |
 
@@ -159,4 +160,30 @@ Frame the pushback as a choice: "This conflicts with [rule]. We can do it your w
 
 ---
 
-**Last sync:** 2026-05-26 · v2 pass. 18 canonical artifacts + `review.html` (audit) + `roadmap.html` (planning). New: `tide-states.html` (8 animated states), `notifications-chat.html` (Alert Card N-01), `room.html` +2 frames (streaming/error). System ready for production handoff.
+---
+
+## 8 · spec-viewer — agent & dev mode tools
+
+`spec-viewer.html` is a Figma Dev Mode-style inspector. Serve the `new-design/` folder (e.g. `python -m http.server 8743`) and open `http://localhost:8743/spec-viewer.html`.
+
+**Click any element** → inspector shows Props / CSS / Flutter tabs with token-resolved values.
+
+**5 power tools (topbar):**
+
+| Tool | How to use | Output |
+|------|-----------|--------|
+| **lint** | Click after loading a screen | Slide-up panel listing `animation-fill-mode: forwards` bugs, hardcoded gradients, hex colors outside token map |
+| **json ↓** | Click to export screen spec | Downloads `<screen>-spec.json` — structured data for AI agents: texts, token usage, layouts, animations |
+| **ruler** | Click to activate, then `Shift+click` two elements | Shows gap in px + nearest spacing token (e.g. `32px · --sp-7`) as a floating pip |
+| **scan screen** | Click to copy markdown spec | Copies markdown summary of all text content, colors, fonts, animations to clipboard |
+| **open ↗** | Opens current file in a new tab | Direct access to the design file |
+
+**State Simulator** (inspector, below tab bar): after clicking an element, buttons `[default] [:hover] [:focus] [:active]` force pseudo-states by applying matching stylesheet rules as inline styles — updates Props/CSS/Flutter tabs live.
+
+**Widget Tree** (Flutter tab): when a flex container with children is selected, a `tree` button appears next to "copy dart →" — copies a nested `Column`/`Row` Flutter tree with all children.
+
+**SVG elements**: shows SVG-specific data (fill, stroke, stroke-width, path `d`, viewBox) — not inherited CSS properties.
+
+---
+
+**Last sync:** 2026-05-28 · v2.1 pass. Full design audit — 36+ token/animation bugs fixed across all 18 HTML files. `spec-viewer.html` upgraded with 5 dev-mode / agent-mode tools. All canonical artifacts verified clean.
