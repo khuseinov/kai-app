@@ -289,6 +289,13 @@ For each phase:
 3. **`google_fonts` and `shimmer` removed from pubspec** (Phase 0). If a future feature wants them, re-add explicitly.
 4. **Voice mode not in v1** — `NSMicrophoneUsageDescription` removed from Info.plist. If voice is added later, restore the key.
 5. **No `--tags` push** — all phase tags are LOCAL. Don't push them to avoid replaying the 2026-05-26 wipe incident.
+6. **`HiveSetup._initialized` is process-wide static** — risks flaky tests if any future test calls `HiveSetup.init()` after `tearDownTestHive()`. No fix today (no current test triggers it). Recommended: add test-only `reset()` if Phase 5+ tests need full re-init.
+7. **anonymousSessionProvider not keepAlive** — in Riverpod 2.x plain FutureProvider does not autodispose by default (handoff §4 is correct), but in Phase 5 the AuthInterceptor will read sessionId via `container.read` — that's a one-shot read with no listener. Add `ref.keepAlive()` defensively to the provider when wiring AuthInterceptor in Phase 5, OR establish a long-lived listener in app bootstrap.
+8. **freezed entity field additions require BOTH `build_runner` AND hand-edited Hive adapter** — `.g.dart` / `.freezed.dart` regenerate on `dart run build_runner build`, but the hand-rolled Hive adapter is silent if a field is added to the freezed class. Update comment in session/message/settings adapter files (or hive_setup.dart) to mention this explicitly.
+9. **`/_dev/*` routes have no `kReleaseMode` guard** — known Phase 5 work. The current `/` redirect targets `/_dev` unconditionally; Phase 5 implementer must rewire to `/onboarding` or `/room` based on `settings.onboarded` flag AND guard dev routes behind `kReleaseMode` (or strip via build flavor).
+10. **AlertCard is structurally simpler than canon N-01** — current impl is single Column (icon + title + body + action). Canon `notifications-chat.html` has 4 zones: `.ac-head` (type chip + timestamp + dismiss), `.ac-icon`, `.ac-body`, `.ac-actions`. Acceptable for current scope; revisit when AlertCard is composed into Phase 4 organisms or first real proactive alert use-case lands.
+11. **AlertCard always uses `KaiIconName.alert` glyph** — canon N-01 has per-type glyphs (alert-triangle / info / check / bell). Either expose `icon` param to caller or derive from type. Some icons may need adding to `KaiIconName` enum.
+12. **Idle/sleep `strokePx`/`opacity` in `kai_tide.dart` are dead during breathe** — values declared but overridden by `breatheStroke/Opacity From/To` at runtime. Confusing for readers. Add inline comment OR drop the base values.
 
 ---
 

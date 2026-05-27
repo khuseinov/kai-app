@@ -80,10 +80,10 @@ void main() {
 
     testWidgets('error ephemeral lifecycle does not throw', (tester) async {
       await _pump(tester, const KaiTideCurve(state: KaiTide.error));
-      // 2 cycles of 700ms with 1000ms gap = 700 + 1000 + 700 = 2400ms.
-      await tester.pump(const Duration(milliseconds: 800));
+      // 2 cycles of 600ms with 1000ms gap = 600 + 1000 + 600 = 2200ms.
+      await tester.pump(const Duration(milliseconds: 700));
       await tester.pump(const Duration(milliseconds: 1100));
-      await tester.pump(const Duration(milliseconds: 800));
+      await tester.pump(const Duration(milliseconds: 700));
       expect(find.byType(KaiTideCurve), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
     });
@@ -97,6 +97,36 @@ void main() {
       }
       expect(find.byType(KaiTideCurve), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
+    });
+
+    // Regression: KaiTide.success (3 flash cycles, gapMs=0) used to
+    // dispose the AnimationController whose status listener was mid-
+    // execution on the call stack — use-after-dispose. The fix defers
+    // the next-cycle call via Future.microtask. This test verifies no
+    // FlutterErrors fire as the 3 cycles roll through.
+    testWidgets('success no-gap cycles do not throw FlutterErrors',
+        (tester) async {
+      final errors = <FlutterErrorDetails>[];
+      final prior = FlutterError.onError;
+      FlutterError.onError = (details) => errors.add(details);
+      try {
+        await _pump(tester, const KaiTideCurve(state: KaiTide.success));
+        // 3 cycles × 1200ms each, no gap → ~3600ms total. Pump in
+        // chunks slightly larger than one cycle so the microtask between
+        // cycles definitely runs.
+        for (var i = 0; i < 3; i++) {
+          await tester.pump(const Duration(milliseconds: 1250));
+        }
+        // Let any post-revert reconfiguration settle.
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(errors, isEmpty,
+            reason: 'expected no FlutterErrors across the 3 success '
+                'ephemeral cycles, but got: $errors');
+        expect(find.byType(KaiTideCurve), findsOneWidget);
+      } finally {
+        FlutterError.onError = prior;
+        await tester.pumpWidget(const SizedBox.shrink());
+      }
     });
   });
 

@@ -47,7 +47,9 @@ class AlertCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: palette.background,
-        borderRadius: KaiRadius.br2,
+        // Canon: notifications-chat.html N-01 uses border-radius: 12px;
+        // closest token is br3 (r3 = 14).
+        borderRadius: KaiRadius.br3,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

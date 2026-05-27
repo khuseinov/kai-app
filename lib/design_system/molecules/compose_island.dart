@@ -84,8 +84,12 @@ class ComposeIsland extends StatelessWidget {
     return Container(
       // Pill container. Padding 6×8 keeps mic + send hug-edge with the
       // outer radius (999) — radii match, no overflow.
+      // Canon: room.html elevated compose-island uses --surface (pure
+      // white) + 1px --line border. Pure #FFFFFF is reserved for elevated
+      // content like this island (see new-design/CLAUDE.md § Color).
       decoration: BoxDecoration(
-        color: c.surface2,
+        color: c.surface,
+        border: Border.all(color: c.line, width: 1),
         borderRadius: KaiRadius.brPill,
       ),
       padding: const EdgeInsets.symmetric(

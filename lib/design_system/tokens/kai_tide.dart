@@ -147,7 +147,10 @@ class KaiTide {
     strokePx: 2.0,
     opacity: 0.95,
     animation: KaiTideAnimation.wobble,
-    durationMs: 700,
+    // Canon: design-tokens.json § tide-states.error.animation-duration-ms = 600.
+    // The HTML-wins exception applies ONLY to idle/sleep breathe; all other
+    // states track the JSON.
+    durationMs: 600,
     ephemeral: true,
   );
 

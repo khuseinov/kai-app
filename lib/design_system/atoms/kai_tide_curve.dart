@@ -146,7 +146,7 @@ class _KaiTideCurveState extends State<KaiTideCurve>
       case KaiTideAnimation.wobble:
         _ephemeralCyclesRemaining = 2;
         _runEphemeralCycle(
-          Duration(milliseconds: s.durationMs ?? 700),
+          Duration(milliseconds: s.durationMs ?? 600),
           gapMs: 1000,
         );
         return;
@@ -176,8 +176,14 @@ class _KaiTideCurveState extends State<KaiTideCurve>
             _runEphemeralCycle(duration, gapMs: gapMs);
           });
         } else {
-          if (!mounted) return;
-          _runEphemeralCycle(duration, gapMs: gapMs);
+          // Defer via microtask so we don't dispose the current
+          // controller (whose status listener is mid-execution) on this
+          // call stack — that would be use-after-dispose. Affected:
+          // KaiTide.success (3 flash cycles, gapMs=0).
+          Future.microtask(() {
+            if (!mounted) return;
+            _runEphemeralCycle(duration, gapMs: gapMs);
+          });
         }
       } else {
         // Done — auto-revert.

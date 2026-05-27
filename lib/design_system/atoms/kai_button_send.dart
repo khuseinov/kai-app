@@ -93,9 +93,10 @@ class _KaiButtonSendState extends State<KaiButtonSend>
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
     final decoration = _decoration(tokens);
-    final iconColor = widget.state == KaiSendState.disabled
-        ? tokens.colors.ink3
-        : const Color(0xFFFFFFFF);
+    // Canon: room.html `.send { background: var(--ink-4); color: var(--surface);
+    // opacity: 0.5 }` — the disabled state uses surface for the icon and
+    // dims via Opacity below, not via swapping the icon color.
+    final iconColor = tokens.colors.surface;
 
     final core = AnimatedBuilder(
       animation: _pulseScale,

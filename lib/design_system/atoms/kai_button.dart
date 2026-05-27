@@ -79,7 +79,9 @@ class _KaiButtonState extends State<KaiButton> {
     final enabled = widget.onPressed != null;
     final decoration = _buildDecoration(tokens, enabled);
     final padding = widget._variant == _KaiButtonVariant.icon
-        ? const EdgeInsets.all(KaiSpace.s3)
+        // Canon: room.html `.compose-island .mic, .send { width: 30px;
+        // height: 30px; }` — with an 18px glyph that means 6px padding.
+        ? const EdgeInsets.all(KaiSpace.s1 + 2)
         : const EdgeInsets.symmetric(
             vertical: KaiSpace.s3,
             horizontal: KaiSpace.s5,
