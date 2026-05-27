@@ -54,7 +54,7 @@ void main() {
 
   testWidgets('all KaiIconName values have a defined assetName',
       (tester) async {
-    expect(KaiIconName.values.length, 22);
+    expect(KaiIconName.values.length, 30);
     for (final n in KaiIconName.values) {
       expect(n.assetName, isNotEmpty);
     }

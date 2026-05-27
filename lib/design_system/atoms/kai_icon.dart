@@ -27,7 +27,15 @@ enum KaiIconName {
   folder('folder'),
   chev('chev'),
   memory('memory'),
-  press('press');
+  press('press'),
+  palette('palette'),
+  motion('motion'),
+  speaker('speaker'),
+  globe('globe'),
+  trash('trash'),
+  shield('shield'),
+  lock('lock'),
+  logout('logout');
 
   const KaiIconName(this.assetName);
   final String assetName;

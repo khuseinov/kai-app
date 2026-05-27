@@ -11,6 +11,7 @@ import '../../features/dev/organisms_showcase_screen.dart';
 import '../../features/dev/theme_showcase_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/room/room_screen.dart';
+import '../../features/settings/settings_screen.dart';
 import '../storage/entities/settings.dart';
 import '../storage/hive_setup.dart';
 
@@ -38,6 +39,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/room/:tripId',
         builder: (context, state) =>
             RoomScreen(tripId: state.pathParameters['tripId']),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
       GoRoute(
         path: '/_dev',
