@@ -12,18 +12,25 @@ import '../network/interceptors/retry_interceptor.dart';
 import '../repositories/chat_repository.dart';
 import '../repositories/mock_chat_repository.dart';
 import '../repositories/mock_session_repository.dart';
+import '../repositories/real_chat_repository.dart';
+import '../repositories/real_session_repository.dart';
 import '../repositories/session_repository.dart';
 
 /// Env-loaded configuration. Populated by [bootstrap] via flutter_dotenv.
 class EnvConfig {
-  const EnvConfig({required this.apiBaseUrl});
+  const EnvConfig({required this.apiBaseUrl, this.useRealChat = false});
 
   final String apiBaseUrl;
+
+  /// When `true`, [chatRepositoryProvider] and [sessionRepositoryProvider]
+  /// use the real Hive/Dio-backed implementations instead of mocks.
+  final bool useRealChat;
 
   /// Read from `dotenv.env`, falling back to the default API URL.
   factory EnvConfig.fromDotenv() {
     final url = dotenv.maybeGet('API_BASE_URL') ?? 'https://api.wize.travel';
-    return EnvConfig(apiBaseUrl: url);
+    final useReal = dotenv.maybeGet('USE_REAL_CHAT') == 'true';
+    return EnvConfig(apiBaseUrl: url, useRealChat: useReal);
   }
 }
 
@@ -60,12 +67,18 @@ final dioProvider = Provider<Dio>((ref) {
 /// Active theme mode. Toggled from the theme showcase screen.
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 
-/// Chat repository. Points to mock in Phase 4; Phase 5 will switch to real.
-final chatRepositoryProvider = Provider<ChatRepository>(
-  (ref) => MockChatRepository(),
-);
+/// Chat repository. Switches between mock and real based on [EnvConfig.useRealChat].
+final chatRepositoryProvider = Provider<ChatRepository>((ref) {
+  final env = ref.read(envProvider);
+  if (env.useRealChat) {
+    return RealChatRepository.withDio(ref.read(dioProvider));
+  }
+  return MockChatRepository();
+});
 
-/// Session repository. Points to mock in Phase 4; Phase 5 will switch to Hive-backed.
-final sessionRepositoryProvider = Provider<SessionRepository>(
-  (ref) => MockSessionRepository(),
-);
+/// Session repository. Switches between mock and real based on [EnvConfig.useRealChat].
+final sessionRepositoryProvider = Provider<SessionRepository>((ref) {
+  final env = ref.read(envProvider);
+  if (env.useRealChat) return RealSessionRepository();
+  return MockSessionRepository();
+});
