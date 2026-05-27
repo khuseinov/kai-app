@@ -39,6 +39,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offlineTitle => 'No connection';
 
   @override
+  String get offlineBody => 'Will send when you\'re back online. Queue saved.';
+
+  @override
   String get retry => 'Retry';
 
   @override
@@ -51,6 +54,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String rateLimitSecondsRemaining(int secs) {
     return '$secs sec';
   }
+
+  @override
+  String get rateLimitBodyPrefix => 'Resets at';
+
+  @override
+  String get rateLimitUpgradeHint => 'Plan Pro removes limits.';
 
   @override
   String get viewPlans => 'View plans';
@@ -67,6 +76,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get crisisResourceNumber => '988';
+
+  @override
+  String get crisisResourceLabelPhone => 'Lifeline';
+
+  @override
+  String get crisisResourceNumberPhone => '988';
+
+  @override
+  String get crisisResourceLabelText => 'Crisis Text Line';
+
+  @override
+  String get crisisResourceNumberText => 'Text HOME to 741741';
 
   @override
   String get onboardingNext => 'Continue';

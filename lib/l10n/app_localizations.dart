@@ -158,6 +158,12 @@ abstract class AppLocalizations {
   /// **'No connection'**
   String get offlineTitle;
 
+  /// Offline surface body copy
+  ///
+  /// In en, this message translates to:
+  /// **'Will send when you\'re back online. Queue saved.'**
+  String get offlineBody;
+
   /// No description provided for @retry.
   ///
   /// In en, this message translates to:
@@ -181,6 +187,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{secs} sec'**
   String rateLimitSecondsRemaining(int secs);
+
+  /// Rate limit body prefix before countdown time
+  ///
+  /// In en, this message translates to:
+  /// **'Resets at'**
+  String get rateLimitBodyPrefix;
+
+  /// Rate limit upgrade hint
+  ///
+  /// In en, this message translates to:
+  /// **'Plan Pro removes limits.'**
+  String get rateLimitUpgradeHint;
 
   /// No description provided for @viewPlans.
   ///
@@ -211,6 +229,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'988'**
   String get crisisResourceNumber;
+
+  /// Crisis phone resource label
+  ///
+  /// In en, this message translates to:
+  /// **'Lifeline'**
+  String get crisisResourceLabelPhone;
+
+  /// Crisis phone resource number
+  ///
+  /// In en, this message translates to:
+  /// **'988'**
+  String get crisisResourceNumberPhone;
+
+  /// Crisis text resource label
+  ///
+  /// In en, this message translates to:
+  /// **'Crisis Text Line'**
+  String get crisisResourceLabelText;
+
+  /// Crisis text resource number/instruction
+  ///
+  /// In en, this message translates to:
+  /// **'Text HOME to 741741'**
+  String get crisisResourceNumberText;
 
   /// No description provided for @onboardingNext.
   ///

@@ -39,6 +39,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get offlineTitle => 'Нет сети';
 
   @override
+  String get offlineBody =>
+      'Отправлю, когда выйдете в онлайн. Очередь сохранена.';
+
+  @override
   String get retry => 'Повторить';
 
   @override
@@ -51,6 +55,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String rateLimitSecondsRemaining(int secs) {
     return '$secs сек';
   }
+
+  @override
+  String get rateLimitBodyPrefix => 'Сброс в';
+
+  @override
+  String get rateLimitUpgradeHint => 'Plan Pro — без лимита.';
 
   @override
   String get viewPlans => 'Посмотреть планы';
@@ -67,6 +77,18 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get crisisResourceNumber => '8-800-2000-122';
+
+  @override
+  String get crisisResourceLabelPhone => 'Доверие · Россия';
+
+  @override
+  String get crisisResourceNumberPhone => '8 800 2000 122';
+
+  @override
+  String get crisisResourceLabelText => 'Crisis Text Line';
+
+  @override
+  String get crisisResourceNumberText => 'Текст HOME на 741741';
 
   @override
   String get onboardingNext => 'Продолжить';

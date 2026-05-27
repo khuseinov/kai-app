@@ -4,7 +4,6 @@ import 'package:kai_app/l10n/app_localizations.dart';
 import '../atoms/kai_button.dart';
 import '../atoms/kai_icon.dart';
 import '../atoms/kai_text.dart';
-import '../atoms/kai_tide_curve.dart';
 import '../molecules/care_block.dart';
 import '../theme/kai_theme.dart';
 import '../tokens/kai_tokens.dart';
@@ -73,12 +72,18 @@ class _OfflineSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
+    final c = tokens.colors;
     final l10n = AppLocalizations.of(context);
+    // Canon: edge-states.html § .inline-note.warning — warning-wash bg + border
     return Container(
-      padding: const EdgeInsets.all(KaiSpace.s4),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
       decoration: BoxDecoration(
-        color: tokens.colors.surface2,
+        color: c.warningWash,
         borderRadius: KaiRadius.br3,
+        border: Border.all(
+          color: c.warning.withValues(alpha: 0.18),
+          width: 1,
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -86,21 +91,76 @@ class _OfflineSurface extends StatelessWidget {
         children: [
           Row(
             children: [
-              // Yellow dot — no-network indicator
+              // wifi-off icon in a small circle — canon: 18×18 icon-circle
               Container(
-                width: 8,
-                height: 8,
+                width: 18,
+                height: 18,
                 decoration: BoxDecoration(
-                  color: tokens.colors.warning,
+                  color: c.warning.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: KaiIcon(KaiIconName.wifiOff, size: 10, color: c.warning),
                 ),
               ),
               const SizedBox(width: KaiSpace.s2),
-              KaiText.body(l10n.offlineTitle, color: tokens.colors.ink1),
+              Text(
+                l10n.offlineTitle,
+                style: TextStyle(
+                  fontFamily: 'Manrope',
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: c.warning,
+                  letterSpacing: -0.005 * 11.5,
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: KaiSpace.s2),
-          KaiButton.ghost(onPressed: onRetry, label: l10n.retry),
+          const SizedBox(height: 7),
+          // Body copy — canon: offlineBody
+          Text(
+            l10n.offlineBody,
+            style: TextStyle(
+              fontFamily: 'Manrope',
+              fontSize: 11,
+              color: c.ink2,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 9),
+          // Retry pill — ghost border in warning color
+          if (onRetry != null)
+            GestureDetector(
+              onTap: onRetry,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border.all(
+                    color: c.warning.withValues(alpha: 0.25),
+                    width: 1,
+                  ),
+                  borderRadius: KaiRadius.brPill,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    KaiIcon(KaiIconName.retry, size: 12, color: c.warning),
+                    const SizedBox(width: 4),
+                    Text(
+                      l10n.retry,
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w500,
+                        color: c.warning,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -117,35 +177,35 @@ class _ErrorSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
+    final c = tokens.colors;
     final l10n = AppLocalizations.of(context);
+    // Canon: edge-states.html § .inline-note.error
+    // No internal KaiTideCurve — tide lives at the top of the screen (Zero-UI).
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
       decoration: BoxDecoration(
-        color: tokens.colors.negativeWash,
+        color: c.negativeWash,
         borderRadius: KaiRadius.br3,
+        border: Border.all(
+          color: c.negative.withValues(alpha: 0.18),
+          width: 1,
+        ),
       ),
-      clipBehavior: Clip.hardEdge,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const KaiTideCurve(state: KaiTide.error, height: 28),
-          Padding(
-            padding: const EdgeInsets.all(KaiSpace.s4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                KaiText.body(
-                  l10n.errorTitle,
-                  color: tokens.colors.ink1,
-                ),
-                const SizedBox(height: KaiSpace.s3),
-                KaiButton.ghost(
-                  onPressed: onRetry,
-                  label: l10n.retry,
-                ),
-              ],
-            ),
+          Row(
+            children: [
+              KaiIcon(KaiIconName.alert, size: 18, color: c.negative),
+              const SizedBox(width: KaiSpace.s2),
+              Expanded(
+                child: KaiText.body(l10n.errorTitle, color: c.ink1),
+              ),
+            ],
           ),
+          const SizedBox(height: KaiSpace.s3),
+          KaiButton.ghost(onPressed: onRetry, label: l10n.retry),
         ],
       ),
     );
@@ -163,12 +223,18 @@ class _RateLimitSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
+    final c = tokens.colors;
     final l10n = AppLocalizations.of(context);
+    // Canon: edge-states.html § .rate-limit — clock icon (not alert), countdown body
     return Container(
-      padding: const EdgeInsets.all(KaiSpace.s4),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
       decoration: BoxDecoration(
-        color: tokens.colors.warningWash,
+        color: c.warningWash,
         borderRadius: KaiRadius.br3,
+        border: Border.all(
+          color: c.warning.withValues(alpha: 0.18),
+          width: 1,
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -176,28 +242,36 @@ class _RateLimitSurface extends StatelessWidget {
         children: [
           Row(
             children: [
-              KaiIcon(
-                KaiIconName.alert,
-                size: 18,
-                color: tokens.colors.warning,
-              ),
+              // clock icon — canon change from alert to clock
+              KaiIcon(KaiIconName.clock, size: 18, color: c.warning),
               const SizedBox(width: KaiSpace.s2),
               Expanded(
-                child: KaiText.body(
+                child: Text(
                   l10n.rateLimitTitle,
-                  color: tokens.colors.ink1,
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: c.warning,
+                    letterSpacing: -0.005 * 11.5,
+                  ),
                 ),
               ),
             ],
           ),
           if (countdown != null) ...[
-            const SizedBox(height: KaiSpace.s2),
+            const SizedBox(height: 7),
             Text(
-              l10n.rateLimitSecondsRemaining(countdown!.inSeconds),
-              style: KaiType.micro(color: tokens.colors.ink3),
+              '${l10n.rateLimitBodyPrefix} ${l10n.rateLimitSecondsRemaining(countdown!.inSeconds)}. ${l10n.rateLimitUpgradeHint}',
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 11,
+                color: c.ink2,
+                height: 1.45,
+              ),
             ),
           ],
-          const SizedBox(height: KaiSpace.s3),
+          const SizedBox(height: 9),
           KaiButton.ghost(
             onPressed: onPlans,
             label: l10n.viewPlans,
@@ -215,36 +289,23 @@ class _CrisisSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = KaiTheme.of(context);
     final l10n = AppLocalizations.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: tokens.colors.surface,
-        borderRadius: KaiRadius.br3,
-      ),
-      clipBehavior: Clip.hardEdge,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Opacity(
-            opacity: 0.3,
-            child: KaiTideCurve(state: KaiTide.idle, height: 28),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(KaiSpace.s4),
-            child: CareBlock(
-              heading: l10n.crisisHeading,
-              body: l10n.crisisBody,
-              resources: [
-                CareResource(
-                  label: l10n.crisisResourceLabel,
-                  number: l10n.crisisResourceNumber,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    // Canon: edge-states.html § .care-block — left-border 2px negative, rgba(196,74,60,0.04) bg.
+    // CareBlock itself carries the correct left-border + bg treatment.
+    // No internal KaiTideCurve — tide lives at the top of the screen (Zero-UI).
+    return CareBlock(
+      heading: l10n.crisisHeading,
+      body: l10n.crisisBody,
+      resources: [
+        CareResource(
+          label: l10n.crisisResourceLabelPhone,
+          number: l10n.crisisResourceNumberPhone,
+        ),
+        CareResource(
+          label: l10n.crisisResourceLabelText,
+          number: l10n.crisisResourceNumberText,
+        ),
+      ],
     );
   }
 }

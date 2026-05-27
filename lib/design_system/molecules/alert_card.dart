@@ -50,6 +50,9 @@ class AlertCard extends StatelessWidget {
         // Canon: notifications-chat.html N-01 uses border-radius: 12px;
         // closest token is br3 (r3 = 14).
         borderRadius: KaiRadius.br3,
+        border: palette.border != null
+            ? Border.all(color: palette.border!, width: 1)
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,13 +90,26 @@ class AlertCard extends StatelessWidget {
       case AlertType.positive:
         return _AlertPalette(background: c.positiveWash, accent: c.positive);
       case AlertType.neutral:
-        return _AlertPalette(background: c.accentWash, accent: c.accent);
+        // Canon: notifications-chat.html § .alert-card.neutral → surface-2 bg +
+        // line border + ink-3 accent. NOT accent-wash.
+        return _AlertPalette(
+          background: c.surface2,
+          accent: c.ink3,
+          border: c.line,
+        );
     }
   }
 }
 
 class _AlertPalette {
-  const _AlertPalette({required this.background, required this.accent});
+  const _AlertPalette({
+    required this.background,
+    required this.accent,
+    this.border,
+  });
   final Color background;
   final Color accent;
+
+  /// Optional 1px border. Only set for neutral type (uses `line` token).
+  final Color? border;
 }

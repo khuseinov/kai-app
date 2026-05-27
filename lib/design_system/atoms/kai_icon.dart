@@ -19,7 +19,9 @@ enum KaiIconName {
   retry('retry'),
   alert('alert'),
   heart('heart'),
-  copy('copy');
+  copy('copy'),
+  wifiOff('wifi-off'),
+  clock('clock');
 
   const KaiIconName(this.assetName);
   final String assetName;

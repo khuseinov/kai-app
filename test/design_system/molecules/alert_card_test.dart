@@ -65,12 +65,30 @@ void main() {
       expect(_backgroundOf(tester), KaiTokens.light.colors.positiveWash);
     });
 
-    testWidgets('neutral uses accentWash', (WidgetTester tester) async {
+    // Canon: notifications-chat.html § .alert-card.neutral → surface-2 bg + line border
+    testWidgets('neutral uses surface2 (not accentWash)', (WidgetTester tester) async {
       await _pump(
         tester,
         const AlertCard(type: AlertType.neutral, title: 'Заметка'),
       );
-      expect(_backgroundOf(tester), KaiTokens.light.colors.accentWash);
+      expect(_backgroundOf(tester), KaiTokens.light.colors.surface2);
+    });
+
+    testWidgets('neutral has line border', (WidgetTester tester) async {
+      await _pump(
+        tester,
+        const AlertCard(type: AlertType.neutral, title: 'Заметка'),
+      );
+      final container = tester.widget<Container>(
+        find.descendant(
+          of: find.byType(AlertCard),
+          matching: find.byType(Container),
+        ).first,
+      );
+      final dec = container.decoration as BoxDecoration;
+      expect(dec.border, isNotNull);
+      final border = dec.border! as Border;
+      expect(border.top.color, KaiTokens.light.colors.line);
     });
 
     testWidgets('renders title, body and action together',
