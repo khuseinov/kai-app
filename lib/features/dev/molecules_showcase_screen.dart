@@ -109,18 +109,23 @@ class _MoleculesShowcaseScreenState extends State<MoleculesShowcaseScreen> {
             title: 'SourceCard',
             child: Column(
               children: [
-                SourceCard(index: 1, url: 'visa.gov', timestamp: 'fresh'),
                 SourceCard(
-                  index: 2,
-                  url: 'timatic.iata.org',
-                  timestamp: '5d',
-                  freshness: SourceFreshness.stale,
+                  url: 'visa.go.jp/en/what_is_visa.html',
+                  title: 'Сбор за визу — ¥3,000 · 4 дня',
+                  snippet: 'Выдержка из источника о визовых требованиях.',
+                  fresh: true,
+                  expandHint: 'tap to expand',
                 ),
+                SizedBox(height: 4),
                 SourceCard(
-                  index: 3,
+                  url: 'timatic.iata.org/requirements',
+                  title: 'IATA Timatic — visa requirements',
+                ),
+                SizedBox(height: 4),
+                SourceCard(
                   url: 'an-extremely-long-domain.embassy.example/visa/'
                       'requirements/long/path.html',
-                  freshness: SourceFreshness.unknown,
+                  title: 'Embassy requirements page',
                 ),
               ],
             ),

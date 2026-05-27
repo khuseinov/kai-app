@@ -119,7 +119,7 @@ class _KaiButtonSendState extends State<KaiButtonSend>
           decoration: decoration,
           alignment: Alignment.center,
           child: SvgPicture.asset(
-            'assets/icons/send.svg',
+            'assets/icons/arrow-up.svg',
             width: widget.iconSize,
             height: widget.iconSize,
             colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),

@@ -52,9 +52,9 @@ void main() {
         const ColorFilter.mode(Color(0xFFFF0000), BlendMode.srcIn));
   });
 
-  testWidgets('all 14 KaiIconName values have a defined assetName',
+  testWidgets('all KaiIconName values have a defined assetName',
       (tester) async {
-    expect(KaiIconName.values.length, 14);
+    expect(KaiIconName.values.length, 19);
     for (final n in KaiIconName.values) {
       expect(n.assetName, isNotEmpty);
     }

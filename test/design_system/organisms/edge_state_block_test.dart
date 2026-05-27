@@ -52,7 +52,7 @@ void main() {
             onRetry: () => retries++,
           ),
         );
-        await tester.tap(find.text('Повторить'));
+        await tester.tap(find.text('повторить'));
         await tester.pumpAndSettle();
         expect(retries, 1);
       });
@@ -65,7 +65,7 @@ void main() {
           const EdgeStateBlock(surface: EdgeSurface.error),
         );
         expect(find.byType(EdgeStateBlock), findsOneWidget);
-        expect(find.text('Ошибка — попробуйте ещё раз'), findsOneWidget);
+        expect(find.text('Не удалось ответить'), findsOneWidget);
       });
 
       // Canon: H2 — _ErrorSurface must NOT render an internal KaiTideCurve.
@@ -87,7 +87,7 @@ void main() {
             onRetry: () => retries++,
           ),
         );
-        await tester.tap(find.text('Повторить'));
+        await tester.tap(find.text('повторить'));
         await tester.pump();
         expect(retries, 1);
       });

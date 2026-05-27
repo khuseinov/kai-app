@@ -1,97 +1,134 @@
 import 'package:flutter/material.dart';
 
-import '../atoms/kai_icon.dart';
-import '../atoms/kai_text.dart';
 import '../theme/kai_theme.dart';
 import '../tokens/kai_tokens.dart';
 
-/// Freshness signal for a cited source.
-///
-/// Source: `new-design/components.html § src-mini` — fresh = silent positive;
-/// stale = warning glyph; unknown = no glyph (uses ink-3).
-enum SourceFreshness { fresh, stale, unknown }
-
-/// Single citation row for the tool-transparency receipt.
+/// HTML canon: `new-design/room.html § .kai-b .src-card`
+/// bg surface-2, radius 10, padding 8×10, column gap 3px
 ///
 /// Layout:
-///
-///   [ idx ]   url.mono                       12:34   ⚠
-///
-/// The card itself has no chrome — callers (e.g. a sources sheet) wrap it.
+///   .h — Row(Favicon 10×10 r3 tide-2 + url 9px mono ink3 + ok 9px mono positive)
+///   .t — 11.5px w500 ink1 (title)
+///   .s — 10px ink3 height 1.4 (snippet)
+///   .expand-hint — 9px mono accent uppercase (optional)
 class SourceCard extends StatelessWidget {
   const SourceCard({
-    required this.index,
     required this.url,
-    this.timestamp,
-    this.freshness = SourceFreshness.fresh,
+    required this.title,
+    this.snippet,
+    this.fresh = false,
+    this.expandHint,
     super.key,
   });
 
-  /// Citation number (1-based). Rendered as `[N]` in a small mono badge.
-  final int index;
-
-  /// Cited URL or host. Rendered in [KaiText.mono] with ellipsis on overflow.
+  /// Cited URL or host shown in the header row.
   final String url;
 
-  /// Optional timestamp string (e.g. "12:34" or "5d"). Renders in small ink-3.
-  final String? timestamp;
+  /// Title of the source (`.t` row).
+  final String title;
 
-  /// Freshness state. Stale paints the alert glyph in [KaiColorTokens.warning].
-  final SourceFreshness freshness;
+  /// Optional snippet text (`.s` row). Null = row hidden.
+  final String? snippet;
 
-  @override
-  Widget build(BuildContext context) {
-    final c = KaiTheme.of(context).colors;
+  /// Whether to show the "✓ fresh" ok-badge. Default false.
+  final bool fresh;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: KaiSpace.s2,
-        vertical: KaiSpace.s2,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _IndexBadge(index: index),
-          const SizedBox(width: KaiSpace.s2),
-          Expanded(
-            child: Text(
-              url,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: KaiType.mono(color: c.ink1),
-            ),
-          ),
-          if (timestamp != null) ...[
-            const SizedBox(width: KaiSpace.s2),
-            KaiText.small(timestamp!, color: c.ink3),
-          ],
-          if (freshness == SourceFreshness.stale) ...[
-            const SizedBox(width: KaiSpace.s2),
-            KaiIcon(KaiIconName.alert, size: 14, color: c.warning),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _IndexBadge extends StatelessWidget {
-  const _IndexBadge({required this.index});
-
-  final int index;
+  /// Optional tap-to-expand hint (`.expand-hint` row). Null = row hidden.
+  final String? expandHint;
 
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: c.surface2,
-        borderRadius: KaiRadius.br1,
+        borderRadius: BorderRadius.circular(10),
       ),
-      child: Text(
-        '[$index]',
-        style: KaiType.mono(color: c.ink3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // .h row — favicon + url + optional ok badge
+          Row(
+            children: [
+              // favicon placeholder — tide-2 coloured box
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: KaiTide.stop2,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  url,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'JetBrainsMono',
+                    fontSize: 9,
+                    fontWeight: FontWeight.w400,
+                    color: c.ink3,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+              if (fresh) ...[
+                const SizedBox(width: 4),
+                Text(
+                  '✓ fresh',
+                  style: TextStyle(
+                    fontFamily: 'JetBrainsMono',
+                    fontSize: 9,
+                    fontWeight: FontWeight.w400,
+                    color: c.positive,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 3),
+          // .t — title
+          Text(
+            title,
+            style: TextStyle(
+              fontFamily: 'Manrope',
+              fontSize: 11.5,
+              fontWeight: FontWeight.w500,
+              color: c.ink1,
+            ),
+          ),
+          if (snippet != null) ...[
+            const SizedBox(height: 3),
+            // .s — snippet
+            Text(
+              snippet!,
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 10,
+                fontWeight: FontWeight.w400,
+                color: c.ink3,
+                height: 1.4,
+              ),
+            ),
+          ],
+          if (expandHint != null) ...[
+            const SizedBox(height: 3),
+            // .expand-hint
+            Text(
+              expandHint!.toUpperCase(),
+              style: TextStyle(
+                fontFamily: 'JetBrainsMono',
+                fontSize: 9,
+                fontWeight: FontWeight.w400,
+                color: c.accent,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

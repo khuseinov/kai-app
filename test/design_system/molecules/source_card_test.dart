@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/design_system/molecules/source_card.dart';
@@ -30,53 +29,83 @@ Future<void> _pump(
 
 void main() {
   group('SourceCard', () {
-    testWidgets('renders index, url and timestamp',
-        (WidgetTester tester) async {
+    testWidgets('renders url and title', (WidgetTester tester) async {
       await _pump(
         tester,
         const SourceCard(
-          index: 1,
           url: 'visa.gov',
-          timestamp: '12:34',
+          title: 'Visa information',
         ),
       );
-      expect(find.text('[1]'), findsOneWidget);
       expect(find.text('visa.gov'), findsOneWidget);
-      expect(find.text('12:34'), findsOneWidget);
+      expect(find.text('Visa information'), findsOneWidget);
     });
 
-    testWidgets('stale freshness shows alert icon',
-        (WidgetTester tester) async {
+    testWidgets('fresh flag shows ok badge', (WidgetTester tester) async {
       await _pump(
         tester,
         const SourceCard(
-          index: 2,
-          url: 'timatic.iata.org',
-          freshness: SourceFreshness.stale,
+          url: 'visa.gov',
+          title: 'Official visa page',
+          fresh: true,
         ),
       );
-      expect(find.byType(SvgPicture), findsOneWidget);
+      expect(find.text('✓ fresh'), findsOneWidget);
     });
 
-    testWidgets('fresh freshness omits alert icon',
-        (WidgetTester tester) async {
+    testWidgets('no fresh flag omits ok badge', (WidgetTester tester) async {
       await _pump(
         tester,
         const SourceCard(
-          index: 3,
-          url: 'embassy.jp',
+          url: 'visa.gov',
+          title: 'Official visa page',
         ),
       );
-      expect(find.byType(SvgPicture), findsNothing);
+      expect(find.text('✓ fresh'), findsNothing);
     });
 
-    testWidgets('long url truncates with ellipsis',
-        (WidgetTester tester) async {
+    testWidgets('renders snippet when provided', (WidgetTester tester) async {
+      await _pump(
+        tester,
+        const SourceCard(
+          url: 'visa.gov',
+          title: 'Visa fee',
+          snippet: 'Fee is ¥3,000 · 4 days',
+        ),
+      );
+      expect(find.text('Fee is ¥3,000 · 4 days'), findsOneWidget);
+    });
+
+    testWidgets('omits snippet row when null', (WidgetTester tester) async {
+      await _pump(
+        tester,
+        const SourceCard(
+          url: 'visa.gov',
+          title: 'Visa fee',
+        ),
+      );
+      // No snippet text
+      expect(find.text('Fee is ¥3,000 · 4 days'), findsNothing);
+    });
+
+    testWidgets('renders expand hint when provided', (WidgetTester tester) async {
+      await _pump(
+        tester,
+        const SourceCard(
+          url: 'visa.gov',
+          title: 'Visa page',
+          expandHint: 'tap to expand',
+        ),
+      );
+      expect(find.text('TAP TO EXPAND'), findsOneWidget);
+    });
+
+    testWidgets('long url truncates with ellipsis', (WidgetTester tester) async {
       const longUrl = 'a-very-long-domain.example/path/to/resource/that/'
           'cannot-possibly-fit-on-one-line.html';
       await _pump(
         tester,
-        const SourceCard(index: 4, url: longUrl),
+        const SourceCard(url: longUrl, title: 'Long url test'),
       );
       final textFinder = find.text(longUrl);
       expect(textFinder, findsOneWidget);
