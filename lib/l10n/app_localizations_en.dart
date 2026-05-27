@@ -95,4 +95,50 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingStep3Body =>
       'Ask Kai anything — from visas to must-see spots.';
+
+  @override
+  String get onboardingWelcomeTitle => 'Welcome to Kai';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Kai is your personal AI assistant — always ready to help with plans, questions, and ideas.';
+
+  @override
+  String get onboardingTideTitle => 'Kai is always here';
+
+  @override
+  String get onboardingTideChipThinking => 'Thinking';
+
+  @override
+  String get onboardingTideChipResponding => 'Responding';
+
+  @override
+  String get onboardingTideChipListening => 'Listening';
+
+  @override
+  String get onboardingGesturesTitle => 'Gestures';
+
+  @override
+  String get onboardingGestureNavLabel => 'Open navigation';
+
+  @override
+  String get onboardingGestureNavHint => 'Swipe right';
+
+  @override
+  String get onboardingGestureInputLabel => 'Open input';
+
+  @override
+  String get onboardingGestureInputHint => 'Swipe up';
+
+  @override
+  String get onboardingGestureActionsLabel => 'Quick actions';
+
+  @override
+  String get onboardingGestureActionsHint => 'Long press';
+
+  @override
+  String get onboardingContextTitle => 'Settings';
+
+  @override
+  String get onboardingContextCountryPlaceholder => '🌍 Country';
 }

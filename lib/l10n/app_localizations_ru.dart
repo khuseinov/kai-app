@@ -95,4 +95,50 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get onboardingStep3Body =>
       'Спросите Kai что угодно — от виз до must-see мест.';
+
+  @override
+  String get onboardingWelcomeTitle => 'Добро пожаловать в Kai';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Kai — ваш персональный ИИ-помощник. Он всегда рядом, чтобы помочь с планами, вопросами и идеями.';
+
+  @override
+  String get onboardingTideTitle => 'Kai всегда здесь';
+
+  @override
+  String get onboardingTideChipThinking => 'Думает';
+
+  @override
+  String get onboardingTideChipResponding => 'Отвечает';
+
+  @override
+  String get onboardingTideChipListening => 'Слушает';
+
+  @override
+  String get onboardingGesturesTitle => 'Жесты';
+
+  @override
+  String get onboardingGestureNavLabel => 'Открыть навигацию';
+
+  @override
+  String get onboardingGestureNavHint => 'Свайп вправо';
+
+  @override
+  String get onboardingGestureInputLabel => 'Открыть ввод';
+
+  @override
+  String get onboardingGestureInputHint => 'Свайп вверх';
+
+  @override
+  String get onboardingGestureActionsLabel => 'Быстрые действия';
+
+  @override
+  String get onboardingGestureActionsHint => 'Долгое нажатие';
+
+  @override
+  String get onboardingContextTitle => 'Настройки';
+
+  @override
+  String get onboardingContextCountryPlaceholder => '🌍 Страна';
 }

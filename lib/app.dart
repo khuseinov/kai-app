@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'l10n/app_localizations.dart';
+import 'package:kai_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers/root.dart';

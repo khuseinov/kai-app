@@ -259,6 +259,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ask Kai anything — from visas to must-see spots.'**
   String get onboardingStep3Body;
+
+  /// No description provided for @onboardingWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Kai'**
+  String get onboardingWelcomeTitle;
+
+  /// No description provided for @onboardingWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Kai is your personal AI assistant — always ready to help with plans, questions, and ideas.'**
+  String get onboardingWelcomeBody;
+
+  /// No description provided for @onboardingTideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Kai is always here'**
+  String get onboardingTideTitle;
+
+  /// No description provided for @onboardingTideChipThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinking'**
+  String get onboardingTideChipThinking;
+
+  /// No description provided for @onboardingTideChipResponding.
+  ///
+  /// In en, this message translates to:
+  /// **'Responding'**
+  String get onboardingTideChipResponding;
+
+  /// No description provided for @onboardingTideChipListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening'**
+  String get onboardingTideChipListening;
+
+  /// No description provided for @onboardingGesturesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gestures'**
+  String get onboardingGesturesTitle;
+
+  /// No description provided for @onboardingGestureNavLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Open navigation'**
+  String get onboardingGestureNavLabel;
+
+  /// No description provided for @onboardingGestureNavHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe right'**
+  String get onboardingGestureNavHint;
+
+  /// No description provided for @onboardingGestureInputLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Open input'**
+  String get onboardingGestureInputLabel;
+
+  /// No description provided for @onboardingGestureInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe up'**
+  String get onboardingGestureInputHint;
+
+  /// No description provided for @onboardingGestureActionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get onboardingGestureActionsLabel;
+
+  /// No description provided for @onboardingGestureActionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Long press'**
+  String get onboardingGestureActionsHint;
+
+  /// No description provided for @onboardingContextTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get onboardingContextTitle;
+
+  /// No description provided for @onboardingContextCountryPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'🌍 Country'**
+  String get onboardingContextCountryPlaceholder;
 }
 
 class _AppLocalizationsDelegate

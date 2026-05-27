@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kai_app/l10n/app_localizations.dart';
 
 import '../atoms/kai_button.dart';
 import '../atoms/kai_icon.dart';
@@ -150,14 +151,13 @@ class _WelcomeStep extends StatelessWidget {
         ),
         const SizedBox(height: KaiSpace.s5),
         KaiText.h2(
-          'Добро пожаловать в Kai',
+          AppLocalizations.of(context).onboardingWelcomeTitle,
           color: tokens.colors.ink1,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: KaiSpace.s3),
         KaiText.body(
-          'Kai — ваш персональный ИИ-помощник. '
-          'Он всегда рядом, чтобы помочь с планами, вопросами и идеями.',
+          AppLocalizations.of(context).onboardingWelcomeBody,
           color: tokens.colors.ink3,
           textAlign: TextAlign.center,
         ),
@@ -168,7 +168,6 @@ class _WelcomeStep extends StatelessWidget {
 
 // ─── Step 1: Tide ─────────────────────────────────────────────────────────────
 
-const _kChipLabels = ['Думает', 'Отвечает', 'Слушает'];
 const _kChipStates = [KaiTide.thinking, KaiTide.responding, KaiTide.listening];
 
 class _TideStep extends StatelessWidget {
@@ -184,19 +183,25 @@ class _TideStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final chipLabels = [
+      l10n.onboardingTideChipThinking,
+      l10n.onboardingTideChipResponding,
+      l10n.onboardingTideChipListening,
+    ];
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        KaiText.h3('Kai всегда здесь', color: tokens.colors.ink1),
+        KaiText.h3(l10n.onboardingTideTitle, color: tokens.colors.ink1),
         const SizedBox(height: KaiSpace.s5),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(_kChipLabels.length, (i) {
+          children: List.generate(chipLabels.length, (i) {
             final isActive = i == activeChip;
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: KaiSpace.s1),
               child: _StateChip(
-                label: _kChipLabels[i],
+                label: chipLabels[i],
                 active: isActive,
                 tokens: tokens,
               ),
@@ -257,30 +262,31 @@ class _GesturesStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        KaiText.h3('Жесты', color: tokens.colors.ink1),
+        KaiText.h3(l10n.onboardingGesturesTitle, color: tokens.colors.ink1),
         const SizedBox(height: KaiSpace.s5),
         _GestureCard(
           icon: KaiIconName.chevRight,
-          label: 'Открыть навигацию',
-          description: 'Свайп вправо',
+          label: l10n.onboardingGestureNavLabel,
+          description: l10n.onboardingGestureNavHint,
           tokens: tokens,
         ),
         const SizedBox(height: KaiSpace.s2),
         _GestureCard(
           icon: KaiIconName.arrowUp,
-          label: 'Открыть ввод',
-          description: 'Свайп вверх',
+          label: l10n.onboardingGestureInputLabel,
+          description: l10n.onboardingGestureInputHint,
           tokens: tokens,
         ),
         const SizedBox(height: KaiSpace.s2),
         _GestureCard(
           icon: KaiIconName.menu,
-          label: 'Быстрые действия',
-          description: 'Долгое нажатие',
+          label: l10n.onboardingGestureActionsLabel,
+          description: l10n.onboardingGestureActionsHint,
           tokens: tokens,
         ),
       ],
@@ -346,11 +352,12 @@ class _ContextStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        KaiText.h3('Настройки', color: tokens.colors.ink1),
+        KaiText.h3(l10n.onboardingContextTitle, color: tokens.colors.ink1),
         const SizedBox(height: KaiSpace.s5),
         // Country dropdown placeholder
         Container(
@@ -364,7 +371,7 @@ class _ContextStep extends StatelessWidget {
             borderRadius: KaiRadius.brPill,
           ),
           child: Text(
-            '🌍 Страна',
+            l10n.onboardingContextCountryPlaceholder,
             style: KaiType.body(color: tokens.colors.ink3),
           ),
         ),
@@ -382,7 +389,7 @@ class _ContextStep extends StatelessWidget {
           width: double.infinity,
           child: KaiButton.tide(
             onPressed: onComplete,
-            label: 'Начать',
+            label: l10n.onboardingStart,
           ),
         ),
       ],

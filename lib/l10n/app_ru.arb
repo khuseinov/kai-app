@@ -26,5 +26,20 @@
   "onboardingStep2Title": "Жесты",
   "onboardingStep2Body": "Проведите пальцем от левого края, чтобы открыть историю поездок.",
   "onboardingStep3Title": "Начнём",
-  "onboardingStep3Body": "Спросите Kai что угодно — от виз до must-see мест."
+  "onboardingStep3Body": "Спросите Kai что угодно — от виз до must-see мест.",
+  "onboardingWelcomeTitle": "Добро пожаловать в Kai",
+  "onboardingWelcomeBody": "Kai — ваш персональный ИИ-помощник. Он всегда рядом, чтобы помочь с планами, вопросами и идеями.",
+  "onboardingTideTitle": "Kai всегда здесь",
+  "onboardingTideChipThinking": "Думает",
+  "onboardingTideChipResponding": "Отвечает",
+  "onboardingTideChipListening": "Слушает",
+  "onboardingGesturesTitle": "Жесты",
+  "onboardingGestureNavLabel": "Открыть навигацию",
+  "onboardingGestureNavHint": "Свайп вправо",
+  "onboardingGestureInputLabel": "Открыть ввод",
+  "onboardingGestureInputHint": "Свайп вверх",
+  "onboardingGestureActionsLabel": "Быстрые действия",
+  "onboardingGestureActionsHint": "Долгое нажатие",
+  "onboardingContextTitle": "Настройки",
+  "onboardingContextCountryPlaceholder": "🌍 Страна"
 }

@@ -33,5 +33,20 @@
   "onboardingStep2Title": "Gestures",
   "onboardingStep2Body": "Swipe from the left edge to open your trip history.",
   "onboardingStep3Title": "Let’s begin",
-  "onboardingStep3Body": "Ask Kai anything — from visas to must-see spots."
+  "onboardingStep3Body": "Ask Kai anything — from visas to must-see spots.",
+  "onboardingWelcomeTitle": "Welcome to Kai",
+  "onboardingWelcomeBody": "Kai is your personal AI assistant — always ready to help with plans, questions, and ideas.",
+  "onboardingTideTitle": "Kai is always here",
+  "onboardingTideChipThinking": "Thinking",
+  "onboardingTideChipResponding": "Responding",
+  "onboardingTideChipListening": "Listening",
+  "onboardingGesturesTitle": "Gestures",
+  "onboardingGestureNavLabel": "Open navigation",
+  "onboardingGestureNavHint": "Swipe right",
+  "onboardingGestureInputLabel": "Open input",
+  "onboardingGestureInputHint": "Swipe up",
+  "onboardingGestureActionsLabel": "Quick actions",
+  "onboardingGestureActionsHint": "Long press",
+  "onboardingContextTitle": "Settings",
+  "onboardingContextCountryPlaceholder": "🌍 Country"
 }
