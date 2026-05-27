@@ -52,13 +52,14 @@ User is on **Windows 11**. `gh` CLI is NOT installed. Cannot programmatically ve
 
 ---
 
-## 3 · Current state (as of 2026-05-27 — after Phase 5)
+## 3 · Current state (as of 2026-05-27 — after Phase 5 + blank-screen fix)
 
 ### Branch position
 
-- HEAD: `8f96882` on `origin/claude/hungry-lamport-e41998`
-- 19 commits since branch off master:
+- HEAD: `751ae63` on `origin/claude/hungry-lamport-e41998`
+- 20 commits since branch off master:
   ```
+  751ae63 fix: add Далее button to onboarding steps 0-2 and Scaffold to RoomScreen
   8f96882 phase-5b fix: concurrency race + takeWhile cancel + ref.watch + T33 rename
   cfea1aa phase-5b: real repositories + SSE pipeline
   c9ad2b5 phase-5a fix: subscription leak + streaming frame + color literal + nav barrier
@@ -90,8 +91,8 @@ Both steps are required before `flutter test` and `flutter analyze` will succeed
 
 ### Test + lint state
 
-- `flutter analyze` → "No issues found!" (verified at `8f96882`)
-- `flutter test` → 184/184 passing (verified at `8f96882`)
+- `flutter analyze` → 2 warnings only (unused imports in test files — pre-existing, verified at `751ae63`)
+- `flutter test` → 197/197 passing (verified at `751ae63`)
 
 ### iOS CI
 
@@ -119,11 +120,13 @@ All Phase 0-4b content remains valid. Summary: tokens, theme, fonts, network ske
   - Retry guard: `if (lastUserText.isNotEmpty)` before calling sendMessage
 
 - `lib/features/room/room_screen.dart` — `ConsumerStatefulWidget`
-  - KaiTideCurve (top) + ChatList + ComposeIsland
+  - **Scaffold(backgroundColor: colors.bg)** wraps GestureDetector (fix: commit `751ae63`)
+  - KaiTideCurve (top) + ChatList + EdgeStateBlock (offline/rate-limit/crisis inline) + ComposeIsland
   - Left-edge swipe (dragStart.dx < 24, velocity > 200) → push `NavPanelRoute`, `.then()` calls `closeNavPanel`
 
 - `lib/features/onboarding/onboarding_screen.dart` — 4-step `PageView`
   - `OnboardingCard` steps 0-3, `_DotsIndicator` (uses `colors.accent`, NOT raw Color literal)
+  - **KaiButton.tide('Далее') visible when `_currentPage < 3`** (fix: commit `751ae63`) — steps 0-2 now advance; step 3 uses `OnboardingCard`'s own 'Начать' button
   - Step 3 finish: `HiveSetup.settings.put(settingsKey, settings.copyWith(onboarded: true))` → `context.go('/room')`
 
 - `lib/features/nav/nav_screen.dart` — `NavScreen` + `NavPanelRoute`
@@ -292,7 +295,7 @@ User communicates in Russian. Respond in Russian. Code/commits stay English.
    cp .env.example .env
    dart run build_runner build
    ```
-3. Run `git log --oneline -6` — confirm HEAD is `8f96882`. Run `flutter test` — confirm 184 passing. Run `flutter analyze` — confirm clean.
+3. Run `git log --oneline -6` — confirm HEAD is `751ae63`. Run `flutter test` — confirm 197 passing. Run `flutter analyze` — confirm clean (2 pre-existing test warnings are OK).
 4. **No Phase 0-5 review needed** — go straight to Phase 6.
 5. Phase 6 has 26 sub-tasks (T6.1-T6.26) — consider splitting into 6a + 6b if implementer budget is a concern. Natural split: T6.1-T6.13 (connectivity, edge states, tide wiring, timer) vs T6.14-T6.26 (l10n, telemetry, coverage, final smoke, commit).
 6. Dispatch Phase 6 implementer — embed full task text inline.
