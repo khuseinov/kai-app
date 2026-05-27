@@ -6,6 +6,40 @@ If you're a new agent and a user asks you to build, modify, or extend something 
 
 ---
 
+## 0 · Before you touch any design work — mandatory toolchain
+
+> **Always use Playwright MCP + spec-viewer. No exceptions.**
+
+Any time you inspect, audit, implement, or verify a design screen:
+
+1. **Start the local server** (if not running):
+   ```sh
+   cd new-design && python -m http.server 8743
+   ```
+
+2. **Navigate spec-viewer via Playwright MCP:**
+   ```
+   mcp__plugin_playwright_playwright__browser_navigate(
+     "http://localhost:8743/spec-viewer.html"
+   )
+   ```
+
+3. **Click elements** — the inspector resolves computed styles, maps values to
+   CSS tokens, and generates Flutter/Dart code. This is the only correct way to
+   extract specs; raw HTML reads miss cascade, inheritance, and computed values.
+
+4. **For audits** — run `lint` (finds `forwards`/hardcoded color/gradient bugs),
+   `json ↓` (full structured spec for the screen), `ruler` (measures gaps).
+
+5. **For state-dependent styles** — use the State Simulator (`[:hover]` etc.)
+   before copying any interactive component's styles.
+
+**Why:** computed styles differ from source CSS. Token mapping, gradients, and
+pseudo-state overrides are only visible through the browser. Never guess from
+raw HTML.
+
+---
+
 ## 1 · Read in this order
 
 ```

@@ -116,24 +116,36 @@ Source of truth is `new-design/CLAUDE.md` — read it for any design work.
 
 ## HTML → Flutter workflow
 
-Spec-extract from `new-design/` HTML files. Three options, ranked:
+> **RULE: always use Playwright MCP + spec-viewer for any design work.**
+> Never eyeball-extract values from raw HTML. Computed styles differ from
+> source CSS; only the browser resolves cascades, inheritance, and tokens correctly.
 
-1. **Playwright MCP + spec-viewer** (preferred when MCP is loaded):
-   ```
-   mcp__plugin_playwright_playwright__browser_navigate(
-     "file:///E:/startup/kai-app/new-design/spec-viewer.html"
-   )
-   ```
-   Click any element in the iframe; the right-side Inspector renders a
-   complete Dart code block with token-resolved colours, EdgeInsets,
-   gradient detection. `genFlutter()` (spec-viewer.html ~L1095) is the
-   authoritative CSS→Dart mapping logic.
+**Step 1 — start the server** (if not already running):
+```sh
+cd new-design && python -m http.server 8743
+```
 
-2. **Direct HTML read**: same logic but applied manually — slower, more
-   error-prone, doesn't see computed cascades.
+**Step 2 — open spec-viewer via Playwright MCP:**
+```
+mcp__plugin_playwright_playwright__browser_navigate(
+  "http://localhost:8743/spec-viewer.html"
+)
+```
 
-3. **Existing molecules first**: before writing new code, check the atoms
-   and molecules list above — most screens compose from what's already there.
+**Step 3 — inspect elements:**
+Click any element in the preview iframe → Props / CSS / Flutter tabs update.
+`genFlutter()` in spec-viewer is the authoritative CSS→Dart mapping.
+
+**Step 4 — use agent tools when doing audits or new screens:**
+- `lint` button — finds token violations before writing any Dart
+- `json ↓` — downloads structured JSON spec for the whole screen
+- `ruler` (Shift+click two elements) — measures gaps in px + token
+- State Simulator — forces `:hover`/`:focus`/`:active` states before copying styles
+- `tree` button (Flutter tab) — copies nested widget tree for flex containers
+
+**Fallback order** (only when Playwright MCP is unavailable):
+1. Direct HTML read — slower, misses computed cascades
+2. Existing molecules first — check atoms/molecules list before writing new widgets
 
 ---
 
