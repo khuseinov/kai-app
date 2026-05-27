@@ -77,6 +77,18 @@ void main() {
       expect(s.fontWeight, FontWeight.w400);
       expect(s.letterSpacing, 0);
     });
+
+    test('KaiType.body includes Manrope ss03 + cv11 font features', () {
+      final style = KaiType.body(color: Colors.black);
+      expect(style.fontFeatures, isNotNull);
+      expect(style.fontFeatures, contains(const FontFeature('ss03')));
+      expect(style.fontFeatures, contains(const FontFeature('cv11')));
+    });
+
+    test('KaiType.mono does NOT include Manrope features', () {
+      final style = KaiType.mono(color: Colors.black);
+      expect(style.fontFeatures, anyOf(isNull, isEmpty));
+    });
   });
 
   group('KaiTide', () {

@@ -84,6 +84,7 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
   Widget build(BuildContext context) {
     final roomState = ref.watch(roomNotifierProvider);
     final colors = KaiTheme.of(context).colors;
+    final topInset = MediaQuery.of(context).padding.top;
 
     return Scaffold(
       backgroundColor: colors.bg,
@@ -92,11 +93,19 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
         onHorizontalDragStart: _onHorizontalDragStart,
         onHorizontalDragEnd: _onHorizontalDragEnd,
         child: SafeArea(
+          top: false,
           child: Stack(
             children: [
               Column(
                 children: [
-                  KaiTideCurve(state: roomState.tideState, height: 48),
+                  SizedBox(height: topInset + 4),
+                  SizedBox(
+                    height: 16,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      child: KaiTideCurve(state: roomState.tideState, height: 16),
+                    ),
+                  ),
                   Expanded(
                     child: ChatList(
                       frame: roomState.currentFrame,

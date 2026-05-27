@@ -54,6 +54,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  /// Maps onboarding step index to the appropriate tide state.
+  ///
+  /// Step 0 (welcome): no tide overlay — placeholder SizedBox rendered instead.
+  /// Step 1 (tide intro): responding — live animated dashed stream per onboarding.html canon.
+  /// Steps 2-3 (gestures / context): idle.
+  KaiTideState _tideForStep(int step) {
+    switch (step) {
+      case 1:
+        return KaiTide.responding;
+      default:
+        return KaiTide.idle;
+    }
+  }
+
   Future<void> _finish() async {
     final box = HiveSetup.settings;
     final current =
@@ -85,19 +99,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
 
-          // ── Tide curve overlay: absolute, top:40px from phone top ──────────
-          // Matches HTML `.phone .tide-bar { position: absolute; top: 40px }`.
-          // Shown on steps 1–3; fades in/out with AnimatedOpacity.
+          // ── Tide curve overlay: absolute, top = safe-area + 4px ──────────
+          // Matches CLAUDE.md § Layout: tide curve 4px below safe area,
+          // height: 16px per design canon.
+          // Step 0 (welcome): hidden — no tide overlay in onboarding.html canon.
+          // Steps 1–3: shown; step 1 uses KaiTide.responding (live stream).
           Positioned(
-            top: topInset + 26,
+            top: topInset + 4,
             left: 16,
             right: 16,
-            height: 14,
+            height: 16,
             child: IgnorePointer(
               child: AnimatedOpacity(
                 opacity: _currentPage > 0 ? 1.0 : 0.0,
                 duration: const Duration(milliseconds: 300),
-                child: const KaiTideCurve(state: KaiTide.idle, height: 14),
+                child: KaiTideCurve(
+                  state: _tideForStep(_currentPage),
+                  height: 16,
+                ),
               ),
             ),
           ),

@@ -12,6 +12,11 @@ import 'package:flutter/painting.dart';
 class KaiType {
   const KaiType._();
 
+  static const List<FontFeature> _manropeFeatures = [
+    FontFeature('ss03'), // stylistic set 3 — friendly 'a'
+    FontFeature('cv11'), // character variant 11
+  ];
+
   /// 72/600 — display-grade hero copy.
   static TextStyle hero({required Color color}) => TextStyle(
         fontFamily: 'Manrope',
@@ -19,6 +24,7 @@ class KaiType {
         fontWeight: FontWeight.w600,
         height: 0.96,
         letterSpacing: 72 * -0.035,
+        fontFeatures: _manropeFeatures,
         color: color,
       );
 
@@ -29,6 +35,7 @@ class KaiType {
         fontWeight: FontWeight.w600,
         height: 1.02,
         letterSpacing: 56 * -0.025,
+        fontFeatures: _manropeFeatures,
         color: color,
       );
 
@@ -39,6 +46,7 @@ class KaiType {
         fontWeight: FontWeight.w600,
         height: 1.1,
         letterSpacing: 36 * -0.022,
+        fontFeatures: _manropeFeatures,
         color: color,
       );
 
@@ -49,6 +57,7 @@ class KaiType {
         fontWeight: FontWeight.w600,
         height: 1.2,
         letterSpacing: 24 * -0.015,
+        fontFeatures: _manropeFeatures,
         color: color,
       );
 
@@ -59,6 +68,7 @@ class KaiType {
         fontWeight: FontWeight.w600,
         height: 1.3,
         letterSpacing: 18 * -0.01,
+        fontFeatures: _manropeFeatures,
         color: color,
       );
 
@@ -69,6 +79,7 @@ class KaiType {
         fontWeight: FontWeight.w400,
         height: 1.5,
         letterSpacing: 20 * -0.005,
+        fontFeatures: _manropeFeatures,
         color: color,
       );
 
@@ -79,6 +90,7 @@ class KaiType {
         fontWeight: FontWeight.w400,
         height: 1.55,
         letterSpacing: 0,
+        fontFeatures: _manropeFeatures,
         color: color,
       );
 
@@ -89,6 +101,7 @@ class KaiType {
         fontWeight: FontWeight.w400,
         height: 1.5,
         letterSpacing: 0,
+        fontFeatures: _manropeFeatures,
         color: color,
       );
 
@@ -99,6 +112,7 @@ class KaiType {
         fontWeight: FontWeight.w500,
         height: 1.4,
         letterSpacing: 12 * 0.02,
+        fontFeatures: _manropeFeatures,
         color: color,
       );
 
