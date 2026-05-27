@@ -1,0 +1,72 @@
+import 'package:hive_flutter/hive_flutter.dart';
+
+import 'entities/message.dart';
+import 'entities/session.dart';
+import 'entities/settings.dart';
+
+/// One-shot Hive bootstrap. Idempotent across hot restarts.
+///
+/// Box names are versioned (`_v1` suffix) so a future schema bump can land a
+/// migration without touching the consumers — open `_v2` alongside `_v1`,
+/// run a one-time copy, then drop `_v1`.
+class HiveSetup {
+  HiveSetup._();
+
+  /// Box of [Session] keyed by session id.
+  static const String sessionsBoxName = 'chat_sessions_v1';
+
+  /// Box of [Message] keyed by message id.
+  static const String messagesBoxName = 'messages_v1';
+
+  /// Box of [AppSettings] — single value under `settingsKey`.
+  static const String settingsBoxName = 'settings_v1';
+
+  /// Stable key for the single [AppSettings] record.
+  static const String settingsKey = 'app';
+
+  static bool _initialized = false;
+
+  /// Initialize the Hive engine, register every adapter, and open the
+  /// versioned boxes used by the app. Safe to call more than once.
+  static Future<void> init() async {
+    if (_initialized) return;
+    await Hive.initFlutter();
+    _registerAdapters();
+    await Future.wait<void>(<Future<void>>[
+      Hive.openBox<Session>(sessionsBoxName),
+      Hive.openBox<Message>(messagesBoxName),
+      Hive.openBox<AppSettings>(settingsBoxName),
+    ]);
+    _initialized = true;
+  }
+
+  /// Box accessor — sessions.
+  static Box<Session> get sessions => Hive.box<Session>(sessionsBoxName);
+
+  /// Box accessor — messages.
+  static Box<Message> get messages => Hive.box<Message>(messagesBoxName);
+
+  /// Box accessor — settings.
+  static Box<AppSettings> get settings => Hive.box<AppSettings>(settingsBoxName);
+
+  static void _registerAdapters() {
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(SessionAdapter());
+    }
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter(MessageAdapter());
+    }
+    if (!Hive.isAdapterRegistered(2)) {
+      Hive.registerAdapter(MessageStatusAdapter());
+    }
+    if (!Hive.isAdapterRegistered(3)) {
+      Hive.registerAdapter(MessageRoleAdapter());
+    }
+    if (!Hive.isAdapterRegistered(4)) {
+      Hive.registerAdapter(AppThemeModeAdapter());
+    }
+    if (!Hive.isAdapterRegistered(5)) {
+      Hive.registerAdapter(AppSettingsAdapter());
+    }
+  }
+}
