@@ -31,14 +31,10 @@ class _EventMockRepository implements ChatRepository {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-ProviderContainer _makeContainer({
-  ChatRepository? chatRepo,
-  StreamProvider<bool>? isOnlineOverride,
-}) {
+ProviderContainer _makeContainer({ChatRepository? chatRepo}) {
   final overrides = <Override>[
     if (chatRepo != null)
       chatRepositoryProvider.overrideWith((ref) => chatRepo),
-    if (isOnlineOverride != null) isOnlineOverride,
   ];
   return ProviderContainer(overrides: overrides);
 }
