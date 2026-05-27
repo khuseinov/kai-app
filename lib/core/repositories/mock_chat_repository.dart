@@ -14,6 +14,10 @@ class MockChatRepository implements ChatRepository {
 
   @override
   Stream<ChatEvent> sendMessage(String text, String sessionId) {
+    // Close any in-flight stream for the same session before starting a new one.
+    final existing = _controllers.remove(sessionId);
+    if (existing != null && !existing.isClosed) existing.close();
+
     final controller = StreamController<ChatEvent>();
     _controllers[sessionId] = controller;
     _runFakeStream(sessionId, text, controller);

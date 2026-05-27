@@ -46,7 +46,12 @@ void main() {
       await repo.cancelStreaming('session-cancel');
       await sub.cancel();
 
-      expect(collected, isA<List<ChatEvent>>());
+      // Stream was cancelled before done — ChatEventDone must not be in events.
+      expect(
+        collected.whereType<ChatEventDone>(),
+        isEmpty,
+        reason: 'stream cancelled before done',
+      );
     });
 
     test('messageId is consistent across message and correction events',
