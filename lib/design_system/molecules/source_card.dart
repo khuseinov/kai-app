@@ -117,7 +117,8 @@ class SourceCard extends StatelessWidget {
           ],
           if (expandHint != null) ...[
             const SizedBox(height: 3),
-            // .expand-hint
+            // .expand-hint — mono 9px accent uppercase, letter-spacing 0.08em
+            // HTML canon room.html: `font-size:9px; letter-spacing:0.08em`
             Text(
               expandHint!.toUpperCase(),
               style: TextStyle(
@@ -125,6 +126,7 @@ class SourceCard extends StatelessWidget {
                 fontSize: 9,
                 fontWeight: FontWeight.w400,
                 color: c.accent,
+                letterSpacing: 9 * 0.08, // 0.08em at 9px
               ),
             ),
           ],

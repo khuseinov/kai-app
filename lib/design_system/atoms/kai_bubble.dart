@@ -138,7 +138,7 @@ class KaiBubble extends StatelessWidget {
                   const TideGlyph(width: 12, height: 3),
                   const SizedBox(width: 6),
                   Text(
-                    'KAI',
+                    'kai'.toUpperCase(), // canonical lowercase source per design voice rules
                     style: TextStyle(
                       fontFamily: 'JetBrainsMono',
                       fontSize: 9,

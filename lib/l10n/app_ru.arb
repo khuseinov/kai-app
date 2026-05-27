@@ -68,9 +68,6 @@
   "onboardingContextPassportLabel": "паспорт",
   "onboardingContextLangsLabel": "владею языками",
   "onboardingContextCountryPlaceholder": "Российская Федерация",
-  "onboardingTideChipThinking": "Думает",
-  "onboardingTideChipResponding": "Отвечает",
-  "onboardingTideChipListening": "Слушает",
   "newChat": "Новый чат",
   "search": "Поиск",
   "tripsLabel": "ПОЕЗДКИ",
@@ -82,5 +79,7 @@
   "settingsAppLabel": "Настройки",
   "accountAnonymous": "Anonymous",
   "accountFreePlan": "Free",
-  "noChats": "Нет чатов"
+  "noChats": "Нет чатов",
+  "dateOlder": "РАНЕЕ",
+  "streamingStatusThinking": "думаю"
 }

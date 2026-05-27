@@ -312,20 +312,25 @@ _TideFrame _frameStream(KaiTideState s, double t, KaiTokens tokens) {
   );
 }
 
-/// success — flash. TweenSequence over 1200ms cycle.
+/// success — flash. Piecewise over 1200ms cycle, ease-out per .p-success canon.
+/// CSS: `animation: tide-flash 1.2s ease-out 3;`
+/// Keyframes: 0%→stroke1.5/op0.3, 25%→stroke3.2/op1.0, 65%→stroke2.5/op1.0,
+///            100%→stroke2.0/op0.85.
+/// easeOut applied to each segment's local t so the deceleration maps faithfully.
 _TideFrame _frameFlash(KaiTideState s, double t, KaiTokens tokens) {
   double sw;
   double op;
   if (t < 0.25) {
-    final u = t / 0.25;
+    final u = Curves.easeOut.transform(t / 0.25);
     sw = _lerp(1.5, 3.2, u);
     op = _lerp(0.3, 1.0, u);
-  } else if (t < 0.5) {
-    final u = (t - 0.25) / 0.25;
+  } else if (t < 0.65) {
+    // hold segment 0.25–0.65: both values steady at peak
+    final u = Curves.easeOut.transform((t - 0.25) / 0.40);
     sw = _lerp(3.2, 2.5, u);
     op = 1.0;
   } else {
-    final u = (t - 0.5) / 0.5;
+    final u = Curves.easeOut.transform((t - 0.65) / 0.35);
     sw = _lerp(2.5, 2.0, u);
     op = _lerp(1.0, 0.85, u);
   }

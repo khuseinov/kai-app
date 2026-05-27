@@ -244,11 +244,10 @@ class _ComposeField extends StatelessWidget {
       cursorColor: c.accent,
       textInputAction: TextInputAction.newline,
       decoration: InputDecoration(
-        isCollapsed: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: KaiSpace.s2,
-          vertical: KaiSpace.s2,
-        ),
+        // Canon: HTML input has no internal padding — outer pill handles spacing.
+        // isDense suppresses Material's default padding injection.
+        isDense: true,
+        contentPadding: EdgeInsets.zero,
         hintText: placeholder,
         hintStyle: placeholderStyle,
         border: InputBorder.none,

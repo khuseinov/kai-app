@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kai_app/l10n/app_localizations.dart';
 
-import '../atoms/kai_button.dart';
 import '../atoms/kai_icon.dart';
 import '../atoms/kai_tide_curve.dart';
 import '../theme/kai_theme.dart';
@@ -50,7 +49,7 @@ class OnboardingCard extends StatelessWidget {
           const Spacer(),
           _StepDots(count: 4, active: stepIndex),
           const SizedBox(height: 12),
-          _buildCTA(l10n),
+          _buildCTA(tokens, l10n),
         ],
       ),
     );
@@ -72,7 +71,7 @@ class OnboardingCard extends StatelessWidget {
     }
   }
 
-  Widget _buildCTA(AppLocalizations l10n) {
+  Widget _buildCTA(KaiTokens tokens, AppLocalizations l10n) {
     final String label;
     switch (stepIndex) {
       case 1:
@@ -84,9 +83,31 @@ class OnboardingCard extends StatelessWidget {
       default:
         label = l10n.onboardingNext; // "Продолжить"
     }
-    return SizedBox(
-      width: double.infinity,
-      child: KaiButton.ink1(onPressed: onComplete, label: label),
+    // Inline CTA to match .ob-btn canon exactly:
+    // width:100%; border-radius:12px; padding:12px (all sides);
+    // font: 600 13px Manrope; letter-spacing:-0.005em; bg:ink-1; color:surface.
+    return GestureDetector(
+      onTap: onComplete,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: tokens.colors.ink1,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'Manrope',
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: tokens.colors.surface,
+              letterSpacing: -0.005 * 13,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -105,15 +126,21 @@ class _WelcomeStep extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Brand glyph: 64×64 rounded rect with tide gradient + inner wave.
+        // Brand glyph: 64×64 rounded rect with dedicated 135° gradient + inner wave.
         // HTML: `.ob .glyph { width:64px; height:64px; border-radius:20px;
         //   background: linear-gradient(135deg, #1B4FB0, #2BA8C9, #F4B589); }`
+        // Note: 135° = top-left → bottom-right = Alignment.topLeft → bottomRight.
+        // Distinct from KaiTide.gradient (which is ~115°); this is the glyph-specific angle.
         Container(
           width: 64,
           height: 64,
-          decoration: BoxDecoration(
-            gradient: KaiTide.gradient,
-            borderRadius: BorderRadius.circular(20),
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF1B4FB0), Color(0xFF2BA8C9), Color(0xFFF4B589)],
+            ),
+            borderRadius: BorderRadius.all(Radius.circular(20)),
           ),
           child: Center(
             child: CustomPaint(
