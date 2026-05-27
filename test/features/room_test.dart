@@ -24,11 +24,11 @@ class _RoomTestHarness extends StatelessWidget {
       ],
       child: _ContainerCapture(
         onContainer: onContainer,
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: const [Locale('ru'), Locale('en')],
-          locale: const Locale('ru'),
-          home: const KaiTheme(
+          supportedLocales: [Locale('ru'), Locale('en')],
+          locale: Locale('ru'),
+          home: KaiTheme(
             child: Scaffold(body: RoomScreen()),
           ),
         ),
