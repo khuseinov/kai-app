@@ -52,6 +52,15 @@ class RealChatRepository implements ChatRepository {
 
   @override
   Stream<ChatEvent> sendMessage(String text, String sessionId) async* {
+    // Synchronously claim the cancellation slot before any await, so concurrent
+    // calls cannot overwrite each other's handle (race-free).
+    final previousCompleter = _cancelCompleters.remove(sessionId);
+    final cancelCompleter = Completer<void>();
+    _cancelCompleters[sessionId] = cancelCompleter;
+    if (previousCompleter != null && !previousCompleter.isCompleted) {
+      previousCompleter.complete();
+    }
+
     // T8: optimistic persist user message to Hive BEFORE starting stream
     final userMsg = Message(
       id: _uuid.v4(),
@@ -63,11 +72,6 @@ class RealChatRepository implements ChatRepository {
     );
     await _safelyPersistMessages([userMsg]); // T33
 
-    // Cancel any prior stream for this session, then register new cancel handle
-    await cancelStreaming(sessionId);
-    final cancelCompleter = Completer<void>();
-    _cancelCompleters[sessionId] = cancelCompleter;
-
     final kaiMsgId = _uuid.v4();
     var kaiContent = '';
     var hasContent = false;
@@ -75,10 +79,10 @@ class RealChatRepository implements ChatRepository {
 
     try {
       final eventStream = SseParser.parse(_streamOpener(text, sessionId));
-      await for (final event in eventStream) {
-        // T25/T35: session-switch guard — if this session was cancelled, stop
-        if (cancelCompleter.isCompleted) break;
-
+      // T35: takeWhile closes the stream at the Dart level once cancelled,
+      // preventing an indefinite block on a stalled SSE connection.
+      await for (final event
+          in eventStream.takeWhile((_) => !cancelCompleter.isCompleted)) {
         // T36: microtask yield after state event for cognitive status queue
         if (event is ChatEventState) {
           await Future<void>.microtask(() {});
@@ -126,7 +130,11 @@ class RealChatRepository implements ChatRepository {
     } finally {
       // T31: guard against completing an already-completed Completer
       if (!cancelCompleter.isCompleted) cancelCompleter.complete();
-      _cancelCompleters.remove(sessionId);
+      // Only remove our own completer — a concurrent sendMessage may have
+      // replaced it, and we must not evict theirs.
+      if (_cancelCompleters[sessionId] == cancelCompleter) {
+        _cancelCompleters.remove(sessionId);
+      }
     }
   }
 

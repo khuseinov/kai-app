@@ -255,7 +255,7 @@ void main() {
   // T33 — safelyPersistMessages
   // -------------------------------------------------------------------------
   group('T33 — safelyPersistMessages', () {
-    test('sendMessage completes even under normal conditions', () async {
+    test('completes normally on happy path', () async {
       const sseData =
           'event: message\ndata: {"content":"ok","messageId":"m1"}\n\n'
           'event: done\ndata: {}\n\n';

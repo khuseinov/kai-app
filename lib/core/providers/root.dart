@@ -69,16 +69,16 @@ final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 
 /// Chat repository. Switches between mock and real based on [EnvConfig.useRealChat].
 final chatRepositoryProvider = Provider<ChatRepository>((ref) {
-  final env = ref.read(envProvider);
+  final env = ref.watch(envProvider);
   if (env.useRealChat) {
-    return RealChatRepository.withDio(ref.read(dioProvider));
+    return RealChatRepository.withDio(ref.watch(dioProvider));
   }
   return MockChatRepository();
 });
 
 /// Session repository. Switches between mock and real based on [EnvConfig.useRealChat].
 final sessionRepositoryProvider = Provider<SessionRepository>((ref) {
-  final env = ref.read(envProvider);
+  final env = ref.watch(envProvider);
   if (env.useRealChat) return RealSessionRepository();
   return MockSessionRepository();
 });
