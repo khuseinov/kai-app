@@ -10,4 +10,6 @@ export 'kai_compose_island.dart';
 export 'kai_kai_bubble.dart';
 export 'kai_source_card.dart';
 export 'kai_system_bubble.dart';
+export 'kai_toast.dart';
+export 'kai_toast_controller.dart';
 export 'kai_user_bubble.dart';
