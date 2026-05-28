@@ -41,6 +41,7 @@ KaiNavPanel _panel({
   VoidCallback? onMemoryTap,
   VoidCallback? onSettingsTap,
   bool hasUnseenMemory = false,
+  DateTime? now,
 }) {
   return KaiNavPanel(
     strings: _strings,
@@ -59,6 +60,7 @@ KaiNavPanel _panel({
     onMemoryTap: onMemoryTap,
     onSettingsTap: onSettingsTap,
     hasUnseenMemory: hasUnseenMemory,
+    now: now,
   );
 }
 
@@ -206,7 +208,12 @@ void main() {
 
     testWidgets('yesterday sessions show ВЧЕРА section header',
         (WidgetTester tester) async {
-      final yesterday = DateTime.now().subtract(const Duration(hours: 26));
+      // Pin the clock: a bare `now - 26h` is flaky — 26h before an early-morning
+      // "now" lands two calendar days back, so it buckets as thisWeek not
+      // yesterday. Inject a fixed `now` and build the fixture one calendar day
+      // before it.
+      final now = DateTime(2026, 6, 15, 12, 0);
+      final yesterday = now.subtract(const Duration(days: 1));
       final sessions = [
         SessionPreview(
           id: 'y1',
@@ -215,7 +222,7 @@ void main() {
           createdAt: yesterday,
         ),
       ];
-      await _pump(tester, _panel(sessions: sessions));
+      await _pump(tester, _panel(now: now, sessions: sessions));
       expect(find.text('ВЧЕРА'), findsOneWidget);
       expect(find.text('Вчерашний чат'), findsOneWidget);
     });

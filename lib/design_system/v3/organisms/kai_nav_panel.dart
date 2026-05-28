@@ -136,6 +136,7 @@ class KaiNavPanel extends StatelessWidget {
     this.onMemoryTap,
     this.onSettingsTap,
     this.hasUnseenMemory = false,
+    this.now,
     super.key,
   });
 
@@ -179,12 +180,16 @@ class KaiNavPanel extends StatelessWidget {
   /// When true, renders a [KaiBadge.dot()] trailing on the Memory row.
   final bool hasUnseenMemory;
 
+  /// Reference time for session date-bucketing. Defaults to [DateTime.now()]
+  /// in production; tests inject a fixed value for deterministic buckets.
+  final DateTime? now;
+
   @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
 
     // Bucket the sessions with the pure presenter (R3 fix).
-    final dateGroups = groupSessionsByDate(sessions);
+    final dateGroups = groupSessionsByDate(sessions, now: now);
 
     return GestureDetector(
       onHorizontalDragEnd: (details) {
