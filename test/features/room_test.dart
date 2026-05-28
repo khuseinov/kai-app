@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/core/repositories/mock_chat_repository.dart';
-import 'package:kai_app/design_system/organisms/chat_list.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/v3/organisms/kai_chat_list.dart';
 import 'package:kai_app/features/room/room_screen.dart';
 import 'package:kai_app/features/room/room_state.dart';
 

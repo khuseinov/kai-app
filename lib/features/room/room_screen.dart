@@ -2,22 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:kai_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../design_system/atoms/kai_tide_curve.dart';
-import '../../design_system/molecules/compose_island.dart';
-import '../../design_system/organisms/chat_list.dart';
-import '../../design_system/organisms/edge_state_block.dart';
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
+import '../../design_system/v3/atoms/atoms.dart';
+import '../../design_system/v3/molecules/molecules.dart';
+import '../../design_system/v3/organisms/organisms.dart';
 import '../nav/nav_screen.dart';
 import 'room_state.dart';
 
 /// Top-level conversation screen.
 ///
 /// Layout (top → bottom):
-///   KaiTideCurve  — brand mark
-///   ChatList      — scrollable messages
-///   EdgeStateBlock — shown inline when offline / rate-limited / crisis
-///   ComposeIsland — text input
+///   KaiTideCurve      — brand mark
+///   KaiChatList       — scrollable messages
+///   KaiEdgeStateBlock — shown inline when offline / rate-limited / crisis
+///   KaiComposeIsland  — text input
 ///
 /// Left-edge swipe (drag start x < 24, velocity > 200 rightward) opens
 /// the nav panel as a slide-in modal route.
@@ -74,10 +73,16 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
     });
   }
 
-  ComposeState _composeStateFrom(RoomStateData s) {
-    if (s.isOffline || s.isRateLimited) return ComposeState.disabled;
-    if (s.isStreaming) return ComposeState.streaming;
-    return ComposeState.idle;
+  /// Maps v2-style compose state from [RoomStateData] → v3 [KaiSendState].
+  ///
+  /// - offline / rateLimited → disabled
+  /// - streaming             → streaming
+  /// - otherwise             → ready (KaiComposeIsland derives disabled from
+  ///   empty text automatically, so `ready` here just lifts the lock)
+  KaiSendState _sendStateFrom(RoomStateData s) {
+    if (s.isOffline || s.isRateLimited) return KaiSendState.disabled;
+    if (s.isStreaming) return KaiSendState.streaming;
+    return KaiSendState.ready;
   }
 
   @override
@@ -107,7 +112,7 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                     ),
                   ),
                   Expanded(
-                    child: ChatList(
+                    child: KaiChatList(
                       frame: roomState.currentFrame,
                       messages: roomState.messages,
                       // M1: wire accumulated partial text from streaming message
@@ -136,7 +141,7 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                         horizontal: KaiSpace.s4,
                         vertical: KaiSpace.s2,
                       ),
-                      child: EdgeStateBlock(surface: EdgeSurface.offline),
+                      child: KaiEdgeStateBlock(surface: KaiEdgeSurface.offline),
                     ),
                   if (roomState.isRateLimited)
                     Padding(
@@ -144,8 +149,8 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                         horizontal: KaiSpace.s4,
                         vertical: KaiSpace.s2,
                       ),
-                      child: EdgeStateBlock(
-                        surface: EdgeSurface.rateLimit,
+                      child: KaiEdgeStateBlock(
+                        surface: KaiEdgeSurface.rateLimit,
                         countdown: roomState.rateLimitRetryAfter,
                       ),
                     ),
@@ -155,7 +160,7 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                         horizontal: KaiSpace.s4,
                         vertical: KaiSpace.s2,
                       ),
-                      child: EdgeStateBlock(surface: EdgeSurface.crisis),
+                      child: KaiEdgeStateBlock(surface: KaiEdgeSurface.crisis),
                     ),
                   // Reserve space so chat content doesn't hide behind compose island.
                   // 26 (bottom) + 44 (island height) + 18 (top margin) = 88
@@ -166,10 +171,10 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                 left: 18,
                 right: 18,
                 bottom: 26,
-                child: ComposeIsland(
+                child: KaiComposeIsland(
                   controller: _composeController,
                   onSend: _onSend,
-                  state: _composeStateFrom(roomState),
+                  sendState: _sendStateFrom(roomState),
                   placeholder: AppLocalizations.of(context).composePlaceholder,
                 ),
               ),
