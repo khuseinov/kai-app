@@ -4,10 +4,12 @@
 /// They must NOT import organisms.
 library;
 
+export 'kai_action_sheet.dart';
 export 'kai_alert_card.dart';
 export 'kai_care_block.dart';
 export 'kai_compose_island.dart';
 export 'kai_kai_bubble.dart';
+export 'kai_message_detail_sheet.dart';
 export 'kai_source_card.dart';
 export 'kai_system_bubble.dart';
 export 'kai_toast.dart';
