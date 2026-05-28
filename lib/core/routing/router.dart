@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../design_system/atoms/kai_text.dart';
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
-import '../../features/dev/atoms_showcase_screen.dart';
-import '../../features/dev/molecules_showcase_screen.dart';
-import '../../features/dev/organisms_showcase_screen.dart';
+import '../../design_system/v3/atoms/atoms.dart';
 import '../../features/dev/theme_showcase_screen.dart';
 import '../../features/dev/v3_atoms_showcase_screen.dart';
 import '../../features/dev/v3_molecules_showcase_screen.dart';
@@ -56,18 +53,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const ThemeShowcaseScreen(),
       ),
       GoRoute(
-        path: '/_dev/atoms',
-        builder: (_, __) => const AtomsShowcaseScreen(),
-      ),
-      GoRoute(
-        path: '/_dev/molecules',
-        builder: (_, __) => const MoleculesShowcaseScreen(),
-      ),
-      GoRoute(
-        path: '/_dev/organisms',
-        builder: (_, __) => const OrganismsShowcaseScreen(),
-      ),
-      GoRoute(
         path: '/_dev/v3/atoms',
         builder: (_, __) => const V3AtomsShowcaseScreen(),
       ),
@@ -104,29 +89,6 @@ class _DevHubScreen extends StatelessWidget {
             label: 'Theme showcase',
             subtitle: 'Tokens, colors, type, space, radius, tide',
             onTap: () => context.go('/_dev/theme-showcase'),
-          ),
-          const SizedBox(height: KaiSpace.s3),
-          _hubTile(
-            context,
-            label: 'Atoms',
-            subtitle: 'KaiText, KaiIcon, KaiButton, KaiInput, KaiBubble, '
-                'KaiTideCurve',
-            onTap: () => context.go('/_dev/atoms'),
-          ),
-          const SizedBox(height: KaiSpace.s3),
-          _hubTile(
-            context,
-            label: 'Molecules',
-            subtitle: 'ComposeIsland, NavItem, SourceCard, AlertCard, '
-                'CareBlock',
-            onTap: () => context.go('/_dev/molecules'),
-          ),
-          const SizedBox(height: KaiSpace.s3),
-          _hubTile(
-            context,
-            label: 'Organisms',
-            subtitle: 'OnboardingCard, ChatList, NavPanel, EdgeStateBlock',
-            onTap: () => context.go('/_dev/organisms'),
           ),
           const SizedBox(height: KaiSpace.s5),
           Text('V3 DESIGN SYSTEM', style: KaiType.micro(color: c.ink3)),
