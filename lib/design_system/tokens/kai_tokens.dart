@@ -3,6 +3,7 @@ import 'kai_colors.dart';
 export 'kai_colors.dart';
 export 'kai_motion.dart';
 export 'kai_radius.dart';
+export 'kai_shadow.dart';
 export 'kai_space.dart';
 export 'kai_tide.dart';
 export 'kai_type.dart';
