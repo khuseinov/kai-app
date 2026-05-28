@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/providers/session_provider.dart';
 import '../../core/repositories/session_repository.dart';
-import '../../design_system/organisms/nav_panel.dart';
+import '../../design_system/v3/organisms/organisms.dart';
+import '../../l10n/app_localizations.dart';
 import '../room/room_state.dart';
+import 'session_groups.dart';
 
 /// Full-screen nav panel as a transparent Riverpod-wired screen.
 ///
 /// Pushed via [NavPanelRoute] — a custom slide-from-left [PageRoute].
+/// W4 migration: renders [KaiNavPanel] (v3) instead of the v2 [NavPanel].
 class NavScreen extends ConsumerWidget {
   const NavScreen({super.key});
 
@@ -18,6 +22,7 @@ class NavScreen extends ConsumerWidget {
     final sessionAsync = ref.watch(sessionListProvider);
     final roomNotifier = ref.read(roomNotifierProvider.notifier);
     final roomState = ref.watch(roomNotifierProvider);
+    final l10n = AppLocalizations.of(context);
 
     final sessions = sessionAsync.when(
       data: (list) => _toSessionPreviews(list),
@@ -25,9 +30,29 @@ class NavScreen extends ConsumerWidget {
       error: (_, __) => const <SessionPreview>[],
     );
 
+    final strings = KaiNavStrings(
+      title: l10n.appTitle,
+      newChat: l10n.newChat,
+      search: l10n.search,
+      tripsLabel: l10n.tripsLabel,
+      appsLabel: l10n.appsLabel,
+      memoryLabel: l10n.memoryAppLabel,
+      settingsLabel: l10n.settingsAppLabel,
+      accountAnonymous: l10n.accountAnonymous,
+      accountFreePlan: l10n.accountFreePlan,
+      noChats: l10n.noChats,
+      bucketLabel: (bucket) => switch (bucket) {
+        SessionBucket.today => l10n.dateToday,
+        SessionBucket.yesterday => l10n.dateYesterday,
+        SessionBucket.thisWeek => l10n.datePrevious7,
+        SessionBucket.older => l10n.dateOlder,
+      },
+    );
+
     return Material(
       color: Colors.transparent,
-      child: NavPanel(
+      child: KaiNavPanel(
+        strings: strings,
         onClose: () => Navigator.of(context).pop(),
         onNewChat: () {
           roomNotifier.switchSession(
@@ -41,6 +66,13 @@ class NavScreen extends ConsumerWidget {
           roomNotifier.switchSession(id);
           Navigator.of(context).pop();
         },
+        // Memory screen not yet implemented — pop for now.
+        onMemoryTap: () => Navigator.of(context).pop(),
+        onSettingsTap: () {
+          Navigator.of(context).pop();
+          context.go('/settings');
+        },
+        hasUnseenMemory: false,
       ),
     );
   }
