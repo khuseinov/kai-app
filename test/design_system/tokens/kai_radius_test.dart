@@ -29,4 +29,19 @@ void main() {
       expect(KaiRadius.pill, 999.0);
     });
   });
+
+  group('KaiRadius — r24 token (sheet top corners)', () {
+    test('r24 == 24', () {
+      expect(KaiRadius.r24, 24.0);
+    });
+
+    test('br24 is BorderRadius.all(Radius.circular(24))', () {
+      expect(KaiRadius.br24, const BorderRadius.all(Radius.circular(24)));
+    });
+
+    test('r24 is between r4 (20) and r5 (28)', () {
+      expect(KaiRadius.r24, greaterThan(KaiRadius.r4));
+      expect(KaiRadius.r24, lessThan(KaiRadius.r5));
+    });
+  });
 }

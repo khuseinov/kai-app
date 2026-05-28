@@ -18,6 +18,7 @@ class KaiRadius {
   // as a contiguous named block; numeric suffix reflects the pixel value.
   static const double r8 = 8; // detail-row actions, small surfaces
   static const double r12 = 12; // nav new-chat button, system note, settings group
+  static const double r24 = 24; // sheet top corners (bottom-sheet chrome)
 
   static const BorderRadius br1 = BorderRadius.all(Radius.circular(r1));
   static const BorderRadius br2 = BorderRadius.all(Radius.circular(r2));
@@ -27,4 +28,5 @@ class KaiRadius {
   static const BorderRadius brPill = BorderRadius.all(Radius.circular(pill));
   static const BorderRadius br8 = BorderRadius.all(Radius.circular(r8));
   static const BorderRadius br12 = BorderRadius.all(Radius.circular(r12));
+  static const BorderRadius br24 = BorderRadius.all(Radius.circular(r24));
 }
