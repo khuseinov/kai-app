@@ -76,11 +76,16 @@ class KaiBadge extends StatelessWidget {
     final label = _count > 99 ? '99+' : '$_count';
 
     return Container(
-      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 5),
+      constraints: const BoxConstraints(
+        minWidth: KaiSpace.s4,
+        minHeight: KaiSpace.s4,
+      ),
+      // 4px horizontal inset — a deliberate sub-grid value for a tight numeric
+      // badge; no narrower spacing token exists.
+      padding: const EdgeInsets.symmetric(horizontal: KaiSpace.s1),
       decoration: BoxDecoration(
         color: tokens.colors.accent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: KaiRadius.br8,
       ),
       alignment: Alignment.center,
       child: Text(
