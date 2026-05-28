@@ -261,6 +261,21 @@ class _KaiButtonState extends State<KaiButton> {
     }
   }
 
+  /// Ghost border color: neutral uses the hairline `line`; toned ghosts use
+  /// their tone color for both border and text.
+  Color _ghostBorderColor(KaiColorTokens c) {
+    switch (widget._tone) {
+      case KaiButtonTone.neutral:
+        return c.line;
+      case KaiButtonTone.accent:
+        return c.accent;
+      case KaiButtonTone.warning:
+        return c.warning;
+      case KaiButtonTone.negative:
+        return c.negative;
+    }
+  }
+
   /// Decoration for the active variant.
   Decoration _decoration(KaiTokens tokens) {
     final c = tokens.colors;
@@ -280,11 +295,10 @@ class _KaiButtonState extends State<KaiButton> {
         );
 
       case _KaiButtonVariant.ghost:
-        final borderColor = _toneColor(c) == c.ink1 ? c.line : _toneColor(c);
         return BoxDecoration(
           color: Colors.transparent,
           borderRadius: widget._pill ? KaiRadius.brPill : KaiRadius.br3,
-          border: Border.all(color: borderColor),
+          border: Border.all(color: _ghostBorderColor(c)),
         );
 
       case _KaiButtonVariant.text:
