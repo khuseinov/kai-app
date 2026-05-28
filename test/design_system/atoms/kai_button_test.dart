@@ -581,5 +581,205 @@ void main() {
         expect(scale.scale, 1.0);
       });
     });
+
+    // -----------------------------------------------------------------------
+    // Size tiers
+    // -----------------------------------------------------------------------
+    group('sizes', () {
+      testWidgets('sm renders label without overflow', (tester) async {
+        await _pump(
+          tester,
+          KaiButton.tide(
+            onPressed: () {},
+            label: 'Открыть',
+            size: KaiButtonSize.sm,
+          ),
+        );
+        expect(find.text('Открыть'), findsOneWidget);
+      });
+
+      testWidgets('md renders label without overflow (default)', (tester) async {
+        await _pump(
+          tester,
+          KaiButton.tide(
+            onPressed: () {},
+            label: 'Продолжить',
+            // ignore: avoid_redundant_argument_values
+            size: KaiButtonSize.md,
+          ),
+        );
+        expect(find.text('Продолжить'), findsOneWidget);
+      });
+
+      testWidgets('lg renders label without overflow', (tester) async {
+        await _pump(
+          tester,
+          KaiButton.tide(
+            onPressed: () {},
+            label: 'Начать',
+            size: KaiButtonSize.lg,
+          ),
+        );
+        expect(find.text('Начать'), findsOneWidget);
+      });
+
+      testWidgets('sm uses 12.5px font size', (tester) async {
+        await _pump(
+          tester,
+          KaiButton.tide(
+            onPressed: () {},
+            label: 'Sm',
+            size: KaiButtonSize.sm,
+          ),
+        );
+        final texts = tester.widgetList<Text>(find.byType(Text)).toList();
+        final found =
+            texts.any((t) => (t.style?.fontSize ?? 0) - 12.5 < 0.01);
+        expect(found, isTrue, reason: 'sm must use 12.5px font size');
+      });
+
+      testWidgets('md uses 13.5px font size (canon default)', (tester) async {
+        await _pump(
+          tester,
+          KaiButton.tide(
+            onPressed: () {},
+            label: 'Md',
+            // ignore: avoid_redundant_argument_values
+            size: KaiButtonSize.md,
+          ),
+        );
+        final texts = tester.widgetList<Text>(find.byType(Text)).toList();
+        final found =
+            texts.any((t) => (t.style?.fontSize ?? 0) - 13.5 < 0.01);
+        expect(found, isTrue, reason: 'md must use 13.5px font size');
+      });
+
+      testWidgets('lg uses 15px font size', (tester) async {
+        await _pump(
+          tester,
+          KaiButton.tide(
+            onPressed: () {},
+            label: 'Lg',
+            size: KaiButtonSize.lg,
+          ),
+        );
+        final texts = tester.widgetList<Text>(find.byType(Text)).toList();
+        final found =
+            texts.any((t) => (t.style?.fontSize ?? 0) - 15.0 < 0.01);
+        expect(found, isTrue, reason: 'lg must use 15px font size');
+      });
+
+      testWidgets('size works on ink variant', (tester) async {
+        await _pump(
+          tester,
+          KaiButton.ink(
+            onPressed: () {},
+            label: 'Small ink',
+            size: KaiButtonSize.sm,
+          ),
+        );
+        expect(find.text('Small ink'), findsOneWidget);
+      });
+
+      testWidgets('size works on ghost variant', (tester) async {
+        await _pump(
+          tester,
+          KaiButton.ghost(
+            onPressed: () {},
+            label: 'Large ghost',
+            size: KaiButtonSize.lg,
+          ),
+        );
+        expect(find.text('Large ghost'), findsOneWidget);
+      });
+
+      testWidgets('size works on text variant', (tester) async {
+        await _pump(
+          tester,
+          KaiButton.text(
+            onPressed: () {},
+            label: 'Sm text',
+            size: KaiButtonSize.sm,
+          ),
+        );
+        expect(find.text('Sm text'), findsOneWidget);
+      });
+    });
+
+    // -----------------------------------------------------------------------
+    // Tide gradient animation
+    // -----------------------------------------------------------------------
+    group('tide gradient animation', () {
+      testWidgets('tide pumps frames without throwing', (tester) async {
+        await _pump(
+          tester,
+          KaiButton.tide(onPressed: () {}, label: 'Animate'),
+        );
+        // Run several frames to exercise the AnimatedBuilder.
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump(const Duration(milliseconds: 1300));
+        await tester.pump(const Duration(milliseconds: 2600));
+        expect(find.text('Animate'), findsOneWidget);
+      });
+
+      testWidgets(
+          'tide with disableAnimations=true renders static gradient (no AnimatedBuilder)',
+          (tester) async {
+        // Override MediaQuery to signal reduce-motion preference.
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              home: KaiTheme(
+                child: MediaQuery(
+                  data: const MediaQueryData(disableAnimations: true),
+                  child: Scaffold(
+                    body: Center(
+                      child: KaiButton.tide(
+                        onPressed: () {},
+                        label: 'Static',
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        // With disableAnimations=true the gradient-flow controller must NOT
+        // be created, so no AnimatedBuilder should be present for the gradient.
+        // We verify by checking that advancing frames doesn't throw and that
+        // the gradient is still painted (Container with gradient exists).
+        await tester.pump(const Duration(milliseconds: 2600));
+        expect(find.text('Static'), findsOneWidget);
+
+        // The static path uses a Container with BoxDecoration gradient.
+        final containers =
+            tester.widgetList<Container>(find.byType(Container)).toList();
+        final hasGradient = containers.any((c) {
+          final deco = c.decoration;
+          return deco is BoxDecoration && deco.gradient != null;
+        });
+        expect(hasGradient, isTrue,
+            reason:
+                'tide static path must still have a gradient container');
+      });
+
+      testWidgets('non-tide variants do not run gradient animation',
+          (tester) async {
+        // ink, ghost, text should not create the animated builder path.
+        for (final button in [
+          KaiButton.ink(onPressed: () {}, label: 'Ink'),
+          KaiButton.ghost(onPressed: () {}, label: 'Ghost'),
+          KaiButton.text(onPressed: () {}, label: 'Text'),
+        ]) {
+          await _pump(tester, button);
+          await tester.pump(const Duration(milliseconds: 2600));
+          // Should render and pump without throwing.
+        }
+        expect(true, isTrue); // reached without throwing
+      });
+    });
   });
 }

@@ -91,6 +91,37 @@ void main() {
         final tf = tester.widget<TextField>(find.byType(TextField));
         expect(tf.enabled, isTrue);
       });
+
+      testWidgets('uses compact font size (13.5px)', (tester) async {
+        final controller = TextEditingController();
+        await tester.pumpWidget(
+          buildTestWidget(
+            KaiInput.line(controller: controller),
+          ),
+        );
+        await tester.pump();
+        final tf = tester.widget<TextField>(find.byType(TextField));
+        expect(tf.style?.fontSize, closeTo(13.5, 0.01),
+            reason: 'KaiInput.line must use canon 13.5px font size');
+      });
+
+      testWidgets('uses compact symmetric padding (8/12)', (tester) async {
+        final controller = TextEditingController();
+        await tester.pumpWidget(
+          buildTestWidget(
+            KaiInput.line(controller: controller),
+          ),
+        );
+        await tester.pump();
+        final tf = tester.widget<TextField>(find.byType(TextField));
+        final padding = tf.decoration?.contentPadding;
+        expect(padding, isA<EdgeInsets>());
+        final ei = padding as EdgeInsets;
+        expect(ei.top, closeTo(KaiSpace.s2, 0.01),
+            reason: 'line vertical padding must be KaiSpace.s2 (8px)');
+        expect(ei.left, closeTo(KaiSpace.s3, 0.01),
+            reason: 'line horizontal padding must be KaiSpace.s3 (12px)');
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -161,6 +192,42 @@ void main() {
         await tester.pump();
         final tf = tester.widget<TextField>(find.byType(TextField));
         expect(tf.enabled, isFalse);
+      });
+
+      testWidgets('uses compact font size (13.5px)', (tester) async {
+        final controller = TextEditingController();
+        await tester.pumpWidget(
+          buildTestWidget(
+            KaiInput.pill(controller: controller),
+          ),
+        );
+        await tester.pump();
+        final tf = tester.widget<TextField>(find.byType(TextField));
+        expect(tf.style?.fontSize, closeTo(13.5, 0.01),
+            reason: 'KaiInput.pill must use canon 13.5px font size');
+      });
+
+      testWidgets('uses canon pill padding (left:14, right:5, top:5, bottom:5)',
+          (tester) async {
+        final controller = TextEditingController();
+        await tester.pumpWidget(
+          buildTestWidget(
+            KaiInput.pill(controller: controller),
+          ),
+        );
+        await tester.pump();
+        final tf = tester.widget<TextField>(find.byType(TextField));
+        final padding = tf.decoration?.contentPadding;
+        expect(padding, isA<EdgeInsets>());
+        final ei = padding as EdgeInsets;
+        expect(ei.left, closeTo(14, 0.01),
+            reason: 'pill left padding must be 14px (canon)');
+        expect(ei.right, closeTo(5, 0.01),
+            reason: 'pill right padding must be 5px (canon)');
+        expect(ei.top, closeTo(5, 0.01),
+            reason: 'pill top padding must be 5px (canon)');
+        expect(ei.bottom, closeTo(5, 0.01),
+            reason: 'pill bottom padding must be 5px (canon)');
       });
 
       testWidgets('pill and line have DIFFERENT radii', (tester) async {

@@ -19,6 +19,9 @@ enum _KaiInputVariant { line, pill }
 /// - [KaiInput.line] — `KaiRadius.br2` (r10). Canon: nav search box.
 /// - [KaiInput.pill] — `KaiRadius.brPill`. Canon: compose-island textarea.
 ///
+/// Both variants use the canon compact type (13.5 px, Manrope 400, lh 1.4)
+/// matching `.compose textarea` in `components.html`.
+///
 /// Both variants pass an explicit [OutlineInputBorder] so the focused border
 /// (using `lineStrong`) is driven by tokens, not Flutter defaults.
 ///
@@ -78,13 +81,17 @@ class KaiInput extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
 
-    final radius =
-        _variant == _KaiInputVariant.pill ? KaiRadius.brPill : KaiRadius.br2;
+    final isPill = _variant == _KaiInputVariant.pill;
+    final radius = isPill ? KaiRadius.brPill : KaiRadius.br2;
 
-    final textStyle = KaiType.body(
+    // Canon compose textarea: 400 13.5px Manrope, line-height 1.4.
+    // KaiType.small is 14px/400 — copyWith to 13.5px + lh 1.4 per canon.
+    final textStyle = KaiType.small(
       color: enabled ? c.ink1 : c.ink4,
-    );
-    final hintStyle = KaiType.body(color: c.ink4);
+    ).copyWith(fontSize: 13.5, height: 1.4);
+
+    final hintStyle = KaiType.small(color: c.ink4)
+        .copyWith(fontSize: 13.5, height: 1.4);
 
     final enabledBorder = OutlineInputBorder(
       borderRadius: radius,
@@ -99,6 +106,22 @@ class KaiInput extends StatelessWidget {
       borderSide: BorderSide(color: c.line),
     );
 
+    // Canon padding:
+    //   pill (.compose): padding 5px 5px 5px 14px  → top/bottom 5, right 5, left 14
+    //     approximated as: left=14, right=5, top=5, bottom=5
+    //   line (search):  symmetric compact — 8px vertical, 12px horizontal
+    final contentPadding = isPill
+        ? const EdgeInsets.only(
+            left: 14, // canon: 14px left padding
+            right: 5, // canon: 5px right padding
+            top: 5, // canon: 5px top padding
+            bottom: 5, // canon: 5px bottom padding
+          )
+        : const EdgeInsets.symmetric(
+            horizontal: KaiSpace.s3, // 12px — compact line input
+            vertical: KaiSpace.s2, // 8px — compact line input
+          );
+
     return TextField(
       controller: controller,
       focusNode: focusNode,
@@ -112,10 +135,7 @@ class KaiInput extends StatelessWidget {
         fillColor: c.surface2,
         hintText: placeholder,
         hintStyle: hintStyle,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: KaiSpace.s3,
-          vertical: KaiSpace.s2,
-        ),
+        contentPadding: contentPadding,
         border: enabledBorder,
         enabledBorder: enabledBorder,
         focusedBorder: focusedBorder,
