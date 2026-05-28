@@ -6,3 +6,4 @@
 library;
 
 export 'kai_chat_list.dart';
+export 'kai_nav_panel.dart';
