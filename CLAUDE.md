@@ -1,7 +1,8 @@
 # KAI App — Notes for Claude
 
 Mobile-first Flutter app (iOS + Android). AI travel companion. Light-first
-humanist design system, zero-UI. Rebuild v3 active on `master`.
+humanist design system, zero-UI. The v3 clean atomic component library is built
+and live on `master` — all production screens run on it; the old layer is gone.
 
 ---
 
@@ -50,28 +51,30 @@ lib/
     network/                      — Dio client + interceptor chain
     repositories/                 — mock + real chat / session
     telemetry/                    — NoOp service (swap before launch)
-  design_system/
-    tokens/                       — kai_colors / kai_type / kai_space / kai_radius / kai_motion / kai_tide / kai_tokens
+  design_system/                  — clean atomic library (v3), flat structure
+    tokens/                       — kai_colors / kai_type / kai_space / kai_radius / kai_shadow / kai_motion / kai_tide / kai_tokens
     theme/                        — KaiTheme InheritedWidget + Material bridge
-    atoms/ (9)                    — KaiBubble, KaiButton, KaiButtonSend, KaiIcon, KaiInput, KaiText, KaiTideCurve, KaiBottomSheetShell, KaiToggle
-    molecules/ (13)               — AlertCard, CareBlock, ComposeIsland, NavItem, SourceCard, KaiToast, KaiSystemNote, KaiActionSheet, KaiMessageDetailSheet, KaiSegmentedControl, KaiSettingsRow, KaiAccountHero, KaiSettingsGroup
-    organisms/ (4)                — chat_list, edge_state_block, nav_panel, onboarding_card
+    primitives/ (3)               — KaiIcon (single SVG source), KaiSurface, KaiGradientBar — sub-atom layer; atoms MAY import these
+    atoms/ (12)                   — KaiText (+tideWord), KaiButton (tide/ink/ghost/text · sm/md/lg · living tide gradient), KaiIconButton, KaiSendButton, KaiInput, KaiToggle, KaiChip, KaiBadge, KaiAvatar, KaiTideCurve, KaiDivider, KaiSheetShell
+    molecules/ (16)               — KaiUserBubble / KaiKaiBubble / KaiSystemBubble, ComposeIsland, SourceCard, CareBlock, AlertCard, KaiToast (+ KaiToastController), KaiActionSheet, KaiMessageDetailSheet, KaiSegmentedControl, KaiSettingsRow, KaiSettingsGroup, KaiAccountHero, NavItem
+    organisms/ (4)                — chat_list, nav_panel (+ nav_models view-models), edge_state_block, onboarding_card
   features/
     boot/                         — SplashScreen + BootingApp
     onboarding/                   — OnboardingScreen (4 steps)
     room/                         — RoomScreen (chat, 6 frames)
-    nav/                          — NavScreen + side panel
+    nav/                          — NavScreen + side panel (+ session_groups.dart — pure date-bucketing presenter)
     settings/                     — SettingsScreen (7 sections)
-    dev/                          — atoms/molecules/organisms/theme showcases
+    dev/                          — Storybook shell (sidebar + canvas + knobs) + theme showcase
 new-design/                       — HTML mockups (22 files) — source of truth, READ-ONLY
 brand/                            — SVG masters + generated PNG masters for icon/splash
 tool/                             — Dart scripts (e.g. PNG generator)
 test/                             — mirrors lib/ structure
 ```
 
-Production screens implemented (5 of 9 from `new-design/`):
-**room · onboarding · nav · edge-states · settings**.
-Remaining: voice, memory, trip-detail, fork.
+Production screens on the v3 library: **room · onboarding · nav · settings**
+(+ boot/splash). edge-states is not a standalone screen — it renders inline in
+room via the `edge_state_block` organism. Remaining from `new-design/`:
+voice, memory, trip-detail, fork.
 
 ---
 
@@ -81,12 +84,28 @@ Remaining: voice, memory, trip-detail, fork.
 cp .env.example .env                                       # required by pubspec — flutter_test fails without it
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs    # *.g.dart / *.freezed.dart are gitignored
-flutter test                                                # expect 299/299 passing
+flutter test                                                # expect 681/681 passing
 flutter analyze                                             # expect "No issues found"
 ```
 
-Run locally: `flutter run -d <device>`. Dev routes available at `/_dev`,
-`/_dev/atoms`, `/_dev/molecules`, `/_dev/organisms`, `/_dev/theme-showcase`.
+Run locally: `flutter run -d <device>`. Dev hub at `/_dev`.
+
+### Component playground (Storybook) — where to poke the design system
+
+`/_dev/storybook` is an **adaptive Storybook-style shell**: a left sidebar
+(component tree grouped by primitives / atoms / molecules / organisms) + a
+central canvas rendering the selected component's variants & states + knobs
+(light/dark theme · device-frame). Wide window → persistent sidebar; narrow →
+sidebar in a drawer. This is the place to eyeball every component live.
+
+Best viewed in a browser (URL-routable, hot-reload):
+```sh
+flutter run -d chrome      # then open  http://localhost:<port>/#/_dev/storybook
+```
+On a device/emulator (no URL bar): temporarily set
+`initialLocation: '/_dev/storybook'` in `lib/core/routing/router.dart`,
+hot-restart (revert after). `/_dev/theme-showcase` shows raw tokens
+(color / type / space / radius / tide).
 
 ---
 
@@ -181,8 +200,15 @@ adding a field, manually update the adapter's `read()` / `write()`.
   trip-detail, fork, brand, landing, dark, tide-states, notifications-chat,
   handoff)
 - **Hard rules + design philosophy**: `new-design/CLAUDE.md`
+- **Live design system — poke it**: `/_dev/storybook` in the running app (see Setup).
+  Code lives at `lib/design_system/{primitives,atoms,molecules,organisms}`.
+- **Clean atomic library (v3) — spec + plan**:
+  `docs/superpowers/specs/2026-05-28-kai-ui-atomic-library-v3-design.md` +
+  `docs/superpowers/plans/2026-05-28-kai-ui-atomic-library-v3.md`
+- **Design-system audit (reusability + fidelity)**:
+  `docs/superpowers/audits/2026-05-28-design-system-audit.md`
 - **Latest session handoff**: `docs/superpowers/handoffs/2026-05-28-design-fidelity-v2-session.md`
-- **Rebuild v3 spec**: `docs/superpowers/specs/2026-05-26-kai-app-rebuild-v3-design.md`
+- **Rebuild v3 spec (original)**: `docs/superpowers/specs/2026-05-26-kai-app-rebuild-v3-design.md`
 - **Design fidelity plan (with bucket task-docs)**: `docs/superpowers/plans/2026-05-27-design-fidelity-fixes.md`
 - **Brand pipeline**: `brand/BRAND_README.md`
 - **Memory** (point-in-time observations, may be stale): `C:\Users\79050\.claude\projects\E--startup-kai-app\memory\`
