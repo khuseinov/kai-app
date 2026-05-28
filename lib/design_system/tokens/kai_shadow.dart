@@ -31,4 +31,18 @@ class KaiShadow {
       offset: Offset(0, 0),
     ),
   ];
+
+  /// Subtle neutral drop shadow for the toggle thumb.
+  ///
+  /// Color: rgba(0, 0, 0, 0.18) — neutral black at alpha 0x2E (46/255 ≈ 0.18).
+  /// Intentionally neutral (not tide-tinted) — the thumb sits on the accent track
+  /// and a tinted shadow would clash with both on/off states.
+  /// Source: `new-design/settings.html § .toggle-knob` (box-shadow: 0 1px 3px rgba(0,0,0,0.18)).
+  static const List<BoxShadow> thumb = [
+    BoxShadow(
+      color: Color(0x2E000000),
+      blurRadius: 3,
+      offset: Offset(0, 1),
+    ),
+  ];
 }

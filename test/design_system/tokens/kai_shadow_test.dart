@@ -41,5 +41,24 @@ void main() {
         expect(KaiShadow.glow.first.offset, const Offset(0, 0));
       });
     });
+
+    group('thumb shadow', () {
+      test('is a list with one BoxShadow', () {
+        expect(KaiShadow.thumb, isA<List<BoxShadow>>());
+        expect(KaiShadow.thumb.length, 1);
+      });
+
+      test('color is neutral black at alpha 0x2E (~0.18)', () {
+        expect(KaiShadow.thumb.first.color, const Color(0x2E000000));
+      });
+
+      test('blurRadius is 3', () {
+        expect(KaiShadow.thumb.first.blurRadius, 3.0);
+      });
+
+      test('offset is Offset(0, 1)', () {
+        expect(KaiShadow.thumb.first.offset, const Offset(0, 1));
+      });
+    });
   });
 }
