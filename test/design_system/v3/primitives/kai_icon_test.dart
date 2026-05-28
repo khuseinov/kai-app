@@ -63,7 +63,7 @@ void main() {
     });
 
     test('all KaiIconName values have a non-empty assetName', () {
-      expect(KaiIconName.values.length, 30);
+      expect(KaiIconName.values.length, 32); // +2: thumbUp, thumbDown (v3 W2)
       for (final icon in KaiIconName.values) {
         expect(icon.assetName, isNotEmpty);
       }
@@ -74,6 +74,8 @@ void main() {
       expect(KaiIconName.chevRight.assetName, 'chev-right');
       expect(KaiIconName.wifiOff.assetName, 'wifi-off');
       expect(KaiIconName.logout.assetName, 'logout');
+      expect(KaiIconName.thumbUp.assetName, 'thumb-up');
+      expect(KaiIconName.thumbDown.assetName, 'thumb-down');
     });
   });
 }
