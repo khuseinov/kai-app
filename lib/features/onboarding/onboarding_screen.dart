@@ -5,8 +5,8 @@ import '../../core/storage/entities/settings.dart';
 import '../../core/storage/hive_setup.dart';
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
-import '../../design_system/v3/atoms/atoms.dart';
-import '../../design_system/v3/organisms/kai_onboarding_card.dart';
+import '../../design_system/atoms/atoms.dart';
+import '../../design_system/organisms/kai_onboarding_card.dart';
 
 /// 4-step onboarding flow matching `new-design/onboarding.html`.
 ///
@@ -21,7 +21,7 @@ import '../../design_system/v3/organisms/kai_onboarding_card.dart';
 /// Migrated from v2 [OnboardingCard] + v2 [KaiTideCurve] to:
 ///   - [KaiOnboardingCard] (v3 organism) — wires [onNext] for steps 0-2 and
 ///     [onComplete] for step 3.
-///   - [KaiTideCurve] from `design_system/v3/atoms/atoms.dart`.
+///   - [KaiTideCurve] from `design_system/atoms/atoms.dart`.
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 

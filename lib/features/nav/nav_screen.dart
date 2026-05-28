@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/providers/session_provider.dart';
 import '../../core/repositories/session_repository.dart';
-import '../../design_system/v3/organisms/organisms.dart';
+import '../../design_system/organisms/organisms.dart';
 import '../../l10n/app_localizations.dart';
 import '../room/room_state.dart';
 import 'session_groups.dart';

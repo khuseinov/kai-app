@@ -5,7 +5,7 @@ import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/core/providers/session_provider.dart';
 import 'package:kai_app/core/repositories/session_repository.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
-import 'package:kai_app/design_system/v3/organisms/nav_models.dart';
+import 'package:kai_app/design_system/organisms/nav_models.dart';
 import 'package:kai_app/features/nav/nav_screen.dart';
 import 'package:kai_app/l10n/app_localizations.dart';
 

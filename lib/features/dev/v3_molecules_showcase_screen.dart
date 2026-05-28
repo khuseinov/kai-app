@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/root.dart';
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
-import '../../design_system/v3/atoms/atoms.dart';
-import '../../design_system/v3/molecules/molecules.dart';
-import '../../design_system/v3/primitives/primitives.dart';
+import '../../design_system/atoms/atoms.dart';
+import '../../design_system/molecules/molecules.dart';
+import '../../design_system/primitives/primitives.dart';
 
 /// Visual gallery of every v3 molecule.
 ///

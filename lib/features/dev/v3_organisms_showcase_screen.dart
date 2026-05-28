@@ -5,8 +5,8 @@ import '../../core/providers/root.dart';
 // SessionPreview and TripInfo come from the v3 organisms barrel (via nav_models).
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
-import '../../design_system/v3/atoms/atoms.dart';
-import '../../design_system/v3/organisms/organisms.dart';
+import '../../design_system/atoms/atoms.dart';
+import '../../design_system/organisms/organisms.dart';
 
 /// Visual gallery of every v3 organism.
 ///

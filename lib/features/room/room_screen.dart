@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
-import '../../design_system/v3/atoms/atoms.dart';
-import '../../design_system/v3/molecules/molecules.dart';
-import '../../design_system/v3/organisms/organisms.dart';
+import '../../design_system/atoms/atoms.dart';
+import '../../design_system/molecules/molecules.dart';
+import '../../design_system/organisms/organisms.dart';
 import '../nav/nav_screen.dart';
 import 'room_state.dart';
 

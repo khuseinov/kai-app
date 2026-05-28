@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
-import '../../design_system/v3/atoms/atoms.dart';
+import '../../design_system/atoms/atoms.dart';
 import '../../features/dev/theme_showcase_screen.dart';
 import '../../features/dev/v3_atoms_showcase_screen.dart';
 import '../../features/dev/v3_molecules_showcase_screen.dart';
