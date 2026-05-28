@@ -3,15 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/providers/root.dart';
-import '../../design_system/atoms/kai_icon.dart';
-import '../../design_system/atoms/kai_tide_curve.dart';
-import '../../design_system/atoms/kai_toggle.dart';
-import '../../design_system/molecules/kai_account_hero.dart';
-import '../../design_system/molecules/kai_segmented_control.dart';
-import '../../design_system/molecules/kai_settings_group.dart';
-import '../../design_system/molecules/kai_settings_row.dart';
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
+import '../../design_system/v3/atoms/atoms.dart';
+import '../../design_system/v3/molecules/molecules.dart';
+import '../../design_system/v3/primitives/primitives.dart';
 
 /// Settings screen. Canon: `new-design/settings.html`.
 ///
