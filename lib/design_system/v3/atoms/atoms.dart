@@ -5,5 +5,6 @@
 library;
 
 export 'kai_badge.dart';
+export 'kai_button.dart';
 export 'kai_divider.dart';
 export 'kai_text.dart';
