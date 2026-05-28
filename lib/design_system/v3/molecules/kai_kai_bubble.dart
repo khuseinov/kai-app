@@ -17,9 +17,10 @@ import '../primitives/primitives.dart';
 /// for the v2 atom→molecule layer-inversion bug.
 ///
 /// ### Font size
-/// Canon `.bub.kai .txt` is `15px`. `KaiType.small` is 14px — a +1px drift.
-/// Applied as `.copyWith(fontSize: 15)` to keep all other Manrope metrics from
-/// the token (weight, features, height). Documented as `// canon: 15`.
+/// Body is **13.5px** (D2 locked: room.html is the real chat context — canon —
+/// not components.html's 15px catalog display). The `.who` label is **9px**.
+/// `KaiType.small` (14) / `KaiType.mono` (12) are the nearest tokens, adjusted
+/// via `.copyWith(fontSize:)`.
 ///
 /// ### Citation parsing
 /// Inline citations `[1]`, `[2]` etc. are parsed by [_parseCitations] into a
@@ -41,9 +42,8 @@ import '../primitives/primitives.dart';
 /// `KaiGradientBar(width: 16, height: 4)` per canon `.who::before {width:16px; height:4px}`.
 ///
 /// ### "who" label mono size
-/// Canon is 10px JetBrains Mono uppercase. `KaiType.mono` is 12px. Applied as
-/// `.copyWith(fontSize: 10)` to keep JetBrains family. Drift from mono: -2px.
-/// Documented as `// canon: 10`.
+/// 9px JetBrains Mono uppercase (D2 locked, room.html). `KaiType.mono` is 12px;
+/// applied as `.copyWith(fontSize: 9)` to keep the JetBrains family.
 ///
 /// API:
 /// ```dart
@@ -160,10 +160,9 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
             Text(
               'KAI',
               style: KaiType.mono(color: c.ink3).copyWith(
-                // canon: font-size 10px, letter-spacing 0.08em
-                // KaiType.mono base is 12px — drift -2px.
-                fontSize: 10, // canon: 10
-                letterSpacing: 10 * 0.08, // canon: 0.08em
+                // canon (D2 locked): 9px — room.html .who (components shows 10).
+                fontSize: 9, // canon: 9 (room / D2)
+                letterSpacing: 9 * 0.08, // canon: 0.08em
               ),
             ),
           ],
@@ -196,11 +195,10 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
 
   Widget _buildBodyText(KaiColorTokens c) {
     final baseStyle = KaiType.small(color: c.ink1).copyWith(
-      // canon: font-size 15px (.bub.kai .txt)
-      // KaiType.small base is 14px — drift +1px.
-      fontSize: 15, // canon: 15
+      // canon (D2 locked): 13.5px — room.html chat context, not components 15px.
+      fontSize: 13.5, // canon: 13.5 (room / D2)
       height: 1.55, // canon: line-height 1.55
-      letterSpacing: 15 * -0.005, // canon: letter-spacing -0.005em
+      letterSpacing: 13.5 * -0.005, // canon: letter-spacing -0.005em
     );
 
     final citationStyle = baseStyle.copyWith(
