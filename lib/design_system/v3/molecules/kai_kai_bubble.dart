@@ -245,12 +245,16 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
       mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.sourcesLabel != null)
-          Text(
-            widget.sourcesLabel!,
-            style: KaiType.mono(color: c.ink3).copyWith(
-              // canon: meta-row font-size 11px
-              // KaiType.mono base is 12px — drift -1px.
-              fontSize: 11, // canon: 11
+          Flexible(
+            child: Text(
+              widget.sourcesLabel!,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+              style: KaiType.mono(color: c.ink3).copyWith(
+                // canon: meta-row font-size 11px
+                // KaiType.mono base is 12px — drift -1px.
+                fontSize: 11, // canon: 11
+              ),
             ),
           ),
         if (widget.sourcesLabel != null && hasReact)

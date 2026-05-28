@@ -282,6 +282,31 @@ void main() {
       );
     });
 
+    testWidgets(
+        'meta-row does not overflow at narrow width (300px) with label + react',
+        (tester) async {
+      // Regression: sourcesLabel in a Row(mainAxisSize: min) overflowed at
+      // narrow widths — fixed by wrapping sourcesLabel Text in Flexible.
+      tester.view.physicalSize = const Size(300, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          KaiKaiBubble(
+            text: 'Text',
+            sourcesLabel: '3 источника · проверено 2 минуты назад',
+            onThumbUp: () {},
+            onThumbDown: () {},
+          ),
+        ),
+      );
+      await tester.pump();
+      // No overflow errors — if the widget builds without exception the fix works.
+      expect(find.byType(KaiKaiBubble), findsOneWidget);
+    });
+
     // -------------------------------------------------------------------------
     // KaiIconName enum
     // -------------------------------------------------------------------------

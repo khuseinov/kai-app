@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/root.dart';
-import '../../design_system/organisms/nav_panel.dart'
-    show SessionPreview, TripInfo;
+// SessionPreview and TripInfo come from the v3 organisms barrel (via nav_models).
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
 import '../../design_system/v3/atoms/atoms.dart';

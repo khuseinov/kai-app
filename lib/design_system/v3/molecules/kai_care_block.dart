@@ -171,9 +171,12 @@ class _ResourceRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: KaiSpace.s2),
-        Text(
-          '· ${resource.label}',
-          style: KaiType.small(color: color),
+        Flexible(
+          child: Text(
+            '· ${resource.label}',
+            overflow: TextOverflow.ellipsis,
+            style: KaiType.small(color: color),
+          ),
         ),
       ],
     );

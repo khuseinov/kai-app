@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../design_system/organisms/nav_panel.dart'
-    show SessionPreview, TripInfo;
+import 'nav_models.dart';
 import '../../../features/nav/session_groups.dart';
 import '../../theme/kai_theme.dart';
 import '../../tokens/kai_tokens.dart';

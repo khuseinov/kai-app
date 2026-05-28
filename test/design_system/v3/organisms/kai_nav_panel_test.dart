@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/design_system/organisms/nav_panel.dart'
+import 'package:kai_app/design_system/v3/organisms/nav_models.dart'
     show SessionPreview, TripInfo;
 import 'package:kai_app/design_system/v3/atoms/kai_badge.dart';
 import 'package:kai_app/design_system/v3/atoms/kai_button.dart';

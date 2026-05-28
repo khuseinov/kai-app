@@ -286,6 +286,39 @@ void main() {
     });
 
     // -------------------------------------------------------------------------
+    // Narrow-width overflow regression — _ResourceRow label in Flexible
+    // -------------------------------------------------------------------------
+
+    testWidgets(
+        'resource row does not overflow at narrow width (322px)',
+        (tester) async {
+      // Regression: label Text in _ResourceRow overflowed at ≤322px — fixed by
+      // wrapping label in Flexible with TextOverflow.ellipsis.
+      tester.view.physicalSize = const Size(322, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          const KaiCareBlock(
+            heading: 'Помощь рядом',
+            body: 'Обратись.',
+            resources: [
+              KaiCareResource(
+                label: 'Телефон доверия кризисной помощи',
+                number: '8-800-2000-122',
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pump();
+      // No overflow exception thrown — fix confirmed.
+      expect(find.byType(KaiCareBlock), findsOneWidget);
+    });
+
+    // -------------------------------------------------------------------------
     // No "action" param (compile-time: type has no such field)
     // -------------------------------------------------------------------------
 
