@@ -5,10 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
 import '../../design_system/atoms/atoms.dart';
+import '../../features/dev/storybook/storybook_screen.dart';
 import '../../features/dev/theme_showcase_screen.dart';
-import '../../features/dev/v3_atoms_showcase_screen.dart';
-import '../../features/dev/v3_molecules_showcase_screen.dart';
-import '../../features/dev/v3_organisms_showcase_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/room/room_screen.dart';
 import '../../features/settings/settings_screen.dart';
@@ -53,16 +51,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const ThemeShowcaseScreen(),
       ),
       GoRoute(
-        path: '/_dev/v3/atoms',
-        builder: (_, __) => const V3AtomsShowcaseScreen(),
-      ),
-      GoRoute(
-        path: '/_dev/v3/molecules',
-        builder: (_, __) => const V3MoleculesShowcaseScreen(),
-      ),
-      GoRoute(
-        path: '/_dev/v3/organisms',
-        builder: (_, __) => const V3OrganismsShowcaseScreen(),
+        path: '/_dev/storybook',
+        builder: (_, __) => const StorybookScreen(),
       ),
     ],
   );
@@ -90,35 +80,12 @@ class _DevHubScreen extends StatelessWidget {
             subtitle: 'Tokens, colors, type, space, radius, tide',
             onTap: () => context.go('/_dev/theme-showcase'),
           ),
-          const SizedBox(height: KaiSpace.s5),
-          Text('V3 DESIGN SYSTEM', style: KaiType.micro(color: c.ink3)),
           const SizedBox(height: KaiSpace.s3),
           _hubTile(
             context,
-            label: 'v3 — Primitives + Atoms',
-            subtitle: 'KaiIcon, KaiSurface, KaiGradientBar, KaiText, '
-                'KaiButton, KaiIconButton, KaiSendButton, KaiInput, '
-                'KaiToggle, KaiChip, KaiBadge, KaiAvatar, KaiTideCurve, '
-                'KaiDivider, KaiSheetShell',
-            onTap: () => context.go('/_dev/v3/atoms'),
-          ),
-          const SizedBox(height: KaiSpace.s3),
-          _hubTile(
-            context,
-            label: 'v3 — Molecules',
-            subtitle: 'UserBubble, KaiBubble, SystemBubble, ComposeIsland, '
-                'SourceCard, CareBlock, AlertCard, Toast, ActionSheet, '
-                'MessageDetailSheet, SegmentedControl, SettingsRow, '
-                'SettingsGroup, AccountHero, NavItem',
-            onTap: () => context.go('/_dev/v3/molecules'),
-          ),
-          const SizedBox(height: KaiSpace.s3),
-          _hubTile(
-            context,
-            label: 'v3 — Organisms',
-            subtitle:
-                'KaiChatList, KaiNavPanel, KaiEdgeStateBlock, KaiOnboardingCard',
-            onTap: () => context.go('/_dev/v3/organisms'),
+            label: 'Storybook',
+            subtitle: 'All components · sidebar + canvas + knobs',
+            onTap: () => context.go('/_dev/storybook'),
           ),
         ],
       ),
