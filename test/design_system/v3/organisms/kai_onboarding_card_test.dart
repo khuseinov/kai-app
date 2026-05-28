@@ -50,27 +50,85 @@ void main() {
       expect(find.textContaining('Два факта'), findsOneWidget);
     });
 
-    // ── R1 audit: CTA is a KaiButton, NOT a bespoke container ───────────────
+    // ── Canon button variant per step (onboarding.html fidelity) ───────────
+    //
+    // Canon: new-design/onboarding.html
+    //   `.ob-btn { background: var(--ink-1) }` — default (steps 1-3)
+    //   `.frame-card:first-child .ob-btn { background: var(--tide-gradient) }` — step 0 only
+    //
+    // Step 0 (welcome): KaiButton.tide — the sole tide-gradient primary.
+    // Steps 1-3: KaiButton.ink — solid ink-1 primary for non-hero steps.
 
-    testWidgets('CTA is a KaiButton on step 0 (welcome)',
+    testWidgets('step 0 CTA is KaiButton.tide (canon: tide on welcome only)',
         (WidgetTester tester) async {
       await _pump(tester, const KaiOnboardingCard(stepIndex: 0));
+      // Tide variant uses a gradient decoration — verify via key structural
+      // property: the button has a gradient BoxDecoration.
+      final buttons = tester.widgetList<KaiButton>(find.byType(KaiButton));
+      expect(buttons, isNotEmpty);
+      // There should be exactly one KaiButton on the card.
       expect(find.byType(KaiButton), findsOneWidget);
+      // The decoration of the outermost Container inside a tide button contains
+      // a gradient. We validate by checking the internal Container.
+      final containers = tester.widgetList<Container>(find.descendant(
+        of: find.byType(KaiButton),
+        matching: find.byType(Container),
+      ));
+      final hasGradient = containers.any((c) {
+        final deco = c.decoration;
+        return deco is BoxDecoration && deco.gradient != null;
+      });
+      expect(hasGradient, isTrue,
+          reason: 'Step 0 CTA must use tide gradient (KaiButton.tide)');
     });
 
-    testWidgets('CTA is a KaiButton on step 1', (WidgetTester tester) async {
+    testWidgets('step 1 CTA is KaiButton.ink (canon: ink-1 on non-hero steps)',
+        (WidgetTester tester) async {
       await _pump(tester, const KaiOnboardingCard(stepIndex: 1));
       expect(find.byType(KaiButton), findsOneWidget);
+      // Ink variant has no gradient — verify no gradient in button containers.
+      final containers = tester.widgetList<Container>(find.descendant(
+        of: find.byType(KaiButton),
+        matching: find.byType(Container),
+      ));
+      final hasGradient = containers.any((c) {
+        final deco = c.decoration;
+        return deco is BoxDecoration && deco.gradient != null;
+      });
+      expect(hasGradient, isFalse,
+          reason: 'Step 1 CTA must use ink-1 fill (KaiButton.ink), not tide');
     });
 
-    testWidgets('CTA is a KaiButton on step 2', (WidgetTester tester) async {
+    testWidgets('step 2 CTA is KaiButton.ink (canon: ink-1 on non-hero steps)',
+        (WidgetTester tester) async {
       await _pump(tester, const KaiOnboardingCard(stepIndex: 2));
       expect(find.byType(KaiButton), findsOneWidget);
+      final containers = tester.widgetList<Container>(find.descendant(
+        of: find.byType(KaiButton),
+        matching: find.byType(Container),
+      ));
+      final hasGradient = containers.any((c) {
+        final deco = c.decoration;
+        return deco is BoxDecoration && deco.gradient != null;
+      });
+      expect(hasGradient, isFalse,
+          reason: 'Step 2 CTA must use ink-1 fill (KaiButton.ink), not tide');
     });
 
-    testWidgets('CTA is a KaiButton on step 3', (WidgetTester tester) async {
+    testWidgets('step 3 CTA is KaiButton.ink (canon: ink-1 on non-hero steps)',
+        (WidgetTester tester) async {
       await _pump(tester, const KaiOnboardingCard(stepIndex: 3));
       expect(find.byType(KaiButton), findsOneWidget);
+      final containers = tester.widgetList<Container>(find.descendant(
+        of: find.byType(KaiButton),
+        matching: find.byType(Container),
+      ));
+      final hasGradient = containers.any((c) {
+        final deco = c.decoration;
+        return deco is BoxDecoration && deco.gradient != null;
+      });
+      expect(hasGradient, isFalse,
+          reason: 'Step 3 CTA must use ink-1 fill (KaiButton.ink), not tide');
     });
 
     // ── Callback wiring ──────────────────────────────────────────────────────

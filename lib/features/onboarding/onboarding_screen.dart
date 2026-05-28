@@ -3,18 +3,25 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/storage/entities/settings.dart';
 import '../../core/storage/hive_setup.dart';
-import '../../design_system/atoms/kai_tide_curve.dart';
-import '../../design_system/organisms/onboarding_card.dart';
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
+import '../../design_system/v3/atoms/atoms.dart';
+import '../../design_system/v3/organisms/kai_onboarding_card.dart';
 
 /// 4-step onboarding flow matching `new-design/onboarding.html`.
 ///
 /// Full-screen layout: SafeArea > Stack.
-///   - Bottom layer: PageView of [OnboardingCard]s (each fills all available space).
+///   - Bottom layer: PageView of [KaiOnboardingCard]s (each fills all
+///     available space).
 ///   - Overlay: tide curve positioned at the top, shown on steps 1–3 only.
 ///
 /// On completion writes `onboarded = true` to Hive and navigates to `/room`.
+///
+/// ## v3 migration (W4)
+/// Migrated from v2 [OnboardingCard] + v2 [KaiTideCurve] to:
+///   - [KaiOnboardingCard] (v3 organism) — wires [onNext] for steps 0-2 and
+///     [onComplete] for step 3.
+///   - [KaiTideCurve] from `design_system/v3/atoms/atoms.dart`.
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -97,10 +104,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               controller: _pageController,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                OnboardingCard(stepIndex: 0, onComplete: _nextPage),
-                OnboardingCard(stepIndex: 1, onComplete: _nextPage),
-                OnboardingCard(stepIndex: 2, onComplete: _nextPage),
-                OnboardingCard(stepIndex: 3, onComplete: _finish),
+                KaiOnboardingCard(stepIndex: 0, onNext: _nextPage),
+                KaiOnboardingCard(stepIndex: 1, onNext: _nextPage),
+                KaiOnboardingCard(stepIndex: 2, onNext: _nextPage),
+                KaiOnboardingCard(stepIndex: 3, onComplete: _finish),
               ],
             ),
           ),

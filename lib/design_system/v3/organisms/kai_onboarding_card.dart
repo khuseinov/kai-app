@@ -15,11 +15,25 @@ import '../primitives/primitives.dart';
 ///   `.ob { padding: 60px 22px 20px; flex:1; flex-direction:column; gap:12px; }`
 ///   `.ob-bottom { margin-top:auto; gap:12px; }`
 ///
-/// R1 audit fix: the bespoke `_OnboardingCTA` widget from v2 is dropped.
-/// The CTA is now a [KaiButton.tide] atom — the canonical one tide-gradient
-/// button per screen rule is satisfied here (one primary action per screen).
-/// Steps other than the welcome step also use tide (ink in v2 was a mismatch
-/// for "one primary per screen" — the whole onboarding is a primary flow).
+/// ## CTA button fidelity — canon from `new-design/onboarding.html`
+///
+/// The HTML defines:
+///   ```css
+///   .ob-btn { background: var(--ink-1); ... }                /* default: solid ink-1 */
+///   .frame-card:first-child .ob-btn { background: var(--tide-gradient); ... } /* step 0 only */
+///   ```
+/// Canon finding: **only step 0 (welcome) uses the tide-gradient CTA** because
+/// it is the sole primary action on that screen (the greeting, with no other
+/// choices). Steps 1–3 use a solid ink-1 fill ([KaiButton.ink]). Each step
+/// still satisfies "one primary action per screen" — ink-1 IS the primary fill
+/// for non-hero steps in the design system.
+///
+/// The previous v3 draft used [KaiButton.tide] on ALL steps, which contradicts
+/// the HTML spec comment: "Welcome screen primary CTA uses tide-gradient (it's
+/// the one primary action)". This has been corrected here.
+///
+/// R1 audit fix: the bespoke `_OnboardingCTA` StatefulWidget from v2 is
+/// dropped. The CTA is now a [KaiButton] atom.
 class KaiOnboardingCard extends StatelessWidget {
   const KaiOnboardingCard({
     required this.stepIndex,
@@ -103,16 +117,19 @@ class KaiOnboardingCard extends StatelessWidget {
         callback = onNext;
     }
 
-    // R1 audit fix: use KaiButton.tide for the primary CTA — this is the one
-    // tide-gradient button per screen.  Step 0 (welcome) carries the tide as
-    // an additional brand signal; steps 1-3 also use tide because the entire
-    // onboarding is the primary flow and there is no competing primary action.
-    //
-    // v2 used a bespoke `_OnboardingCTA` StatefulWidget that re-implemented
-    // press-scale, gradient decoration, and GestureDetector from scratch.
-    // The v3 KaiButton.tide already provides all of this via the atom layer,
-    // so the bespoke implementation is dropped entirely (R1 fix).
-    return KaiButton.tide(
+    // Canon (new-design/onboarding.html):
+    //   Step 0 (welcome): KaiButton.tide — the one tide-gradient primary on
+    //   that screen. CSS: `.frame-card:first-child .ob-btn { background:
+    //   var(--tide-gradient) }`.
+    //   Steps 1–3: KaiButton.ink — solid ink-1, the standard non-hero primary.
+    //   CSS: `.ob-btn { background: var(--ink-1) }`.
+    if (stepIndex == 0) {
+      return KaiButton.tide(
+        onPressed: callback,
+        label: label,
+      );
+    }
+    return KaiButton.ink(
       onPressed: callback,
       label: label,
     );
