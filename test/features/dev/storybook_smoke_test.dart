@@ -99,8 +99,9 @@ void main() {
         (t) async {
       expect(kStories, isNotEmpty);
       final layers = kStories.map((s) => s.layer).toSet();
-      // StoryLayer.foundations may be empty until C1-T5 populates it.
+      // All layers now populated (foundations filled in C1-T5).
       const builtLayers = {
+        StoryLayer.foundations,
         StoryLayer.primitives,
         StoryLayer.atoms,
         StoryLayer.molecules,
