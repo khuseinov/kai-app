@@ -17,6 +17,7 @@ export 'kai_input.dart';
 export 'kai_karaoke_text.dart';
 export 'kai_send_button.dart';
 export 'kai_sheet_shell.dart';
+export 'kai_step_indicator.dart';
 export 'kai_text.dart';
 export 'kai_tide_curve.dart';
 export 'kai_toggle.dart';

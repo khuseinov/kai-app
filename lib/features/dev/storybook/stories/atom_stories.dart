@@ -694,6 +694,45 @@ final List<Story> atomStories = [
   ),
   Story(
     layer: StoryLayer.atoms,
+    name: 'KaiStepIndicator',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/onboarding.html',
+    canonSelector: '.step-dots',
+    description:
+        'Animated step-progress dots. Active dot = elongated accent pill '
+        '(16×6px, brPill); inactive = small circle (6×6px, ink4). '
+        'AnimatedContainer transitions width+colour as active changes.',
+    variants: const ['active=0', 'active=1', 'active=2', 'active=3'],
+    props: const [
+      PropDoc('count', 'int', 'required', 'Total number of steps'),
+      PropDoc('active', 'int', 'required', 'Index of the active step (0-based)'),
+    ],
+    build: (_) => const StoryPage(
+      title: 'KaiStepIndicator',
+      layer: 'ATOM',
+      blurb: 'Step-progress dots for multi-step flows (onboarding etc.). '
+          'Active dot animates to an elongated accent pill; inactive dots are '
+          'small ink4 circles. Respects reduce-motion preference.',
+      sections: [
+        StorySection('Static positions', [
+          StoryCell('active=0', KaiStepIndicator(count: 4, active: 0)),
+          StoryCell('active=1', KaiStepIndicator(count: 4, active: 1)),
+          StoryCell('active=2', KaiStepIndicator(count: 4, active: 2)),
+          StoryCell('active=3', KaiStepIndicator(count: 4, active: 3)),
+        ]),
+        StorySection('Interactive', [
+          StoryCell('prev/next', _StepperDemo()),
+        ]),
+      ],
+      usage: 'KaiStepIndicator(count: 4, active: stepIndex)',
+      props: [
+        PropDoc('count', 'int', 'required', 'Total number of steps'),
+        PropDoc('active', 'int', 'required', 'Index of the active step (0-based)'),
+      ],
+    ),
+  ),
+  Story(
+    layer: StoryLayer.atoms,
     name: 'KaiSheetShell',
     importPath: 'package:kai_app/design_system/atoms/atoms.dart',
     canonFile: 'new-design/components.html',
@@ -778,6 +817,51 @@ final List<Story> atomStories = [
     build: (_) => const _KaiBudgetBarStory(),
   ),
 ];
+
+// ── KaiStepIndicator interactive demo ────────────────────────────────────────
+
+class _StepperDemo extends StatefulWidget {
+  const _StepperDemo();
+
+  @override
+  State<_StepperDemo> createState() => _StepperDemoState();
+}
+
+class _StepperDemoState extends State<_StepperDemo> {
+  int _active = 0;
+  static const _count = 4;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        KaiStepIndicator(count: _count, active: _active),
+        const SizedBox(height: KaiSpace.s3),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            KaiButton.ghost(
+              onPressed: _active > 0
+                  ? () => setState(() => _active--)
+                  : null,
+              label: '←',
+              size: KaiButtonSize.sm,
+            ),
+            const SizedBox(width: KaiSpace.s3),
+            KaiButton.ghost(
+              onPressed: _active < _count - 1
+                  ? () => setState(() => _active++)
+                  : null,
+              label: '→',
+              size: KaiButtonSize.sm,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
 
 // ── KaiInput demo helpers (StatefulWidget — need controllers) ─────────────────
 
