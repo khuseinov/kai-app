@@ -430,6 +430,25 @@ final List<Story> moleculeStories = [
     variants: ['inactive', 'active: true', 'trailing: KaiBadge.dot()'],
     build: (_) => _KaiNavItemStory(),
   ),
+
+  Story(
+    layer: StoryLayer.molecules,
+    name: 'KaiForkCard',
+    importPath: 'package:kai_app/design_system/molecules/molecules.dart',
+    canonFile: 'new-design/fork.html',
+    canonSelector: '.fc',
+    description:
+        '2-column comparison card rendered in the chat feed. Composes '
+        'KaiForkChip + KaiForkScoreDots. Optional pickIndex highlights '
+        'the winning column with tide accent bar + "✓ лучший" badge.',
+    variants: const ['minimal', 'with pickIndex', 'custom headerLabel'],
+    props: const [
+      PropDoc('columns', 'List<KaiForkColumn>', 'required', 'Min 2 columns'),
+      PropDoc('pickIndex', 'int?', 'null', 'Index of Kai\'s pick column'),
+      PropDoc('headerLabel', 'String?', 'null', 'Override default "N варианта"'),
+    ],
+    build: (_) => const _KaiForkCardStory(),
+  ),
 ];
 
 // ── Stateful / interactive story widgets ──────────────────────────────────────
@@ -1196,6 +1215,135 @@ class _KaiNavItemStory extends StatelessWidget {
         PropDoc('active', 'bool', 'false', 'Highlighted active state'),
         PropDoc('trailing', 'Widget?', 'null', 'Trailing widget (badge, etc.)'),
         PropDoc('onTap', 'VoidCallback?', 'null', 'Row tap handler'),
+      ],
+    );
+  }
+}
+
+class _KaiForkCardStory extends StatelessWidget {
+  const _KaiForkCardStory();
+
+  @override
+  Widget build(BuildContext context) {
+    return const StoryPage(
+      title: 'KaiForkCard',
+      layer: 'MOLECULE',
+      blurb:
+          '2-column comparison card rendered in the chat feed. Composes '
+          'KaiForkChip visa-status pills and KaiForkScoreDots rating rows. '
+          'The winning column (pickIndex) gets a 2px tide-gradient top bar, '
+          'accentWash tint, and a "✓ лучший" badge. From new-design/fork.html.',
+      sections: [
+        StorySection('Japan vs Korea (pickIndex: 1 — Korea wins)', [
+          StoryCell(
+            'minimal',
+            SizedBox(
+              width: 300,
+              child: KaiForkCard(
+                columns: [
+                  KaiForkColumn(
+                    name: 'Япония',
+                    glyph: 'JP',
+                    price: '\$2,100',
+                    rows: [
+                      KaiForkRow(
+                        label: 'виза',
+                        value: 'виза нужна',
+                        chipTone: KaiForkChipTone.bad,
+                        chipLabel: 'виза нужна',
+                      ),
+                      KaiForkRow(
+                        label: 'погода',
+                        value: '14°C',
+                        chipTone: KaiForkChipTone.neutral,
+                        chipLabel: '14°C',
+                      ),
+                      KaiForkRow(label: 'оценка', value: '4/5', score: 4),
+                    ],
+                  ),
+                  KaiForkColumn(
+                    name: 'Корея',
+                    glyph: 'KR',
+                    price: '\$1,600',
+                    rows: [
+                      KaiForkRow(
+                        label: 'виза',
+                        value: 'без визы',
+                        chipTone: KaiForkChipTone.ok,
+                        chipLabel: 'без визы',
+                      ),
+                      KaiForkRow(
+                        label: 'погода',
+                        value: '10°C',
+                        chipTone: KaiForkChipTone.neutral,
+                        chipLabel: '10°C',
+                      ),
+                      KaiForkRow(label: 'оценка', value: '5/5', score: 5),
+                    ],
+                  ),
+                ],
+                pickIndex: 1,
+                headerLabel: 'сравниваем · 2 варианта',
+              ),
+            ),
+          ),
+        ]),
+        StorySection('No winner selected', [
+          StoryCell(
+            'no pickIndex',
+            SizedBox(
+              width: 300,
+              child: KaiForkCard(
+                columns: [
+                  KaiForkColumn(
+                    name: 'Япония',
+                    glyph: 'JP',
+                    price: '\$2,100',
+                    rows: [
+                      KaiForkRow(
+                        label: 'виза',
+                        value: 'виза нужна',
+                        chipTone: KaiForkChipTone.bad,
+                        chipLabel: 'виза нужна',
+                      ),
+                    ],
+                  ),
+                  KaiForkColumn(
+                    name: 'Вьетнам',
+                    glyph: 'VN',
+                    price: '\$1,200',
+                    rows: [
+                      KaiForkRow(
+                        label: 'виза',
+                        value: 'без визы',
+                        chipTone: KaiForkChipTone.ok,
+                        chipLabel: 'без визы',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ]),
+      ],
+      usage: 'KaiForkCard(\n'
+          '  columns: [\n'
+          '    KaiForkColumn(\n'
+          '      name: "Корея", glyph: "KR", price: "\$1,600",\n'
+          '      rows: [\n'
+          '        KaiForkRow(label: "виза", value: "без визы",\n'
+          '          chipTone: KaiForkChipTone.ok, chipLabel: "без визы"),\n'
+          '        KaiForkRow(label: "оценка", value: "5/5", score: 5),\n'
+          '      ],\n'
+          '    ),\n'
+          '  ],\n'
+          '  pickIndex: 0,\n'
+          ')',
+      props: [
+        PropDoc('columns', 'List<KaiForkColumn>', 'required', 'Min 2 columns'),
+        PropDoc('pickIndex', 'int?', 'null', 'Winning column index (tide bar + badge)'),
+        PropDoc('headerLabel', 'String?', 'null', 'Override default header ("N варианта")'),
       ],
     );
   }
