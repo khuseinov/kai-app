@@ -737,6 +737,24 @@ final List<Story> atomStories = [
       ],
     ),
   ),
+  Story(
+    layer: StoryLayer.atoms,
+    name: 'KaiKaraokeText',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/voice.html',
+    canonSelector: '.karaoke',
+    description:
+        'Voice-mode word-reveal atom. Spoken words are full white, '
+        'the current "now" word has a tide-3 amber highlight, '
+        'future "next" words are dim white. Dark-surface only.',
+    variants: const ['currentIndex=1', 'all spoken', 'none spoken'],
+    props: const [
+      PropDoc('words', 'List<String>', 'required', 'All words in the sentence'),
+      PropDoc(
+          'currentIndex', 'int', 'required', 'Index of word now being spoken'),
+    ],
+    build: (_) => const _KaiKaraokeTextStory(),
+  ),
 ];
 
 // ── KaiInput demo helpers (StatefulWidget — need controllers) ─────────────────
@@ -909,6 +927,74 @@ class _TideCurveCyclerState extends State<_TideCurveCycler> {
               setState(() => _index = (_index + 1) % KaiTide.all.length),
           label: tideState.name,
         ),
+      ],
+    );
+  }
+}
+
+// ── KaiKaraokeText dark-surface story ────────────────────────────────────────
+
+class _KaiKaraokeTextStory extends StatelessWidget {
+  const _KaiKaraokeTextStory();
+
+  static const _words = ['Найди', 'мне', 'рейс', 'в', 'Токио', 'на', 'пятницу'];
+  // Dark voice-field colour — always fixed, never theme-driven.
+  static const Color _voiceBg = Color(0xFF08080A);
+
+  @override
+  Widget build(BuildContext context) {
+    return StoryPage(
+      title: 'KaiKaraokeText',
+      layer: 'ATOM',
+      blurb: 'Voice-mode word-reveal. Spoken words are full white; the "now" word '
+          'has a tide-3 amber highlight (Color(0x47F4B589)); "next" words are dim '
+          'white (Color(0x52FFFFFF)). Dark-surface only — fixed literals, no '
+          'theme tokens.',
+      sections: [
+        StorySection('Word states', [
+          StoryCell(
+            'currentIndex=2',
+            Container(
+              color: _voiceBg,
+              padding: const EdgeInsets.all(12),
+              child: const KaiKaraokeText(
+                words: _words,
+                currentIndex: 2,
+              ),
+            ),
+          ),
+          StoryCell(
+            'currentIndex=0 (first)',
+            Container(
+              color: _voiceBg,
+              padding: const EdgeInsets.all(12),
+              child: const KaiKaraokeText(
+                words: _words,
+                currentIndex: 0,
+              ),
+            ),
+          ),
+          StoryCell(
+            'all spoken (index=7)',
+            Container(
+              color: _voiceBg,
+              padding: const EdgeInsets.all(12),
+              child: KaiKaraokeText(
+                words: _words,
+                currentIndex: _words.length,
+              ),
+            ),
+          ),
+        ]),
+      ],
+      usage: 'KaiKaraokeText(\n'
+          '  words: transcript.words,\n'
+          '  currentIndex: currentWordIndex,\n'
+          ')',
+      props: const [
+        PropDoc('words', 'List<String>', 'required', 'All words in the sentence'),
+        PropDoc(
+            'currentIndex', 'int', 'required', 'Index of word now being spoken'),
       ],
     );
   }

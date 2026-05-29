@@ -13,6 +13,7 @@ export 'kai_fork_chip.dart';
 export 'kai_fork_score_dots.dart';
 export 'kai_icon_button.dart';
 export 'kai_input.dart';
+export 'kai_karaoke_text.dart';
 export 'kai_send_button.dart';
 export 'kai_sheet_shell.dart';
 export 'kai_text.dart';
