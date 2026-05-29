@@ -4,8 +4,8 @@ import '../../../../design_system/atoms/atoms.dart';
 import '../../../../design_system/primitives/primitives.dart';
 import '../../../../design_system/theme/kai_theme.dart';
 import '../../../../design_system/tokens/kai_tokens.dart';
+import '../story_page.dart';
 import '../story_registry.dart';
-import '_story_helpers.dart';
 
 final List<Story> primitiveStories = [
   Story(
@@ -17,8 +17,38 @@ final List<Story> primitiveStories = [
     description:
         'SVG icon primitive — renders a tinted icon from assets/icons/ '
         'using a KaiIconName enum value.',
-    variants: ['KaiIcon(name, size, color)'],
-    build: (_) => const _KaiIconStory(),
+    variants: const ['KaiIcon(name, size, color)'],
+    props: const [
+      PropDoc('name', 'KaiIconName', 'required', 'Which SVG asset to render'),
+      PropDoc('size', 'double', '18', 'Glyph size in logical pixels'),
+      PropDoc('color', 'Color?', 'ink2', 'Tint color; defaults to theme ink2'),
+    ],
+    build: (_) => StoryPage(
+      title: 'KaiIcon',
+      layer: 'PRIMITIVE',
+      blurb: 'Single SVG source for all 31 icons. Used by atoms and molecules — '
+          'never duplicated path strings.',
+      sections: [
+        StorySection(
+          'All icons',
+          KaiIconName.values
+              .map((n) => StoryCell(n.assetName, KaiIcon(n, size: 24)))
+              .toList(),
+        ),
+        const StorySection('Sizes', [
+          StoryCell('12', KaiIcon(KaiIconName.send, size: 12)),
+          StoryCell('18 (default)', KaiIcon(KaiIconName.send, size: 18)),
+          StoryCell('24', KaiIcon(KaiIconName.send, size: 24)),
+          StoryCell('32', KaiIcon(KaiIconName.send, size: 32)),
+        ]),
+      ],
+      usage: 'KaiIcon(KaiIconName.send, size: 18)',
+      props: const [
+        PropDoc('name', 'KaiIconName', 'required', 'Which SVG asset to render'),
+        PropDoc('size', 'double', '18', 'Glyph size in logical pixels'),
+        PropDoc('color', 'Color?', 'ink2', 'Tint color; defaults to theme ink2'),
+      ],
+    ),
   ),
   Story(
     layer: StoryLayer.primitives,
@@ -29,8 +59,49 @@ final List<Story> primitiveStories = [
     description:
         'Themed container primitive — wraps any child with a token-driven '
         'BoxDecoration (color, radius, border, shadow).',
-    variants: ['color', 'border: true', 'shadow: KaiShadow.*', 'radius: KaiRadius.*'],
-    build: (_) => const _KaiSurfaceStory(),
+    variants: const ['color', 'border: true', 'shadow: KaiShadow.*', 'radius: KaiRadius.*'],
+    props: const [
+      PropDoc('child', 'Widget', 'required', 'Content inside the surface'),
+      PropDoc('color', 'Color', 'required', 'Background fill — pass a surface token'),
+      PropDoc('radius', 'BorderRadius?', 'null', 'Corner radius, e.g. KaiRadius.br4'),
+      PropDoc('border', 'bool', 'false', '1px Border.all in the theme line color'),
+      PropDoc('shadow', 'List<BoxShadow>?', 'null', 'e.g. KaiShadow.button'),
+      PropDoc('padding', 'EdgeInsetsGeometry?', 'null', 'Inner padding'),
+    ],
+    build: (_) => const StoryPage(
+      title: 'KaiSurface',
+      layer: 'PRIMITIVE',
+      blurb: 'Themed container building block — the base for cards, wells, and '
+          'sheet bodies. Caller supplies color; component never reads theme for color.',
+      sections: [
+        StorySection('Variants', [
+          StoryCell('surface + border + br4', _SurfaceDemo(
+            colorKey: 'surface', radiusKey: 'br4', border: true)),
+          StoryCell('surface2 + shadow + br3', _SurfaceDemo(
+            colorKey: 'surface2', radiusKey: 'br3', shadow: KaiShadow.button)),
+          StoryCell('surface3 + border + br2', _SurfaceDemo(
+            colorKey: 'surface3', radiusKey: 'br2', border: true)),
+        ]),
+        StorySection('With content', [
+          StoryCell('surface2 card', _SurfaceContentDemo()),
+        ]),
+      ],
+      usage: 'KaiSurface(\n'
+          '  color: KaiTheme.of(context).colors.surface,\n'
+          '  radius: KaiRadius.br4,\n'
+          '  border: true,\n'
+          '  padding: const EdgeInsets.all(KaiSpace.s4),\n'
+          '  child: KaiText.body("Hello"),\n'
+          ')',
+      props: [
+        PropDoc('child', 'Widget', 'required', 'Content inside the surface'),
+        PropDoc('color', 'Color', 'required', 'Background fill — pass a surface token'),
+        PropDoc('radius', 'BorderRadius?', 'null', 'Corner radius, e.g. KaiRadius.br4'),
+        PropDoc('border', 'bool', 'false', '1px Border.all in the theme line color'),
+        PropDoc('shadow', 'List<BoxShadow>?', 'null', 'e.g. KaiShadow.button'),
+        PropDoc('padding', 'EdgeInsetsGeometry?', 'null', 'Inner padding'),
+      ],
+    ),
   ),
   Story(
     layer: StoryLayer.primitives,
@@ -41,109 +112,97 @@ final List<Story> primitiveStories = [
     description:
         'Tide-gradient rounded pill — used as the Kai "who" glyph (16×4) '
         'and toast tide-bar (10×2.5). Supports a gentle pulse animation.',
-    variants: ['static', 'pulse: true', 'width/height custom'],
-    build: (_) => const _KaiGradientBarStory(),
+    variants: const ['static', 'pulse: true', 'width/height custom'],
+    props: const [
+      PropDoc('width', 'double', '16', 'Pill width in logical pixels'),
+      PropDoc('height', 'double', '4', 'Pill height in logical pixels'),
+      PropDoc('pulse', 'bool', 'false', 'Gentle scale-breathe animation'),
+    ],
+    build: (_) => const StoryPage(
+      title: 'KaiGradientBar',
+      layer: 'PRIMITIVE',
+      blurb: 'Tide-gradient pill — used as the Kai "who" glyph (16×4) and '
+          'toast tide-bar (10×2.5). Pulse drives a gentle breathe cycle.',
+      sections: [
+        StorySection('Variants', [
+          StoryCell('static · who glyph (16×4)', KaiGradientBar()),
+          StoryCell('pulse: true', KaiGradientBar(pulse: true)),
+          StoryCell('toast size (10×2.5)', KaiGradientBar(width: 10, height: 2.5)),
+        ]),
+        StorySection('Custom sizes', [
+          StoryCell('32×6', KaiGradientBar(width: 32, height: 6)),
+          StoryCell('64×4', KaiGradientBar(width: 64, height: 4)),
+        ]),
+      ],
+      usage: 'KaiGradientBar()                      // who glyph\n'
+          'KaiGradientBar(width: 10, height: 2.5) // toast bar\n'
+          'KaiGradientBar(pulse: true)             // animated',
+      props: [
+        PropDoc('width', 'double', '16', 'Pill width in logical pixels'),
+        PropDoc('height', 'double', '4', 'Pill height in logical pixels'),
+        PropDoc('pulse', 'bool', 'false', 'Gentle scale-breathe animation'),
+      ],
+    ),
   ),
 ];
 
-// ── Primitives ────────────────────────────────────────────────────────────────
+// ── KaiSurface demo helpers (context-aware — can't be const) ─────────────────
 
-class _KaiIconStory extends StatelessWidget {
-  const _KaiIconStory();
+class _SurfaceDemo extends StatelessWidget {
+  const _SurfaceDemo({
+    required this.colorKey,
+    required this.radiusKey,
+    this.border = false,
+    this.shadow,
+  });
 
-  @override
-  Widget build(BuildContext context) {
-    final c = KaiTheme.of(context).colors;
-    return StorySection(
-      title: 'KaiIcon (${KaiIconName.values.length} icons)',
-      child: Wrap(
-        spacing: KaiSpace.s4,
-        runSpacing: KaiSpace.s4,
-        children: KaiIconName.values.map((n) {
-          final isNew =
-              n == KaiIconName.thumbUp || n == KaiIconName.thumbDown;
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              KaiIcon(n, size: 24, color: isNew ? c.accent : null),
-              const SizedBox(height: 4),
-              KaiText.micro(
-                n.assetName,
-                color: isNew ? c.accent : c.ink3,
-              ),
-            ],
-          );
-        }).toList(),
-      ),
-    );
-  }
-}
-
-class _KaiSurfaceStory extends StatelessWidget {
-  const _KaiSurfaceStory();
+  final String colorKey;
+  final String radiusKey;
+  final bool border;
+  final List<BoxShadow>? shadow;
 
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
-    return StorySection(
-      title: 'KaiSurface',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          KaiSurface(
-            color: c.surface,
-            radius: KaiRadius.br4,
-            border: true,
-            padding: const EdgeInsets.all(KaiSpace.s4),
-            child: const KaiText.small('surface + border + br4'),
-          ),
-          const SizedBox(height: KaiSpace.s3),
-          KaiSurface(
-            color: c.surface2,
-            radius: KaiRadius.br3,
-            padding: const EdgeInsets.all(KaiSpace.s4),
-            shadow: KaiShadow.button,
-            child: const KaiText.small('surface2 + shadow + br3'),
-          ),
-        ],
-      ),
+    final color = switch (colorKey) {
+      'surface2' => c.surface2,
+      'surface3' => c.surface3,
+      _ => c.surface,
+    };
+    final radius = switch (radiusKey) {
+      'br2' => KaiRadius.br2,
+      'br3' => KaiRadius.br3,
+      _ => KaiRadius.br4,
+    };
+    return KaiSurface(
+      color: color,
+      radius: radius,
+      border: border,
+      shadow: shadow,
+      padding: const EdgeInsets.all(KaiSpace.s4),
+      child: KaiText.small('$colorKey + $radiusKey'),
     );
   }
 }
 
-class _KaiGradientBarStory extends StatelessWidget {
-  const _KaiGradientBarStory();
+class _SurfaceContentDemo extends StatelessWidget {
+  const _SurfaceContentDemo();
 
   @override
   Widget build(BuildContext context) {
-    return const StorySection(
-      title: 'KaiGradientBar',
+    final c = KaiTheme.of(context).colors;
+    return KaiSurface(
+      color: c.surface2,
+      radius: KaiRadius.br4,
+      border: true,
+      padding: const EdgeInsets.all(KaiSpace.s4),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              KaiGradientBar(),
-              SizedBox(width: KaiSpace.s4),
-              KaiText.small('static (16×4)'),
-            ],
-          ),
-          SizedBox(height: KaiSpace.s3),
-          Row(
-            children: [
-              KaiGradientBar(pulse: true),
-              SizedBox(width: KaiSpace.s4),
-              KaiText.small('pulse: true'),
-            ],
-          ),
-          SizedBox(height: KaiSpace.s3),
-          Row(
-            children: [
-              KaiGradientBar(width: 10, height: 2.5),
-              SizedBox(width: KaiSpace.s4),
-              KaiText.small('toast size 10×2.5'),
-            ],
-          ),
+          const KaiText.h3('Surface child content'),
+          const SizedBox(height: KaiSpace.s2),
+          KaiText.body('Any widget goes here.', color: c.ink2),
         ],
       ),
     );
