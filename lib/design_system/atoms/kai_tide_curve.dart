@@ -45,18 +45,28 @@ class _TideFrame {
 /// Ephemeral states (success / error / memory) auto-revert to the
 /// pre-ephemeral state once their cycles complete.
 ///
+/// Set [demoLoop] to `true` in Storybook demos to keep ephemeral states
+/// looping instead of reverting — this has no effect on non-ephemeral states
+/// and is never set in production code.
+///
 /// Faithful port of `lib/design_system/atoms/kai_tide_curve.dart` with
 /// import paths adjusted for the v3 layer.
 class KaiTideCurve extends StatefulWidget {
   const KaiTideCurve({
     required this.state,
     this.height = 28,
+    this.demoLoop = false,
     super.key,
   });
 
   /// One of the 8 tuned states from [KaiTide].
   final KaiTideState state;
   final double height;
+
+  /// When `true`, ephemeral states loop indefinitely instead of reverting to
+  /// their restore state. Intended for Storybook demos only — never set this
+  /// in production code. Has no effect on non-ephemeral states.
+  final bool demoLoop;
 
   @override
   State<KaiTideCurve> createState() => _KaiTideCurveState();
@@ -98,6 +108,7 @@ class _KaiTideCurveState extends State<KaiTideCurve>
       _wireAnimation();
     }
   }
+
 
   @override
   void dispose() {
@@ -189,13 +200,20 @@ class _KaiTideCurveState extends State<KaiTideCurve>
           });
         }
       } else {
-        // Done — auto-revert.
+        // Done — either loop (demoLoop) or auto-revert (production).
         if (!mounted) return;
-        final restore = _restoreToState ?? KaiTide.idle;
-        _restoreToState = null;
-        setState(() => _renderState = restore);
-        _disposeController();
-        _wireAnimation();
+        if (widget.demoLoop) {
+          // Re-trigger the same ephemeral state so it keeps animating for
+          // demo display. Non-ephemeral states never reach this branch.
+          _wireAnimation();
+        } else {
+          // Production: revert to the pre-ephemeral state.
+          final restore = _restoreToState ?? KaiTide.idle;
+          _restoreToState = null;
+          setState(() => _renderState = restore);
+          _disposeController();
+          _wireAnimation();
+        }
       }
     });
     c.forward();

@@ -443,7 +443,7 @@ class _TidePage extends StatelessWidget {
             SizedBox(
               width: 80,
               height: 24,
-              child: KaiTideCurve(state: KaiTide.idle),
+              child: KaiTideCurve(state: KaiTide.idle, demoLoop: true),
             ),
           ),
           StoryCell(
@@ -451,7 +451,7 @@ class _TidePage extends StatelessWidget {
             SizedBox(
               width: 80,
               height: 24,
-              child: KaiTideCurve(state: KaiTide.listening),
+              child: KaiTideCurve(state: KaiTide.listening, demoLoop: true),
             ),
           ),
           StoryCell(
@@ -459,7 +459,7 @@ class _TidePage extends StatelessWidget {
             SizedBox(
               width: 80,
               height: 24,
-              child: KaiTideCurve(state: KaiTide.thinking),
+              child: KaiTideCurve(state: KaiTide.thinking, demoLoop: true),
             ),
           ),
           StoryCell(
@@ -467,7 +467,7 @@ class _TidePage extends StatelessWidget {
             SizedBox(
               width: 80,
               height: 24,
-              child: KaiTideCurve(state: KaiTide.responding),
+              child: KaiTideCurve(state: KaiTide.responding, demoLoop: true),
             ),
           ),
           StoryCell(
@@ -475,7 +475,7 @@ class _TidePage extends StatelessWidget {
             SizedBox(
               width: 80,
               height: 24,
-              child: KaiTideCurve(state: KaiTide.success),
+              child: KaiTideCurve(state: KaiTide.success, demoLoop: true),
             ),
           ),
           StoryCell(
@@ -483,7 +483,7 @@ class _TidePage extends StatelessWidget {
             SizedBox(
               width: 80,
               height: 24,
-              child: KaiTideCurve(state: KaiTide.error),
+              child: KaiTideCurve(state: KaiTide.error, demoLoop: true),
             ),
           ),
           StoryCell(
@@ -491,7 +491,7 @@ class _TidePage extends StatelessWidget {
             SizedBox(
               width: 80,
               height: 24,
-              child: KaiTideCurve(state: KaiTide.memory),
+              child: KaiTideCurve(state: KaiTide.memory, demoLoop: true),
             ),
           ),
           StoryCell(
@@ -499,7 +499,7 @@ class _TidePage extends StatelessWidget {
             SizedBox(
               width: 80,
               height: 24,
-              child: KaiTideCurve(state: KaiTide.sleep),
+              child: KaiTideCurve(state: KaiTide.sleep, demoLoop: true),
             ),
           ),
         ]),

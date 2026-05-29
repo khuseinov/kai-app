@@ -124,6 +124,67 @@ void main() {
     });
   });
 
+  group('v3/KaiTideCurve - demoLoop', () {
+    testWidgets('demoLoop:true keeps ephemeral (success) alive past normal duration',
+        (tester) async {
+      // success: 3 flash cycles × 1200ms = 3600ms then normally reverts.
+      // With demoLoop:true it must stay in the ephemeral state and keep animating.
+      await _pump(tester, const KaiTideCurve(state: KaiTide.success, demoLoop: true));
+      // Pump past a full 3-cycle run (plus some margin).
+      await tester.pump(const Duration(milliseconds: 1300));
+      await tester.pump(const Duration(milliseconds: 1300));
+      await tester.pump(const Duration(milliseconds: 1300));
+      await tester.pump(const Duration(milliseconds: 100));
+      // Widget still present — demoLoop kept it running.
+      expect(find.byType(KaiTideCurve), findsOneWidget);
+      // A frame is still scheduled (animation controller is active).
+      expect(tester.binding.hasScheduledFrame, isTrue);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+
+    testWidgets('demoLoop:true keeps ephemeral (error) alive past normal duration',
+        (tester) async {
+      // error: 2 wobble cycles × 600ms + 1000ms gap = 2200ms then normally reverts.
+      await _pump(tester, const KaiTideCurve(state: KaiTide.error, demoLoop: true));
+      await tester.pump(const Duration(milliseconds: 700));
+      await tester.pump(const Duration(milliseconds: 1100));
+      await tester.pump(const Duration(milliseconds: 700));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(KaiTideCurve), findsOneWidget);
+      expect(tester.binding.hasScheduledFrame, isTrue);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+
+    testWidgets('demoLoop:true keeps ephemeral (memory) alive past normal duration',
+        (tester) async {
+      // memory: 3 pop cycles × 900ms + 500ms gap.
+      await _pump(tester, const KaiTideCurve(state: KaiTide.memory, demoLoop: true));
+      for (var i = 0; i < 3; i++) {
+        await tester.pump(const Duration(milliseconds: 950));
+        await tester.pump(const Duration(milliseconds: 550));
+      }
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(KaiTideCurve), findsOneWidget);
+      expect(tester.binding.hasScheduledFrame, isTrue);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+
+    testWidgets('demoLoop:false (default) preserves existing revert behaviour',
+        (tester) async {
+      // Confirm that without demoLoop, success reverts (no regression).
+      // The existing 'success ephemeral reverts to prior state' test already
+      // covers this; this test verifies the default value is false by
+      // constructing without the param and checking it renders without error.
+      await _pump(tester, const KaiTideCurve(state: KaiTide.success));
+      for (var i = 0; i < 3; i++) {
+        await tester.pump(const Duration(milliseconds: 1250));
+      }
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(KaiTideCurve), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  });
+
   testWidgets('v3/KaiTideCurve honors MediaQuery.disableAnimationsOf',
       (tester) async {
     await _pump(

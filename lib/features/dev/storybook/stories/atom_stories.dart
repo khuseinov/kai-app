@@ -485,7 +485,7 @@ final List<Story> atomStories = [
           'All 8 states',
           KaiTide.all.map((s) => StoryCell(
             s.name,
-            SizedBox(width: 120, height: 28, child: KaiTideCurve(state: s)),
+            SizedBox(width: 120, height: 28, child: KaiTideCurve(state: s, demoLoop: true)),
           )).toList(),
         ),
         const StorySection('Interactive', [
