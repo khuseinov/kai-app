@@ -9,8 +9,8 @@ import '../../../../design_system/tokens/kai_tokens.dart';
 
 // ── Shared section header ─────────────────────────────────────────────────────
 
-class StorySection extends StatelessWidget {
-  const StorySection({super.key, required this.title, required this.child});
+class SpecSection extends StatelessWidget {
+  const SpecSection({super.key, required this.title, required this.child});
 
   final String title;
   final Widget child;
@@ -72,7 +72,7 @@ class VoiceCanonPreview extends StatelessWidget {
     const karaokeNowBg = Color(0x47F4B589); // tide-3 @ 0.28 opacity
     const karaokeNowText = KaiTide.stop3; // tide-3 warm horizon
 
-    return StorySection(
+    return SpecSection(
       title: 'Voice Screen — spec values (NOT YET BUILT)',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,7 +210,7 @@ class MemoryCanonPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
 
-    return StorySection(
+    return SpecSection(
       title: 'Memory Screen — spec values (NOT YET BUILT)',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -312,7 +312,7 @@ class TripDetailCanonPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
 
-    return StorySection(
+    return SpecSection(
       title: 'Trip Detail Screen — spec values (NOT YET BUILT)',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -505,7 +505,7 @@ class ForkCardCanonPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
 
-    return StorySection(
+    return SpecSection(
       title: 'KaiForkCard — spec values (NOT YET BUILT)',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
