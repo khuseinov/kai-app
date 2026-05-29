@@ -32,11 +32,15 @@ enum KaiButtonTone { neutral, accent, warning, negative }
 enum KaiButtonSize { sm, md, lg }
 
 /// How the tide gradient animates on [KaiButton.tide].
+///
+/// Default: [onInteraction] — flows on hover/press. Use [onState] only when
+/// the button represents an ongoing operation (e.g. Kai is streaming a reply).
 enum KaiTideAnim {
-  /// Static at rest; gradient flows while hovered or pressed.
+  /// Static at rest; gradient flows while hovered or pressed. **Default.**
   onInteraction,
 
   /// Static; gradient flows only while [KaiButton.busy] is true (Kai active).
+  /// Use for busy/streaming contexts where the tide should mirror Kai's state.
   onState,
 
   /// Always static (reduced-motion / tests).

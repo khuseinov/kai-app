@@ -117,10 +117,10 @@ final List<Story> atomStories = [
             emphasis: KaiButtonEmphasis.glow)),
         ]),
         StorySection('Tide animation', [
-          StoryCell('onInteraction', KaiButton.tide(
+          StoryCell('A · onInteraction (default)', KaiButton.tide(
             label: 'Hover me', onPressed: () {},
             tideAnim: KaiTideAnim.onInteraction)),
-          StoryCell('onState busy', KaiButton.tide(
+          StoryCell('B · onState (busy contexts)', KaiButton.tide(
             label: 'Sending', onPressed: () {},
             tideAnim: KaiTideAnim.onState, busy: true)),
         ]),
