@@ -61,19 +61,11 @@ final List<Story> organismStories = [
   ),
 
   // ── Unbuilt screens — spec-preview stories ───────────────────────────────────
-
-  Story(
-    layer: StoryLayer.organisms,
-    name: 'Voice Screen (canon)',
-    importPath: 'new-design/voice.html',
-    canonFile: 'new-design/voice.html',
-    canonSelector: '.voice-screen',
-    description:
-        'Voice mode surface — always dark (#08080A), never responds to theme. '
-        'Karaoke word-reveal + transcript timeline. Not yet built in Dart.',
-    variants: ['waiting', 'listening', 'speaking-karaoke', 'transcript'],
-    build: (_) => const _VoiceCanonStoryPage(),
-  ),
+  // Voice, Fork, and Trip Detail component stories now live in the atom/molecule
+  // layers (KaiKaraokeText, KaiTranscriptView → atoms; KaiForkChip,
+  // KaiForkScoreDots, KaiForkCard → atoms/molecules; KaiBudgetBar → atoms).
+  // Only Memory remains here as a screen-level placeholder (no single component
+  // replaces the full memory screen yet).
 
   Story(
     layer: StoryLayer.organisms,
@@ -87,34 +79,6 @@ final List<Story> organismStories = [
         'Not yet built in Dart.',
     variants: ['default', 'search active', 'fact expanded', 'category collapsed'],
     build: (_) => const _MemoryCanonStoryPage(),
-  ),
-
-  Story(
-    layer: StoryLayer.organisms,
-    name: 'Trip Detail Screen (canon)',
-    importPath: 'new-design/trip-detail.html',
-    canonFile: 'new-design/trip-detail.html',
-    canonSelector: '.trip-screen',
-    description:
-        'Trip detail — hero card (glyph + name + stats + budget bar), facts grid, '
-        'chat items, source list, Q&A chips, "Ask about this" CTA. '
-        'Not yet built in Dart.',
-    variants: ['default', 'scrolled', 'chat tab'],
-    build: (_) => const _TripDetailCanonStoryPage(),
-  ),
-
-  Story(
-    layer: StoryLayer.organisms,
-    name: 'KaiForkCard (canon)',
-    importPath: 'package:kai_app/design_system/organisms/organisms.dart',
-    canonFile: 'new-design/fork.html',
-    canonSelector: '.fc',
-    description:
-        'Multi-country comparison card — in-chat molecule with two-column layout '
-        'comparing trip options. Visa chips (8px w600 r999), rating dots (5×5px), '
-        'budget rows, country headers (~65px). Not yet built in Dart.',
-    variants: ['normal', 'win column highlighted'],
-    build: (_) => const _ForkCardCanonStoryPage(),
   ),
 ];
 
@@ -498,33 +462,11 @@ class _KaiOnboardingCardStoryState extends State<_KaiOnboardingCardStory> {
   }
 }
 
-// ── Canon spec-preview story wrappers ─────────────────────────────────────────
+// ── Canon spec-preview story wrapper — Memory only ────────────────────────────
 //
-// Each wraps the existing *CanonPreview widget from _story_helpers.dart in a
-// StoryPage whose blurb marks it as "not yet built in Dart (Cycle 2)".
-// The "(canon)" suffix in the story name + "not yet built" in the description
-// keep the inspector's NOT-YET-BUILT banner logic working.
-
-class _VoiceCanonStoryPage extends StatelessWidget {
-  const _VoiceCanonStoryPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return const StoryPage(
-      title: 'Voice Screen',
-      layer: 'ORGANISM',
-      blurb:
-          'Canon spec preview — not yet built in Dart (Cycle 2).\n'
-          'Always dark (#08080A), never responds to theme. '
-          'Karaoke word-reveal + transcript timeline.',
-      sections: [
-        StorySection('Spec preview', [
-          StoryCell('voice.html', VoiceCanonPreview()),
-        ]),
-      ],
-    );
-  }
-}
+// Voice, Fork, and Trip Detail component stories now live in atom/molecule
+// layers. Memory remains here as a screen-level placeholder — no single
+// component covers the full memory screen yet.
 
 class _MemoryCanonStoryPage extends StatelessWidget {
   const _MemoryCanonStoryPage();
@@ -541,48 +483,6 @@ class _MemoryCanonStoryPage extends StatelessWidget {
       sections: [
         StorySection('Spec preview', [
           StoryCell('memory.html', MemoryCanonPreview()),
-        ]),
-      ],
-    );
-  }
-}
-
-class _TripDetailCanonStoryPage extends StatelessWidget {
-  const _TripDetailCanonStoryPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return const StoryPage(
-      title: 'Trip Detail Screen',
-      layer: 'ORGANISM',
-      blurb:
-          'Canon spec preview — not yet built in Dart (Cycle 2).\n'
-          'Hero card (glyph + name + stats + budget bar), facts grid, '
-          'chat items, source list, Q&A chips, "Ask about this" CTA.',
-      sections: [
-        StorySection('Spec preview', [
-          StoryCell('trip-detail.html', TripDetailCanonPreview()),
-        ]),
-      ],
-    );
-  }
-}
-
-class _ForkCardCanonStoryPage extends StatelessWidget {
-  const _ForkCardCanonStoryPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return const StoryPage(
-      title: 'KaiForkCard',
-      layer: 'ORGANISM',
-      blurb:
-          'Canon spec preview — not yet built in Dart (Cycle 2).\n'
-          'Multi-country comparison card — two-column layout with visa chips '
-          '(8 px w600 r999), rating dots (5×5 px), budget rows.',
-      sections: [
-        StorySection('Spec preview', [
-          StoryCell('fork.html', ForkCardCanonPreview()),
         ]),
       ],
     );
