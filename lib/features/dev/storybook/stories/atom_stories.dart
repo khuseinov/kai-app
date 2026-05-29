@@ -606,6 +606,46 @@ final List<Story> atomStories = [
   ),
   Story(
     layer: StoryLayer.atoms,
+    name: 'KaiForkChip',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/fork.html',
+    canonSelector: '.chip',
+    description:
+        'Fork-card visa-status pill. 8px/600 Manrope, pill radius, three tones: '
+        'bad (negativeWash), neutral (surface3 + border), ok (positiveWash).',
+    variants: const ['bad', 'neutral', 'ok'],
+    props: const [
+      PropDoc('label', 'String', 'required', 'Text to display (no uppercase transform)'),
+      PropDoc('tone', 'KaiForkChipTone', 'neutral', 'bad / neutral / ok'),
+    ],
+    build: (_) => const StoryPage(
+      title: 'KaiForkChip',
+      layer: 'ATOM',
+      blurb: 'Visa-status pill used inside ForkCard. Smaller than KaiChip.status '
+          '(8px Manrope vs 12px Mono) — purpose-built for dense 2-column comparison '
+          'layout. Three semantic tones map to negative / neutral / positive.',
+      sections: [
+        StorySection('Tones', [
+          StoryCell('bad', KaiForkChip('виза нужна', tone: KaiForkChipTone.bad)),
+          StoryCell('neutral', KaiForkChip('14°C')),
+          StoryCell('ok', KaiForkChip('без визы', tone: KaiForkChipTone.ok)),
+        ]),
+        StorySection('More examples', [
+          StoryCell('warn neutral', KaiForkChip('толпы↑')),
+          StoryCell('crowds ok', KaiForkChip('толпы↓', tone: KaiForkChipTone.ok)),
+        ]),
+      ],
+      usage: "KaiForkChip('без визы', tone: KaiForkChipTone.ok)\n"
+          "KaiForkChip('виза нужна', tone: KaiForkChipTone.bad)\n"
+          "KaiForkChip('14°C')  // neutral default",
+      props: [
+        PropDoc('label', 'String', 'required', 'Text to display'),
+        PropDoc('tone', 'KaiForkChipTone', 'neutral', 'bad / neutral / ok'),
+      ],
+    ),
+  ),
+  Story(
+    layer: StoryLayer.atoms,
     name: 'KaiSheetShell',
     importPath: 'package:kai_app/design_system/atoms/atoms.dart',
     canonFile: 'new-design/components.html',
