@@ -43,7 +43,8 @@ final List<Story> organismStories = [
     canonSelector: '.edge-state',
     description:
         'Composable edge-state block for offline, error, rate-limit, and '
-        'crisis surfaces. Each surface has a distinct CTA button style.',
+        'crisis surfaces. Rate-limit CTA: ghost(accent, pill). '
+        'Offline retry: ghost(warning, pill). Error retry: ghost(negative).',
     variants: ['offline', 'error', 'rateLimit', 'crisis'],
     build: (_) => _KaiEdgeStateBlockStory(),
   ),
@@ -55,7 +56,7 @@ final List<Story> organismStories = [
     canonSelector: '.ob',
     description:
         'Four-step onboarding card (welcome/tide/gestures/context). Step 0 '
-        'uses tide CTA; steps 1–3 use solid ink-1 button.',
+        'shows ink CTA with tide-flash on tap; steps 1–3 use solid ink-1 button.',
     variants: ['step 0 (welcome)', 'step 1 (tide)', 'step 2 (gestures)', 'step 3 (context)'],
     build: (_) => const _KaiOnboardingCardStory(),
   ),

@@ -33,7 +33,7 @@ enum KaiEdgeSurface {
 /// Tone mapping:
 ///   - offline retry  → ghost, tone: warning, pill: true
 ///   - error retry    → ghost, tone: negative
-///   - rateLimit CTA  → tide(emphasis: glow) for money-gate emphasis
+///   - rateLimit CTA  → ghost, tone: accent, pill: true (soft upgrade prompt)
 ///   - crisis         → [KaiCareBlock] molecule (no button)
 ///
 /// ZERO hardcoded colors outside tokens.
@@ -258,12 +258,15 @@ class _RateLimitSurface extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 9),
-          // Money-gate CTA — KaiButton.tide with glow emphasis.
-          // Canon: when the upgrade prompt is the hero action, it glows.
-          KaiButton.tide(
+          // Upgrade CTA — ghost accent pill (soft, non-alarming upgrade nudge).
+          // Cycle 3 change: replaced tide(glow) with ghost(accent, pill:true)
+          // so the rate-limit surface stays calm rather than drawing hero
+          // attention with a gradient flash.
+          KaiButton.ghost(
             onPressed: onPlans,
             label: l10n.viewPlans,
-            emphasis: KaiButtonEmphasis.glow,
+            tone: KaiButtonTone.accent,
+            pill: true,
           ),
         ],
       ),

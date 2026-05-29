@@ -187,6 +187,34 @@ void main() {
         );
         expect(find.textContaining('сек'), findsNothing);
       });
+
+      testWidgets(
+          'rate-limit CTA is ghost(accent) — NOT tide/glow variant',
+          (WidgetTester tester) async {
+        await _pump(
+          tester,
+          KaiEdgeStateBlock(
+            surface: KaiEdgeSurface.rateLimit,
+            onPlans: () {},
+          ),
+        );
+        expect(find.byType(KaiButton), findsOneWidget);
+        // ghost variant uses a Border decoration (transparent fill + 1px border).
+        // tide variant uses a gradient BoxDecoration — verify no gradient.
+        final containers = tester.widgetList<Container>(find.descendant(
+          of: find.byType(KaiButton),
+          matching: find.byType(Container),
+        ));
+        final hasGradient = containers.any((c) {
+          final deco = c.decoration;
+          return deco is BoxDecoration && deco.gradient != null;
+        });
+        expect(hasGradient, isFalse,
+            reason:
+                'Rate-limit CTA must be ghost(accent) — no tide gradient');
+        // The label must still be visible.
+        expect(find.text('Посмотреть планы'), findsOneWidget);
+      });
     });
 
     // ── crisis surface ───────────────────────────────────────────────────────
