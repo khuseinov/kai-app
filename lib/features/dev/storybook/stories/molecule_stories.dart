@@ -343,21 +343,25 @@ final List<Story> moleculeStories = [
     canonSelector: '.acc-hero',
     description:
         'Account card for the top of the settings screen — shows tide '
-        'avatar, name, email, and optional plan badge.',
+        'avatar, name, email, and optional plan badge. Two variants: full '
+        '(settings screen header) and compact (nav panel footer).',
     variants: [
-      'KaiAccountHero(name, email, initial)',
-      'planLabel: "Pro"',
+      'variant: full',
+      'variant: compact',
+      'onTap',
     ],
     build: (_) => const StoryPage(
       title: 'KaiAccountHero',
       layer: 'MOLECULE',
       blurb:
-          'Account hero at the top of the settings screen — tide avatar circle, '
-          'name + email stack, optional plan badge pill.',
+          'Account hero — tide avatar, name + email stack, optional plan badge. '
+          'Two layout variants: full (settings header — all fields) and compact '
+          '(nav footer — avatar + name only, KaiAvatarSize.sm). '
+          'Optional onTap wraps the card in an InkWell.',
       sections: [
         StorySection('Variants', [
           StoryCell(
-            'with plan badge',
+            'full · with plan',
             SizedBox(
               width: 280,
               child: KaiAccountHero(
@@ -369,13 +373,25 @@ final List<Story> moleculeStories = [
             ),
           ),
           StoryCell(
-            'no badge',
+            'full · no badge',
             SizedBox(
               width: 280,
               child: KaiAccountHero(
                 name: 'Rustam K.',
                 email: 'rustam.wize@gmail.com',
                 initial: 'R',
+              ),
+            ),
+          ),
+          StoryCell(
+            'compact',
+            SizedBox(
+              width: 200,
+              child: KaiAccountHero(
+                name: 'Rustam K.',
+                email: 'rustam.wize@gmail.com',
+                initial: 'R',
+                variant: KaiAccountHeroVariant.compact,
               ),
             ),
           ),
@@ -386,12 +402,16 @@ final List<Story> moleculeStories = [
           '  email: "user@example.com",\n'
           '  initial: "R",\n'
           '  planLabel: "Pro",\n'
+          '  variant: KaiAccountHeroVariant.full,\n'
+          '  onTap: () {},\n'
           ')',
       props: [
         PropDoc('name', 'String', 'required', 'Display name'),
         PropDoc('email', 'String', 'required', 'Email address'),
         PropDoc('initial', 'String', 'required', 'Avatar letter'),
-        PropDoc('planLabel', 'String?', 'null', 'Optional plan badge text'),
+        PropDoc('planLabel', 'String?', 'null', 'Plan badge (full only)'),
+        PropDoc('variant', 'KaiAccountHeroVariant', 'full', 'full / compact'),
+        PropDoc('onTap', 'VoidCallback?', 'null', 'Card tap handler'),
       ],
     ),
   ),
