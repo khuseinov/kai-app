@@ -1,611 +1,814 @@
-# Kai Design System — Component Reference
+# KAI Design System — COMPONENTS.md
 
-> Agent index: Read this to find the right widget for any UI element.
-> Live Storybook: `/_dev/storybook` in the running app.
-> Canon HTML server: `cd new-design && python -m http.server 8743`
-> Spec-viewer: `http://localhost:8743/spec-viewer.html`
-> Design rules (non-negotiable): `new-design/CLAUDE.md`
+**Agent source of truth for all UI components in `lib/design_system/`.**
 
----
+All computed styles in this file were extracted via Playwright iframe injection
+(100% browser-accurate — cascades, inheritance, and token resolution applied).
 
-## Quick token reference
+**How to use this file:**
+1. Find the HTML selector in Section 3 to get the authoritative Dart widget.
+2. Look up the Dart component in Section 4 for constructor API and key dimensions.
+3. Check Section 5 before editing — if HTML canon and Dart differ, note the reason.
+4. Sections 6-7 cover the 4 unbuilt screens and new widgets still needed.
 
-| Token class | File | Key constants |
-|-------------|------|---------------|
-| `KaiSpace` | `tokens/kai_space.dart` | s1=4 s2=8 s3=12 s4=16 s5=20 s6=24 s7=32 s8=40 s9=56 |
-| `KaiRadius` | `tokens/kai_radius.dart` | r1=6 r2=10 r3=14 r4=20 r5=28 r8=8 r12=12 r24=24 pill=999 |
-| `KaiType` | `tokens/kai_type.dart` | hero/display/h1/h2/h3/lead/body/small/micro/mono — all take `color:` |
-| `KaiTide` | `tokens/kai_tide.dart` | gradient (115°) · gradientCorner (135°) · stop1=#1B4FB0 · stop2=#2BA8C9 · stop3=#F4B589 |
-| `KaiShadow` | `tokens/kai_shadow.dart` | button · glow · thumb |
-| `KaiMotion` | `tokens/kai_motion.dart` | fast/standard/slow durations + curves |
-| `KaiColors` | `tokens/kai_colors.dart` | KaiColors.light / KaiColors.dark → `KaiColorTokens` |
-| `KaiTokens` | `tokens/kai_tokens.dart` | KaiTokens.light / .dark — composite accessor |
-
-### Color token quick reference (light palette)
-
-| Token | Hex | Use |
-|-------|-----|-----|
-| `c.bg` | #FAFAF9 | Screen background |
-| `c.surface` | #FFFFFF | Card / sheet base |
-| `c.surface2` | #F3F3F1 | Input bg, bubble bg, fact cards |
-| `c.surface3` | #ECECE A | Budget bar track, toggle off |
-| `c.ink1` | #111114 | Primary text |
-| `c.ink2` | #43434A | Secondary text |
-| `c.ink3` | #76767E | Placeholder, meta, timestamps |
-| `c.ink4` | #A8A8AE | Disabled text |
-| `c.line` | #E8E8E5 | Hairline dividers, borders |
-| `c.accent` | #2C5BE5 | Primary interactive (blue) |
-| `c.accentWash` | #EEF2FD | Active state bg, chat-item bg |
-| `c.positive` | #1B8E4E | Success, visa-free indicator |
-| `c.warning` | #B57A0B | Caution states |
-| `c.negative` | #C44A3C | Error / coral — never alarming red |
-
-> Dark palette differs: accent=#5C8EFF, positive=#3DBE7A, negative=#E66F60, etc.
-> Always access via `KaiTheme.of(context).colors` for theme-aware code.
-> Use `KaiTokens.dark.colors` only for always-dark surfaces (toasts, voice screen).
-
-### Tide gradient constants
-
-```dart
-KaiTide.gradient        // 115° — screen curves, hero text, buttons, wide surfaces
-KaiTide.gradientCorner  // 135° — SQUARE brand surfaces only (avatar, icon, splash)
-KaiTide.stop1           // Color(0xFF1B4FB0) — deep ocean blue
-KaiTide.stop2           // Color(0xFF2BA8C9) — sea-glass cyan  ← tide-2
-KaiTide.stop3           // Color(0xFFF4B589) — warm horizon     ← tide-3
-```
+**Import barrel:** `import 'package:kai_app/design_system/tokens/kai_tokens.dart';`
+- Tokens: `KaiColors`, `KaiSpace`, `KaiRadius`, `KaiType`, `KaiTide`, `KaiMotion`, `KaiShadow`
+- Access colors at runtime: `KaiTheme.of(context).colors.<name>`
 
 ---
 
-## Canon → Component lookup table
+## 1. QUICK TOKEN REFERENCE
 
-| HTML file | CSS selector | Dart widget | Import | Notes |
-|-----------|-------------|-------------|--------|-------|
-| `room.html` | `.bub.user` | `KaiUserBubble` | molecules | D2: 13.5px body, asymm radii |
-| `room.html` | `.bub.kai` | `KaiKaiBubble` | molecules | D2: 13.5px body, 9px who-label |
-| `room.html` | `.bub.kai.streaming` | `KaiKaiBubble(streaming:true)` | molecules | caret indicator |
-| `room.html` | `.bub.system` | `KaiSystemBubble` | molecules | 3 tones: neutral/warning/negative |
-| `components.html` | `.sheet.compose-sheet .compose` | `KaiComposeIsland` | molecules | pill r999, send+mic buttons |
-| `components.html` | `.sheet` | `KaiSheetShell` | atoms | r24/24/0/0 top corners |
-| `components.html` | `.sheet.actions` | `showKaiActionSheet()` | molecules | imperative show fn |
-| `components.html` | `.sheet.detail` | `showKaiMessageDetailSheet()` | molecules | sources + actions |
-| `components.html` | `.toast` | `KaiToast` | molecules | pill, dark-island, 4 types |
-| `components.html` | `.toast .open` | `KaiToast(actionLabel:,onAction:)` | molecules | color = KaiTide.stop2 |
-| `components.html` | `.src-row` | `KaiSourceCard` | molecules | url+title+snippet+index chip |
-| `nav.html` | `.drawer` | `KaiNavPanel` | organisms | full-screen side panel |
-| `nav.html` | `.drawer .ses` | `KaiNavItem` | molecules | active: accent-wash + border |
-| `nav.html` | `.mem-dot` | `KaiBadge.dot()` | atoms | memory indicator |
-| `edge-states.html` | `.care-block` | `KaiCareBlock` | molecules | crisis C3 pattern |
-| `edge-states.html` | `.edge-state` | `KaiEdgeStateBlock` | organisms | offline/error/rateLimit/crisis |
-| `notifications-chat.html` | `.alert-card` | `KaiAlertCard` | molecules | 4 severity types |
-| `onboarding.html` | `.ob` | `KaiOnboardingCard` | organisms | 4-step, steps 0-3 |
-| `room.html` | `.chat` | `KaiChatList` | organisms | 6 RoomFrame variants |
-| `foundations.html` | `.icon-grid svg` | `KaiIcon` | primitives | tinted SVG from assets/icons/ |
-| `foundations.html` | `.surface-demo` | `KaiSurface` | primitives | token-driven BoxDecoration |
-| `components.html` | `.k-who::before` | `KaiGradientBar` | primitives | tide-gradient pill, pulse opt |
-| `tide-states.html` | `.tide-curve` | `KaiTideCurve` | atoms | 8 states, animated |
-| `foundations.html` | `.type-scale` | `KaiText.*` | atoms | 10 named constructors |
-| `components.html` | `.btn-grid .btn` | `KaiButton.tide/ink/ghost/text` | atoms | 4 variants |
-| `components.html` | `.icon-btn` | `KaiIconButton.surface/transparent/bare` | atoms | 3 variants |
-| `components.html` | `.compose .send` | `KaiSendButton` | atoms | 4-state lifecycle |
-| `components.html` | `.compose textarea` | `KaiInput.line/pill` | atoms | 2 variants |
-| `settings.html` | `.toggle` | `KaiToggle` | atoms | 34×20 pill switch |
-| `components.html` | `.chip` | `KaiChip.status/choice` | atoms | status+choice, 3 tones |
-| `nav.html` | `.mem-dot` | `KaiBadge.dot/count` | atoms | dot + numeric |
-| `settings.html` | `.acc-hero .avatar` | `KaiAvatar` | atoms | tide-corner gradient circle |
-| `foundations.html` | `hr, .divider` | `KaiDivider` | atoms | horizontal + vertical |
-| `settings.html` | `.seg` | `KaiSegmentedControl` | molecules | index-based pill control |
-| `settings.html` | `.row` | `KaiSettingsRow` | molecules | icon+title+subtitle+trailing |
-| `settings.html` | `.group` | `KaiSettingsGroup` | molecules | labeled section wrapper |
-| `settings.html` | `.acc-hero` | `KaiAccountHero` | molecules | avatar+name+email+plan |
+### KaiSpace (4px grid, 11-step)
+| Token | px  | Common use                        |
+|-------|-----|-----------------------------------|
+| s1    | 4   | icon gap, badge pad               |
+| s2    | 8   | small gap, vertical bubble pad    |
+| s3    | 12  | std padding, input pad            |
+| s4    | 16  | appbar pad, compose left pad      |
+| s5    | 20  | button horizontal pad             |
+| s6    | 24  | button lg horizontal pad          |
+| s7    | 32  | —                                 |
+| s8    | 40  | —                                 |
+| s9    | 56  | —                                 |
+| s10   | 80  | —                                 |
+| s11   | 120 | —                                 |
 
----
+### KaiRadius
+| Token       | px  | Common use                                         |
+|-------------|-----|----------------------------------------------------|
+| r1 / br1    | 6   | tags, small chips, index chips                     |
+| r2 / br2    | 10  | inputs, src-card, search box                       |
+| r3 / br3    | 14  | buttons (default), alert card                      |
+| r4 / br4    | 20  | onboarding glyph, large cards                      |
+| r5 / br5    | 28  | panel corners, hero surfaces                       |
+| pill / brPill | 999 | toggles, toasts, suggestions, compose pill      |
+| r8 / br8    | 8   | detail-row actions, small surfaces                 |
+| r12 / br12  | 12  | nav new-chat, settings group, system note          |
+| r24 / br24  | 24  | bottom-sheet top corners                           |
 
-## Components by layer
+### KaiType (static factory, takes Color)
+| Method  | px | Weight | Family        | Use                            |
+|---------|----|--------|---------------|--------------------------------|
+| hero    | 72 | w600   | Manrope       | Display hero copy              |
+| display | 56 | w600   | Manrope       | Large display                  |
+| h1      | 36 | w600   | Manrope       | Section heading                |
+| h2      | 24 | w600   | Manrope       | Card heading                   |
+| h3      | 18 | w600   | Manrope       | Sub-heading                    |
+| lead    | 20 | w400   | Manrope       | Lead paragraph                 |
+| body    | 16 | w400   | Manrope       | Body text                      |
+| small   | 14 | w400   | Manrope       | Most UI text (base)            |
+| micro   | 12 | w500   | Manrope       | Caps labels, badge text        |
+| mono    | 12 | w400   | JetBrainsMono | Mono labels, timestamps        |
 
-### Primitives
-`import 'package:kai_app/design_system/primitives/primitives.dart';`
+Note: most bubble/UI text is **off-scale** (9, 10, 11, 11.5, 12.5, 13, 13.5 px).
+Use `KaiType.small(color:).copyWith(fontSize: X)` to apply family + features.
 
-#### `KaiIcon`
-```dart
-KaiIcon(KaiIconName.send, size: 24, color: c.ink2)
-```
-- SVG icon rendered via `ColorFiltered` on `assets/icons/<name>.svg`
-- `KaiIconName` enum covers all system icons (see `kai_icon.dart`)
-- `size`: logical pixels (both width & height)
-- `color`: defaults to `c.ink1` if null
+### KaiTide (two gradients, locked)
+| Token          | Angle | Stops       | Use                                            |
+|----------------|-------|-------------|------------------------------------------------|
+| gradient       | 115°  | 0/0.52/1.0  | Tide curve, send button, primary CTA, toast memory |
+| gradientCorner | 135°  | 0/0.55/1.0  | Square brand surfaces: avatar, icon, splash    |
 
-#### `KaiSurface`
-```dart
-KaiSurface(
-  color: c.surface2,
-  radius: KaiRadius.br3,
-  border: true,           // adds c.line border
-  shadow: KaiShadow.button,
-  padding: EdgeInsets.all(KaiSpace.s4),
-  child: ...,
-)
-```
-- Token-driven `BoxDecoration` wrapper
-- `border: true` adds 0.8px `c.line` border
-- `shadow` accepts `List<BoxShadow>` from `KaiShadow.*`
+Stop colors: stop1=`#1B4FB0`, stop2=`#2BA8C9`, stop3=`#F4B589`
 
-#### `KaiGradientBar`
-```dart
-KaiGradientBar()                          // 16×4 static (Kai who-glyph)
-KaiGradientBar(pulse: true)               // animated pulse
-KaiGradientBar(width: 10, height: 2.5)   // toast tide-bar size
-```
-- Always uses `KaiTide.gradient` (locked)
-- Used as Kai "who" glyph (16×4) and toast tide marker (10×2.5)
+### KaiMotion
+| Token     | Duration | Curve              | Use                       |
+|-----------|----------|--------------------|---------------------------|
+| standard  | 240ms    | Cubic(0.2,0,0,1)   | UI panels, toggles        |
+| ambient   | 2600ms   | Cubic(0.4,0,0.6,1) | Tide pulse, brand cycles  |
+| micro     | 120ms    | Cubic(0.2,0,0,1)   | Button press scale        |
+
+### KaiShadow
+| Token  | Value                                       | Use                   |
+|--------|---------------------------------------------|-----------------------|
+| button | rgba(43,168,201,0.18) blur8 y+2             | Tide gradient buttons |
+| glow   | rgba(43,168,201,0.384) blur16 y0            | Money-gate hero       |
+| thumb  | rgba(0,0,0,0.18) blur3 y+1                 | Toggle thumb          |
 
 ---
 
-### Atoms
-`import 'package:kai_app/design_system/atoms/atoms.dart';`
+## 2. COLOR TOKENS
 
-#### `KaiText`
+All values are exact hex. Dark palette used when `data-theme="dark"` or device dark mode.
+
+| Token        | Light hex | Dark hex         | Use case                                          |
+|--------------|-----------|------------------|---------------------------------------------------|
+| bg           | #FAFAF9   | #0E0E11          | Page / scaffold background                        |
+| surface      | #FFFFFF   | #16161A          | Cards, sheets, panels, compose island             |
+| surface2     | #F3F3F1   | #1E1E23          | Bubbles, inputs, settings groups, src cards       |
+| surface3     | #ECECEA   | #25252A          | Toggle OFF, segmented control track               |
+| ink1         | #111114   | #F5F5F2          | Primary text, buttons fill (dark island)          |
+| ink2         | #43434A   | #C8C8C2          | Secondary text, care block copy                   |
+| ink3         | #76767E   | #8E8E88          | Mono labels, icon buttons, disabled text          |
+| ink4         | #A8A8AE   | #5C5C58          | Placeholders, disabled send, timestamp            |
+| line         | #E8E8E5   | #2A2A2F          | Hairline borders, 0.8px compose border            |
+| lineStrong   | #D2D2CE   | #3A3A3F          | Focused input border                              |
+| accent       | #2C5BE5   | #5C8EFF          | Links, toggle ON, active indicators               |
+| accentDeep   | #1E48C7   | #4275E5          | Pressed accent, hover                             |
+| accentWash   | #EEF2FD   | rgba(5C8EFF,0.12) | Chat active bg, chip selected bg               |
+| accentLine   | #C3D2F6   | rgba(5C8EFF,0.28) | Plan badge border                               |
+| positive     | #1B8E4E   | #3DBE7A          | Toggle ON (memory), freshness, alerts             |
+| positiveWash | #E6F4ED   | rgba(3DBE7A,0.12) | Positive alert bg                               |
+| warning      | #B57A0B   | #D69E3E          | Inline notes, offline dot                         |
+| warningWash  | #FBF1DC   | rgba(D69E3E,0.12) | Warning system bubble bg                        |
+| negative     | #C44A3C   | #E66F60          | Crisis CTA, error, danger rows — coral NOT red    |
+| negativeWash | #F8E6E3   | rgba(E66F60,0.12) | Alert card bg, danger border                    |
+
+**Voice screen only:** bg=`#08080A` (Color(0xFF08080A)) — always dark, ignores theme.
+
+---
+
+## 3. CANON TO COMPONENT LOOKUP
+
+Ordered by HTML source file. "D2" = authoritative design decision (overrides other files).
+
+### room.html (D2 AUTHORITATIVE for chat bubbles)
+| HTML selector             | Dart widget                          | Import barrel | Notes                                   |
+|---------------------------|-------------------------------------|---------------|-----------------------------------------|
+| `.user-b`                 | `KaiUserBubble`                     | molecules     | D2: 13px, pad 9/13, r 16/16/4/16       |
+| `.kai-b` (container)      | `KaiKaiBubble`                      | molecules     | Column, no bg                           |
+| `.kai-b .who`             | (inside KaiKaiBubble)               | —             | 9px JetBrains Mono, ink3, ls 0.72px    |
+| `.kai-b .txt`             | (inside KaiKaiBubble)               | —             | D2: 13.5px/400/ink1, lh 1.55           |
+| `.kai-b .cite`            | (inline TextSpan)                   | —             | 13.5px/500, accent                      |
+| `.compose-island`         | `KaiComposeIsland`                  | molecules     | surface, brPill, pad 5/5/5/16           |
+| `.compose-island send`    | `KaiSendButton`                     | atoms         | 30x30 circle, tide/ink4 state           |
+| `.compose-island mic`     | `KaiIconButton.transparent`         | atoms         | 30x30, ink3                             |
+| `.src-card`               | `KaiSourceCard`                     | molecules     | surface2, r10, pad 8/10                 |
+| `.src-card .h`            | (inside KaiSourceCard)              | —             | 9px mono, ink3                          |
+| `.src-card .t`            | (inside KaiSourceCard)              | —             | 11.5px/500, ink1                        |
+| `.src-card .s`            | (inside KaiSourceCard)              | —             | 10px/400, ink3                          |
+| `.sugg` (chip)            | `KaiChip.choice(selected:false)`    | atoms         | surface2, r12, pad 11/14               |
+| `.day` (day label)        | inline `Text`                       | —             | 9px mono, ink3, ls 0.9px               |
+
+### components.html (catalog display — slightly larger, NOT D2 canon)
+| HTML selector             | Dart widget                          | Import barrel | Notes                                   |
+|---------------------------|-------------------------------------|---------------|-----------------------------------------|
+| `.bub.user`               | `KaiUserBubble`                     | molecules     | Catalog sizes differ — use room.html    |
+| `.bub.kai`                | `KaiKaiBubble`                      | molecules     | Catalog sizes differ — use room.html    |
+| `.bub.system`             | `KaiSystemBubble`                   | molecules     | 13.5px, r12, surface2/warningWash bg    |
+| `.toast` (pill)           | `KaiToast`                          | molecules     | Dark island, brPill, 11px/500           |
+| `.toast .open`            | (inside KaiToast)                   | —             | 12px/600, KaiTide.stop2 color           |
+| `.src-row`                | `KaiSourceCard`                     | molecules     | 12.5px/400, r10, pad 8/10               |
+| `.src-row .n`             | (index chip inside)                 | —             | 10px mono, r4, surface bg               |
+| `.src-row .url`           | (url inside)                        | —             | 12.5px/500, ink1                        |
+| `.sheet` (bottom)         | `KaiSheetShell`                     | atoms         | surface, r 24/24/0/0, pad 12/14/16      |
+| `.sheet.compose`          | `KaiComposeIsland`                  | molecules     | Compose pill variant                    |
+| `.sheet.actions .act-row` | `KaiActionSheet`                    | molecules     | r10, pad 10/8                           |
+| `.sheet.detail .act`      | `KaiButton.text(size:sm)`           | atoms         | 12.5px/500, r8, pad 10/8               |
+| drawer `.new-btn`         | `KaiButton.ink(fullWidth:true)`     | atoms         | 13.5px/600, r12, pad 11, bg ink1        |
+| drawer `.ses.active`      | (inside KaiNavPanel)                | —             | accentWash, border-left 2px accent      |
+| drawer `.dr-label`        | (section label in panel)            | —             | 10px mono, ink3, ls 0.8px              |
+
+### nav.html (authoritative for nav panel)
+| HTML selector             | Dart widget                          | Import barrel | Notes                                   |
+|---------------------------|-------------------------------------|---------------|-----------------------------------------|
+| `panel`                   | `KaiNavPanel`                       | organisms     | surface bg, r28, full-screen            |
+| `.new-chat button`        | `KaiButton.ink(fullWidth:true)`     | atoms         | 13px/600, r12, pad 11, ink1 bg, white   |
+| `.search-box`             | `KaiInput.line`                     | atoms         | 12.5px/400, ink3, r10, pad 9/12, surface2 |
+| `.pin-trip`               | (inside KaiNavPanel)                | —             | r12, pad 11/12                          |
+| `.pin-trip glyph`         | `KaiAvatar` (size ~20)              | atoms         | tide-corner, 11px/700, r9               |
+| `.pin-trip title`         | inline `Text`                       | —             | 13px/600, ink1                          |
+| `.sec-label`              | (inside KaiNavPanel)                | —             | 9px mono, ink3, pad 12/18/6             |
+| `.folder-row`             | (inside KaiNavPanel)                | —             | pad 9/18                                |
+| `.folder badge`           | `KaiBadge.count`                    | atoms         | 9px, ink3, surface2 bg, brPill          |
+| `.chat-row`               | (inside KaiNavPanel)                | —             | accentWash, pad 8/18                    |
+| `.chat-row .t`            | inline `Text`                       | —             | 12.5px/600, accent                      |
+| `.app-row .dot`           | `KaiBadge.dot()`                    | atoms         | 5px circle, accent                      |
+| `account .av`             | `KaiAvatar`                         | atoms         | tide-corner, circle, 11px/700 white     |
+| `account .n`              | inline `Text`                       | —             | 13px/500, ink1                          |
+| `account .plan`           | inline `Text`                       | —             | 9.5px/400, ink3                         |
+
+### settings.html (authoritative for settings surface)
+| HTML selector             | Dart widget                          | Import barrel | Notes                                   |
+|---------------------------|-------------------------------------|---------------|-----------------------------------------|
+| `.acc-hero`               | `KaiAccountHero`                    | molecules     | surface2, r12, pad 12                   |
+| `.acc-hero .av`           | `KaiAvatar(size:36)`                | atoms         | 36px circle, tide-corner                |
+| `.acc-hero .plan`         | (inside KaiAccountHero)             | —             | 9px/500 mono, accent, accentWash pill   |
+| `.group`                  | `KaiSettingsGroup`                  | molecules     | surface2, r12, pad 3px                  |
+| `.group .row`             | `KaiSettingsRow`                    | molecules     | r8, pad 9/11, bg transparent            |
+| `.group .row .t`          | (inside KaiSettingsRow)             | —             | 12px/500, ink1, ls -0.005em             |
+| `.group .row .s`          | (inside KaiSettingsRow)             | —             | 10px mono, ink3                         |
+| `.group .row .trail`      | trailing param in row               | —             | 11px/500, ink3 (trailing value)          |
+| `.danger-group`           | `KaiSettingsGroup(danger:true)`     | molecules     | surface bg, r12, negativeWash border    |
+| `toggle`                  | `KaiToggle`                         | atoms         | 34x20, r999, surface3/accent            |
+| `.seg`                    | `KaiSegmentedControl`               | molecules     | surface3 track, r8, inner r6            |
+| `appbar .ttl`             | inline `Text`                       | —             | 13px/600, ink1                          |
+| `.ic-btn`                 | `KaiIconButton.surface`             | atoms         | circle, surface2 bg                     |
+
+### edge-states.html (authoritative)
+| HTML selector             | Dart widget                                    | Import barrel | Notes                              |
+|---------------------------|-----------------------------------------------|---------------|------------------------------------|
+| `.offline-strip`          | (inside KaiEdgeStateBlock)                    | —             | surface, r10, pad 8/12, 11px/500, ink2 |
+| `.offline .dot`           | (inline Container)                            | —             | circle, warning bg                 |
+| `.inline-note`            | `KaiSystemBubble(tone:KaiSystemTone.warning)` | molecules     | warningWash, r12, pad 11/14, 12.5px |
+| `.inline-note .ttl`       | bold param in KaiSystemBubble                 | —             | 12.5px/600, warning                |
+| `.retry button`           | `KaiButton.ghost(pill:true, tone:warning)`    | atoms         | 10px/600, brPill, warning          |
+| `.care-block`             | `KaiCareBlock`                                | molecules     | neg-wash 4%, r 0/10/10/0, pad 12/14 |
+| `.care-block .res`        | (KaiCareResource inside)                      | —             | 12px/500, negative                 |
+| `.care-block .num`        | (number inside)                               | —             | 14px/600, negative (Manrope, not mono) |
+| `KaiEdgeStateBlock`       | `KaiEdgeStateBlock`                           | organisms     | Composes above atoms by surface    |
+
+### notifications-chat.html (alert card N-01, authoritative)
+| HTML selector             | Dart widget                          | Import barrel | Notes                                   |
+|---------------------------|-------------------------------------|---------------|-----------------------------------------|
+| `.alert-card`             | `KaiAlertCard`                      | molecules     | negativeWash bg, r14                    |
+| `.ac-head`                | (inside KaiAlertCard)               | —             | rgba(neg,0.08), pad 7/11/6              |
+| `.ac-icon`                | (inside KaiAlertCard)               | —             | 16x16 r5, rgba(neg,0.15)               |
+| `.ac-type`                | (inside KaiAlertCard)               | —             | 8px/700 mono, negative, UPPERCASE       |
+| `.ac-time`                | (inside KaiAlertCard)               | —             | 8px/400 mono, ink4                      |
+| `.ac-title`               | (inside KaiAlertCard)               | —             | 11.5px/600, ink1, lh 1.3               |
+| `.ac-text`                | (inside KaiAlertCard)               | —             | 11px/400, ink2, lh 1.45                |
+| `.ac-cta`                 | `KaiButton.ghost(pill:true)`        | atoms         | 10px/600, negative tone, brPill         |
+| `.live-dot`               | (inline Container)                  | —             | 8px circle, negative                    |
+
+### onboarding.html (authoritative)
+| HTML selector             | Dart widget                          | Import barrel | Notes                                   |
+|---------------------------|-------------------------------------|---------------|-----------------------------------------|
+| `ob .glyph`               | `KaiAvatar(size:48)`                | atoms         | tide-corner, r20 (r4=20)               |
+| `ob-btn` step 0           | `KaiButton.tide`                    | atoms         | 13px/600, white, r12, pad 12            |
+| `ob-btn` steps 1-3        | `KaiButton.ink`                     | atoms         | Same dims, ink1 bg                      |
+| `ob-dots .d.active`       | (inline Container)                  | —             | accent, brPill                          |
+| `ob-form .input`          | `KaiInput.line`                     | atoms         | 12px/400, surface2, r10, pad 10/12      |
+| `ob-form .chip`           | `KaiChip.choice(selected:true)`     | atoms         | 11px/500, accent, accentWash, brPill    |
+| `gesture .t`              | inline `Text`                       | —             | 11px/500, ink1                          |
+| `gesture .s`              | inline `Text`                       | —             | 9.5px/400, ink3                         |
+| `KaiOnboardingCard`       | `KaiOnboardingCard`                 | organisms     | Composes tide curve + steps             |
+
+### foundations.html (token reference only)
+| HTML class | Dart equivalent    | Notes                              |
+|------------|--------------------|------------------------------------|
+| t-hero     | KaiType.hero       | 72px                               |
+| t-display  | KaiType.display    | 56px                               |
+| t-h1       | KaiType.h1         | 36px                               |
+| t-h2       | KaiType.h2         | 24px                               |
+| t-h3       | KaiType.h3         | 18px                               |
+| t-lead     | KaiType.lead       | 20px                               |
+| t-body     | KaiType.body       | 16px                               |
+| t-small    | KaiType.small      | 14px                               |
+| t-micro    | KaiType.micro      | 12px/500                           |
+| t-mono     | KaiType.mono       | 12px JetBrains Mono                |
+| m-1        | KaiMotion.standard | 240ms Cubic(0.2,0,0,1)             |
+| m-2        | KaiMotion.ambient  | 2600ms ease-in-out                 |
+| m-3        | KaiMotion.micro    | 120ms linear                       |
+| r-1..r-5   | KaiRadius.r1..r5   | 6/10/14/20/28                      |
+
+---
+
+## 4. DART COMPONENTS BY LAYER
+
+### PRIMITIVES — `lib/design_system/primitives/`
+Import: `import 'package:kai_app/design_system/primitives/primitives.dart';`
+
+#### KaiIcon
+File: `primitives/kai_icon.dart`
 ```dart
-KaiText.hero('72px heading')
-KaiText.display('56px')
-KaiText.h1('36px', gradient: true)   // ShaderMask tide gradient
-KaiText.h2('24px')
-KaiText.h3('18px')
-KaiText.lead('20px paragraph')
-KaiText.body('16px')
-KaiText.small('14px', color: c.ink2)
-KaiText.micro('12px', color: c.ink3)  // caller uppercases if needed
-KaiText.mono('12px monospace')        // JetBrains Mono
+KaiIcon(KaiIconName.send, size: 18, color: c.ink2)
 ```
-- All constructors accept optional `color:` (defaults to nearest ink token)
-- `gradient: true` on h1/h2/display/hero applies `KaiTide.gradient` via `ShaderMask`
-- Manrope font features: ss03 + cv11 (friendly 'a')
+Renders an SVG icon from the `KaiIconName` enum. No background. Pure primitive.
+Common sizes: 10 (alert chip), 11 (toast, react), 14 (mic), 15 (settings row),
+16 (system note), 18 (default button icon), 20 (lg button icon).
 
-#### `KaiButton`
+#### KaiGradientBar
+File: `primitives/kai_gradient_bar.dart`
 ```dart
-KaiButton.tide(onPressed: () {}, label: 'Start')     // primary CTA — tide gradient
-KaiButton.tide(onPressed: () {}, label: 'Glow', emphasis: KaiButtonEmphasis.glow)
-KaiButton.ink(onPressed: () {}, label: 'Action')     // solid dark
-KaiButton.ghost(onPressed: () {}, label: 'Cancel')   // outline
-KaiButton.ghost(onPressed: () {}, label: 'Warn', tone: KaiButtonTone.warning)
-KaiButton.ghost(onPressed: () {}, label: 'Pill', pill: true)
-KaiButton.text(onPressed: () {}, label: 'Link')
-KaiButton.text(onPressed: () {}, label: 'Accent', tone: KaiButtonTone.accent)
+KaiGradientBar(width: 16, height: 4)         // "who" glyph before KAI label
+KaiGradientBar(width: 10, height: 2.5)       // toast memory marker
+KaiGradientBar(width: 16, height: 4, pulse: true)  // breathing animation
 ```
-- `fullWidth: true` makes button fill container width
-- `null` `onPressed` = disabled state
-- One `tide` button per screen maximum (Zero-UI rule)
+Pill-shaped (`brPill`) filled with `KaiTide.gradient`. Default 16x4.
+Pulse mode uses `KaiMotion.ambient` scale 0.92->1.08.
 
-#### `KaiIconButton`
+#### KaiSurface
+File: `primitives/kai_surface.dart`
+Generic themed container. Uses surface token as bg.
+
+---
+
+### ATOMS — `lib/design_system/atoms/`
+Import: `import 'package:kai_app/design_system/atoms/atoms.dart';`
+
+#### KaiButton
+File: `atoms/kai_button.dart`
+4 named constructors x 3 size tiers.
+
 ```dart
-KaiIconButton.surface(onPressed: () {}, icon: KaiIconName.attach)
-KaiIconButton.transparent(onPressed: () {}, icon: KaiIconName.mic)
-KaiIconButton.bare(onPressed: () {}, icon: KaiIconName.close)
+KaiButton.tide(label:, onPressed:, [icon:, emphasis: KaiButtonEmphasis.normal, size: KaiButtonSize.md])
+KaiButton.ink(label:, onPressed:, [icon:, fullWidth: false, size: KaiButtonSize.md])
+KaiButton.ghost(label:, onPressed:, [tone: KaiButtonTone.neutral, pill: false, size: KaiButtonSize.md])
+KaiButton.text(label:, onPressed:, [tone: KaiButtonTone.neutral, size: KaiButtonSize.md])
 ```
-- `surface`: bg `c.surface2`, circle
-- `transparent`: no bg, circle hit area
-- `bare`: no bg, minimal padding
 
-#### `KaiSendButton`
+Size tiers:
+| Size | Font         | Padding   | Icon | Use                                       |
+|------|-------------|-----------|------|-------------------------------------------|
+| sm   | 12.5px/w500 | 8v x 12h  | 16   | toast .open, detail sheet action          |
+| md   | 13.5px/w600 | 12v x 20h | 18   | default everywhere                        |
+| lg   | 15px/w600   | 16v x 24h | 20   | hero CTA (onboarding step 0, money-gate)  |
+
+Special case — `ink(fullWidth:true)`: all-sides 11px padding, r12, full width.
+Canon: nav "new-chat" button.
+
+Variants:
+- `tide`: KaiTide.gradient + KaiShadow.button. Animated gradient flow (respects reduce-motion).
+- `ink`: ink1 bg, white text, br3 (or br12 if fullWidth).
+- `ghost`: transparent fill, 1px border. `pill:true` -> brPill. Tone: neutral/warning/negative.
+- `text`: no fill, no border. Tone: neutral/accent/negative.
+
+Disabled: opacity 0.5, no tap. Press: AnimatedScale 0.97 / KaiMotion.micro.
+
+#### KaiIconButton
+File: `atoms/kai_icon_button.dart`
+3 named constructors.
 ```dart
-KaiSendButton(state: KaiSendState.ready, onPressed: () {})
+KaiIconButton.surface(onPressed:, icon:, [size: 18])    // surface2 fill, brPill, ink2
+KaiIconButton.transparent(onPressed:, icon:, [size: 18]) // no bg, ink3
+KaiIconButton.bare(onPressed:, icon:, [color:, size: 18]) // no bg, color-overridable
 ```
-- States: `ready` · `disabled` · `sending` · `streaming`
-- Tide gradient fill; primary CTA in compose island
-- `null` onPressed disables tap but widget still renders
+Default creates 30x30 tap target (18px icon + 6px padding all sides).
+Canon: `ic-btn` appbar (surface), compose mic (transparent), sheet close (bare).
 
-#### `KaiInput`
+#### KaiSendButton
+File: `atoms/kai_send_button.dart`
 ```dart
-KaiInput.line(controller: ctrl, placeholder: 'Search…')
-KaiInput.pill(controller: ctrl, placeholder: 'Message…', maxLines: 4)
-KaiInput.line(controller: ctrl, enabled: false)
+KaiSendButton(state: KaiSendState.ready, onPressed:, [size: 30, iconSize: 12])
 ```
-- `line`: bg `c.surface2`, r10, border `c.line` — for search bars
-- `pill`: bg `c.surface2`, r999, border `c.line` — for compose textarea
-- Canon: 13.5px Manrope 400, lh 1.4
+States: ready (tide gradient + KaiShadow.button, tappable), disabled (ink4, opacity 0.5, not tappable),
+sending (tide + scale-pulse), streaming (tide + scale-pulse).
+Default: 30x30 circle, iconSize 12. Canon: compose island send button.
 
-#### `KaiToggle`
+#### KaiToggle
+File: `atoms/kai_toggle.dart`
 ```dart
-KaiToggle(value: isOn, onChanged: (v) => setState(() => isOn = v))
-KaiToggle(value: true, onChanged: null)  // disabled
+KaiToggle(value: true, onChanged: (v) {})
 ```
-- 34×20 track, r999, `c.positive` when on / `c.surface3` when off
-- White knob with `KaiShadow.thumb`
+Dimensions: track 34x20, thumb 16x16, inner padding 2px.
+Track: surface3 (OFF) / accent (ON per settings.html). Thumb: white + KaiShadow.thumb.
+Animation: AnimatedContainer + AnimatedAlign, KaiMotion.standard.
+Note: memory.html shows toggle ON = `positive` (green). See Section 5 discrepancy.
 
-#### `KaiChip`
+#### KaiInput
+File: `atoms/kai_input.dart`
+2 named constructors.
 ```dart
-KaiChip.status('done', tone: KaiChipTone.done)
-KaiChip.status('active', tone: KaiChipTone.active)
-KaiChip.status('neutral')
-KaiChip.choice('Selected', selected: true, onTap: () {})
-KaiChip.choice('Unselected', selected: false, onTap: () {})
+KaiInput.line(controller:, [placeholder:, maxLines:1, onChanged:, enabled:true])
+KaiInput.pill(controller:, [placeholder:, maxLines:1, onChanged:, enabled:true])
 ```
-- Status: non-interactive, uppercase monospace label, semantic tints
-- Choice: selectable filter pills
+Both: surface2 fill, 0.8px line border (focused: lineStrong), 13.5px/400/lh1.4 Manrope.
+`.line`: r10 (br2). Canon: nav search (pad 9/12).
+`.pill`: brPill. Canon: compose-island textarea (pad 5/5/5/14).
 
-#### `KaiBadge`
+#### KaiAvatar
+File: `atoms/kai_avatar.dart`
 ```dart
-KaiBadge.dot()       // 8px dot — memory indicator in nav
-KaiBadge.count(5)    // numeric, caps at 99+
+KaiAvatar([size: 40, initial: 'R'])
 ```
+Circle filled with `KaiTide.gradientCorner`. Default 40px.
+Text: `KaiType.small(color: white)` at default — note settings shows 13px/700 for acc-hero.
+Canon sizes: 36px (settings acc-hero), 40px (nav account), 20px approx (pin-trip glyph).
 
-#### `KaiAvatar`
+#### KaiBadge
+File: `atoms/kai_badge.dart`
 ```dart
-KaiAvatar()                           // 40px default, tide-corner gradient
-KaiAvatar(initial: 'R', size: 40)    // letter centered
-KaiAvatar(size: 56, initial: 'K')    // large
+KaiBadge.dot([color:])        // 6px accent circle, 10px total with surface ring
+KaiBadge.count(int count)     // accent pill, white mono text; caps at "99+"
 ```
-- Always uses `KaiTide.gradientCorner` (square surface gradient)
-- Letter: 13px w700 white
+Dot variant: 6px inner + 2px surface ring on each side = 10px outer.
+Count variant: accent bg, br8, min 16px.
 
-#### `KaiTideCurve`
+#### KaiChip
+File: `atoms/kai_chip.dart`
+```dart
+KaiChip.status('LABEL', [tone: KaiChipTone.neutral/done/active])
+KaiChip.choice('Label', selected: bool, [onTap:])
+```
+Status: JetBrains Mono 12px uppercase, brPill, 1px border. Tone drives bg/text/border.
+Choice: Manrope 14px (KaiType.small), brPill. Selected: surface bg + ink1. Unselected: transparent + ink3.
+Note: onboarding chips use 11px/500 accent+accentWash (off-scale from KaiChip.choice defaults — see discrepancy).
+
+#### KaiTideCurve
+File: `atoms/kai_tide_curve.dart`
 ```dart
 KaiTideCurve(state: KaiTide.idle)
-KaiTideCurve(state: KaiTide.listening)
-KaiTideCurve(state: KaiTide.thinking)
-KaiTideCurve(state: KaiTide.responding)
-KaiTideCurve(state: KaiTide.success)   // ephemeral 1200ms
-KaiTideCurve(state: KaiTide.error)     // ephemeral 600ms
-KaiTideCurve(state: KaiTide.memory)    // ephemeral 900ms
-KaiTideCurve(state: KaiTide.sleep)
-KaiTideCurve(state: KaiTide.muted)     // static gradient, for onboarding
 ```
-- Animated SVG-like curve painted with CustomPainter
-- Place in a `SizedBox(height: 28)` at screen top
-- States listed in `KaiTide.all`
+Animated Kai tide line at the top of screens. 8 named states + muted static.
+States via `KaiTide.*`:
+| State      | Stroke | Opacity | Animation | Duration |
+|------------|--------|---------|-----------|----------|
+| idle       | 1.5px  | 0.40    | breathe   | 5500ms   |
+| listening  | 2.0px  | 0.80    | bob       | 2200ms   |
+| thinking   | 2.0px  | 0.85    | flow (dash 6/4) | 3000ms |
+| responding | 2.5px  | 1.00    | stream (dash 12/4) | 1400ms |
+| success    | 2.5px  | 1.00    | flash (ephemeral) | 1200ms |
+| error      | 2.0px  | 0.95    | wobble (ephemeral) | 600ms |
+| memory     | 2.0px  | 1.00    | pop (ephemeral) | 900ms |
+| sleep      | 1.0px  | 0.20    | breathe   | 7000ms   |
+| muted      | 1.8px  | 0.40    | none (gradient static) | — |
 
-#### `KaiDivider`
+#### KaiSheetShell
+File: `atoms/kai_sheet_shell.dart`
 ```dart
-KaiDivider()                  // horizontal, full width, 1px c.line
-KaiDivider(color: c.line)     // explicit color
-KaiDivider.vertical()         // fills available height
+KaiSheetShell(child: Content())
 ```
-
-#### `KaiSheetShell`
-```dart
-KaiSheetShell(child: ...)
-```
-- r24/24/0/0 top corners, drag handle, border-top `c.line`
-- Wraps bottom-sheet content — does NOT manage `showModalBottomSheet`
+Bottom-sheet chrome: surface bg, br24 top corners, pad 12/14/16. Standard modal bottom-sheet wrapper.
 
 ---
 
-### Molecules
-`import 'package:kai_app/design_system/molecules/molecules.dart';`
+### MOLECULES — `lib/design_system/molecules/`
+Import: `import 'package:kai_app/design_system/molecules/molecules.dart';`
 
-#### `KaiUserBubble`
+#### KaiUserBubble (D2 authoritative: room.html)
+File: `molecules/kai_user_bubble.dart`
 ```dart
-KaiUserBubble(text: 'Привет, Kai!')
+KaiUserBubble(text: 'Hello')
 ```
-- Right-aligned bubble, bg `c.surface2` (#F3F3F1)
-- Padding: 11/15 (top-bottom/left-right)
-- Border radius: 18/18/4/18 (tl/tr/br/bl) — sharp bottom-right corner
-- Canon (D2 locked): 13.5px Manrope 400, lh 22.5px, ls -0.005em
-- Source of truth: `room.html` not `components.html`
+Right-aligned, maxWidth 78% of screen.
+Container: surface2 bg, r 16/16/4/16 (NOT 18px from components.html), pad 9v/13h.
+Text: 13px/400, ink1, lh 1.45, ls -0.006em (= -0.08px at 13px).
 
-#### `KaiKaiBubble`
+#### KaiKaiBubble (D2 authoritative: room.html)
+File: `molecules/kai_kai_bubble.dart`
 ```dart
 KaiKaiBubble(
-  text: 'Ответ с [1] ссылкой',
-  sourcesLabel: '1 источник · только что',
-  sources: [KaiSourceCard(url: 'mofa.go.jp', ...)],
+  text: 'Response [1].',
+  sourcesLabel: '2 источника',
+  sources: [KaiSourceCard(url: ...)],
+  streaming: false,
   onThumbUp: () {},
   onThumbDown: () {},
 )
-KaiKaiBubble(text: 'Печатает…', streaming: true)
 ```
-- No background, no border — column layout
-- Who-glyph: `KaiGradientBar(16×4)` + "WHO" label: 9px JetBrains Mono, `c.ink3`
-- Canon (D2 locked): body 13.5px Manrope 400, lh 23.25px (≈1.55), ls -0.005em
-- Citation `[n]` inline → accent color, w500
-- `streaming: true` shows animated caret instead of reaction buttons
-- Source of truth: `room.html` not `components.html`
+No background. Column layout.
+".who" row: KaiGradientBar(16x4) + "KAI" 9px mono ink3 ls 0.72px. Gap 6px.
+".txt": 13.5px/400, ink1, lh 1.55, ls -0.0675px. Gap 5px below who.
+Citations `[N]`: accent/500 TextSpan via regex parser.
+Streaming caret: 7x14px block, ink1, blink 500ms half-period.
+React row: KaiIconButton.bare 11px thumbUp/thumbDown, ink3.
 
-#### `KaiSystemBubble`
-```dart
-KaiSystemBubble('Kai обновил воспоминание.', tone: KaiSystemTone.neutral)
-KaiSystemBubble('Внимание!', bold: 'Внимание!', tone: KaiSystemTone.warning)
-KaiSystemBubble('Ошибка сети', tone: KaiSystemTone.negative)
-```
-- Full-width, r12, pad 11/14
-- `neutral`: bg `c.surface2`, text `c.ink2`
-- `warning`: bg `c.warningWash`, text `c.warning`
-- `negative`: bg `c.negativeWash`, text `c.negative`
-- Canon: 13.5px Manrope 400
-
-#### `KaiComposeIsland`
+#### KaiComposeIsland
+File: `molecules/kai_compose_island.dart`
 ```dart
 KaiComposeIsland(
-  controller: textCtrl,
+  controller: controller,
   onSend: () {},
-  onMicTap: () {},
+  onMicTap: () {},            // omit to hide mic
   sendState: KaiSendState.ready,
+  placeholder: 'Сообщение Kai…',
 )
 ```
-- Pill r999, bg `c.surface2`, border 0.8px `c.line`
-- Pad: 5/5/5/14 (top/right/bottom/left)
-- Textarea: 13.5px Manrope 400, lh 1.4
-- Send button: `KaiSendButton` circle, right side
-- Mic button: `KaiIconButton.transparent`
+Outer: surface bg, 0.8px line border, brPill, pad 5/5/5/16, gap 4 between children.
+Text field: bare `TextField` (no double-border), 13.5px/400/lh1.4 Manrope.
+Mic: `KaiIconButton.transparent`, size 14, 30x30 tap target.
+Send: `KaiSendButton` 30x30, iconSize 12. State derived from text unless explicitly passed.
 
-#### `KaiSourceCard`
+#### KaiSourceCard
+File: `molecules/kai_source_card.dart`
 ```dart
-KaiSourceCard(
-  url: 'mofa.go.jp',
-  title: 'Ministry of Foreign Affairs',
-  snippet: 'Visa requirements…',
-  index: 1,
-  fresh: true,
-)
+KaiSourceCard(url: 'example.com', title: 'Title', snippet: 'Snippet', index: 1, fresh: false, onTap: () {})
 ```
-- `.src-row`: 12.5px Manrope ink2, lh 19.375px
-- Index chip: 10px JetBrains Mono, r4, pad 2/6, bg `c.surface`, border `c.line`
-- URL: 12.5px w500, ink1
-- `fresh: true` shows freshness indicator
+Container: surface2 bg, r10, pad 8/10.
+Index chip: JetBrains Mono 9px, surface bg, br1 (6px), 1px line border, pad 2/4.
+Favicon: 10x10 tide-2 square, br1.
+URL: JetBrains Mono 9px, ink3. (Catalog shows 12.5px — D2 room.html = 9px.)
+Title: Manrope 11.5px/500. Snippet: 10px/400, ink3.
 
-#### `KaiCareBlock`
+#### KaiSystemBubble
+File: `molecules/kai_system_bubble.dart`
+```dart
+KaiSystemBubble('Message', bold: 'Note —', tone: KaiSystemTone.warning, icon: KaiIconName.alert)
+```
+Tones: neutral (surface2/ink2), warning (warningWash/warning), negative (negativeWash/negative).
+Full width, r12, pad 12v/14h (drift: canon 11v/14h — +1px).
+Text: 13.5px/400, lh 1.5. Bold prefix: w600.
+
+#### KaiToast
+File: `molecules/kai_toast.dart`
+```dart
+KaiToast(type: KaiToastType.neutral, label: 'Скопировано', actionLabel: 'Открыть', onAction: () {}, showCountdown: false)
+```
+Types: neutral / positive / negative / memory. Always dark surface (dark-island pattern).
+Pill: brPill, pad 7/14/7/9, shadow 0 2px 12px rgba(0,0,0,0.16).
+Label: Manrope 11px/500, ls -0.005em. Text: `#F5F5F2` (dark.ink1).
+Action: 12px/600 Manrope, `KaiTide.stop2` color — NOT dark-palette accent.
+Countdown bar: static 110x2px pill (animation driven by KaiToastController, not widget).
+Memory variant: KaiTide.gradient bg, white text, KaiGradientBar(10x2.5) marker.
+
+#### KaiAlertCard
+File: `molecules/kai_alert_card.dart`
+```dart
+KaiAlertCard(type: KaiAlertType.urgent, title: 'Title', body: 'Body', time: '9:41', cta: 'Action', onCtaTap: () {})
+```
+Types: urgent (negative palette), warning, positive, neutral.
+Header: rgba(tone,0.08) bg, pad 7/11/6. Icon box: 16x16 r5, rgba(tone,0.15) fill.
+Type label: 8px/700 JetBrains Mono, UPPERCASE, ls 0.1em.
+Title: 11.5px/600, ink1, lh 1.3. Body: 11px/400, ink2, lh 1.45.
+CTA: `KaiButton.ghost(tone:, pill:true)` — not a bespoke pill.
+
+#### KaiCareBlock
+File: `molecules/kai_care_block.dart`
 ```dart
 KaiCareBlock(
-  heading: 'Я здесь для тебя.',
-  body: 'Если тяжело — ты не один.',
-  resources: [KaiCareResource(label: 'Телефон', number: '8-800-...')],
-  closing: 'Просто дыши.',
+  heading: 'Я слышу тебя.',
+  body: 'Body copy...',
+  resources: [KaiCareResource(label: 'Lifeline', number: '988')],
+  closing: 'Closing italic.',
+  onResourceTap: (r) {},
 )
 ```
-- C3 in-conversation crisis pattern
-- Coral (`c.negative`) left border, never a full-screen takeover
+Left border 2px negative (coral). Right corners r2 (10px). Left corners flush (r0).
+Bg: `negative.withValues(alpha: 0.04)`. Pad 14px all sides.
+Numbers: Manrope 600/14, negative. NOT mono — warm and direct, not alarming.
 
-#### `KaiAlertCard`
+#### KaiAccountHero
+File: `molecules/kai_account_hero.dart`
 ```dart
-KaiAlertCard(
-  type: KaiAlertType.urgent,   // urgent/warning/positive/neutral
-  title: 'Виза истекает',
-  body: 'Через 3 дня.',
-  time: '9:41',
-  cta: 'Продлить',
-  onCtaTap: () {},
-)
+KaiAccountHero(name: 'Name', email: 'email@...', initial: 'N', planLabel: 'plus')
 ```
-- Two-zone layout: colored header + white body
-- Injected into chat feed as a message item
+Container: surface2, r12, pad 12. Avatar: `KaiAvatar(size:36)`.
+Name: Manrope 600/13, ink1, ls -0.01em. Email: JetBrains Mono 400/10, ink3.
+Plan badge: JetBrains Mono 500/9 UPPERCASE, accent on accentWash, brPill, accentLine border, ls 0.06em.
 
-#### `KaiToast`
+#### KaiSegmentedControl
+File: `molecules/kai_segmented_control.dart`
 ```dart
-KaiToast(type: KaiToastType.neutral,  label: 'Скопировано')
-KaiToast(type: KaiToastType.positive, label: 'Сохранено', showCountdown: true)
-KaiToast(type: KaiToastType.negative, label: 'Ошибка', actionLabel: 'Повторить', onAction: () {})
-KaiToast(type: KaiToastType.memory,   label: 'Kai запомнил', actionLabel: 'Открыть', onAction: () {})
+KaiSegmentedControl(options: ['A', 'B'], selectedIndex: 0, onSelected: (i) {})
 ```
-- Dark-island pill — always on `c.ink1` bg regardless of theme
-- Padding: 7/14/7/9; r999; shadow 0 2px 12px rgba(0,0,0,0.16)
-- Label: 11px Manrope w500, dark ink1 (#F5F5F2)
-- Action button: 12px Manrope w600, color = `KaiTide.stop2` (#2BA8C9) — **tide-2, NOT accent**
-- `memory` variant: tide gradient bg, white text, `KaiGradientBar(10×2.5)` marker
-- `showCountdown: true`: 110×2px bar below pill (static, animation driven by controller)
+Track: surface3 bg, br8 (8px), pad 2. Option: pad 4/9, 11px/500 Manrope.
+Active: surface bg + ink1. Inactive: ink3. Inner segment br1 (6px). Gap 2 between options.
 
-#### `KaiActionSheet` / `showKaiActionSheet()`
+#### KaiSettingsRow
+File: `molecules/kai_settings_row.dart`
 ```dart
-showKaiActionSheet(context, items: [
-  KaiActionItem(icon: KaiIconName.copy, title: 'Скопировать', meta: '⌘C', onTap: () {}),
-  KaiActionItem(icon: KaiIconName.trash, title: 'Удалить', danger: true, onTap: () {}),
-]);
+KaiSettingsRow(icon: KaiIconName.settings, title: 'Label', subtitle: 'Sub', trailing: KaiToggle(...), onTap: () {}, danger: false)
 ```
-- Bottom sheet, r10 action rows, pad 10/8
-- `danger: true` renders title in `c.negative`
+Pad 9/11, br8 tap ripple. Icon slot 16px wide, icon 15px, ink3 (or negative on danger).
+Title: Manrope 500/12, ink1, ls -0.005em. Subtitle: JetBrains Mono 400/10, ink3.
+Trailing: any widget (KaiToggle, KaiSegmentedControl, KaiIcon.chevRight, Text).
 
-#### `showKaiMessageDetailSheet()`
+#### KaiSettingsGroup
+File: `molecules/kai_settings_group.dart`
 ```dart
-showKaiMessageDetailSheet(context,
-  sources: [KaiDetailSource(number: 1, url: 'mofa.go.jp', freshness: KaiSourceFreshness.fresh)],
-  actions: [
-    KaiDetailAction(icon: KaiIconName.copy, label: 'Скопировать', onTap: () {}),
-    KaiDetailAction(icon: KaiIconName.heart, label: 'Сохранить', style: KaiDetailActionStyle.primary, onTap: () {}),
-    KaiDetailAction(icon: KaiIconName.trash, label: 'Удалить', style: KaiDetailActionStyle.danger, onTap: () {}),
-  ],
-);
+KaiSettingsGroup(label: 'внешний вид', danger: false, children: [...])
 ```
-- Detail action sheet: sources list + action grid
-- Action rows: 12.5px w500, r8, pad 10/8
+Normal: surface2 bg, r12, pad 3px inner.
+Danger: surface bg, r12, 1px negativeWash border, pad 4px inner.
+Label: JetBrains Mono 400/9, ink3, ls 0.1em, pad 2/4/0. Gap 6px below label.
 
-#### `KaiSegmentedControl`
-```dart
-KaiSegmentedControl(
-  options: const ['Авто', 'Светлая', 'Тёмная'],
-  selectedIndex: _index,
-  onSelected: (i) => setState(() => _index = i),
-)
-```
+#### KaiNavItem
+File: `molecules/kai_nav_item.dart`
+Nav row widget for panel rows. Wraps icon + label + optional badge.
 
-#### `KaiSettingsRow` / `KaiSettingsGroup`
-```dart
-KaiSettingsGroup(
-  label: 'внешний вид',
-  children: [
-    KaiSettingsRow(
-      icon: KaiIconName.palette,
-      title: 'Тема',
-      subtitle: 'системная',
-      trailing: KaiToggle(value: on, onChanged: ...),
-      onTap: () {},
-    ),
-    KaiSettingsRow(icon: KaiIconName.trash, title: 'Удалить', danger: true, onTap: () {}),
-  ],
-)
-// Danger group:
-KaiSettingsGroup(danger: true, children: [...])
-```
-- `KaiSettingsGroup`: r12 container, section label
-- `KaiSettingsRow`: icon+title+subtitle+trailing; `danger: true` → negative color
+#### KaiActionSheet
+File: `molecules/kai_action_sheet.dart`
+Bottom-sheet action list. Uses KaiSheetShell as chrome. Rows: r10, pad 10/8.
 
-#### `KaiAccountHero`
-```dart
-KaiAccountHero(name: 'Rustam K.', email: 'rustam@example.com', initial: 'R')
-KaiAccountHero(name: 'Rustam K.', email: 'rustam@example.com', initial: 'R', planLabel: 'Pro')
-```
-
-#### `KaiNavItem`
-```dart
-KaiNavItem(label: 'Поездка', icon: KaiIconName.folder, onTap: () {})
-KaiNavItem(label: 'Активный', icon: KaiIconName.memory, active: true, onTap: () {})
-KaiNavItem(label: 'Память', icon: KaiIconName.memory, trailing: KaiBadge.dot())
-```
-- Active: bg `c.accentWash`, left 2px accent border
-- Title: 14px ink1 / active → 600 accent
+#### KaiMessageDetailSheet
+File: `molecules/kai_message_detail_sheet.dart`
+Detail sheet for a single message. Actions: `KaiButton.text(size:sm)`, 12.5px/500, r8.
 
 ---
 
-### Organisms
-`import 'package:kai_app/design_system/organisms/organisms.dart';`
+### ORGANISMS — `lib/design_system/organisms/`
+Import: `import 'package:kai_app/design_system/organisms/organisms.dart';`
 
-#### `KaiChatList`
-```dart
-KaiChatList(
-  frame: RoomFrame.live,    // empty/live/panel/compose/streaming/error
-  messages: msgs,           // List<Map<String,dynamic>> — role+content
-  partialContent: 'Ищу…',  // for streaming frame
-  onRetry: () {},
-)
-```
-- `RoomFrame.empty`: empty state with tide curve
-- `RoomFrame.live`: normal chat
-- `RoomFrame.panel`: nav panel open, chat dimmed
-- `RoomFrame.compose`: compose sheet visible
-- `RoomFrame.streaming`: partial Kai message with `partialContent`
-- `RoomFrame.error`: error edge state
+#### KaiChatList
+File: `organisms/kai_chat_list.dart`
+Scrollable chat feed. Composes KaiUserBubble, KaiKaiBubble, KaiSystemBubble,
+KaiAlertCard, KaiCareBlock, KaiSourceCard, day labels.
 
-Message map shape:
+#### KaiNavPanel
+File: `organisms/kai_nav_panel.dart`
 ```dart
-{'role': 'user', 'content': '...'}
-{'role': 'kai', 'content': '...', 'sourcesLabel': '...', 'sources': [...]}
-{'role': 'system', 'content': '...', 'tone': 'warning'}
-{'role': 'alert', 'alertType': 'warning', 'content': '...', 'body': '...', 'time': '...'}
+KaiNavPanel(sessions: [...], onNewChat: () {}, strings: KaiNavStrings.russian, ...)
 ```
+Full-screen surface panel, r28. Sections: new-chat button, search, pin-trip, section labels,
+folder rows, chat rows, app rows (Memory/Settings), account hero.
+New-chat: `KaiButton.ink(fullWidth:true)`. Search: `KaiInput.line`. Account: `KaiAccountHero`.
+App rows use `KaiBadge.dot()` for Memory indicator.
 
-#### `KaiNavPanel`
+#### KaiEdgeStateBlock
+File: `organisms/kai_edge_state_block.dart`
 ```dart
-KaiNavPanel(
-  strings: KaiNavStrings.russian,
-  onClose: () {},
-  onNewChat: () {},
-  trips: trips,                 // List<TripInfo>
-  sessions: sessions,           // List<SessionPreview>
-  activeSessionId: 'session-1',
-  onSessionTap: (id) {},
-  onTripTap: (id) {},
-  accountInitial: 'R',
-  accountName: 'Rustam K.',
-  accountPlan: 'Pro',
-  hasUnseenMemory: true,
-  onMemoryTap: () {},
-  onSettingsTap: () {},
-  pinnedTrip: trips.first,
-)
+KaiEdgeStateBlock(surface: KaiEdgeSurface.offline, onRetry: () {}, onPlans: () {}, countdown: 42)
 ```
-- Full-screen overlay drawn over room screen
-- Session title: 14px ink1 → active 600 accent
-- Session subtitle: 11px JetBrains Mono, ink3
-- Section labels: 10px JetBrains Mono, ink3, ls 0.8px, pad 12/16/6
-- New chat button: 13.5px w600, r12, pad 11px, bg ink1
+Surfaces: offline (strip + warning retry ghost), error (negative retry ghost),
+rateLimit (tide glow CTA for money-gate), crisis (KaiCareBlock inline).
+All buttons delegate to KaiButton atoms. Zero hardcoded colors.
 
-#### `KaiEdgeStateBlock`
-```dart
-KaiEdgeStateBlock(surface: KaiEdgeSurface.offline, onRetry: () {})
-KaiEdgeStateBlock(surface: KaiEdgeSurface.error, onRetry: () {})
-KaiEdgeStateBlock(surface: KaiEdgeSurface.rateLimit, onPlans: () {}, countdown: Duration(seconds: 42))
-KaiEdgeStateBlock(surface: KaiEdgeSurface.crisis)
-```
-- 4 surfaces with distinct CTA styles
-- `crisis`: no CTA button, shows `KaiCareBlock`
-
-#### `KaiOnboardingCard`
-```dart
-KaiOnboardingCard(
-  stepIndex: _step,    // 0–3
-  onNext: () {},
-  onComplete: () {},
-)
-```
-- Step 0: tide CTA button
-- Steps 1–3: solid ink-1 button
-- Tide curve: `KaiTide.muted` on passive steps
+#### KaiOnboardingCard
+File: `organisms/kai_onboarding_card.dart`
+4-step onboarding surface. Tide curve header (muted state on passive steps), KaiAvatar glyph,
+step dots, primary button (tide on step 0, ink on steps 1-3), gesture hints,
+optional form input + choice chips.
 
 ---
 
-## Screens not yet built in Dart (canon exists)
+## 5. COMPONENT DISCREPANCIES
 
-These screens have complete HTML specs in `new-design/` but no Dart implementation yet.
-Each has a spec-preview story in the Storybook under Organisms.
+HTML canon vs. current Dart implementation. Always read before editing.
 
-### Voice Screen
-- **Canon**: `new-design/voice.html`
-- **Storybook**: "Voice Screen (canon)" story
-- **Key specs** (Playwright-verified):
-  - Bg: `Color(0xFF08080A)` — **always dark, NEVER responds to theme**
-  - Karaoke NOW word: bg `rgba(244,181,137,0.28)` = `Color(0x47F4B589)`, r4, pad 1/5, 16px w500 white
-  - Karaoke NEXT words: `Color(0x52FFFFFF)` (rgba(white,0.32)), same font
-  - Karaoke default: 16px w500 white, transparent bg
-  - Transcript events: pad 9/22/9/52
-  - Timestamp: 8.5px w500, `Color(0x66FFFFFF)` (rgba(white,0.4))
-  - Hint labels: 9px Manrope, `Color(0x40FFFFFF)` (rgba(white,0.25))
-  - Reuse: `KaiTideCurve`, `KaiButton.ink`, `KaiText`
-  - New: `VoiceKaraoke`, `VoiceTranscriptRow`, `VoiceHintLabel`
-
-### Memory Screen
-- **Canon**: `new-design/memory.html`
-- **Storybook**: "Memory Screen (canon)" story
-- **Key specs** (Playwright-verified):
-  - Search bar: 12.5px ink3, r10, pad 9/12, bg surface-2 → use `KaiInput.line`
-  - Fact groups: bg surface-2, r12, pad 4px
-  - Fact items: r8, pad 9/11; body 13px ink1; source 9.5px ink3
-  - Forget rows: r8, pad 11/12, `c.negative` color
-  - Memory hero: r16, pad 14; title 14px w600; sub 11px ink3
-  - Toggle: `KaiToggle` — positive (green = on)
-  - App bar: title 13px w600; icon buttons circle bg surface-2
-  - Reuse: `KaiInput.line`, `KaiToggle`, `KaiButton.ink(fullWidth:true)`, `KaiAvatar`
-  - New: `MemoryFactGroup`, `MemoryFactItem`, `MemoryHero`
-
-### Trip Detail Screen
-- **Canon**: `new-design/trip-detail.html`
-- **Storybook**: "Trip Detail Screen (canon)" story
-- **Key specs** (Playwright-verified):
-  - App bar icon buttons: circle, bg surface-2, ~32×32
-  - App bar title: 13px w600, ink1
-  - Trip hero: r16, pad 16 — contains glyph + name + sub + stats + budget
-  - Glyph: tide-corner gradient circle, 13px w700 white, r11 → `KaiAvatar(size:~36)`
-  - Trip name: 16px w600, lh 1.2; sub: 11px ink3
-  - Stats: `.stat .n` 16px w600; `.stat .l` 9px w500 ink3
-  - Budget bar: r999, bg surface-3, colored segments (flights/stays/food/local)
-  - Facts grid: `.fact .k` 11px ink3; `.fact .v` 11.5px w500 ink1; card bg surface-2 r12 pad 4
-  - Chat items: r10, pad 9/10, bg accent-wash; title 12px w600 accent; preview 10.5px ink3
-  - Source items: pad 8/10; url 11px w500 ink2
-  - "Ask about this": 13px w600 white, bg ink1, r12, pad 11px = `KaiButton.ink(fullWidth:true)`
-  - Q&A chips: bg surface-2, r10, pad 9/6
-  - Reuse: `KaiAvatar`, `KaiButton.ink`, `KaiSourceCard`, `KaiInput.line`
-  - New: `TripHeroCard`, `TripFactGrid`, `TripBudgetBar`, `TripChatItem`
-
-### Fork Card (in-chat molecule)
-- **Canon**: `new-design/fork.html`  `.fc`
-- **Storybook**: "KaiForkCard (canon)" story
-- **Key specs** (Playwright-verified):
-  - In-chat molecule, NOT a full screen
-  - CSS classes: `.fc`, `.fc-h`, `.fc-cols`, `.fc-col`, `.fc-id`, `.fc-country`, `.fc-glyph`
-  - `.fc-country` header: ~65px wide
-  - Visa chips: 8px w600, r999, pad 2/6, negative-wash/neutral bg
-  - Rating dots: 5×5px circles, positive/neutral/negative colors
-  - `.fc-score`: 5-dot rating row
-  - `.fc-badge`: win/recommended badge
-  - Two columns side by side: price, delta, budget rows, facts
-  - Reuse: `KaiText`, `KaiTide.gradientCorner` (glyph)
-  - New: `KaiForkCard`, `ForkColumn`, `ForkVisaChip`, `ForkRatingDots`
+| Component                   | Property          | HTML Canon (file)                    | Dart Value              | Severity | Notes                                                        |
+|-----------------------------|-------------------|--------------------------------------|-------------------------|----------|--------------------------------------------------------------|
+| `KaiToggle`                 | ON track color    | `positive` (#1B8E4E) — memory.html  | `accent` (#2C5BE5)     | LOW      | settings.html shows accent; memory.html shows green. Both may be intentional (context-specific use). |
+| `KaiChip.choice`            | Font size (selected) | 11px/500 — onboarding.html        | 14px/400 (KaiType.small) | MED    | Onboarding chips are smaller. Call-site can `.copyWith(fontSize:11, fontWeight:w500)` or use a new `KaiChip.small` constructor. |
+| `KaiChip.choice`            | Colors (selected) | accent text + accentWash — onboarding.html | surface bg + ink1 | MED  | Onboarding selected = accent/accentWash. Generic choice selected = surface/ink1. Customization needed at onboarding call site. |
+| `KaiButton.ink(fullWidth)`  | Font size         | 13px — nav.html `.new-btn`          | 13.5px (md tier)        | LOW      | 0.5px delta. Visually negligible. Both files show 13–13.5px range. |
+| `KaiSourceCard`             | URL font size     | 12.5px — components.html            | 9px — room.html D2      | RESOLVED | D2 decision: room.html is authoritative. 9px is correct for inline chat. |
+| `KaiSystemBubble`           | Vertical padding  | 11px — components.html              | 12px (KaiSpace.s3)      | LOW      | +1px drift. Documented in source comments. |
+| `KaiSourceCard`             | Index chip radius | r4 (4px) — components.html         | br1 (6px)               | LOW      | Sub-pixel on a 9-10px chip. Imperceptible in use. |
+| `KaiKaiBubble`              | Body line-height  | 1.5 (20.25/13.5) — room.html       | 1.55                    | LOW      | 0.05 drift. Near-identical visually. |
+| `KaiButton.ghost(sm)`       | Font size         | 12px/600 — components.html `.act`   | 12.5px/500 (sm tier)    | LOW      | Toast `.open` is handled by internal `_ToastActionButton` (12px/600 exact). Generic sm tier is close but not identical. |
+| `KaiCareBlock`              | Interior padding  | 14px — edge-states.html             | 14px literal            | MATCH    | Correctly uses literal 14 between s3(12) and s4(16). |
 
 ---
 
-## Design rules (summary)
+## 6. SCREENS NOT YET BUILT IN DART
 
-1. **Token-only**: no `Color(0xFF...)` or magic padding in `lib/design_system/` or `lib/features/`. Hardcoded values allowed only in `lib/design_system/tokens/`.
-2. **Tide gradient locked**: `KaiTide.gradient` (screens/buttons) or `KaiTide.gradientCorner` (square brand surfaces). No other gradients.
-3. **Error color**: `c.negative` (#C44A3C light / #E66F60 dark) — coral, never alarming red.
-4. **Zero-UI**: no persistent chrome. One primary action per screen (tide gradient).
-5. **D2 locked**: bubble body text 13.5px / who-label 9px. Source = `room.html`. Do NOT change to 15px/10px from `components.html`.
-6. **Toast action button**: `KaiTide.stop2` (#2BA8C9), not `c.accent`.
-7. **Language**: app UI Russian-first (ARB), Claude responds in Russian.
-8. **Voice screen**: always `Color(0xFF08080A)` bg, never theme-aware.
+### 6.1 Voice Mode — `new-design/voice.html`
+
+**Critical rule:** Background is ALWAYS `#08080A` (Color(0xFF08080A)). Never responds to theme toggle.
+
+Gradients (named in HTML):
+- `g-tide`: `KaiTide.gradient` (standard)
+- `g-blue`: `#1B4FB0` -> `#6FA7FF` (listening state)
+- `g-warm`: `#2BA8C9` -> `#F4B589` (speaking state — tide stop2->stop3)
+- `g-mute`: `#5C5C58` -> `#76767E` (muted state)
+
+4 frames:
+1. `01-waiting`: Tide curve idle, minimal UI
+2. `02-listening`: Tide curve listening, g-blue gradient elements
+3. `03-speaking-karaoke`: Active karaoke text with g-warm
+4. `04-transcript`: Full transcript timeline view
+
+**Karaoke widget (`.karaoke`)**
+Row of TextSpan words:
+- default word: 16px/500, white, transparent bg
+- NOW word (`.now`): `rgba(#F4B589, 0.28)` = Color(0x47F4B589), r4, pad 1/5
+- NEXT words (`.next`): `rgba(white, 0.32)` = Color(0x52FFFFFF)
+Implementation: custom `KaiKaraokeText` widget with `Text.rich` word-level spans.
+
+**Transcript view (`.tr-view`)**
+Container: pad 50px top, transparent bg.
+Events (`.tr-event`): pad 9/22/9/52, white text.
+Timestamp (`.ts`): 8.5px/500, `rgba(white, 0.4)` = Color(0x66FFFFFF).
+Hint labels (`.hint-tl/.hint-tr`): 9px/400, `rgba(white, 0.25)` = Color(0x40FFFFFF).
+
+**Tide states used:** All 8 standard KaiTide states via `KaiTideCurve`.
+
+New Dart widgets needed:
+- `KaiVoiceScaffold` — dark scaffold bg Color(0xFF08080A), no theme switching
+- `KaiKaraokeText` — Row of word-spans with now/next/default styling
+- `KaiTranscriptView` — CustomScrollView with timestamped events
+
+### 6.2 Memory App — `new-design/memory.html`
+
+Appbar: pad 0/16, title 13px/600, `KaiIconButton.surface`.
+Search: `KaiInput.line`, 12.5px/400, ink3, r10, pad 9/12, surface2 (same as nav).
+
+**Memory hero (`.mem-hero`)**
+Container: r16, pad 14.
+Title (`.t`): 14px/600, ink1. Sub (`.s`): 11px/400, ink3.
+
+**Memory groups**
+Container: surface2, r12, pad 4px (identical to `KaiSettingsGroup`).
+Row (`.fact-item`): r8, pad 9/11 (identical to `KaiSettingsRow`).
+Body text: ~13px Manrope.
+Source attribution (`.src`): 9.5px/400, ink3.
+Menu dots (`.dots`): ink3, pad 4px.
+
+**Danger row (`.danger-row`)**
+r8, pad 11/12, negative color. Maps to `KaiSettingsRow(danger:true)`.
+
+**Toggle ON state**: `positive` (green #1B8E4E) — NOT accent.
+This is memory-specific context. Settings uses accent. Both use same `KaiToggle` atom
+but the color discrepancy exists (see Section 5).
+
+Reuses existing DS: `KaiInput.line`, `KaiSettingsGroup`, `KaiSettingsRow`,
+`KaiToggle`, `KaiAccountHero` pattern.
+New widget needed: `KaiMemoryHero` (r16 card with title + sub).
+
+### 6.3 Trip Detail — `new-design/trip-detail.html`
+
+Appbar: pad 0/16. Title: 13px/600. `KaiIconButton.surface` back button.
+
+**Trip hero (`.trip-hero`)**
+Container: r16, pad 16, transparent bg.
+Glyph: `KaiAvatar(size:36)`, tide-corner, 13px/700 white, r11.
+Name (`.name`): 16px/600, lh 1.2.
+Sub (`.sub`): 11px/400, ink3.
+Stats `.n`: 16px/600, lh 1.0 (number). Stats `.l`: 9px/500, ink3 (label).
+Budget bar: brPill, surface3 bg — segmented with color fill.
+
+**Facts grid**
+Fact container: surface2, r12, pad 4px.
+Key (`.k`): 11px/400, ink3. Value (`.v`): 11.5px/500, ink1.
+
+**Chat items (`.chat-item`)**
+Container: accentWash, r10, pad 9/10.
+Title (`.t`): 12px/600, accent. Preview (`.preview`): 10.5px/400, ink3.
+
+**Source items (`.src-item`)**
+Pad 8/10. URL (`.u`): 11px/500, ink2.
+
+**Ask button**: `KaiButton.ink(fullWidth:true)` — 13px/600, white, r12, ink1 bg, pad 11.
+
+**QA chips (`.qa`)**: surface2, r10, pad 9/6.
+
+New widgets needed:
+- `TripHeroCard` — trip header with avatar, name, stats, budget bar (feature-level)
+- `KaiBudgetBar` — segmented bar with surface3 track + color fill segments + brPill
+- `KaiFactGrid` — 2-col key/value grid using surface2 cards
+- `KaiChatPreviewItem` — compact accentWash chat row (could reuse nav chat-row pattern)
+
+### 6.4 Fork Card Molecule — `new-design/fork.html`
+
+Renders inside the chat feed as a Kai response molecule.
+CSS classes: `.fc`, `.fc-h`, `.fc-cols`, `.fc-col`, `.fc-id`, `.fc-country`,
+`.fc-glyph`, `.fc-name`, `.fc-price-row`, `.fc-price`, `.fc-delta`, `.fc-row`,
+`.fc-chip`, `.fc-score`, `.fc-badge`, `.fc-sw`.
+
+Layout: 2-column `.fc-cols`, each country column ~65px wide.
+
+**Visa chips (`.chip`)**
+8px/600 Manrope, brPill, pad 2/6, colored by status:
+- bad: negativeWash bg + negative text
+- neu: surface3 bg + ink3 text
+- ok: positiveWash bg + positive text
+Note: 8px is smaller than `KaiChip.status` (12px mono) — needs dedicated widget.
+
+**Rating dots (`.fc-score`)**
+Row of 5 x 5px circles. Colors: positive (filled) / surface3 (empty) / negative (bad).
+
+**Kai's pick badge (`.fc-badge`)**
+Accent color highlight strip/label.
+
+**Price delta (`.fc-delta`)**
+Color-coded up/down indicator — positive (green arrow) or negative (coral arrow).
+
+New widgets needed:
+- `KaiForkCard` — main 2-col molecule, renders in chat feed
+- `KaiForkChip` — 8px/600 visa status chip (smaller than KaiChip.status)
+- `KaiForkScoreDots` — row of 5x5 rating circles
+- `KaiForkPriceDelta` — price + directional delta indicator
+
+---
+
+## 7. NEW WIDGETS NEEDED (seen in HTML, not yet in Dart system)
+
+| Widget name         | Source file              | Description                                                      |
+|---------------------|-------------------------|------------------------------------------------------------------|
+| `KaiVoiceScaffold`  | voice.html              | Dark scaffold Color(0xFF08080A), always dark, no theme toggle    |
+| `KaiKaraokeText`    | voice.html              | Word-level spans: now=highlighted, next=dimmed, default=white    |
+| `KaiTranscriptView` | voice.html              | ScrollView with timestamped voice transcript events              |
+| `KaiBudgetBar`      | trip-detail.html        | Segmented horizontal bar, surface3 track + color fill + brPill   |
+| `KaiFactGrid`       | trip-detail.html        | 2-col key/value grid in surface2 cards                           |
+| `KaiChatPreviewItem`| trip-detail.html        | accentWash r10 compact row: title accent + preview ink3          |
+| `KaiForkCard`       | fork.html               | 2-col comparison molecule for chat feed                          |
+| `KaiForkChip`       | fork.html               | 8px/600 Manrope visa chip (smaller than KaiChip.status at 12px) |
+| `KaiForkScoreDots`  | fork.html               | Row of 5x5 rating circles                                        |
+| `KaiChip.small`     | onboarding.html         | 11px/500 choice variant vs standard 14px — or call-site copyWith |
+| `KaiBadge.folder`   | nav.html                | 9px ink3 count on surface2 brPill (vs accent count badge)        |
+| `KaiSuggChip`       | room.html               | Suggestion chips: surface2, r12, pad 11/14 (currently inline)   |
+| `KaiDayLabel`       | room.html               | Day separator: 9px mono ink3 ls 0.9px (currently inline Text)    |
+| `KaiLiveDot`        | notifications-chat.html | 8px negative circle, proactive presence indicator                |
+| `KaiMemoryHero`     | memory.html             | r16 card with 14px/600 title + 11px/400 sub                     |
+
+---
+
+## 8. TOKENS BARREL CHEAT-SHEET
+
+```dart
+// All tokens
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
+// Provides: KaiColors, KaiSpace, KaiRadius, KaiType, KaiTide,
+//           KaiMotion, KaiShadow, KaiTokens, KaiColorTokens
+
+// Runtime colors (always use, never hardcode)
+final c = KaiTheme.of(context).colors;
+c.surface2       // surface-2 bg
+c.ink1           // primary text
+c.accent         // links, toggles, active state
+c.negative       // coral (#C44A3C light / #E66F60 dark)
+
+// Type styles
+Text('Label', style: KaiType.small(color: c.ink1))
+// Off-scale (adjust via copyWith):
+Text('KAI', style: KaiType.mono(color: c.ink3).copyWith(fontSize: 9, letterSpacing: 9 * 0.08))
+Text('plan', style: KaiType.small(color: c.ink1).copyWith(fontSize: 13.5, fontWeight: FontWeight.w600))
+
+// Atoms
+import 'package:kai_app/design_system/atoms/atoms.dart';
+// Molecules
+import 'package:kai_app/design_system/molecules/molecules.dart';
+// Organisms
+import 'package:kai_app/design_system/organisms/organisms.dart';
+// Primitives
+import 'package:kai_app/design_system/primitives/primitives.dart';
+```
+
+---
+
+*Generated 2026-05-29. Playwright-verified computed styles from 18 new-design/ HTML files:
+room (D2 for bubbles), components, nav, settings, edge-states, notifications-chat,
+onboarding, voice, trip-detail, memory, fork, foundations, handoff, dark, brand,
+landing, tide-states.*
