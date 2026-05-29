@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 import 'package:kai_app/design_system/atoms/kai_icon_button.dart';
 import 'package:kai_app/design_system/primitives/kai_icon.dart';
 
@@ -126,17 +127,29 @@ void main() {
         expect(scale.scale, 1.0);
       });
 
-      testWidgets('custom size is applied to KaiIcon', (tester) async {
+      testWidgets('md size (default) applies 18px icon', (tester) async {
         await _pump(
           tester,
           KaiIconButton.surface(
             onPressed: () {},
             icon: KaiIconName.plus,
-            size: 24,
           ),
         );
         final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
-        expect(icon.size, 24.0);
+        expect(icon.size, 18.0);
+      });
+
+      testWidgets('sm size applies 16px icon', (tester) async {
+        await _pump(
+          tester,
+          KaiIconButton.surface(
+            onPressed: () {},
+            icon: KaiIconName.plus,
+            iconSize: KaiIconButtonSize.sm,
+          ),
+        );
+        final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
+        expect(icon.size, 16.0);
       });
     });
 
@@ -313,6 +326,155 @@ void main() {
             tester.widgetList<Semantics>(find.byType(Semantics)).toList();
         final found = allSemantics.any((s) => s.properties.button == true);
         expect(found, isTrue);
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    // KaiIconButton.toggle
+    // -------------------------------------------------------------------------
+    group('toggle', () {
+      testWidgets('active state — icon uses accent color', (tester) async {
+        await _pump(
+          tester,
+          KaiIconButton.toggle(
+            active: true,
+            onPressed: () {},
+            icon: KaiIconName.mic,
+          ),
+        );
+        final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
+        expect(icon.color, KaiColors.light.accent,
+            reason: 'active toggle icon must be accent');
+      });
+
+      testWidgets('active state — background uses accentWash', (tester) async {
+        await _pump(
+          tester,
+          KaiIconButton.toggle(
+            active: true,
+            onPressed: () {},
+            icon: KaiIconName.mic,
+          ),
+        );
+        final containers =
+            tester.widgetList<Container>(find.byType(Container)).toList();
+        final found = containers.any((c) {
+          final deco = c.decoration;
+          return deco is BoxDecoration &&
+              deco.color == KaiColors.light.accentWash;
+        });
+        expect(found, isTrue,
+            reason: 'active toggle must have accentWash pill background');
+      });
+
+      testWidgets('inactive state — icon uses ink3 color', (tester) async {
+        await _pump(
+          tester,
+          KaiIconButton.toggle(
+            active: false,
+            onPressed: () {},
+            icon: KaiIconName.mic,
+          ),
+        );
+        final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
+        expect(icon.color, KaiColors.light.ink3,
+            reason: 'inactive toggle icon must be ink3');
+      });
+
+      testWidgets('inactive state — no opaque background decoration', (tester) async {
+        await _pump(
+          tester,
+          KaiIconButton.toggle(
+            active: false,
+            onPressed: () {},
+            icon: KaiIconName.mic,
+          ),
+        );
+        final containers =
+            tester.widgetList<Container>(find.byType(Container)).toList();
+        final hasOpaqueFill = containers.any((c) {
+          final deco = c.decoration;
+          if (deco is! BoxDecoration) return false;
+          return deco.color != null &&
+              deco.color != Colors.transparent &&
+              deco.gradient == null;
+        });
+        expect(hasOpaqueFill, isFalse,
+            reason: 'inactive toggle must have no opaque fill');
+      });
+
+      testWidgets('tap fires onPressed', (tester) async {
+        var tapped = 0;
+        await _pump(
+          tester,
+          KaiIconButton.toggle(
+            active: false,
+            onPressed: () => tapped++,
+            icon: KaiIconName.mic,
+          ),
+        );
+        await tester.tap(find.byType(KaiIconButton));
+        expect(tapped, 1);
+      });
+
+      testWidgets('null onPressed disables — opacity 0.5', (tester) async {
+        await _pump(
+          tester,
+          const KaiIconButton.toggle(
+            active: true,
+            onPressed: null,
+            icon: KaiIconName.mic,
+          ),
+        );
+        final opacities =
+            tester.widgetList<Opacity>(find.byType(Opacity)).toList();
+        final found = opacities.any((o) => o.opacity == 0.5);
+        expect(found, isTrue,
+            reason: 'disabled toggle must have Opacity(0.5)');
+      });
+
+      testWidgets('null onPressed — tap does not fire', (tester) async {
+        var tapped = 0;
+        await _pump(
+          tester,
+          const KaiIconButton.toggle(
+            active: false,
+            onPressed: null,
+            icon: KaiIconName.mic,
+          ),
+        );
+        await tester.tap(find.byType(KaiIconButton), warnIfMissed: false);
+        expect(tapped, 0);
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    // KaiIconButtonSize — cross-variant size tests
+    // -------------------------------------------------------------------------
+    group('size enum', () {
+      testWidgets('transparent sm — icon is 16px', (tester) async {
+        await _pump(
+          tester,
+          KaiIconButton.transparent(
+            onPressed: () {},
+            icon: KaiIconName.mic,
+            iconSize: KaiIconButtonSize.sm,
+          ),
+        );
+        final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
+        expect(icon.size, 16.0);
+      });
+
+      testWidgets('transparent md (default) — icon is 18px', (tester) async {
+        await _pump(
+          tester,
+          KaiIconButton.transparent(
+            onPressed: () {},
+            icon: KaiIconName.mic,
+          ),
+        );
+        final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
+        expect(icon.size, 18.0);
       });
     });
   });

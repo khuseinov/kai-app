@@ -145,20 +145,23 @@ final List<Story> atomStories = [
     canonFile: 'new-design/components.html',
     canonSelector: '.icon-btn',
     description:
-        'Icon-only button with three surface variants — use surface for '
-        'compose attachment slots, transparent for mic, bare for sheet actions.',
-    variants: const ['surface', 'transparent', 'bare'],
+        'Icon-only button — surface/transparent/bare/toggle variants. '
+        'Two sizes: sm (16px icon) and md (18px icon, default).',
+    variants: const ['surface', 'transparent', 'bare', 'toggle(active)', 'toggle(inactive)'],
     props: const [
       PropDoc('onPressed', 'VoidCallback?', 'required', 'null = disabled'),
       PropDoc('icon', 'KaiIconName', 'required', 'Glyph to render'),
-      PropDoc('size', 'double', '18', 'Glyph size; tap target = size + 12'),
-      PropDoc('color', 'Color?', 'ink2', 'bare variant only: icon color override'),
+      PropDoc('iconSize', 'KaiIconButtonSize', 'md', 'sm=16px / md=18px icon'),
+      PropDoc('size', 'double?', 'null', 'Pixel override — wins over iconSize'),
+      PropDoc('color', 'Color?', 'ink2', 'bare only: icon color override'),
+      PropDoc('active', 'bool', 'required', 'toggle only: active state'),
     ],
     build: (_) => StoryPage(
       title: 'KaiIconButton',
       layer: 'ATOM',
-      blurb: 'Icon-only button — 3 variants. surface: compose slots; '
-          'transparent: mic; bare: sheet close / nav actions.',
+      blurb: 'Icon-only button — 4 variants. surface: compose slots; '
+          'transparent: mic; bare: sheet close / nav actions; '
+          'toggle: active/inactive state with accentWash pill.',
       sections: [
         StorySection('Variants', [
           StoryCell('surface', KaiIconButton.surface(
@@ -167,6 +170,17 @@ final List<Story> atomStories = [
             onPressed: () {}, icon: KaiIconName.mic)),
           StoryCell('bare', KaiIconButton.bare(
             onPressed: () {}, icon: KaiIconName.close)),
+          StoryCell('toggle active', KaiIconButton.toggle(
+            active: true, onPressed: () {}, icon: KaiIconName.mic)),
+          StoryCell('toggle inactive', KaiIconButton.toggle(
+            active: false, onPressed: () {}, icon: KaiIconName.mic)),
+        ]),
+        StorySection('Sizes', [
+          StoryCell('sm (16px)', KaiIconButton.surface(
+            onPressed: () {}, icon: KaiIconName.plus,
+            iconSize: KaiIconButtonSize.sm)),
+          StoryCell('md (18px, default)', KaiIconButton.surface(
+            onPressed: () {}, icon: KaiIconName.plus)),
         ]),
         const StorySection('States', [
           StoryCell('disabled', KaiIconButton.bare(
@@ -183,12 +197,15 @@ final List<Story> atomStories = [
       ],
       usage: 'KaiIconButton.surface(onPressed: _attach, icon: KaiIconName.plus)\n'
           'KaiIconButton.transparent(onPressed: _mic, icon: KaiIconName.mic)\n'
-          'KaiIconButton.bare(onPressed: _close, icon: KaiIconName.close)',
+          'KaiIconButton.bare(onPressed: _close, icon: KaiIconName.close)\n'
+          'KaiIconButton.toggle(active: _isActive, onPressed: _toggle, icon: KaiIconName.mic)',
       props: const [
         PropDoc('onPressed', 'VoidCallback?', 'required', 'null = disabled'),
         PropDoc('icon', 'KaiIconName', 'required', 'Glyph to render'),
-        PropDoc('size', 'double', '18', 'Glyph size; tap target = size + 12'),
-        PropDoc('color', 'Color?', 'ink2', 'bare variant only: icon color override'),
+        PropDoc('iconSize', 'KaiIconButtonSize', 'md', 'sm=16px / md=18px icon'),
+        PropDoc('size', 'double?', 'null', 'Pixel override — wins over iconSize'),
+        PropDoc('color', 'Color?', 'ink2', 'bare only: icon color override'),
+        PropDoc('active', 'bool', 'required', 'toggle only: active state'),
       ],
     ),
   ),
