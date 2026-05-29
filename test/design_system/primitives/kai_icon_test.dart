@@ -63,7 +63,7 @@ void main() {
     });
 
     test('all KaiIconName values have a non-empty assetName', () {
-      expect(KaiIconName.values.length, 32); // +2: thumbUp, thumbDown (v3 W2)
+      expect(KaiIconName.values.length, 33); // +2: thumbUp, thumbDown (v3 W2); +1: stop (C2a)
       for (final icon in KaiIconName.values) {
         expect(icon.assetName, isNotEmpty);
       }
@@ -76,6 +76,7 @@ void main() {
       expect(KaiIconName.logout.assetName, 'logout');
       expect(KaiIconName.thumbUp.assetName, 'thumb-up');
       expect(KaiIconName.thumbDown.assetName, 'thumb-down');
+      expect(KaiIconName.stop.assetName, 'stop');
     });
   });
 }

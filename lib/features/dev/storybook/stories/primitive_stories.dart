@@ -26,7 +26,7 @@ final List<Story> primitiveStories = [
     build: (_) => StoryPage(
       title: 'KaiIcon',
       layer: 'PRIMITIVE',
-      blurb: 'Single SVG source for all 31 icons. Used by atoms and molecules — '
+      blurb: 'Single SVG source for all 33 icons. Used by atoms and molecules — '
           'never duplicated path strings.',
       sections: [
         StorySection(

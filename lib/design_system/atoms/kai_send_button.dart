@@ -122,13 +122,17 @@ class _KaiSendButtonState extends State<KaiSendButton>
     final isDisabled = widget.state == KaiSendState.disabled;
     final tappable = !isDisabled && widget.onPressed != null;
 
+    final iconName = widget.state == KaiSendState.streaming
+        ? KaiIconName.stop
+        : KaiIconName.arrowUp;
+
     final circle = Container(
       width: widget.size,
       height: widget.size,
       decoration: decoration,
       alignment: Alignment.center,
       child: KaiIcon(
-        KaiIconName.arrowUp,
+        iconName,
         size: widget.iconSize,
         color: white,
       ),

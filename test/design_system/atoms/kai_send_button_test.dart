@@ -338,6 +338,63 @@ void main() {
     });
 
     // -------------------------------------------------------------------------
+    // Icon name per state (C2a)
+    // -------------------------------------------------------------------------
+    group('icon names', () {
+      testWidgets('ready shows arrowUp icon', (tester) async {
+        await _pump(
+          tester,
+          KaiSendButton(
+            state: KaiSendState.ready,
+            onPressed: () {},
+          ),
+        );
+        final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
+        expect(icon.name, KaiIconName.arrowUp,
+            reason: 'ready must show arrowUp');
+      });
+
+      testWidgets('sending shows arrowUp icon', (tester) async {
+        await _pump(
+          tester,
+          KaiSendButton(
+            state: KaiSendState.sending,
+            onPressed: () {},
+          ),
+        );
+        final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
+        expect(icon.name, KaiIconName.arrowUp,
+            reason: 'sending must show arrowUp');
+      });
+
+      testWidgets('streaming shows stop icon', (tester) async {
+        await _pump(
+          tester,
+          KaiSendButton(
+            state: KaiSendState.streaming,
+            onPressed: () {},
+          ),
+        );
+        final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
+        expect(icon.name, KaiIconName.stop,
+            reason: 'streaming must show stop (rounded square)');
+      });
+
+      testWidgets('disabled shows arrowUp icon', (tester) async {
+        await _pump(
+          tester,
+          const KaiSendButton(
+            state: KaiSendState.disabled,
+            onPressed: null,
+          ),
+        );
+        final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
+        expect(icon.name, KaiIconName.arrowUp,
+            reason: 'disabled must show arrowUp (not stop)');
+      });
+    });
+
+    // -------------------------------------------------------------------------
     // Animation cleanup
     // -------------------------------------------------------------------------
     group('state transitions', () {

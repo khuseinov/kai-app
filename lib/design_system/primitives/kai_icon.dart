@@ -37,7 +37,8 @@ enum KaiIconName {
   lock('lock'),
   logout('logout'),
   thumbUp('thumb-up'),
-  thumbDown('thumb-down');
+  thumbDown('thumb-down'),
+  stop('stop');
 
   const KaiIconName(this.assetName);
   final String assetName;

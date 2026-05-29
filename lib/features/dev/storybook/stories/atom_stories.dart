@@ -234,12 +234,12 @@ final List<Story> atomStories = [
         StorySection('States', [
           StoryCell('ready', KaiSendButton(
             state: KaiSendState.ready, onPressed: () {})),
-          const StoryCell('disabled', KaiSendButton(
-            state: KaiSendState.disabled, onPressed: null)),
           StoryCell('sending', KaiSendButton(
             state: KaiSendState.sending, onPressed: () {})),
-          StoryCell('streaming', KaiSendButton(
+          StoryCell('streaming (stop)', KaiSendButton(
             state: KaiSendState.streaming, onPressed: () {})),
+          const StoryCell('disabled', KaiSendButton(
+            state: KaiSendState.disabled, onPressed: null)),
         ]),
         const StorySection('Sizes', [
           StoryCell('sm (24)', KaiSendButton(
