@@ -64,8 +64,9 @@ void main() {
 
     testWidgets('renders without exception', (tester) async {
       await _pumpNavScreen(tester);
-      // Panel builds — the title "Kai" is rendered by KaiNavPanel's top bar.
-      expect(find.text('Kai'), findsOneWidget);
+      // Panel builds — the new-chat button is the first visible element
+      // (top-bar X and "Kai" title removed in Cycle 4, Zero-UI).
+      expect(find.text('Новый чат'), findsOneWidget);
     });
 
     testWidgets('renders new-chat button label', (tester) async {

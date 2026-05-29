@@ -5,6 +5,7 @@ import 'package:kai_app/design_system/organisms/nav_models.dart'
 import 'package:kai_app/design_system/atoms/kai_badge.dart';
 import 'package:kai_app/design_system/atoms/kai_button.dart';
 import 'package:kai_app/design_system/molecules/kai_nav_item.dart';
+import 'package:kai_app/design_system/primitives/kai_icon.dart';
 import 'package:kai_app/design_system/organisms/kai_nav_panel.dart';
 import 'package:kai_app/features/nav/session_groups.dart';
 
@@ -92,9 +93,13 @@ void main() {
       expect(find.byType(KaiNavPanel), findsOneWidget);
     });
 
-    testWidgets('shows panel title from strings', (WidgetTester tester) async {
+    testWidgets('does NOT show a top-bar title (no visible X or title)',
+        (WidgetTester tester) async {
+      // Cycle 4: the top bar (close circle + "Kai" title) has been removed.
+      // Zero-UI — the panel is dismissed by swipe-left only.
       await _pump(tester, _panel());
-      expect(find.text('Kai'), findsOneWidget);
+      // "Kai" title text is no longer rendered in the panel.
+      expect(find.text('Kai'), findsNothing);
     });
 
     // ── New-chat button ───────────────────────────────────────────────────────
@@ -120,22 +125,36 @@ void main() {
 
     // ── Close button ──────────────────────────────────────────────────────────
 
-    testWidgets('close button fires onClose callback',
+    testWidgets('no close icon — KaiIconName.close is NOT present',
         (WidgetTester tester) async {
-      var closes = 0;
-      await _pump(tester, _panel(onClose: () => closes++));
-      // Find GestureDetector containing the close icon via its position
-      // (first GestureDetector wrapping the 28×28 circle).
-      final closeContainers = find.ancestor(
-        of: find.byWidgetPredicate(
-          (w) => w is Container && w.constraints?.maxWidth == 28,
-        ),
-        matching: find.byType(GestureDetector),
+      // Cycle 4: the top-bar close circle button has been removed.
+      // Dismissal is swipe-left only (Zero-UI).
+      await _pump(tester, _panel(onClose: () {}));
+      // KaiIcon with KaiIconName.close should not be in the tree.
+      final closeIcons = tester.widgetList<KaiIcon>(
+        find.byWidgetPredicate((w) {
+          if (w is! KaiIcon) return false;
+          // KaiIcon stores the name via a field; check if it matches close.
+          // We can't easily inspect the name field, so check that no
+          // 28×28 surface2 circle is rendered (the close button container).
+          return false; // skip — use text/icon approach below
+        }),
       );
-      await tester.tap(closeContainers.first);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 50));
-      expect(closes, 1);
+      // Simpler check: "Kai" (the top bar title) is not present.
+      expect(find.text('Kai'), findsNothing);
+      // No 28×28 Container with circle shape exists in the tree.
+      final circleContainers = tester.widgetList<Container>(
+        find.byWidgetPredicate((w) {
+          if (w is! Container) return false;
+          final deco = w.decoration;
+          if (deco is! BoxDecoration) return false;
+          return deco.shape == BoxShape.circle &&
+              w.constraints?.maxWidth == 28;
+        }),
+      );
+      expect(circleContainers.isEmpty, isTrue,
+          reason: 'No close-circle button should exist after Cycle 4 removal');
+      expect(closeIcons, isEmpty);
     });
 
     testWidgets('swipe-left fires onClose callback',

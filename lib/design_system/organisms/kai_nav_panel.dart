@@ -100,8 +100,8 @@ class KaiNavStrings {
 /// v3 full-screen side-panel organism.
 ///
 /// Layout (top → bottom):
-/// - Top bar: close 28×28 circle | centred title | 28px spacer
 /// - New-chat button: `KaiButton.ink(fullWidth: true)` — canon ink1 br12
+///   (first visible content; there is no top-bar close button or title)
 /// - Search box: decorative surface-2 container (r9 / mono 11)
 /// - [Expanded ListView]:
 ///   - Pinned trip card (optional)
@@ -110,6 +110,12 @@ class KaiNavStrings {
 ///   - Empty-sessions placeholder (when no sessions AND no trips)
 ///   - Apps section: Memory (with optional [KaiBadge.dot()]) + Settings
 /// - Account anchor (tide-gradient avatar + initial + name + plan + chev)
+///
+/// # Dismissal
+/// The panel is dismissed by swiping left (`onHorizontalDragEnd` velocity
+/// < −200 px/s calls [onClose]). There is intentionally no visible close
+/// button — Zero-UI principle: controls are gesture-invoked, not permanent
+/// chrome.
 ///
 /// # l10n
 /// All display strings come from the [strings] parameter — see [KaiNavStrings].
@@ -205,13 +211,8 @@ class KaiNavPanel extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _NavTopBar(
-                title: strings.title,
-                onClose: onClose,
-                tokens: tokens,
-              ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
                 child: KaiButton.ink(
                   onPressed: onNewChat,
                   label: strings.newChat,
@@ -326,68 +327,6 @@ class KaiNavPanel extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Top bar ──────────────────────────────────────────────────────────────────
-
-class _NavTopBar extends StatelessWidget {
-  const _NavTopBar({
-    required this.title,
-    required this.onClose,
-    required this.tokens,
-  });
-
-  final String title;
-  final VoidCallback? onClose;
-  final KaiTokens tokens;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 44, // canon: 44px top bar
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 22),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Close 28×28 circle button
-            GestureDetector(
-              onTap: onClose,
-              child: Container(
-                width: 28, // canon: 28×28
-                height: 28,
-                decoration: BoxDecoration(
-                  color: tokens.colors.surface2,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: KaiIcon(
-                    KaiIconName.close,
-                    size: 14, // canon: 14px icon
-                    color: tokens.colors.ink1,
-                  ),
-                ),
-              ),
-            ),
-            // Centred title
-            Text(
-              title,
-              style: TextStyle(
-                fontFamily: 'Manrope',
-                fontSize: 14, // canon: 14px w600 ink1
-                fontWeight: FontWeight.w600,
-                color: tokens.colors.ink1,
-                letterSpacing: -0.005 * 14,
-              ),
-            ),
-            // 28px spacer balances the close button so the title is visually centred.
-            const SizedBox(width: 28),
-          ],
         ),
       ),
     );
