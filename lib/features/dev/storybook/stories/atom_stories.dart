@@ -755,6 +755,28 @@ final List<Story> atomStories = [
     ],
     build: (_) => const _KaiKaraokeTextStory(),
   ),
+  Story(
+    layer: StoryLayer.atoms,
+    name: 'KaiBudgetBar',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/trip-detail.html',
+    canonSelector: '.budget-bar',
+    description:
+        'Segmented horizontal budget bar for trip-detail breakdown. '
+        'Pill track (surface3 bg, KaiRadius.brPill) containing proportional '
+        'coloured segments via Expanded(flex: (fraction*1000).round()). '
+        'Optional legend row with colour swatches and labels. '
+        'Canon: new-design/trip-detail.html .budget-bar.',
+    variants: const ['4 segments + legend', '2 segments no legend', 'partial fill'],
+    props: const [
+      PropDoc('segments', 'List<KaiBudgetSegment>', 'required',
+          'Proportional coloured segments — fractions should sum ≤ 1.0'),
+      PropDoc('height', 'double', '8', 'Track height in logical pixels'),
+      PropDoc('showLegend', 'bool', 'false',
+          'When true, renders a legend row with colour swatch + label below the track'),
+    ],
+    build: (_) => const _KaiBudgetBarStory(),
+  ),
 ];
 
 // ── KaiInput demo helpers (StatefulWidget — need controllers) ─────────────────
@@ -995,6 +1017,119 @@ class _KaiKaraokeTextStory extends StatelessWidget {
         PropDoc('words', 'List<String>', 'required', 'All words in the sentence'),
         PropDoc(
             'currentIndex', 'int', 'required', 'Index of word now being spoken'),
+      ],
+    );
+  }
+}
+
+// ── KaiBudgetBar story ────────────────────────────────────────────────────────
+// Canon: new-design/trip-detail.html .budget-bar
+
+class _KaiBudgetBarStory extends StatelessWidget {
+  const _KaiBudgetBarStory();
+
+  // Four canon budget categories from trip-detail.html
+  static const _segments = [
+    KaiBudgetSegment(
+      fraction: 0.40,
+      color: Color(0xFF2BA8C9), // tide-2 — flights
+      label: 'Авиа',
+    ),
+    KaiBudgetSegment(
+      fraction: 0.30,
+      color: Color(0xFFF4B589), // tide-3 warm — stays
+      label: 'Отели',
+    ),
+    KaiBudgetSegment(
+      fraction: 0.20,
+      color: Color(0xFF5B9BD5), // mid-blue — food
+      label: 'Еда',
+    ),
+    KaiBudgetSegment(
+      fraction: 0.10,
+      color: Color(0xFFB5CBE3), // light-blue — local
+      label: 'Транспорт',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return const StoryPage(
+      title: 'KaiBudgetBar',
+      layer: 'ATOM',
+      blurb: 'Segmented budget bar from trip-detail.html. Pill track (surface3 bg, '
+          'KaiRadius.brPill, 8px default height) containing proportional coloured '
+          'segments using Expanded(flex). Optional legend row with swatch + label. '
+          'Segment fractions sum to ≤ 1.0 — remainder shows the surface3 track.',
+      sections: [
+        StorySection('With legend (4 segments)', [
+          StoryCell(
+            'flights / stays / food / local',
+            SizedBox(
+              width: 280,
+              child: KaiBudgetBar(
+                segments: _segments,
+                showLegend: true,
+              ),
+            ),
+          ),
+        ]),
+        StorySection('Without legend', [
+          StoryCell(
+            '4 segments no legend',
+            SizedBox(
+              width: 280,
+              child: KaiBudgetBar(segments: _segments),
+            ),
+          ),
+        ]),
+        StorySection('Partial fill (remainder visible)', [
+          StoryCell(
+            '2 segments (0.3 + 0.2 = 50%)',
+            SizedBox(
+              width: 280,
+              child: KaiBudgetBar(
+                segments: [
+                  KaiBudgetSegment(
+                    fraction: 0.30,
+                    color: Color(0xFF2BA8C9),
+                    label: 'Авиа',
+                  ),
+                  KaiBudgetSegment(
+                    fraction: 0.20,
+                    color: Color(0xFFF4B589),
+                    label: 'Отели',
+                  ),
+                ],
+                showLegend: true,
+              ),
+            ),
+          ),
+          StoryCell(
+            'tall (height: 16)',
+            SizedBox(
+              width: 280,
+              child: KaiBudgetBar(
+                segments: _segments,
+                height: 16,
+              ),
+            ),
+          ),
+        ]),
+      ],
+      usage: 'KaiBudgetBar(\n'
+          '  segments: [\n'
+          '    KaiBudgetSegment(fraction: 0.40, color: Color(0xFF2BA8C9), label: "Авиа"),\n'
+          '    KaiBudgetSegment(fraction: 0.30, color: Color(0xFFF4B589), label: "Отели"),\n'
+          '  ],\n'
+          '  showLegend: true,\n'
+          ')',
+      props: [
+        PropDoc('segments', 'List<KaiBudgetSegment>', 'required',
+            'Proportional coloured segments — fractions should sum ≤ 1.0'),
+        PropDoc('height', 'double', '8', 'Track height in logical pixels'),
+        PropDoc('showLegend', 'bool', 'false',
+            'When true renders a legend row with swatch + label below the track'),
       ],
     );
   }

@@ -6,6 +6,7 @@ library;
 
 export 'kai_avatar.dart';
 export 'kai_badge.dart';
+export 'kai_budget_bar.dart';
 export 'kai_button.dart';
 export 'kai_chip.dart';
 export 'kai_divider.dart';
