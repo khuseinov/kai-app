@@ -231,6 +231,8 @@ class _StorybookSidebar extends StatelessWidget {
 
   String _layerLabel(StoryLayer layer) {
     switch (layer) {
+      case StoryLayer.foundations:
+        return 'FOUNDATIONS';
       case StoryLayer.primitives:
         return 'PRIMITIVES';
       case StoryLayer.atoms:
