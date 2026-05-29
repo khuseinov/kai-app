@@ -97,6 +97,101 @@ void main() {
         );
         expect(dotContainer, isNotNull);
       });
+
+      testWidgets('positive tone maps to positive color', (tester) async {
+        await _pump(tester, const KaiBadge.dot(tone: KaiBadgeTone.positive));
+        final containers =
+            tester.widgetList<Container>(find.byType(Container)).toList();
+        final found = containers.any((c) {
+          if (c.constraints?.maxWidth != 6.0) return false;
+          final deco = c.decoration;
+          return deco is BoxDecoration && deco.color == KaiColors.light.positive;
+        });
+        expect(found, isTrue, reason: 'positive tone must use positive color');
+      });
+
+      testWidgets('warning tone maps to warning color', (tester) async {
+        await _pump(tester, const KaiBadge.dot(tone: KaiBadgeTone.warning));
+        final containers =
+            tester.widgetList<Container>(find.byType(Container)).toList();
+        final found = containers.any((c) {
+          if (c.constraints?.maxWidth != 6.0) return false;
+          final deco = c.decoration;
+          return deco is BoxDecoration && deco.color == KaiColors.light.warning;
+        });
+        expect(found, isTrue, reason: 'warning tone must use warning color');
+      });
+
+      testWidgets('negative tone maps to negative color', (tester) async {
+        await _pump(tester, const KaiBadge.dot(tone: KaiBadgeTone.negative));
+        final containers =
+            tester.widgetList<Container>(find.byType(Container)).toList();
+        final found = containers.any((c) {
+          if (c.constraints?.maxWidth != 6.0) return false;
+          final deco = c.decoration;
+          return deco is BoxDecoration && deco.color == KaiColors.light.negative;
+        });
+        expect(found, isTrue, reason: 'negative tone must use negative color');
+      });
+
+      testWidgets('explicit color overrides tone', (tester) async {
+        const customColor = Color(0xFFAB1234);
+        await _pump(tester,
+            const KaiBadge.dot(tone: KaiBadgeTone.warning, color: customColor));
+        final containers =
+            tester.widgetList<Container>(find.byType(Container)).toList();
+        final found = containers.any((c) {
+          if (c.constraints?.maxWidth != 6.0) return false;
+          final deco = c.decoration;
+          return deco is BoxDecoration && deco.color == customColor;
+        });
+        expect(found, isTrue, reason: 'explicit color must override tone');
+      });
+    });
+
+    group('tide', () {
+      testWidgets('renders without error', (tester) async {
+        await _pump(tester, const KaiBadge.tide());
+        expect(find.byType(KaiBadge), findsOneWidget);
+      });
+
+      testWidgets('inner dot has gradientCorner decoration', (tester) async {
+        await _pump(tester, const KaiBadge.tide());
+        final containers =
+            tester.widgetList<Container>(find.byType(Container)).toList();
+        final found = containers.any((c) {
+          final deco = c.decoration;
+          return deco is BoxDecoration &&
+              deco.gradient == KaiTide.gradientCorner &&
+              deco.shape == BoxShape.circle;
+        });
+        expect(found, isTrue,
+            reason: 'tide dot must use KaiTide.gradientCorner gradient');
+      });
+
+      testWidgets('outer ring is 12px', (tester) async {
+        await _pump(tester, const KaiBadge.tide());
+        final containers =
+            tester.widgetList<Container>(find.byType(Container)).toList();
+        final found = containers.any(
+          (c) =>
+              c.constraints?.maxWidth == 12.0 &&
+              c.constraints?.maxHeight == 12.0,
+        );
+        expect(found, isTrue, reason: 'tide dot outer ring must be 12x12px');
+      });
+
+      testWidgets('inner dot is 8px', (tester) async {
+        await _pump(tester, const KaiBadge.tide());
+        final containers =
+            tester.widgetList<Container>(find.byType(Container)).toList();
+        final found = containers.any(
+          (c) =>
+              c.constraints?.maxWidth == 8.0 &&
+              c.constraints?.maxHeight == 8.0,
+        );
+        expect(found, isTrue, reason: 'tide dot inner circle must be 8x8px');
+      });
     });
 
     group('count', () {

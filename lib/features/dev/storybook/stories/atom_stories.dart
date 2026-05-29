@@ -401,32 +401,38 @@ final List<Story> atomStories = [
     canonFile: 'new-design/nav.html',
     canonSelector: '.mem-dot',
     description:
-        'Notification badge — dot variant for the memory indicator, count '
-        'variant (with 99+ cap) for numeric notification counts.',
-    variants: const ['dot', 'count(n)'],
+        'Notification badge — dot (toned) for the memory indicator, count '
+        '(with 99+ cap) for numeric counts, tide for the memory-saved signal.',
+    variants: const ['dot (tones)', 'count(n)', 'tide'],
     props: const [
-      PropDoc('color', 'Color?', 'accent', 'dot only: fill color override'),
+      PropDoc('tone', 'KaiBadgeTone', 'accent', 'dot only: semantic fill tone'),
+      PropDoc('color', 'Color?', 'null', 'dot only: explicit fill override (wins over tone)'),
       PropDoc('count', 'int', 'required', 'count only: number (capped at 99+)'),
     ],
     build: (_) => const StoryPage(
       title: 'KaiBadge',
       layer: 'ATOM',
-      blurb: 'Notification badge — dot (6px accent circle, 10px ring) for the '
-          'memory indicator; count pill (accent bg) for numeric counts.',
+      blurb: 'Notification badge — dot (6px circle, 10px ring) supports four '
+          'semantic tones; count pill for numbers; tide dot for the memory signal.',
       sections: [
-        StorySection('Dot variant', [
-          StoryCell('default', KaiBadge.dot()),
-        ]),
-        StorySection('Count variant', [
+        StorySection('Variants', [
+          StoryCell('dot · accent', KaiBadge.dot()),
+          StoryCell('dot · positive', KaiBadge.dot(tone: KaiBadgeTone.positive)),
+          StoryCell('dot · warning', KaiBadge.dot(tone: KaiBadgeTone.warning)),
+          StoryCell('dot · negative', KaiBadge.dot(tone: KaiBadgeTone.negative)),
           StoryCell('count(5)', KaiBadge.count(5)),
           StoryCell('count(99)', KaiBadge.count(99)),
           StoryCell('count(150) → 99+', KaiBadge.count(150)),
+          StoryCell('tide (memory)', KaiBadge.tide()),
         ]),
       ],
-      usage: 'KaiBadge.dot()\n'
+      usage: 'KaiBadge.dot()                              // accent default\n'
+          'KaiBadge.dot(tone: KaiBadgeTone.warning)    // warning\n'
+          'KaiBadge.tide()                              // memory signal\n'
           'KaiBadge.count(unreadCount)',
       props: [
-        PropDoc('color', 'Color?', 'accent', 'dot only: fill color override'),
+        PropDoc('tone', 'KaiBadgeTone', 'accent', 'dot only: semantic fill tone'),
+        PropDoc('color', 'Color?', 'null', 'dot only: explicit fill override (wins over tone)'),
         PropDoc('count', 'int', 'required', 'count only: number (capped at 99+)'),
       ],
     ),

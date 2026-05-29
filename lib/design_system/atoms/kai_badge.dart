@@ -3,9 +3,29 @@ import 'package:flutter/material.dart';
 import '../theme/kai_theme.dart';
 import '../tokens/kai_tokens.dart';
 
+/// Tone variants for [KaiBadge.dot].
+///
+/// - [accent]   → `accent` fill (default, primary notification dot).
+/// - [positive] → `positive` fill.
+/// - [warning]  → `warning` fill.
+/// - [negative] → `negative` fill.
+enum KaiBadgeTone {
+  /// Default accent color — primary notification.
+  accent,
+
+  /// Semantic positive / success dot.
+  positive,
+
+  /// Semantic warning dot.
+  warning,
+
+  /// Semantic negative / error dot.
+  negative,
+}
+
 /// v3 badge atom.
 ///
-/// Two constructors:
+/// Three constructors:
 /// - [KaiBadge.dot()] — a 6px filled circle with a 2px surface-colored ring.
 ///   Canon: nav memory dot from `new-design/nav.html`.
 ///   Sizes: 6px dot + 2px ring on each side = 10px outer diameter. These are
@@ -13,14 +33,21 @@ import '../tokens/kai_tokens.dart';
 /// - [KaiBadge.count(int count)] — a pill showing a number: `accent` background,
 ///   white text in [KaiType.micro], min 16px height, horizontal padding for
 ///   multi-digit numbers. Counts > 99 are capped to "99+".
+/// - [KaiBadge.tide()] — an 8px gradient dot using [KaiTide.gradientCorner]
+///   (with the 2px surface ring like `.dot`). For the "Kai saved a memory"
+///   signal. Outer diameter: 12px.
 ///
 /// Colors come from the active theme via [KaiTheme.of].
 class KaiBadge extends StatelessWidget {
   /// Small filled dot — 6px accent circle inside a 10px surface-colored ring.
   ///
-  /// [color] overrides the fill color (defaults to `accent`).
-  const KaiBadge.dot({this.color, super.key})
-      : _variant = _KaiBadgeVariant.dot,
+  /// [tone] controls the fill color (default [KaiBadgeTone.accent]).
+  /// [color] overrides the fill color explicitly; takes priority over [tone].
+  const KaiBadge.dot({
+    this.tone = KaiBadgeTone.accent,
+    this.color,
+    super.key,
+  })  : _variant = _KaiBadgeVariant.dot,
         _count = 0;
 
   /// Numeric pill badge — accent background, white count text.
@@ -29,9 +56,21 @@ class KaiBadge extends StatelessWidget {
   const KaiBadge.count(int count, {super.key})
       : _variant = _KaiBadgeVariant.count,
         _count = count,
+        tone = KaiBadgeTone.accent,
         color = null;
 
-  /// Optional fill-color override (dot variant only). Defaults to `accent`.
+  /// Tide gradient dot — 8px dot using [KaiTide.gradientCorner] inside a
+  /// 12px surface-colored ring. Used as the "Kai saved a memory" signal.
+  const KaiBadge.tide({super.key})
+      : _variant = _KaiBadgeVariant.tide,
+        _count = 0,
+        tone = KaiBadgeTone.accent,
+        color = null;
+
+  /// Tone for the dot fill (dot variant only). Defaults to [KaiBadgeTone.accent].
+  final KaiBadgeTone tone;
+
+  /// Optional fill-color override (dot variant only). Explicit color wins over tone.
   final Color? color;
 
   final _KaiBadgeVariant _variant;
@@ -44,13 +83,32 @@ class KaiBadge extends StatelessWidget {
         return _buildDot(context);
       case _KaiBadgeVariant.count:
         return _buildCount(context);
+      case _KaiBadgeVariant.tide:
+        return _buildTide(context);
     }
   }
 
   Widget _buildDot(BuildContext context) {
     final tokens = KaiTheme.of(context);
-    final dotColor = color ?? tokens.colors.accent;
     final ringColor = tokens.colors.surface;
+
+    // Explicit color override wins over tone.
+    final Color dotColor;
+    if (color != null) {
+      dotColor = color!;
+    } else {
+      final c = tokens.colors;
+      switch (tone) {
+        case KaiBadgeTone.accent:
+          dotColor = c.accent;
+        case KaiBadgeTone.positive:
+          dotColor = c.positive;
+        case KaiBadgeTone.warning:
+          dotColor = c.warning;
+        case KaiBadgeTone.negative:
+          dotColor = c.negative;
+      }
+    }
 
     // Outer 10px surface-colored circle acts as the 2px ring around the 6px dot.
     // 6px dot + 2px ring on each side = 10px total diameter.
@@ -94,6 +152,27 @@ class KaiBadge extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildTide(BuildContext context) {
+    final ringColor = KaiTheme.of(context).colors.surface;
+
+    // 8px dot + 2px ring on each side = 12px outer diameter.
+    return Container(
+      constraints: const BoxConstraints.tightFor(width: 12, height: 12),
+      decoration: BoxDecoration(
+        color: ringColor,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Container(
+        constraints: const BoxConstraints.tightFor(width: 8, height: 8),
+        decoration: const BoxDecoration(
+          gradient: KaiTide.gradientCorner,
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
+  }
 }
 
-enum _KaiBadgeVariant { dot, count }
+enum _KaiBadgeVariant { dot, count, tide }
