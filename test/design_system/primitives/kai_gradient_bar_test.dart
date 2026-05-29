@@ -82,5 +82,61 @@ void main() {
       });
       expect(hasGradient, isTrue, reason: 'Should have tide gradient decoration');
     });
+
+    // -------------------------------------------------------------------------
+    // streaming mode (C2a)
+    // -------------------------------------------------------------------------
+    testWidgets('streaming=true builds and pumps frames without throwing',
+        (tester) async {
+      await _pump(tester, const KaiGradientBar(streaming: true));
+      expect(tester.takeException(), isNull);
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 300));
+      }
+      expect(tester.takeException(), isNull);
+      expect(find.byType(KaiGradientBar), findsOneWidget);
+    });
+
+    testWidgets('streaming=true disposes cleanly', (tester) async {
+      await _pump(tester, const KaiGradientBar(streaming: true));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: KaiTheme(
+              child: Scaffold(body: SizedBox()),
+            ),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('default (no pulse/streaming) renders only the gradient Container',
+        (tester) async {
+      await _pump(tester, const KaiGradientBar());
+      // Static path: the bar widget's subtree is just a Container —
+      // no Opacity wrapper added by KaiGradientBar itself.
+      final bar = find.byType(KaiGradientBar);
+      final opacityInsideBar = find.descendant(
+        of: bar,
+        matching: find.byType(Opacity),
+      );
+      expect(opacityInsideBar, findsNothing,
+          reason: 'static path should not inject an Opacity widget');
+    });
+
+    testWidgets('streaming=true wraps bar in Opacity animation',
+        (tester) async {
+      await _pump(tester, const KaiGradientBar(streaming: true));
+      // The Opacity widget is a direct descendant inside KaiGradientBar.
+      final bar = find.byType(KaiGradientBar);
+      final opacityInsideBar = find.descendant(
+        of: bar,
+        matching: find.byType(Opacity),
+      );
+      expect(opacityInsideBar, findsWidgets,
+          reason: 'streaming path must use Opacity animation');
+    });
   });
 }

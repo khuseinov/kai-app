@@ -111,22 +111,26 @@ final List<Story> primitiveStories = [
     canonSelector: '.k-who::before',
     description:
         'Tide-gradient rounded pill — used as the Kai "who" glyph (16×4) '
-        'and toast tide-bar (10×2.5). Supports a gentle pulse animation.',
-    variants: const ['static', 'pulse: true', 'width/height custom'],
+        'and toast tide-bar (10×2.5). Supports a gentle pulse animation and '
+        'a distinct streaming (Kai responding) opacity pulse.',
+    variants: const ['static', 'pulse: true', 'streaming: true', 'width/height custom'],
     props: const [
       PropDoc('width', 'double', '16', 'Pill width in logical pixels'),
       PropDoc('height', 'double', '4', 'Pill height in logical pixels'),
       PropDoc('pulse', 'bool', 'false', 'Gentle scale-breathe animation'),
+      PropDoc('streaming', 'bool', 'false', 'Opacity 0.6↔1.0 — Kai responding'),
     ],
     build: (_) => const StoryPage(
       title: 'KaiGradientBar',
       layer: 'PRIMITIVE',
       blurb: 'Tide-gradient pill — used as the Kai "who" glyph (16×4) and '
-          'toast tide-bar (10×2.5). Pulse drives a gentle breathe cycle.',
+          'toast tide-bar (10×2.5). pulse: scale-breathe; '
+          'streaming: calm opacity pulse representing Kai responding.',
       sections: [
         StorySection('Variants', [
           StoryCell('static · who glyph (16×4)', KaiGradientBar()),
           StoryCell('pulse: true', KaiGradientBar(pulse: true)),
+          StoryCell('streaming: true', KaiGradientBar(streaming: true)),
           StoryCell('toast size (10×2.5)', KaiGradientBar(width: 10, height: 2.5)),
         ]),
         StorySection('Custom sizes', [
@@ -136,11 +140,13 @@ final List<Story> primitiveStories = [
       ],
       usage: 'KaiGradientBar()                      // who glyph\n'
           'KaiGradientBar(width: 10, height: 2.5) // toast bar\n'
-          'KaiGradientBar(pulse: true)             // animated',
+          'KaiGradientBar(pulse: true)             // breathe\n'
+          'KaiGradientBar(streaming: true)         // Kai responding',
       props: [
         PropDoc('width', 'double', '16', 'Pill width in logical pixels'),
         PropDoc('height', 'double', '4', 'Pill height in logical pixels'),
         PropDoc('pulse', 'bool', 'false', 'Gentle scale-breathe animation'),
+        PropDoc('streaming', 'bool', 'false', 'Opacity 0.6↔1.0 — Kai responding'),
       ],
     ),
   ),
