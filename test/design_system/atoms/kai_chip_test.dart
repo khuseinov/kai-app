@@ -5,6 +5,15 @@ import 'package:kai_app/design_system/atoms/kai_chip.dart';
 
 import '../../test_helpers.dart';
 
+// Helper — find a Text widget by fontSize inside the chip.
+Text? _textWithFontSize(WidgetTester tester, double size) {
+  final texts = tester.widgetList<Text>(find.byType(Text)).toList();
+  for (final t in texts) {
+    if (t.style?.fontSize == size) return t;
+  }
+  return null;
+}
+
 void main() {
   group('v3/KaiChip', () {
     // -------------------------------------------------------------------------
@@ -279,6 +288,144 @@ void main() {
         await tester.pump();
         // Choice chips preserve original casing.
         expect(find.text('Все поездки'), findsOneWidget);
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    // KaiChipSize
+    // -------------------------------------------------------------------------
+    group('size', () {
+      testWidgets('sm status chip renders 11px label', (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            const KaiChip.status('test', size: KaiChipSize.sm),
+          ),
+        );
+        await tester.pump();
+        final t = _textWithFontSize(tester, 11);
+        expect(t, isNotNull, reason: 'sm status chip must use 11px fontSize');
+      });
+
+      testWidgets('md status chip renders 12px label (default)', (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            const KaiChip.status('test'),
+          ),
+        );
+        await tester.pump();
+        final t = _textWithFontSize(tester, 12);
+        expect(t, isNotNull, reason: 'md status chip must use 12px fontSize');
+      });
+
+      testWidgets('sm choice chip renders 12px label', (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            const KaiChip.choice('option', selected: false, size: KaiChipSize.sm),
+          ),
+        );
+        await tester.pump();
+        final t = _textWithFontSize(tester, 12);
+        expect(t, isNotNull, reason: 'sm choice chip must use 12px fontSize');
+      });
+
+      testWidgets('md choice chip renders 14px label (default)', (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            const KaiChip.choice('option', selected: false),
+          ),
+        );
+        await tester.pump();
+        final t = _textWithFontSize(tester, 14);
+        expect(t, isNotNull, reason: 'md choice chip must use 14px fontSize');
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    // Semantic tones (positive / warning / negative)
+    // -------------------------------------------------------------------------
+    group('semantic tones', () {
+      testWidgets('positive tone — text color is positive', (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            const KaiChip.status('ok', tone: KaiChipTone.positive),
+          ),
+        );
+        await tester.pump();
+        final texts = tester.widgetList<Text>(find.byType(Text)).toList();
+        final found = texts.any((t) => t.style?.color == KaiColors.light.positive);
+        expect(found, isTrue, reason: 'positive chip text must use positive color');
+      });
+
+      testWidgets('positive tone — bg is positiveWash', (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            const KaiChip.status('ok', tone: KaiChipTone.positive),
+          ),
+        );
+        await tester.pump();
+        final containers =
+            tester.widgetList<Container>(find.byType(Container)).toList();
+        final found = containers.any((c) {
+          final deco = c.decoration;
+          return deco is BoxDecoration && deco.color == KaiColors.light.positiveWash;
+        });
+        expect(found, isTrue, reason: 'positive chip must use positiveWash bg');
+      });
+
+      testWidgets('warning tone — text color is warning', (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            const KaiChip.status('warn', tone: KaiChipTone.warning),
+          ),
+        );
+        await tester.pump();
+        final texts = tester.widgetList<Text>(find.byType(Text)).toList();
+        final found = texts.any((t) => t.style?.color == KaiColors.light.warning);
+        expect(found, isTrue, reason: 'warning chip text must use warning color');
+      });
+
+      testWidgets('warning tone — bg is warningWash', (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            const KaiChip.status('warn', tone: KaiChipTone.warning),
+          ),
+        );
+        await tester.pump();
+        final containers =
+            tester.widgetList<Container>(find.byType(Container)).toList();
+        final found = containers.any((c) {
+          final deco = c.decoration;
+          return deco is BoxDecoration && deco.color == KaiColors.light.warningWash;
+        });
+        expect(found, isTrue, reason: 'warning chip must use warningWash bg');
+      });
+
+      testWidgets('negative tone — text color is negative', (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            const KaiChip.status('err', tone: KaiChipTone.negative),
+          ),
+        );
+        await tester.pump();
+        final texts = tester.widgetList<Text>(find.byType(Text)).toList();
+        final found = texts.any((t) => t.style?.color == KaiColors.light.negative);
+        expect(found, isTrue, reason: 'negative chip text must use negative color');
+      });
+
+      testWidgets('negative tone — bg is negativeWash', (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            const KaiChip.status('err', tone: KaiChipTone.negative),
+          ),
+        );
+        await tester.pump();
+        final containers =
+            tester.widgetList<Container>(find.byType(Container)).toList();
+        final found = containers.any((c) {
+          final deco = c.decoration;
+          return deco is BoxDecoration && deco.color == KaiColors.light.negativeWash;
+        });
+        expect(found, isTrue, reason: 'negative chip must use negativeWash bg');
       });
     });
   });

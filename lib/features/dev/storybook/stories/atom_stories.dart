@@ -343,14 +343,16 @@ final List<Story> atomStories = [
     canonSelector: '.chip',
     description:
         'Status pill (non-interactive, mono-uppercase) and choice chip '
-        '(selectable filter). Three tone variants for status.',
+        '(selectable filter). Six tone variants for status; two size variants.',
     variants: const [
       'status neutral', 'status done', 'status active',
+      'status positive', 'status warning', 'status negative',
       'choice selected', 'choice unselected',
     ],
     props: const [
       PropDoc('label', 'String', 'required', 'Chip label text'),
       PropDoc('tone', 'KaiChipTone', 'neutral', 'status only: color scheme'),
+      PropDoc('size', 'KaiChipSize', 'md', 'sm (11px) / md (12px) sizing'),
       PropDoc('selected', 'bool', 'required', 'choice only: selected state'),
       PropDoc('onTap', 'VoidCallback?', 'null', 'choice only: tap handler'),
     ],
@@ -358,12 +360,22 @@ final List<Story> atomStories = [
       title: 'KaiChip',
       layer: 'ATOM',
       blurb: 'Status pill (non-interactive, JetBrains Mono uppercase) and '
-          'selectable choice chip (Manrope, 14px). Status tones: neutral/done/active.',
+          'selectable choice chip (Manrope). Status tones: neutral/done/active/'
+          'positive/warning/negative. Two sizes: sm/md.',
       sections: [
-        StorySection('Status chips', [
+        StorySection('Status tones', [
           StoryCell('neutral', KaiChip.status('neutral')),
           StoryCell('done', KaiChip.status('done', tone: KaiChipTone.done)),
           StoryCell('active', KaiChip.status('active', tone: KaiChipTone.active)),
+          StoryCell('positive', KaiChip.status('ok', tone: KaiChipTone.positive)),
+          StoryCell('warning', KaiChip.status('warn', tone: KaiChipTone.warning)),
+          StoryCell('negative', KaiChip.status('error', tone: KaiChipTone.negative)),
+        ]),
+        StorySection('Sizes', [
+          StoryCell('sm · status', KaiChip.status('sm', size: KaiChipSize.sm)),
+          StoryCell('md · status (default)', KaiChip.status('md')),
+          StoryCell('sm · choice', KaiChip.choice('sm', selected: true, size: KaiChipSize.sm)),
+          StoryCell('md · choice (default)', KaiChip.choice('md', selected: true)),
         ]),
         StorySection('Choice chips', [
           StoryCell('selected', KaiChip.choice('Selected', selected: true)),
@@ -371,10 +383,12 @@ final List<Story> atomStories = [
         ]),
       ],
       usage: "KaiChip.status('DONE', tone: KaiChipTone.done)\n"
+          "KaiChip.status('warn', tone: KaiChipTone.warning, size: KaiChipSize.sm)\n"
           "KaiChip.choice('Filter', selected: _sel, onTap: _toggle)",
       props: [
         PropDoc('label', 'String', 'required', 'Chip label text'),
         PropDoc('tone', 'KaiChipTone', 'neutral', 'status only: color scheme'),
+        PropDoc('size', 'KaiChipSize', 'md', 'sm (11px) / md (12px) sizing'),
         PropDoc('selected', 'bool', 'required', 'choice only: selected state'),
         PropDoc('onTap', 'VoidCallback?', 'null', 'choice only: tap handler'),
       ],
