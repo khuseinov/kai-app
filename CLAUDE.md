@@ -201,7 +201,10 @@ adding a field, manually update the adapter's `read()` / `write()`.
   handoff)
 - **Hard rules + design philosophy**: `new-design/CLAUDE.md`
 - **Live design system — poke it**: `/_dev/storybook` in the running app (see Setup).
-  Code lives at `lib/design_system/{primitives,atoms,molecules,organisms}`.
+  Code at `lib/design_system/{primitives,atoms,molecules,organisms}`.
+- **Agent component index** (READ THIS FIRST for any design work): `lib/design_system/COMPONENTS.md` —
+  canon→Dart lookup table, constructor signatures, Playwright-verified computed values for
+  every component + 4 unbuilt screens (voice/memory/trip-detail/fork).
 - **Clean atomic library (v3) — spec + plan**:
   `docs/superpowers/specs/2026-05-28-kai-ui-atomic-library-v3-design.md` +
   `docs/superpowers/plans/2026-05-28-kai-ui-atomic-library-v3.md`
