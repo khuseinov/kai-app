@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 import 'package:kai_app/design_system/atoms/kai_button.dart';
@@ -10,9 +11,16 @@ import 'package:kai_app/design_system/primitives/kai_icon.dart';
 // Helpers
 // ---------------------------------------------------------------------------
 
-Future<void> _pump(WidgetTester tester, Widget child) async {
+Future<void> _pump(
+  WidgetTester tester,
+  Widget child, {
+  ThemeMode themeMode = ThemeMode.light,
+}) async {
   await tester.pumpWidget(
     ProviderScope(
+      overrides: [
+        themeModeProvider.overrideWith((ref) => themeMode),
+      ],
       child: MaterialApp(
         home: KaiTheme(
           child: Scaffold(body: Center(child: child)),
@@ -273,6 +281,69 @@ void main() {
           ),
         );
         expect(find.byType(KaiIcon), findsOneWidget);
+      });
+
+      // -- Foreground colour legibility tests --
+
+      testWidgets('light mode: label colour is surface (white #FFFFFF)',
+          (tester) async {
+        await _pump(
+          tester,
+          KaiButton.ink(onPressed: () {}, label: 'X'),
+          themeMode: ThemeMode.light,
+        );
+        final labelColor =
+            tester.widget<Text>(find.text('X')).style?.color;
+        // Light surface = #FFFFFF
+        expect(
+          labelColor,
+          const Color(0xFFFFFFFF),
+          reason:
+              'ink light-mode label must be surface (#FFFFFF) — legible on dark ink1 fill',
+        );
+      });
+
+      testWidgets('dark mode: label colour is surface (dark #16161A)',
+          (tester) async {
+        await _pump(
+          tester,
+          KaiButton.ink(onPressed: () {}, label: 'X'),
+          themeMode: ThemeMode.dark,
+        );
+        final labelColor =
+            tester.widget<Text>(find.text('X')).style?.color;
+        // Dark surface = #16161A — must NOT be white on near-white ink1 fill
+        expect(
+          labelColor,
+          isNot(const Color(0xFFFFFFFF)),
+          reason:
+              'ink dark-mode label must NOT be white — white on #F5F5F2 ink1 fill is invisible',
+        );
+        expect(
+          labelColor,
+          const Color(0xFF16161A),
+          reason:
+              'ink dark-mode label must be surface (#16161A) — legible on light ink1 fill',
+        );
+      });
+
+      testWidgets('tide: label colour is always white regardless of theme',
+          (tester) async {
+        for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+          await _pump(
+            tester,
+            KaiButton.tide(onPressed: () {}, label: 'T'),
+            themeMode: mode,
+          );
+          final labelColor =
+              tester.widget<Text>(find.text('T')).style?.color;
+          expect(
+            labelColor,
+            const Color(0xFFFFFFFF),
+            reason:
+                'tide label must always be white — gradient is theme-independent; mode=$mode',
+          );
+        }
       });
     });
 

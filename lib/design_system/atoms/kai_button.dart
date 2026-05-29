@@ -481,8 +481,9 @@ class _KaiButtonState extends State<KaiButton>
     final c = tokens.colors;
     switch (widget._variant) {
       case _KaiButtonVariant.tide:
-      case _KaiButtonVariant.ink:
         return const Color(0xFFFFFFFF);
+      case _KaiButtonVariant.ink:
+        return tokens.colors.surface;
       case _KaiButtonVariant.ghost:
         return _toneColor(c);
       case _KaiButtonVariant.text:
