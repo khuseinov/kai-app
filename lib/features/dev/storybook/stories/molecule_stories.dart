@@ -130,11 +130,12 @@ final List<Story> moleculeStories = [
     canonSelector: '.sheet.compose-sheet .compose',
     description:
         'Pill-shaped chat input bar with growing textarea, optional mic '
-        'button, and send button lifecycle states.',
+        'button, and send button lifecycle states. Three modes: standard, '
+        'voice (mic emphasis, send hidden until text), offline (disabled + hint).',
     variants: [
-      'KaiComposeIsland(controller, onSend)',
-      'onMicTap: ...',
-      'sendState: KaiSendState.*',
+      'mode: standard',
+      'mode: voice',
+      'mode: offline',
     ],
     build: (_) => const _KaiComposeIslandStory(),
   ),
@@ -495,10 +496,14 @@ class _KaiComposeIslandStory extends StatefulWidget {
 
 class _KaiComposeIslandStoryState extends State<_KaiComposeIslandStory> {
   final _ctrl = TextEditingController();
+  final _voiceCtrl = TextEditingController();
+  final _offlineCtrl = TextEditingController();
 
   @override
   void dispose() {
     _ctrl.dispose();
+    _voiceCtrl.dispose();
+    _offlineCtrl.dispose();
     super.dispose();
   }
 
@@ -509,11 +514,13 @@ class _KaiComposeIslandStoryState extends State<_KaiComposeIslandStory> {
       layer: 'MOLECULE',
       blurb:
           'Pill-shaped chat input bar — growing textarea, optional mic button, '
-          'and KaiSendButton lifecycle (idle/busy/done).',
+          'and KaiSendButton lifecycle (idle/busy/done). Three modes: standard '
+          '(default), voice (mic emphasis — send hidden until text), offline '
+          '(input disabled, "оффлайн" hint shown).',
       sections: [
-        StorySection('Interactive demo', [
+        StorySection('Modes', [
           StoryCell(
-            'with mic',
+            'standard',
             SizedBox(
               width: 320,
               child: KaiComposeIsland(
@@ -524,12 +531,25 @@ class _KaiComposeIslandStoryState extends State<_KaiComposeIslandStory> {
             ),
           ),
           StoryCell(
-            'no mic',
+            'voice',
             SizedBox(
               width: 320,
               child: KaiComposeIsland(
-                controller: TextEditingController(),
+                controller: _voiceCtrl,
                 onSend: () {},
+                onMicTap: () {},
+                mode: KaiComposeMode.voice,
+              ),
+            ),
+          ),
+          StoryCell(
+            'offline',
+            SizedBox(
+              width: 320,
+              child: KaiComposeIsland(
+                controller: _offlineCtrl,
+                onSend: () {},
+                mode: KaiComposeMode.offline,
               ),
             ),
           ),
@@ -539,12 +559,14 @@ class _KaiComposeIslandStoryState extends State<_KaiComposeIslandStory> {
           '  controller: _ctrl,\n'
           '  onSend: _handleSend,\n'
           '  onMicTap: _handleMic,\n'
+          '  mode: KaiComposeMode.standard,\n'
           ')',
       props: const [
         PropDoc('controller', 'TextEditingController', 'required', 'Input controller'),
         PropDoc('onSend', 'VoidCallback', 'required', 'Called when send tapped'),
         PropDoc('onMicTap', 'VoidCallback?', 'null', 'Shows mic button when set'),
-        PropDoc('sendState', 'KaiSendState', 'idle', 'idle / sending / done'),
+        PropDoc('sendState', 'KaiSendState', 'ready', 'idle / sending / streaming'),
+        PropDoc('mode', 'KaiComposeMode', 'standard', 'standard / voice / offline'),
       ],
     );
   }

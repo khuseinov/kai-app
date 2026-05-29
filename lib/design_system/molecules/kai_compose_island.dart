@@ -5,6 +5,22 @@ import '../tokens/kai_tokens.dart';
 import '../atoms/atoms.dart';
 import '../primitives/primitives.dart';
 
+// ---------------------------------------------------------------------------
+// Mode enum
+// ---------------------------------------------------------------------------
+
+/// Interaction mode for [KaiComposeIsland].
+///
+/// - [standard] — default pill input bar with optional mic button.
+/// - [voice] — mic is the primary affordance (accent-toned, md size);
+///   send button hidden until the controller has text.
+/// - [offline] — input disabled, "оффлайн" hint shown, send disabled.
+enum KaiComposeMode { standard, voice, offline }
+
+// ---------------------------------------------------------------------------
+// KaiComposeIsland
+// ---------------------------------------------------------------------------
+
 /// v3 compose island — the pill-shaped chat input bar.
 ///
 /// Ports v2 `ComposeIsland` (pill variant only; the dead `.sheet` variant
@@ -29,6 +45,13 @@ import '../primitives/primitives.dart';
 ///   the animated states explicitly.
 /// - Otherwise: `ready` when controller has text, `disabled` when empty.
 ///
+/// **Mode** ([KaiComposeMode]):
+/// - [KaiComposeMode.standard] — default behaviour.
+/// - [KaiComposeMode.voice] — mic is emphasised (accent toggle, md); send
+///   hidden until the controller has text.
+/// - [KaiComposeMode.offline] — input disabled, "оффлайн" hint label shown,
+///   send always disabled.
+///
 /// This widget is purely presentational — it owns no Riverpod or state logic.
 class KaiComposeIsland extends StatelessWidget {
   const KaiComposeIsland({
@@ -37,6 +60,7 @@ class KaiComposeIsland extends StatelessWidget {
     this.onMicTap,
     this.sendState = KaiSendState.ready,
     this.placeholder = 'Сообщение Kai…',
+    this.mode = KaiComposeMode.standard,
     super.key,
   });
 
@@ -46,7 +70,9 @@ class KaiComposeIsland extends StatelessWidget {
   /// Fires when the send button is tapped in a [KaiSendState.ready] state.
   final VoidCallback onSend;
 
-  /// Optional mic tap callback. When null, the mic button is omitted.
+  /// Optional mic tap callback. When null, the mic button is omitted in
+  /// [KaiComposeMode.standard]. In [KaiComposeMode.voice] the mic is always
+  /// shown (using [onMicTap] if set, otherwise a no-op).
   final VoidCallback? onMicTap;
 
   /// Explicit send state. When [KaiSendState.sending] or
@@ -58,12 +84,17 @@ class KaiComposeIsland extends StatelessWidget {
   /// Placeholder shown when [controller.text] is empty.
   final String placeholder;
 
+  /// Interaction mode. Defaults to [KaiComposeMode.standard].
+  final KaiComposeMode mode;
+
   // -------------------------------------------------------------------------
   // Helpers
   // -------------------------------------------------------------------------
 
   /// Derives the effective [KaiSendState] from caller intent + controller text.
+  /// In [KaiComposeMode.offline] always returns [KaiSendState.disabled].
   KaiSendState _effectiveSendState(String text) {
+    if (mode == KaiComposeMode.offline) return KaiSendState.disabled;
     // Animated/locked states are passed through unchanged.
     if (sendState == KaiSendState.sending ||
         sendState == KaiSendState.streaming) {
@@ -87,6 +118,9 @@ class KaiComposeIsland extends StatelessWidget {
     const buttonSize = 30.0; // canon: mic/send 30×30
     const sendIconSize = 12.0; // canon: arrow-up glyph inside send
 
+    final isVoice = mode == KaiComposeMode.voice;
+    final isOffline = mode == KaiComposeMode.offline;
+
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
@@ -101,45 +135,83 @@ class KaiComposeIsland extends StatelessWidget {
         paddingVH,
         paddingVH,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Expanded text field — bare TextField (no internal fill/border) to
-          // avoid double-pill styling; the outer Container is the visual pill.
-          Expanded(
-            child: _ComposeField(
-              controller: controller,
-              placeholder: placeholder,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Expanded text field — bare TextField (no internal fill/border)
+              // to avoid double-pill styling; the outer Container is the visual
+              // pill. Disabled in offline mode.
+              Expanded(
+                child: _ComposeField(
+                  controller: controller,
+                  placeholder: placeholder,
+                  enabled: !isOffline,
+                ),
+              ),
+              // Mic affordance.
+              // standard: shown only when onMicTap is wired.
+              // voice: always shown, accent-toned (KaiIconButton.toggle active).
+              // offline: omitted.
+              if (!isOffline) ...[
+                if (isVoice || onMicTap != null) ...[
+                  const SizedBox(width: gap),
+                  SizedBox(
+                    width: buttonSize,
+                    height: buttonSize,
+                    child: isVoice
+                        ? KaiIconButton.toggle(
+                            active: true,
+                            onPressed: onMicTap ?? () {},
+                            icon: KaiIconName.mic,
+                            iconSize: KaiIconButtonSize.md,
+                            key: const ValueKey<String>('compose_mic_button'),
+                          )
+                        : KaiIconButton.transparent(
+                            onPressed: onMicTap,
+                            icon: KaiIconName.mic,
+                            size: 14, // canon: mic glyph 14px inside 30×30
+                            key: const ValueKey<String>('compose_mic_button'),
+                          ),
+                  ),
+                ],
+              ],
+              const SizedBox(width: gap),
+              // Send button — rebuilt when controller text changes.
+              // voice: hidden until controller has text.
+              ListenableBuilder(
+                listenable: controller,
+                builder: (_, __) {
+                  final effective = _effectiveSendState(controller.text);
+                  // In voice mode, hide send when empty.
+                  if (isVoice && controller.text.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return KaiSendButton(
+                    state: effective,
+                    onPressed: effective == KaiSendState.disabled ? null : onSend,
+                    size: buttonSize,
+                    iconSize: sendIconSize,
+                  );
+                },
+              ),
+            ],
           ),
-          // Mic affordance — only rendered when a callback is wired.
-          if (onMicTap != null) ...[
-            const SizedBox(width: gap),
-            SizedBox(
-              width: buttonSize,
-              height: buttonSize,
-              child: KaiIconButton.transparent(
-                onPressed: onMicTap,
-                icon: KaiIconName.mic,
-                size: 14, // canon: mic glyph 14px inside 30×30 tap target
-                key: const ValueKey<String>('compose_mic_button'),
+          // Offline hint label.
+          if (isOffline) ...[
+            const SizedBox(height: 2),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Text(
+                'оффлайн',
+                key: const ValueKey<String>('compose_offline_hint'),
+                style: KaiType.mono(color: c.ink3).copyWith(fontSize: 10),
               ),
             ),
           ],
-          const SizedBox(width: gap),
-          // Send button — rebuilt when controller text changes.
-          ListenableBuilder(
-            listenable: controller,
-            builder: (_, __) {
-              final effective = _effectiveSendState(controller.text);
-              return KaiSendButton(
-                state: effective,
-                onPressed: effective == KaiSendState.disabled ? null : onSend,
-                size: buttonSize,
-                iconSize: sendIconSize,
-              );
-            },
-          ),
         ],
       ),
     );
@@ -166,10 +238,12 @@ class _ComposeField extends StatelessWidget {
   const _ComposeField({
     required this.controller,
     required this.placeholder,
+    this.enabled = true,
   });
 
   final TextEditingController controller;
   final String placeholder;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -188,6 +262,7 @@ class _ComposeField extends StatelessWidget {
 
     return TextField(
       controller: controller,
+      enabled: enabled,
       minLines: 1,
       maxLines: 4,
       style: inputStyle,

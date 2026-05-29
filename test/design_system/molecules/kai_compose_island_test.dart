@@ -9,6 +9,145 @@ import '../../test_helpers.dart';
 void main() {
   group('v3/KaiComposeIsland', () {
     // -----------------------------------------------------------------------
+    // Mode enum
+    // -----------------------------------------------------------------------
+
+    test('KaiComposeMode has exactly 3 values', () {
+      expect(KaiComposeMode.values.length, 3);
+    });
+
+    // -----------------------------------------------------------------------
+    // voice mode
+    // -----------------------------------------------------------------------
+
+    testWidgets('voice mode: mic button prominent (always shown)', (tester) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          KaiComposeIsland(
+            controller: controller,
+            onSend: () {},
+            mode: KaiComposeMode.voice,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey<String>('compose_mic_button')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('voice mode: send hidden when controller is empty',
+        (tester) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          KaiComposeIsland(
+            controller: controller,
+            onSend: () {},
+            mode: KaiComposeMode.voice,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(KaiSendButton), findsNothing);
+    });
+
+    testWidgets('voice mode: send visible when controller has text',
+        (tester) async {
+      final controller = TextEditingController(text: 'hello');
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          KaiComposeIsland(
+            controller: controller,
+            onSend: () {},
+            mode: KaiComposeMode.voice,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(KaiSendButton), findsOneWidget);
+    });
+
+    // -----------------------------------------------------------------------
+    // offline mode
+    // -----------------------------------------------------------------------
+
+    testWidgets('offline mode: input is disabled', (tester) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          KaiComposeIsland(
+            controller: controller,
+            onSend: () {},
+            mode: KaiComposeMode.offline,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final textField = tester.widget<TextField>(find.byType(TextField));
+      expect(textField.enabled, isFalse);
+    });
+
+    testWidgets('offline mode: offline hint text is present', (tester) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          KaiComposeIsland(
+            controller: controller,
+            onSend: () {},
+            mode: KaiComposeMode.offline,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey<String>('compose_offline_hint')),
+        findsOneWidget,
+      );
+      expect(find.text('оффлайн'), findsOneWidget);
+    });
+
+    testWidgets('offline mode: send button is disabled', (tester) async {
+      final controller = TextEditingController(text: 'text does not matter');
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          KaiComposeIsland(
+            controller: controller,
+            onSend: () {},
+            mode: KaiComposeMode.offline,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final sendBtn = tester.widget<KaiSendButton>(find.byType(KaiSendButton));
+      expect(sendBtn.state, KaiSendState.disabled);
+    });
+
+    // -----------------------------------------------------------------------
+    // standard mode (existing behaviour preserved)
+    // -----------------------------------------------------------------------
+
+    // -----------------------------------------------------------------------
     // Renders child atoms
     // -----------------------------------------------------------------------
 
