@@ -4,8 +4,14 @@ import '../theme/kai_theme.dart';
 import '../tokens/kai_tokens.dart';
 import '../primitives/kai_icon.dart';
 
-/// v3 single settings list row. Canon: `new-design/settings.html § .row`.
+/// A single row in a settings list.
 ///
+/// Use this widget to build settings screens: it handles the canonical layout
+/// of a leading icon, a title, an optional subtitle, and an optional trailing
+/// widget. It also handles tap highlighting and the danger (coral) variant for
+/// destructive actions such as "Удалить мои данные" or "Выйти".
+///
+/// ## Layout
 /// ```
 /// padding 9 × 11, radius 8
 /// grid: 16px icon | 1fr body | auto trail; gap 9
@@ -15,9 +21,22 @@ import '../primitives/kai_icon.dart';
 /// trail: any widget — chevron, KaiToggle, KaiSegmentedControl, status text
 /// ```
 ///
-/// [danger] flips title + icon to the negative token (for "Удалить мои данные"
-/// rows and "Выйти" link). Use inside a [KaiSettingsGroup] danger variant for
-/// the full coral surface.
+/// ## When to use
+/// - Inside [KaiSettingsGroup] to build a section of settings.
+/// - Trailing slot accepts any widget: [KaiToggle], [KaiSegmentedControl],
+///   `KaiIcon(KaiIconName.chevRight, ...)`, or plain text.
+///
+/// ## Danger variant
+/// Pass `danger: true` for destructive-action rows. This flips the title and
+/// icon to the `negative` coral token. Typically combined with a
+/// [KaiSettingsGroup] with `danger: true` for the full coral surface.
+///
+/// ## Tap feedback
+/// The [InkWell] splash is softened: transparent splash colour + a faint
+/// `surface2`-based highlight, so the tap is calm rather than the default
+/// opaque ripple.
+///
+/// Canon: `new-design/settings.html § .row`.
 class KaiSettingsRow extends StatelessWidget {
   const KaiSettingsRow({
     required this.icon,
@@ -94,9 +113,13 @@ class KaiSettingsRow extends StatelessWidget {
     );
 
     if (onTap == null) return content;
+    // Softened tap feedback: transparent splash + faint surface2/line highlight
+    // so the tap reads as calm rather than the default opaque Material ripple.
     return InkWell(
       onTap: onTap,
       borderRadius: KaiRadius.br8,
+      splashColor: Colors.transparent,
+      highlightColor: c.surface2.withValues(alpha: 0.6),
       child: content,
     );
   }

@@ -313,11 +313,13 @@ final List<Story> moleculeStories = [
     canonFile: 'new-design/settings.html',
     canonSelector: '.row',
     description:
-        'Settings list row with leading icon, title, optional subtitle, '
-        'and a trailing widget slot. Danger variant turns text coral.',
+        'Settings list row: leading icon + title + optional subtitle + trailing '
+        'widget. Tappable with a calm, softened ripple. Danger variant turns '
+        'title + icon coral. Use inside KaiSettingsGroup.',
     variants: [
-      'normal', 'danger: true',
-      'trailing: KaiToggle', 'trailing: KaiIcon(chevRight)',
+      'trailing: KaiToggle',
+      'trailing: KaiSegmentedControl',
+      'danger: true',
     ],
     build: (_) => const _KaiSettingsRowStory(),
   ),
@@ -971,20 +973,23 @@ class _KaiSettingsRowStory extends StatefulWidget {
 
 class _KaiSettingsRowStoryState extends State<_KaiSettingsRowStory> {
   bool _toggle = true;
+  int _segIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    final c = KaiTheme.of(context).colors;
     return StoryPage(
       title: 'KaiSettingsRow',
       layer: 'MOLECULE',
       blurb:
-          'Settings list row — leading icon, title, optional subtitle, trailing '
-          'widget slot. Danger variant renders title + icon in coral (#C44A3C).',
+          'A single row in a settings list: leading icon, title, optional '
+          'subtitle, and a trailing widget slot. Tap feedback is calm — '
+          'transparent splash + faint surface highlight. Use inside '
+          'KaiSettingsGroup to build settings sections. '
+          'Danger variant turns the title + icon coral for destructive actions.',
       sections: [
         StorySection('Variants', [
           StoryCell(
-            'toggle trailing',
+            'KaiToggle trailing',
             SizedBox(
               width: 280,
               child: KaiSettingsRow(
@@ -1000,25 +1005,32 @@ class _KaiSettingsRowStoryState extends State<_KaiSettingsRowStory> {
             ),
           ),
           StoryCell(
-            'chevron trailing',
+            'KaiSegmentedControl trailing',
             SizedBox(
-              width: 280,
+              width: 300,
               child: KaiSettingsRow(
                 icon: KaiIconName.motion,
-                title: 'Уменьшить анимацию',
-                subtitle: 'прилив становится статичным',
-                trailing: KaiIcon(KaiIconName.chevRight, size: 14, color: c.ink3),
+                title: 'Язык',
+                trailing: SizedBox(
+                  width: 140,
+                  child: KaiSegmentedControl(
+                    options: const ['RU', 'EN'],
+                    selectedIndex: _segIndex,
+                    onSelected: (i) => setState(() => _segIndex = i),
+                  ),
+                ),
                 onTap: () {},
               ),
             ),
           ),
           StoryCell(
-            'danger',
+            'danger row',
             SizedBox(
               width: 280,
               child: KaiSettingsRow(
                 icon: KaiIconName.trash,
                 title: 'Удалить мои данные',
+                subtitle: 'необратимое действие',
                 danger: true,
                 onTap: () {},
               ),
@@ -1029,16 +1041,17 @@ class _KaiSettingsRowStoryState extends State<_KaiSettingsRowStory> {
       usage: 'KaiSettingsRow(\n'
           '  icon: KaiIconName.palette,\n'
           '  title: "Тема",\n'
-          '  trailing: KaiToggle(...),\n'
+          '  subtitle: "системная",\n'
+          '  trailing: KaiToggle(value: _v, onChanged: _onChanged),\n'
           '  onTap: () {},\n'
           ')',
       props: const [
-        PropDoc('icon', 'KaiIconName', 'required', 'Leading icon'),
-        PropDoc('title', 'String', 'required', 'Row label'),
-        PropDoc('subtitle', 'String?', 'null', 'Optional subtitle text'),
-        PropDoc('trailing', 'Widget?', 'null', 'Trailing widget (toggle, chevron, etc.)'),
-        PropDoc('danger', 'bool', 'false', 'Coral text + icon'),
-        PropDoc('onTap', 'VoidCallback?', 'null', 'Row tap handler'),
+        PropDoc('icon', 'KaiIconName', 'required', 'Leading 15px icon'),
+        PropDoc('title', 'String', 'required', 'Row label (Manrope 500/12)'),
+        PropDoc('subtitle', 'String?', 'null', 'Secondary label (Mono 400/10)'),
+        PropDoc('trailing', 'Widget?', 'null', 'Trailing: KaiToggle, KaiSegmentedControl, chevron…'),
+        PropDoc('danger', 'bool', 'false', 'Coral title + icon (destructive action)'),
+        PropDoc('onTap', 'VoidCallback?', 'null', 'Row tap; wraps in softened InkWell'),
       ],
     );
   }
