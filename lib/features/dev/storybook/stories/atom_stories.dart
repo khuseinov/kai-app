@@ -444,36 +444,55 @@ final List<Story> atomStories = [
     canonFile: 'new-design/settings.html',
     canonSelector: '.acc-hero .avatar',
     description:
-        'Circular avatar filled with the tide corner gradient. Shows an '
-        'optional single initial letter at center.',
-    variants: const ['KaiAvatar()', 'initial: "R"', 'size: 56'],
+        'Circular avatar — .user(initial) or .kai (gradient bar mark). '
+        'Three sizes (sm/md/lg) and optional breathing pulse.',
+    variants: const [
+      'user(initial)', 'kai',
+      'sm (28)', 'md (40)', 'lg (56)',
+      'breathing',
+    ],
     props: const [
-      PropDoc('size', 'double', '40', 'Circle diameter in logical pixels'),
-      PropDoc('initial', 'String?', 'null', 'Single letter shown at center'),
+      PropDoc('avatarSize', 'KaiAvatarSize', 'md', 'sm=28 / md=40 / lg=56'),
+      PropDoc('breathing', 'bool', 'false', 'Scale 0.97↔1.03 ambient pulse'),
+      PropDoc('initial', 'String', 'required', 'user only: letter at center'),
+      PropDoc('size', 'double', '40', 'legacy ctor: diameter override'),
     ],
     build: (_) => const StoryPage(
       title: 'KaiAvatar',
       layer: 'ATOM',
-      blurb: 'Circular avatar with tide corner gradient (135°). Optional initial '
-          'letter is uppercased automatically. Default size 40.',
+      blurb: 'Circular avatar with tide corner gradient (135°). .user shows an '
+          'initial letter; .kai shows the gradient bar mark. Three sizes. '
+          'Optional ambient breathing animation.',
       sections: [
-        StorySection('Variants', [
-          StoryCell('default (40)', KaiAvatar()),
-          StoryCell('initial R', KaiAvatar(initial: 'R')),
-          StoryCell('initial K', KaiAvatar(initial: 'K')),
+        StorySection('User vs Kai', [
+          StoryCell('user(R)', KaiAvatar.user('R')),
+          StoryCell('user(K)', KaiAvatar.user('K')),
+          StoryCell('kai', KaiAvatar.kai()),
         ]),
         StorySection('Sizes', [
-          StoryCell('32', KaiAvatar(size: 32, initial: 'R')),
-          StoryCell('40 (default)', KaiAvatar(size: 40, initial: 'R')),
-          StoryCell('56', KaiAvatar(size: 56, initial: 'R')),
-          StoryCell('72', KaiAvatar(size: 72, initial: 'R')),
+          StoryCell('sm (28)', KaiAvatar.user('R', avatarSize: KaiAvatarSize.sm)),
+          StoryCell('md (40)', KaiAvatar.user('R')),
+          StoryCell('lg (56)', KaiAvatar.user('R', avatarSize: KaiAvatarSize.lg)),
+          StoryCell('kai sm', KaiAvatar.kai(avatarSize: KaiAvatarSize.sm)),
+          StoryCell('kai lg', KaiAvatar.kai(avatarSize: KaiAvatarSize.lg)),
+        ]),
+        StorySection('Breathing pulse', [
+          StoryCell('user breathing', KaiAvatar.user('K', breathing: true)),
+          StoryCell('kai breathing', KaiAvatar.kai(breathing: true)),
+        ]),
+        StorySection('Legacy ctor (compat)', [
+          StoryCell('default (40)', KaiAvatar()),
+          StoryCell('size 56', KaiAvatar(size: 56, initial: 'R')),
         ]),
       ],
-      usage: 'KaiAvatar(initial: user.initial)\n'
-          'KaiAvatar(size: 56)',
+      usage: 'KaiAvatar.user(user.initial)\n'
+          'KaiAvatar.user(initial, avatarSize: KaiAvatarSize.lg)\n'
+          'KaiAvatar.kai(breathing: true)',
       props: [
-        PropDoc('size', 'double', '40', 'Circle diameter in logical pixels'),
-        PropDoc('initial', 'String?', 'null', 'Single letter shown at center'),
+        PropDoc('avatarSize', 'KaiAvatarSize', 'md', 'sm=28 / md=40 / lg=56'),
+        PropDoc('breathing', 'bool', 'false', 'Scale 0.97↔1.03 ambient pulse'),
+        PropDoc('initial', 'String', 'required', 'user only: letter at center'),
+        PropDoc('size', 'double', '40', 'legacy ctor: diameter override'),
       ],
     ),
   ),
