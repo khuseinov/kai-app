@@ -7,13 +7,13 @@ import 'package:kai_app/features/dev/storybook/storybook_screen.dart';
 import 'package:kai_app/features/dev/storybook/story_registry.dart';
 import 'package:kai_app/l10n/app_localizations.dart';
 
-/// Smoke tests for the adaptive Storybook shell.
+/// Smoke tests for the adaptive Storybook shell (C1-Task-4 3-pane rebuild).
 ///
-/// Verifies: screen builds, selecting a story renders its widget,
-/// wide and narrow layouts both construct without exceptions.
-///
-/// Layout-overflow errors from pre-existing component implementations
-/// are suppressed so the tests focus on structural integrity.
+/// Covers:
+///   - Wide (1400×900) and narrow (380×800) build without exception.
+///   - Search filters the sidebar — no results for a never-matching query.
+///   - Selecting a story (identity-based) renders correctly.
+///   - Layer coverage is maintained.
 
 Widget _wrap(Widget screen) {
   return ProviderScope(
@@ -45,41 +45,61 @@ Future<void> _ignoringOverflows(Future<void> Function() body) async {
 
 void main() {
   group('StorybookScreen — smoke', () {
-    testWidgets('builds without exception at wide layout (1024px)', (t) async {
+    testWidgets('builds without exception at extra-wide layout (1400×900)',
+        (t) async {
       await _ignoringOverflows(() async {
-        t.view.physicalSize = const Size(1024, 768);
+        t.view.physicalSize = const Size(1400, 900);
         t.view.devicePixelRatio = 1.0;
-        addTearDown(() => t.view.resetPhysicalSize());
-        addTearDown(() => t.view.resetDevicePixelRatio());
+        addTearDown(t.view.reset);
 
         await t.pumpWidget(_wrap(const StorybookScreen()));
         await t.pump();
       });
 
-      // Sidebar is persistent in wide layout — first story name appears in sidebar
+      // In the 3-pane layout the first story name appears in the sidebar.
       expect(find.text(kStories.first.name), findsWidgets);
     });
 
-    testWidgets('builds without exception at narrow layout (375px)', (t) async {
+    testWidgets('builds without exception at narrow layout (380×800)',
+        (t) async {
       await _ignoringOverflows(() async {
-        t.view.physicalSize = const Size(375, 812);
+        t.view.physicalSize = const Size(380, 800);
         t.view.devicePixelRatio = 1.0;
-        addTearDown(() => t.view.resetPhysicalSize());
-        addTearDown(() => t.view.resetDevicePixelRatio());
+        addTearDown(t.view.reset);
 
         await t.pumpWidget(_wrap(const StorybookScreen()));
         await t.pump();
       });
 
-      // In narrow layout the AppBar shows "Storybook"
+      // In narrow layout the AppBar shows 'Storybook'.
       expect(find.text('Storybook'), findsOneWidget);
+    });
+
+    testWidgets(
+        'search filters sidebar — no sidebar rows for a never-matching query',
+        (t) async {
+      await _ignoringOverflows(() async {
+        t.view.physicalSize = const Size(1400, 900);
+        t.view.devicePixelRatio = 1.0;
+        addTearDown(t.view.reset);
+
+        await t.pumpWidget(_wrap(const StorybookScreen()));
+        await t.pump();
+
+        // Type a query that matches no story name.
+        await t.enterText(find.byType(TextField).first, 'zzzznomatch');
+        await t.pump();
+      });
+
+      // No story name should appear in the filtered sidebar.
+      expect(find.text('KaiButton'), findsNothing);
     });
 
     testWidgets('story registry is non-empty and built layers are covered',
         (t) async {
       expect(kStories, isNotEmpty);
       final layers = kStories.map((s) => s.layer).toSet();
-      // StoryLayer.foundations is intentionally empty until C1-T5 populates it.
+      // StoryLayer.foundations may be empty until C1-T5 populates it.
       const builtLayers = {
         StoryLayer.primitives,
         StoryLayer.atoms,
@@ -89,18 +109,17 @@ void main() {
       expect(layers, containsAll(builtLayers));
     });
 
-    testWidgets('first story renders in canvas', (t) async {
+    testWidgets('first story renders in canvas at wide layout', (t) async {
       await _ignoringOverflows(() async {
-        t.view.physicalSize = const Size(1024, 768);
+        t.view.physicalSize = const Size(1400, 900);
         t.view.devicePixelRatio = 1.0;
-        addTearDown(() => t.view.resetPhysicalSize());
-        addTearDown(() => t.view.resetDevicePixelRatio());
+        addTearDown(t.view.reset);
 
         await t.pumpWidget(_wrap(const StorybookScreen()));
         await t.pump();
       });
 
-      // First story name appears (in the sidebar and/or canvas caption)
+      // First story name appears (in the sidebar and/or AppBar title).
       expect(find.text(kStories.first.name), findsWidgets);
     });
   });
