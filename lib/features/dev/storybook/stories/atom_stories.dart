@@ -646,6 +646,54 @@ final List<Story> atomStories = [
   ),
   Story(
     layer: StoryLayer.atoms,
+    name: 'KaiForkScoreDots',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/fork.html',
+    canonSelector: '.fc-score',
+    description:
+        'Rating row of up to 5 small circles. Filled dots use positive (or custom '
+        'fillColor); empty dots use surface3. 5×5px circles, 3px gap.',
+    variants: const ['score=4/5', 'score=5/5', 'score=0/5', 'custom fillColor'],
+    props: const [
+      PropDoc('score', 'int', 'required', 'Number of filled dots'),
+      PropDoc('max', 'int', '5', 'Total dot count'),
+      PropDoc('fillColor', 'Color?', 'c.positive', 'Override filled-dot color'),
+    ],
+    build: (_) => const StoryPage(
+      title: 'KaiForkScoreDots',
+      layer: 'ATOM',
+      blurb: 'Compact rating row used inside KaiForkCard. Row of max circles '
+          '(default 5); first score dots filled with positive token, rest with '
+          'surface3. 5×5px circles, 3px gap — all canon literals from fork.html.',
+      sections: [
+        StorySection('Scores', [
+          StoryCell('4/5', KaiForkScoreDots(score: 4)),
+          StoryCell('5/5', KaiForkScoreDots(score: 5)),
+          StoryCell('3/5', KaiForkScoreDots(score: 3)),
+          StoryCell('0/5', KaiForkScoreDots(score: 0)),
+        ]),
+        StorySection('Custom fill (tide-2)', [
+          StoryCell(
+            'tide-2 fill',
+            KaiForkScoreDots(
+              score: 3,
+              fillColor: Color(0xFF2BA8C9),
+            ),
+          ),
+        ]),
+      ],
+      usage: 'KaiForkScoreDots(score: 4)          // 4/5 positive\n'
+          'KaiForkScoreDots(score: 5, max: 5)   // full\n'
+          'KaiForkScoreDots(score: 3, fillColor: c.accent)',
+      props: [
+        PropDoc('score', 'int', 'required', 'Number of filled dots (0..max)'),
+        PropDoc('max', 'int', '5', 'Total dot count'),
+        PropDoc('fillColor', 'Color?', 'c.positive', 'Override filled-dot color'),
+      ],
+    ),
+  ),
+  Story(
+    layer: StoryLayer.atoms,
     name: 'KaiSheetShell',
     importPath: 'package:kai_app/design_system/atoms/atoms.dart',
     canonFile: 'new-design/components.html',
