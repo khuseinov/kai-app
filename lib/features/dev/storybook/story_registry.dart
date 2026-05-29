@@ -18,11 +18,35 @@ class Story {
   const Story({
     required this.layer,
     required this.name,
+    required this.importPath,
+    required this.canonFile,
+    this.canonSelector = '',
+    this.description = '',
+    this.variants = const [],
     required this.build,
   });
 
   final StoryLayer layer;
   final String name;
+
+  /// Barrel import path — use this in Dart code.
+  /// e.g. `package:kai_app/design_system/atoms/atoms.dart`
+  final String importPath;
+
+  /// Canonical HTML reference file inside `new-design/`.
+  /// e.g. `new-design/components.html`
+  final String canonFile;
+
+  /// Primary CSS selector(s) that represent this component in [canonFile].
+  /// e.g. `.bub.kai`  — empty string when no direct selector exists.
+  final String canonSelector;
+
+  /// One-sentence description of what this component does and when to use it.
+  final String description;
+
+  /// Named constructor / visual variant strings for this component.
+  final List<String> variants;
+
   final WidgetBuilder build;
 }
 
@@ -33,16 +57,37 @@ final List<Story> kStories = [
   Story(
     layer: StoryLayer.primitives,
     name: 'KaiIcon',
+    importPath: 'package:kai_app/design_system/primitives/primitives.dart',
+    canonFile: 'new-design/foundations.html',
+    canonSelector: '.icon-grid svg',
+    description:
+        'SVG icon primitive — renders a tinted icon from assets/icons/ '
+        'using a KaiIconName enum value.',
+    variants: ['KaiIcon(name, size, color)'],
     build: (_) => const _KaiIconStory(),
   ),
   Story(
     layer: StoryLayer.primitives,
     name: 'KaiSurface',
+    importPath: 'package:kai_app/design_system/primitives/primitives.dart',
+    canonFile: 'new-design/foundations.html',
+    canonSelector: '.surface-demo',
+    description:
+        'Themed container primitive — wraps any child with a token-driven '
+        'BoxDecoration (color, radius, border, shadow).',
+    variants: ['color', 'border: true', 'shadow: KaiShadow.*', 'radius: KaiRadius.*'],
     build: (_) => const _KaiSurfaceStory(),
   ),
   Story(
     layer: StoryLayer.primitives,
     name: 'KaiGradientBar',
+    importPath: 'package:kai_app/design_system/primitives/primitives.dart',
+    canonFile: 'new-design/components.html',
+    canonSelector: '.k-who::before',
+    description:
+        'Tide-gradient rounded pill — used as the Kai "who" glyph (16×4) '
+        'and toast tide-bar (10×2.5). Supports a gentle pulse animation.',
+    variants: ['static', 'pulse: true', 'width/height custom'],
     build: (_) => const _KaiGradientBarStory(),
   ),
 
@@ -50,61 +95,155 @@ final List<Story> kStories = [
   Story(
     layer: StoryLayer.atoms,
     name: 'KaiText',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/foundations.html',
+    canonSelector: '.type-scale',
+    description:
+        'Typed text atom with ten named constructors mapping to the full '
+        'KaiType scale. Display-tier constructors support gradient: true.',
+    variants: [
+      'hero', 'display', 'h1', 'h2', 'h3',
+      'lead', 'body', 'small', 'micro', 'mono',
+    ],
     build: (_) => const _KaiTextStory(),
   ),
   Story(
     layer: StoryLayer.atoms,
     name: 'KaiButton',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/components.html',
+    canonSelector: '.btn-grid .btn',
+    description:
+        'Four-variant button atom covering every action weight in the system: '
+        'primary tide, solid ink, ghost outline, and text link.',
+    variants: ['tide', 'ink', 'ghost', 'text'],
     build: (_) => const _KaiButtonStory(),
   ),
   Story(
     layer: StoryLayer.atoms,
     name: 'KaiIconButton',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/components.html',
+    canonSelector: '.icon-btn',
+    description:
+        'Icon-only button with three surface variants — use surface for '
+        'compose attachment slots, transparent for mic, bare for sheet actions.',
+    variants: ['surface', 'transparent', 'bare'],
     build: (_) => const _KaiIconButtonStory(),
   ),
   Story(
     layer: StoryLayer.atoms,
     name: 'KaiSendButton',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/components.html',
+    canonSelector: '.compose .send',
+    description:
+        'Circular send button with a four-state lifecycle (ready / disabled / '
+        'sending / streaming); the primary CTA in every compose island.',
+    variants: ['ready', 'disabled', 'sending', 'streaming'],
     build: (_) => const _KaiSendButtonStory(),
   ),
   Story(
     layer: StoryLayer.atoms,
     name: 'KaiInput',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/components.html',
+    canonSelector: '.compose textarea',
+    description:
+        'Text field atom — line variant for search boxes, pill variant for '
+        'the compose-island textarea.',
+    variants: ['line', 'pill'],
     build: (_) => const _KaiInputStory(),
   ),
   Story(
     layer: StoryLayer.atoms,
     name: 'KaiToggle',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/settings.html',
+    canonSelector: '.toggle',
+    description:
+        'Pill switch atom — 34×20 track, accent when on, surface3 when off. '
+        'Used in settings rows for boolean preferences.',
+    variants: ['on', 'off', 'disabled (onChanged: null)'],
     build: (_) => const _KaiToggleStory(),
   ),
   Story(
     layer: StoryLayer.atoms,
     name: 'KaiChip',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/components.html',
+    canonSelector: '.chip',
+    description:
+        'Status pill (non-interactive, mono-uppercase) and choice chip '
+        '(selectable filter). Three tone variants for status.',
+    variants: [
+      'status neutral', 'status done', 'status active',
+      'choice selected', 'choice unselected',
+    ],
     build: (_) => const _KaiChipStory(),
   ),
   Story(
     layer: StoryLayer.atoms,
     name: 'KaiBadge',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/nav.html',
+    canonSelector: '.mem-dot',
+    description:
+        'Notification badge — dot variant for the memory indicator, count '
+        'variant (with 99+ cap) for numeric notification counts.',
+    variants: ['dot', 'count(n)'],
     build: (_) => const _KaiBadgeStory(),
   ),
   Story(
     layer: StoryLayer.atoms,
     name: 'KaiAvatar',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/settings.html',
+    canonSelector: '.acc-hero .avatar',
+    description:
+        'Circular avatar filled with the tide corner gradient. Shows an '
+        'optional single initial letter at center.',
+    variants: ['KaiAvatar()', 'initial: "R"', 'size: 56'],
     build: (_) => const _KaiAvatarStory(),
   ),
   Story(
     layer: StoryLayer.atoms,
     name: 'KaiTideCurve',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/tide-states.html',
+    canonSelector: '.tide-curve',
+    description:
+        'Kai\'s living tide curve — the brand mark. Eight states (idle, '
+        'listening, thinking, responding, success, error, memory, sleep), '
+        'each with distinct stroke, opacity, and animation behaviour.',
+    variants: [
+      'idle', 'listening', 'thinking', 'responding',
+      'success', 'error', 'memory', 'sleep',
+    ],
     build: (_) => const _KaiTideCurveStory(),
   ),
   Story(
     layer: StoryLayer.atoms,
     name: 'KaiDivider',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/foundations.html',
+    canonSelector: 'hr, .divider',
+    description:
+        'Hairline 1px divider in the theme line color. Horizontal fills '
+        'available width; vertical fills available height.',
+    variants: ['horizontal', 'vertical'],
     build: (_) => const _KaiDividerStory(),
   ),
   Story(
     layer: StoryLayer.atoms,
     name: 'KaiSheetShell',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/components.html',
+    canonSelector: '.sheet',
+    description:
+        'Bottom-sheet chrome — 24px top-corner radius, drag indicator, '
+        'border-top in line color. Wraps any sheet content.',
+    variants: ['KaiSheetShell(child: ...)'],
     build: (_) => const _KaiSheetShellStory(),
   ),
 
@@ -112,66 +251,174 @@ final List<Story> kStories = [
   Story(
     layer: StoryLayer.molecules,
     name: 'KaiUserBubble',
+    importPath: 'package:kai_app/design_system/molecules/molecules.dart',
+    canonFile: 'new-design/components.html',
+    canonSelector: '.bub.user',
+    description:
+        'Right-aligned pill bubble for user messages. Surface-2 background, '
+        '13.5px Manrope, asymmetric 18/4 radii.',
+    variants: ['KaiUserBubble(text: ...)'],
     build: (_) => const _KaiUserBubbleStory(),
   ),
   Story(
     layer: StoryLayer.molecules,
     name: 'KaiKaiBubble',
+    importPath: 'package:kai_app/design_system/molecules/molecules.dart',
+    canonFile: 'new-design/components.html',
+    canonSelector: '.bub.kai',
+    description:
+        'Left-aligned Kai response bubble with inline citation parsing, '
+        'streaming caret, source list, and thumb-up/down reactions.',
+    variants: ['normal', 'streaming: true', 'with sources', 'with reactions'],
     build: (_) => const _KaiKaiBubbleStory(),
   ),
   Story(
     layer: StoryLayer.molecules,
     name: 'KaiSystemBubble',
+    importPath: 'package:kai_app/design_system/molecules/molecules.dart',
+    canonFile: 'new-design/components.html',
+    canonSelector: '.bub.system',
+    description:
+        'Full-width system note injected into the chat feed for memory '
+        'updates, warnings, or errors. Three semantic tones.',
+    variants: ['neutral', 'warning', 'negative'],
     build: (_) => const _KaiSystemBubbleStory(),
   ),
   Story(
     layer: StoryLayer.molecules,
     name: 'KaiComposeIsland',
+    importPath: 'package:kai_app/design_system/molecules/molecules.dart',
+    canonFile: 'new-design/components.html',
+    canonSelector: '.sheet.compose-sheet .compose',
+    description:
+        'Pill-shaped chat input bar with growing textarea, optional mic '
+        'button, and send button lifecycle states.',
+    variants: [
+      'KaiComposeIsland(controller, onSend)',
+      'onMicTap: ...',
+      'sendState: KaiSendState.*',
+    ],
     build: (_) => const _KaiComposeIslandStory(),
   ),
   Story(
     layer: StoryLayer.molecules,
     name: 'KaiSourceCard',
+    importPath: 'package:kai_app/design_system/molecules/molecules.dart',
+    canonFile: 'new-design/components.html',
+    canonSelector: '.src-list .src-row',
+    description:
+        'Source-citation card shown under Kai messages — displays URL, title, '
+        'snippet, index chip, and freshness badge.',
+    variants: ['fresh: true', 'fresh: false', 'with snippet', 'without snippet'],
     build: (_) => const _KaiSourceCardStory(),
   ),
   Story(
     layer: StoryLayer.molecules,
     name: 'KaiCareBlock',
+    importPath: 'package:kai_app/design_system/molecules/molecules.dart',
+    canonFile: 'new-design/edge-states.html',
+    canonSelector: '.care-block',
+    description:
+        'Crisis care block (C3 in-conversation pattern) — coral left-border '
+        'block with heading, body, hotline resources, and closing. Never a takeover.',
+    variants: [
+      'KaiCareBlock(heading, body, resources, closing)',
+    ],
     build: (_) => const _KaiCareBlockStory(),
   ),
   Story(
     layer: StoryLayer.molecules,
     name: 'KaiAlertCard',
+    importPath: 'package:kai_app/design_system/molecules/molecules.dart',
+    canonFile: 'new-design/notifications-chat.html',
+    canonSelector: '.alert-card',
+    description:
+        'Proactive alert card injected into the chat feed — two-zone layout '
+        '(coloured header + body), four severity types.',
+    variants: ['urgent', 'warning', 'positive', 'neutral'],
     build: (_) => const _KaiAlertCardStory(),
   ),
   Story(
     layer: StoryLayer.molecules,
     name: 'KaiToast',
+    importPath: 'package:kai_app/design_system/molecules/molecules.dart',
+    canonFile: 'new-design/components.html',
+    canonSelector: '.toast',
+    description:
+        'Pill toast notification — dark island style, four types. Memory '
+        'variant uses tide gradient fill.',
+    variants: ['neutral', 'positive', 'negative', 'memory'],
     build: (_) => const _KaiToastStory(),
   ),
   Story(
     layer: StoryLayer.molecules,
     name: 'KaiActionSheet',
+    importPath: 'package:kai_app/design_system/molecules/molecules.dart',
+    canonFile: 'new-design/components.html',
+    canonSelector: '.sheet.actions',
+    description:
+        'Quick-action bottom sheet presented via showKaiActionSheet(). '
+        'List of KaiActionItem rows with icon, title, optional meta, danger flag.',
+    variants: [
+      'KaiActionSheet(items: [KaiActionItem(...)])',
+      'danger: true row',
+    ],
     build: (_) => const _KaiActionSheetStory(),
   ),
   Story(
     layer: StoryLayer.molecules,
     name: 'KaiSegmentedControl',
+    importPath: 'package:kai_app/design_system/molecules/molecules.dart',
+    canonFile: 'new-design/settings.html',
+    canonSelector: '.seg',
+    description:
+        'Segmented pill control for mutually-exclusive option sets (e.g. '
+        'theme: auto / light / dark). Index-based selection.',
+    variants: [
+      'KaiSegmentedControl(options, selectedIndex, onSelected)',
+    ],
     build: (_) => const _KaiSegmentedControlStory(),
   ),
   Story(
     layer: StoryLayer.molecules,
     name: 'KaiSettingsRow',
+    importPath: 'package:kai_app/design_system/molecules/molecules.dart',
+    canonFile: 'new-design/settings.html',
+    canonSelector: '.row',
+    description:
+        'Settings list row with leading icon, title, optional subtitle, '
+        'and a trailing widget slot. Danger variant turns text coral.',
+    variants: [
+      'normal', 'danger: true',
+      'trailing: KaiToggle', 'trailing: KaiIcon(chevRight)',
+    ],
     build: (_) => const _KaiSettingsRowStory(),
   ),
   Story(
     layer: StoryLayer.molecules,
     name: 'KaiAccountHero',
+    importPath: 'package:kai_app/design_system/molecules/molecules.dart',
+    canonFile: 'new-design/settings.html',
+    canonSelector: '.acc-hero',
+    description:
+        'Account card for the top of the settings screen — shows tide '
+        'avatar, name, email, and optional plan badge.',
+    variants: [
+      'KaiAccountHero(name, email, initial)',
+      'planLabel: "Pro"',
+    ],
     build: (_) => const _KaiAccountHeroStory(),
   ),
   Story(
     layer: StoryLayer.molecules,
     name: 'KaiNavItem',
+    importPath: 'package:kai_app/design_system/molecules/molecules.dart',
+    canonFile: 'new-design/nav.html',
+    canonSelector: '.chat-row',
+    description:
+        'Side-panel nav row with leading icon, label, and trailing widget. '
+        'Active state shows accent-wash background and left accent border.',
+    variants: ['inactive', 'active: true', 'trailing: KaiBadge.dot()'],
     build: (_) => const _KaiNavItemStory(),
   ),
 
@@ -179,22 +426,71 @@ final List<Story> kStories = [
   Story(
     layer: StoryLayer.organisms,
     name: 'KaiChatList',
+    importPath: 'package:kai_app/design_system/organisms/organisms.dart',
+    canonFile: 'new-design/room.html',
+    canonSelector: '.chat',
+    description:
+        'Scrollable chat message list composing all message types. Six '
+        'RoomFrame variants control visual mode (empty/live/panel/compose/streaming/error).',
+    variants: ['empty', 'live', 'panel', 'compose', 'streaming', 'error'],
     build: (_) => const _KaiChatListStory(),
   ),
   Story(
     layer: StoryLayer.organisms,
     name: 'KaiNavPanel',
+    importPath: 'package:kai_app/design_system/organisms/organisms.dart',
+    canonFile: 'new-design/nav.html',
+    canonSelector: '.panel',
+    description:
+        'Full-screen side navigation panel — trip folders, session list '
+        'grouped by date, account anchor, memory and settings links.',
+    variants: [
+      'KaiNavPanel(strings: KaiNavStrings.russian, trips, sessions, ...)',
+    ],
     build: (_) => const _KaiNavPanelStory(),
   ),
   Story(
     layer: StoryLayer.organisms,
     name: 'KaiEdgeStateBlock',
+    importPath: 'package:kai_app/design_system/organisms/organisms.dart',
+    canonFile: 'new-design/edge-states.html',
+    canonSelector: '.edge-state',
+    description:
+        'Composable edge-state block for offline, error, rate-limit, and '
+        'crisis surfaces. Each surface has a distinct CTA button style.',
+    variants: ['offline', 'error', 'rateLimit', 'crisis'],
     build: (_) => const _KaiEdgeStateBlockStory(),
   ),
   Story(
     layer: StoryLayer.organisms,
     name: 'KaiOnboardingCard',
+    importPath: 'package:kai_app/design_system/organisms/organisms.dart',
+    canonFile: 'new-design/onboarding.html',
+    canonSelector: '.ob',
+    description:
+        'Four-step onboarding card (welcome/tide/gestures/context). Step 0 '
+        'uses tide CTA; steps 1–3 use solid ink-1 button.',
+    variants: ['step 0 (welcome)', 'step 1 (tide)', 'step 2 (gestures)', 'step 3 (context)'],
     build: (_) => const _KaiOnboardingCardStory(),
+  ),
+
+  // ── Placeholder stories for unimplemented components ─────────────────────────
+  Story(
+    layer: StoryLayer.organisms,
+    name: 'KaiForkCard [TODO]',
+    importPath: 'package:kai_app/design_system/organisms/organisms.dart',
+    canonFile: 'new-design/fork.html',
+    canonSelector: '.fc',
+    description:
+        'Multi-country comparison card (F-L1-05) — two-column layout '
+        'comparing trip options with pricing, facts, and budget bars. '
+        'Not yet implemented — see new-design/fork.html .fc',
+    variants: ['normal', 'win column'],
+    build: (_) => const _TodoPlaceholderStory(
+      label: 'KaiForkCard',
+      canonFile: 'new-design/fork.html',
+      selector: '.fc',
+    ),
   ),
 ];
 
@@ -216,6 +512,50 @@ class StorySection extends StatelessWidget {
         const SizedBox(height: KaiSpace.s3),
         child,
       ],
+    );
+  }
+}
+
+// ── TODO placeholder ──────────────────────────────────────────────────────────
+
+class _TodoPlaceholderStory extends StatelessWidget {
+  const _TodoPlaceholderStory({
+    required this.label,
+    required this.canonFile,
+    required this.selector,
+  });
+
+  final String label;
+  final String canonFile;
+  final String selector;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = KaiTheme.of(context).colors;
+    return StorySection(
+      title: '$label — Not yet implemented',
+      child: Container(
+        padding: const EdgeInsets.all(KaiSpace.s4),
+        decoration: BoxDecoration(
+          color: c.warningWash,
+          borderRadius: KaiRadius.br3,
+          border: Border.all(color: c.warning.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            KaiText.small(
+              'Not yet implemented — see $canonFile $selector',
+              color: c.warning,
+            ),
+            const SizedBox(height: KaiSpace.s2),
+            KaiText.micro(
+              'Add a Dart widget that matches the canonical HTML design.',
+              color: c.ink3,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

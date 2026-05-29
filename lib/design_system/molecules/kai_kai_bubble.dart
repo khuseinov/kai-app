@@ -156,7 +156,9 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
           children: [
             // Canon: .who::before — 16×4 tide-gradient pill
             const KaiGradientBar(width: 16, height: 4),
-            const SizedBox(width: 8), // canon: gap 8px
+            // canon: .kai-b .who { gap: 6px } — verified spec-viewer 2026-05-29
+            // (was 8px, room.html shows 6px)
+            const SizedBox(width: 6), // canon: gap 6px
             Text(
               'KAI',
               style: KaiType.mono(color: c.ink3).copyWith(
@@ -168,8 +170,9 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
           ],
         ),
 
-        // Gap between .who and .txt — canon: flex gap 6px
-        const SizedBox(height: 6),
+        // Gap between .who and .txt — canon: .kai-b flex gap 5px
+        // — verified spec-viewer 2026-05-29 (was 6px)
+        const SizedBox(height: 5), // canon: gap 5px
 
         // ── .txt — body with inline citation parsing ────────────────────────
         _buildBodyText(c),

@@ -90,7 +90,9 @@ class KaiComposeIsland extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        border: Border.all(color: c.line),
+        // canon: room.html .compose-island border = 0.8px solid line
+        // — verified spec-viewer 2026-05-29
+        border: Border.all(color: c.line, width: 0.8),
         borderRadius: KaiRadius.brPill,
       ),
       padding: const EdgeInsets.fromLTRB(

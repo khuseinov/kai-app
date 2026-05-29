@@ -270,20 +270,27 @@ class _KaiButtonState extends State<KaiButton>
     };
 
     // Content padding per tier.
-    final contentPadding = switch (widget.size) {
-      KaiButtonSize.sm => const EdgeInsets.symmetric(
-          vertical: KaiSpace.s2, // 8px
-          horizontal: KaiSpace.s3, // 12px
-        ),
-      KaiButtonSize.md => const EdgeInsets.symmetric(
-          vertical: KaiSpace.s3, // 12px
-          horizontal: KaiSpace.s5, // 20px
-        ),
-      KaiButtonSize.lg => const EdgeInsets.symmetric(
-          vertical: KaiSpace.s4, // 16px
-          horizontal: KaiSpace.s6, // 24px
-        ),
-    };
+    // canon: verified spec-viewer 2026-05-29
+    // .new-btn (fullWidth ink): all-sides 11px  → special case below
+    // regular md: 12px v / 20px h
+    final isFullWidthInk = widget._variant == _KaiButtonVariant.ink && widget._fullWidth;
+    final contentPadding = isFullWidthInk
+        // canon: .new-btn = padding 11px (all sides) — verified spec-viewer 2026-05-29
+        ? const EdgeInsets.all(11)
+        : switch (widget.size) {
+            KaiButtonSize.sm => const EdgeInsets.symmetric(
+                vertical: KaiSpace.s2, // 8px
+                horizontal: KaiSpace.s3, // 12px
+              ),
+            KaiButtonSize.md => const EdgeInsets.symmetric(
+                vertical: KaiSpace.s3, // 12px
+                horizontal: KaiSpace.s5, // 20px
+              ),
+            KaiButtonSize.lg => const EdgeInsets.symmetric(
+                vertical: KaiSpace.s4, // 16px
+                horizontal: KaiSpace.s6, // 24px
+              ),
+          };
 
     // Row axis — ink fullWidth stretches.
     final rowSize = widget._variant == _KaiButtonVariant.ink && widget._fullWidth

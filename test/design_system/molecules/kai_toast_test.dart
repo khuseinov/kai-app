@@ -59,7 +59,8 @@ void main() {
     // actionLabel: renders KaiButton.text and fires onAction
     // -------------------------------------------------------------------------
 
-    testWidgets('actionLabel renders a KaiButton when provided', (tester) async {
+    testWidgets('actionLabel renders an action widget when provided',
+        (tester) async {
       await tester.pumpWidget(
         buildTestWidget(
           KaiToast(
@@ -71,7 +72,8 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(find.byType(KaiButton), findsOneWidget);
+      // Action uses a GestureDetector+Text (canon-exact: 12px/w600/accent).
+      expect(find.text('Повторить'), findsOneWidget);
     });
 
     testWidgets('actionLabel text is visible', (tester) async {
@@ -107,13 +109,16 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('no KaiButton when actionLabel is null', (tester) async {
+    testWidgets('no action text when actionLabel is null', (tester) async {
       await tester.pumpWidget(
         buildTestWidget(
           const KaiToast(type: KaiToastType.neutral, label: 'OK'),
         ),
       );
       await tester.pump();
+      // When no actionLabel, there's only the label text itself.
+      expect(find.text('OK'), findsOneWidget);
+      // No spurious action widgets in the tree.
       expect(find.byType(KaiButton), findsNothing);
     });
 
@@ -289,7 +294,9 @@ void main() {
       await tester.pump();
       expect(find.text('Ошибка соединения'), findsOneWidget);
       expect(find.text('Повторить'), findsOneWidget);
-      expect(find.byType(KaiButton), findsOneWidget);
+      // Action button is now _ToastActionButton (GestureDetector+Text) — not KaiButton.
+      // Verified by text presence; KaiButton is absent (canon-exact: 12px/w600/accent).
+      expect(find.byType(KaiButton), findsNothing);
     });
   });
 }

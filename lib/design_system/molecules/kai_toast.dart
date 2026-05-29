@@ -170,11 +170,13 @@ class _ToastPill extends StatelessWidget {
           if (actionLabel != null && onAction != null) ...[
             // canon: 10px gap before action button
             const SizedBox(width: 10),
-            KaiButton.text(
+            // canon: .toast .open = 12px / w600 / accent color (#2BA8C9)
+            // — verified spec-viewer 2026-05-29.
+            // KaiButton.text sm = 12.5px/w500 — that's a 0.5px/w100 delta.
+            // Use accent tone so color maps to c.accent; override size below.
+            _ToastActionButton(
               label: actionLabel!,
-              onPressed: onAction,
-              // tone: neutral gives ink-1 text which is white on dark pill
-              tone: KaiButtonTone.neutral,
+              onTap: onAction!,
             ),
           ],
         ],
@@ -295,6 +297,48 @@ _ToastPalette _buildPalette(BuildContext context, KaiToastType type) {
 }
 
 // ─── Tide pill marker (memory variant) ───────────────────────────────────────
+
+// ─── Toast action button (canon-exact) ───────────────────────────────────────
+
+/// Pixel-exact action button for the toast pill.
+///
+/// Canon: `components.html .toast .open` — 12px / w600 / accent (#2BA8C9).
+/// Padding: 4px all sides.
+/// [KaiButton.text] sm = 12.5px/w500 diverges by 0.5px and one weight step;
+/// this widget reproduces the HTML spec exactly.
+/// — verified spec-viewer 2026-05-29.
+class _ToastActionButton extends StatelessWidget {
+  const _ToastActionButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    // Dark island — toast is always on ink-1 bg; accent comes from dark palette
+    // so it matches the HTML computed color (#2BA8C9) regardless of app theme.
+    final accent = KaiTokens.dark.colors.accent;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        // canon: .open { padding: 4px } — verified spec-viewer 2026-05-29
+        padding: const EdgeInsets.all(4),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Manrope',
+            // canon: .open { font-size: 12px; font-weight: 600 }
+            // — verified spec-viewer 2026-05-29
+            fontSize: 12, // canon: 12px
+            fontWeight: FontWeight.w600, // canon: w600
+            color: accent,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 /// Inline pill glyph for the memory variant.
 ///

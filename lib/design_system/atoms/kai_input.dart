@@ -93,17 +93,20 @@ class KaiInput extends StatelessWidget {
     final hintStyle = KaiType.small(color: c.ink4)
         .copyWith(fontSize: 13.5, height: 1.4);
 
+    // canon: compose pill border = 0.8px solid — verified spec-viewer 2026-05-29.
+    // Flutter default BorderSide.width is 1.0; use 0.8 to match exactly.
+    const borderWidth = 0.8;
     final enabledBorder = OutlineInputBorder(
       borderRadius: radius,
-      borderSide: BorderSide(color: c.line),
+      borderSide: BorderSide(color: c.line, width: borderWidth),
     );
     final focusedBorder = OutlineInputBorder(
       borderRadius: radius,
-      borderSide: BorderSide(color: c.lineStrong),
+      borderSide: BorderSide(color: c.lineStrong, width: borderWidth),
     );
     final disabledBorder = OutlineInputBorder(
       borderRadius: radius,
-      borderSide: BorderSide(color: c.line),
+      borderSide: BorderSide(color: c.line, width: borderWidth),
     );
 
     // Canon padding:
