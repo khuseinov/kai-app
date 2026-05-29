@@ -276,6 +276,81 @@ void main() {
     });
 
     // -------------------------------------------------------------------------
+    // Action child is compact (not full-width)
+    // -------------------------------------------------------------------------
+
+    testWidgets('action child is compact — uses GestureDetector not KaiButton',
+        (tester) async {
+      await tester.pumpWidget(
+        buildTestWidget(
+          KaiToast(
+            type: KaiToastType.negative,
+            label: 'Ошибка',
+            actionLabel: 'Повторить',
+            onAction: () {},
+          ),
+        ),
+      );
+      await tester.pump();
+      // Canon-exact action button is _ToastActionButton (GestureDetector+Text),
+      // NOT KaiButton (which would be full-row-width due to mainAxisSize.max).
+      expect(find.byType(KaiButton), findsNothing);
+      expect(find.text('Повторить'), findsOneWidget);
+    });
+
+    // -------------------------------------------------------------------------
+    // KaiToast.undo factory
+    // -------------------------------------------------------------------------
+
+    testWidgets('KaiToast.undo shows "Отменить" label', (tester) async {
+      await tester.pumpWidget(
+        buildTestWidget(
+          KaiToast.undo(
+            label: 'Удалено',
+            onUndo: () {},
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('Отменить'), findsOneWidget);
+      expect(find.text('Удалено'), findsOneWidget);
+    });
+
+    testWidgets('KaiToast.undo fires onUndo when action tapped', (tester) async {
+      var undoCalled = false;
+      await tester.pumpWidget(
+        buildTestWidget(
+          KaiToast.undo(
+            label: 'Удалено',
+            onUndo: () => undoCalled = true,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.text('Отменить'));
+      await tester.pump();
+      expect(undoCalled, isTrue);
+    });
+
+    testWidgets('KaiToast.undo shows countdown bar by default', (tester) async {
+      await tester.pumpWidget(
+        buildTestWidget(
+          KaiToast.undo(
+            label: 'Удалено',
+            onUndo: () {},
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(ClipRRect), findsWidgets);
+    });
+
+    testWidgets('KaiToast.undo is a StatelessWidget', (tester) async {
+      final widget = KaiToast.undo(label: 'Удалено', onUndo: () {});
+      expect(widget, isA<StatelessWidget>());
+    });
+
+    // -------------------------------------------------------------------------
     // Full combination: all optional fields together
     // -------------------------------------------------------------------------
 

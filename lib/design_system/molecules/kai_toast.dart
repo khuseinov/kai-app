@@ -60,13 +60,36 @@ class KaiToast extends StatelessWidget {
     super.key,
   });
 
+  /// Convenience factory for an undo toast.
+  ///
+  /// Sets [actionLabel] = 'Отменить' and [onAction] = [onUndo]. The action
+  /// renders in tide-2 accent colour (same as all toast actions). Caller
+  /// controls [type] and [label]; defaults to [KaiToastType.neutral] +
+  /// [showCountdown] true so the auto-dismiss window is visible.
+  factory KaiToast.undo({
+    required String label,
+    required VoidCallback onUndo,
+    KaiToastType type = KaiToastType.neutral,
+    bool showCountdown = true,
+    Key? key,
+  }) {
+    return KaiToast(
+      type: type,
+      label: label,
+      actionLabel: 'Отменить',
+      onAction: onUndo,
+      showCountdown: showCountdown,
+      key: key,
+    );
+  }
+
   final KaiToastType type;
 
   /// Main message text. Manrope 500 11, letter-spacing -0.005em.
   final String label;
 
-  /// Optional action label — renders as a `KaiButton.text` on the right.
-  /// Readable on the dark pill (white/translucent text).
+  /// Optional action label — renders as a compact [_ToastActionButton] (tide-2,
+  /// 12px/w600, 4px padding). Readable on the dark pill surface.
   final String? actionLabel;
 
   /// Tap handler for [actionLabel].

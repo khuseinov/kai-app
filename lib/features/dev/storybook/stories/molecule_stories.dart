@@ -667,7 +667,9 @@ class _KaiToastStory extends StatelessWidget {
       layer: 'MOLECULE',
       blurb:
           'Dark-island pill toast. Four types — neutral/positive/negative share '
-          'ink-1 bg; memory uses tide gradient. Presented by KaiToastController.',
+          'ink-1 bg; memory uses tide gradient. Presented by KaiToastController. '
+          'showCountdown shows a 2px bar under the pill (animated by controller). '
+          'KaiToast.undo() convenience factory pre-fills "Отменить" action.',
       sections: [
         StorySection('Types', [
           const StoryCell(
@@ -681,13 +683,12 @@ class _KaiToastStory extends StatelessWidget {
             ),
           ),
           const StoryCell(
-            'positive + countdown',
+            'positive',
             Align(
               alignment: Alignment.centerLeft,
               child: KaiToast(
                 type: KaiToastType.positive,
                 label: 'Воспоминание сохранено',
-                showCountdown: true,
               ),
             ),
           ),
@@ -716,19 +717,73 @@ class _KaiToastStory extends StatelessWidget {
             ),
           ),
         ]),
+        const StorySection('Countdown bar', [
+          StoryCell(
+            'showCountdown: true',
+            Align(
+              alignment: Alignment.centerLeft,
+              child: KaiToast(
+                type: KaiToastType.positive,
+                label: 'Сохранено',
+                showCountdown: true,
+              ),
+            ),
+          ),
+          StoryCell(
+            'memory + countdown',
+            Align(
+              alignment: Alignment.centerLeft,
+              child: KaiToast(
+                type: KaiToastType.memory,
+                label: 'Kai запомнил',
+                showCountdown: true,
+              ),
+            ),
+          ),
+        ]),
+        StorySection('Undo convenience', [
+          StoryCell(
+            'KaiToast.undo',
+            Align(
+              alignment: Alignment.centerLeft,
+              child: KaiToast.undo(
+                label: 'Сообщение удалено',
+                onUndo: () {},
+              ),
+            ),
+          ),
+          StoryCell(
+            'undo negative type',
+            Align(
+              alignment: Alignment.centerLeft,
+              child: KaiToast.undo(
+                label: 'Изменения сброшены',
+                onUndo: () {},
+                type: KaiToastType.negative,
+              ),
+            ),
+          ),
+        ]),
       ],
       usage: 'KaiToast(\n'
           '  type: KaiToastType.memory,\n'
           '  label: "Kai запомнил это",\n'
           '  actionLabel: "Открыть",\n'
           '  onAction: () {},\n'
+          '  showCountdown: true,\n'
+          ')\n\n'
+          '// Convenience:\n'
+          'KaiToast.undo(\n'
+          '  label: "Удалено",\n'
+          '  onUndo: _handleUndo,\n'
           ')',
       props: const [
         PropDoc('type', 'KaiToastType', 'required', 'neutral / positive / negative / memory'),
         PropDoc('label', 'String', 'required', 'Toast message text'),
         PropDoc('actionLabel', 'String?', 'null', 'Optional action button label'),
         PropDoc('onAction', 'VoidCallback?', 'null', 'Action tap handler'),
-        PropDoc('showCountdown', 'bool', 'false', 'Show static countdown bar'),
+        PropDoc('showCountdown', 'bool', 'false', '2px countdown bar under pill'),
+        PropDoc('KaiToast.undo', 'factory', '-', 'Pre-fills "Отменить" + countdown'),
       ],
     );
   }
