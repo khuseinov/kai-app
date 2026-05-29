@@ -449,6 +449,23 @@ final List<Story> moleculeStories = [
     ],
     build: (_) => const _KaiForkCardStory(),
   ),
+  Story(
+    layer: StoryLayer.molecules,
+    name: 'KaiTranscriptView',
+    importPath: 'package:kai_app/design_system/molecules/molecules.dart',
+    canonFile: 'new-design/voice.html',
+    canonSelector: '.tr-view',
+    description:
+        'Voice-mode transcript timeline. Dark-surface only. Kai events '
+        'show the tide who-glyph (KaiGradientBar 16×4); you events do not. '
+        'Fixed white/tide literals — NOT theme tokens.',
+    variants: const ['you event', 'kai event', 'mixed'],
+    props: const [
+      PropDoc('events', 'List<KaiTranscriptEvent>', 'required',
+          'Ordered transcript events'),
+    ],
+    build: (_) => const _KaiTranscriptViewStory(),
+  ),
 ];
 
 // ── Stateful / interactive story widgets ──────────────────────────────────────
@@ -1344,6 +1361,120 @@ class _KaiForkCardStory extends StatelessWidget {
         PropDoc('columns', 'List<KaiForkColumn>', 'required', 'Min 2 columns'),
         PropDoc('pickIndex', 'int?', 'null', 'Winning column index (tide bar + badge)'),
         PropDoc('headerLabel', 'String?', 'null', 'Override default header ("N варианта")'),
+      ],
+    );
+  }
+}
+
+// ── KaiTranscriptView dark-surface story ─────────────────────────────────────
+
+class _KaiTranscriptViewStory extends StatelessWidget {
+  const _KaiTranscriptViewStory();
+
+  // Dark voice-field colour — always fixed, never theme-driven.
+  static const Color _voiceBg = Color(0xFF08080A);
+
+  @override
+  Widget build(BuildContext context) {
+    return StoryPage(
+      title: 'KaiTranscriptView',
+      layer: 'MOLECULE',
+      blurb: 'Voice-mode transcript timeline. Kai events show the tide '
+          'who-glyph (KaiGradientBar 16×4); "you" events do not. '
+          'Dark-surface only — fixed white/tide literals, not theme tokens.',
+      sections: [
+        StorySection('Transcript (mixed)', [
+          StoryCell(
+            'you + kai',
+            Container(
+              color: _voiceBg,
+              width: 280,
+              child: const KaiTranscriptView(
+                events: [
+                  KaiTranscriptEvent(
+                    who: 'you',
+                    text: 'Найди мне рейс в Токио на пятницу',
+                    timestamp: '9:41',
+                  ),
+                  KaiTranscriptEvent(
+                    who: 'kai',
+                    text: 'Ищу подходящие варианты на пятницу…',
+                    timestamp: '9:41',
+                  ),
+                  KaiTranscriptEvent(
+                    who: 'you',
+                    text: 'Лучше прямой рейс',
+                    timestamp: '9:42',
+                  ),
+                  KaiTranscriptEvent(
+                    who: 'kai',
+                    text: 'Нашёл 3 прямых рейса от 28 000 ₽',
+                    timestamp: '9:42',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ]),
+        StorySection('Single you event', [
+          StoryCell(
+            'you',
+            Container(
+              color: _voiceBg,
+              width: 280,
+              child: const KaiTranscriptView(
+                events: [
+                  KaiTranscriptEvent(
+                    who: 'you',
+                    text: 'Покажи варианты',
+                    timestamp: '9:43',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ]),
+        StorySection('Single kai event', [
+          StoryCell(
+            'kai',
+            Container(
+              color: _voiceBg,
+              width: 280,
+              child: const KaiTranscriptView(
+                events: [
+                  KaiTranscriptEvent(
+                    who: 'kai',
+                    text: 'Готово. Показываю результаты.',
+                    timestamp: '9:43',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ]),
+      ],
+      usage: 'KaiTranscriptView(\n'
+          '  events: [\n'
+          '    KaiTranscriptEvent(\n'
+          '      who: \'you\',\n'
+          '      text: \'Найди рейс…\',\n'
+          '      timestamp: \'9:41\',\n'
+          '    ),\n'
+          '    KaiTranscriptEvent(\n'
+          '      who: \'kai\',\n'
+          '      text: \'Ищу варианты…\',\n'
+          '      timestamp: \'9:41\',\n'
+          '    ),\n'
+          '  ],\n'
+          ')',
+      props: const [
+        PropDoc('events', 'List<KaiTranscriptEvent>', 'required',
+            'Ordered transcript events'),
+        PropDoc('who', 'String', 'required',
+            'Speaker: "you" | "kai". Kai events show tide glyph.'),
+        PropDoc('text', 'String', 'required', 'Speech text for this event'),
+        PropDoc('timestamp', 'String', 'required',
+            'Human-readable time label (e.g. "9:41")'),
       ],
     );
   }
