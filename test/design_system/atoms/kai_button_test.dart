@@ -715,7 +715,8 @@ void main() {
           tester,
           KaiButton.tide(onPressed: () {}, label: 'Animate'),
         );
-        // Run several frames to exercise the AnimatedBuilder.
+        // Run several frames — button is static at rest (onInteraction default),
+        // so no AnimatedBuilder runs; just verify no throw.
         await tester.pump(const Duration(milliseconds: 500));
         await tester.pump(const Duration(milliseconds: 1300));
         await tester.pump(const Duration(milliseconds: 2600));
@@ -779,6 +780,95 @@ void main() {
           // Should render and pump without throwing.
         }
         expect(true, isTrue); // reached without throwing
+      });
+    });
+
+    // -----------------------------------------------------------------------
+    // KaiTideAnim modes
+    // -----------------------------------------------------------------------
+    group('KaiTideAnim modes', () {
+      // Helper: read isFlowing from the live state object.
+      bool readIsFlowing(WidgetTester tester) {
+        // ignore: avoid_dynamic_calls
+        return (tester.state(find.byType(KaiButton)) as dynamic).isFlowing
+            as bool;
+      }
+
+      testWidgets('onInteraction at rest → isFlowing == false', (tester) async {
+        await _pump(
+          tester,
+          KaiButton.tide(
+            onPressed: () {},
+            label: 'Flow',
+            tideAnim: KaiTideAnim.onInteraction,
+          ),
+        );
+        await tester.pump();
+        expect(readIsFlowing(tester), isFalse,
+            reason: 'onInteraction: flow must be off at rest (no hover/press)');
+      });
+
+      testWidgets('onState + busy:true → isFlowing == true', (tester) async {
+        await _pump(
+          tester,
+          KaiButton.tide(
+            onPressed: () {},
+            label: 'Busy',
+            tideAnim: KaiTideAnim.onState,
+            busy: true,
+          ),
+        );
+        await tester.pump();
+        expect(readIsFlowing(tester), isTrue,
+            reason: 'onState: flow must be on when busy=true');
+      });
+
+      testWidgets('onState + busy:false → isFlowing == false', (tester) async {
+        await _pump(
+          tester,
+          KaiButton.tide(
+            onPressed: () {},
+            label: 'Idle',
+            tideAnim: KaiTideAnim.onState,
+            // ignore: avoid_redundant_argument_values
+            busy: false,
+          ),
+        );
+        await tester.pump();
+        expect(readIsFlowing(tester), isFalse,
+            reason: 'onState: flow must be off when busy=false');
+      });
+
+      testWidgets('none + busy:true → isFlowing == false', (tester) async {
+        await _pump(
+          tester,
+          KaiButton.tide(
+            onPressed: () {},
+            label: 'None',
+            tideAnim: KaiTideAnim.none,
+            busy: true,
+          ),
+        );
+        await tester.pump();
+        expect(readIsFlowing(tester), isFalse,
+            reason: 'none: flow must always be off regardless of busy');
+      });
+
+      testWidgets('tide renders correctly with all tideAnim modes',
+          (tester) async {
+        for (final mode in KaiTideAnim.values) {
+          await _pump(
+            tester,
+            KaiButton.tide(
+              onPressed: () {},
+              label: 'Mode',
+              tideAnim: mode,
+            ),
+          );
+          await tester.pump();
+          expect(find.byType(KaiButton), findsOneWidget,
+              reason: 'KaiButton.tide must render for tideAnim=$mode');
+        }
       });
     });
   });

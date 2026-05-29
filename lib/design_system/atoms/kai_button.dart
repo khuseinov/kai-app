@@ -31,6 +31,18 @@ enum KaiButtonTone { neutral, accent, warning, negative }
 ///   money-gate).
 enum KaiButtonSize { sm, md, lg }
 
+/// How the tide gradient animates on [KaiButton.tide].
+enum KaiTideAnim {
+  /// Static at rest; gradient flows while hovered or pressed.
+  onInteraction,
+
+  /// Static; gradient flows only while [KaiButton.busy] is true (Kai active).
+  onState,
+
+  /// Always static (reduced-motion / tests).
+  none,
+}
+
 // ---------------------------------------------------------------------------
 // KaiButton
 // ---------------------------------------------------------------------------
@@ -41,8 +53,9 @@ enum KaiButtonSize { sm, md, lg }
 /// - `KaiButton.tide` — primary action (tide gradient). Supports
 ///   [KaiButtonEmphasis.normal] (br3, soft shadow) and
 ///   [KaiButtonEmphasis.glow] (br2, diffuse glow — money-gate canon).
-///   The tide gradient has a subtle looping flow animation ("tide is alive")
-///   that respects the system reduce-motion preference.
+///   The tide gradient has an optional flow animation ("tide is alive")
+///   that respects the system reduce-motion preference and is controlled
+///   via [tideAnim] + [busy].
 /// - `KaiButton.ink` — solid ink-1 secondary. `fullWidth: true` stretches to
 ///   the drawer "new chat" canon (ink1, br12, full-width).
 /// - `KaiButton.ghost` — outline button. `pill: true` → brPill for retry pills.
@@ -66,12 +79,22 @@ class KaiButton extends StatefulWidget {
   // -------------------------------------------------------------------------
 
   /// Primary action — tide gradient + optional glow emphasis.
+  ///
+  /// [tideAnim] controls when the gradient flows:
+  /// - [KaiTideAnim.onInteraction] (default) — flows while hovered or pressed.
+  /// - [KaiTideAnim.onState] — flows only while [busy] is `true`.
+  /// - [KaiTideAnim.none] — always static.
+  ///
+  /// [busy] is meaningful only with [KaiTideAnim.onState] (e.g. "Kai is
+  /// actively responding").
   const KaiButton.tide({
     required this.onPressed,
     required this.label,
     this.icon,
     this.emphasis = KaiButtonEmphasis.normal,
     this.size = KaiButtonSize.md,
+    this.tideAnim = KaiTideAnim.onInteraction,
+    this.busy = false,
     super.key,
   })  : _variant = _KaiButtonVariant.tide,
         _fullWidth = false,
@@ -97,7 +120,9 @@ class KaiButton extends StatefulWidget {
         _fullWidth = fullWidth,
         emphasis = KaiButtonEmphasis.normal,
         _tone = KaiButtonTone.neutral,
-        _pill = false;
+        _pill = false,
+        tideAnim = KaiTideAnim.none,
+        busy = false;
 
   // -------------------------------------------------------------------------
   // ghost
@@ -119,7 +144,9 @@ class KaiButton extends StatefulWidget {
         _fullWidth = false,
         emphasis = KaiButtonEmphasis.normal,
         _tone = tone,
-        _pill = pill;
+        _pill = pill,
+        tideAnim = KaiTideAnim.none,
+        busy = false;
 
   // -------------------------------------------------------------------------
   // text
@@ -139,7 +166,9 @@ class KaiButton extends StatefulWidget {
         _fullWidth = false,
         emphasis = KaiButtonEmphasis.normal,
         _tone = tone,
-        _pill = false;
+        _pill = false,
+        tideAnim = KaiTideAnim.none,
+        busy = false;
 
   // -------------------------------------------------------------------------
   // Fields
@@ -155,6 +184,14 @@ class KaiButton extends StatefulWidget {
 
   /// Size tier — [KaiButtonSize.md] by default.
   final KaiButtonSize size;
+
+  /// When and how the tide gradient flows. Defaults to [KaiTideAnim.onInteraction].
+  /// Non-tide variants always use [KaiTideAnim.none].
+  final KaiTideAnim tideAnim;
+
+  /// Whether Kai is actively "busy" (e.g. generating a response).
+  /// Only meaningful for [KaiTideAnim.onState]; drives the flow when `true`.
+  final bool busy;
 
   final _KaiButtonVariant _variant;
   final bool _fullWidth;
@@ -178,59 +215,92 @@ enum _KaiButtonVariant { tide, ink, ghost, text }
 class _KaiButtonState extends State<KaiButton>
     with SingleTickerProviderStateMixin {
   bool _pressed = false;
+  bool _hovered = false;
 
-  // Gradient-flow animation — only created for the tide variant and when
-  // the system reduce-motion preference is not active.
-  AnimationController? _gradientController;
-  Animation<double>? _gradientAnim;
+  // Gradient-flow animation — lazily created for tide variant only.
+  AnimationController? _flowController;
+  Animation<double>? _flowAnim;
+
+  /// Whether the gradient is currently animating (flowing).
+  /// Tests read this via `(tester.state(find.byType(KaiButton)) as dynamic).isFlowing`.
+  bool get isFlowing => _flowController?.isAnimating ?? false;
+
+  bool get _reduceMotion =>
+      MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+
+  bool _shouldFlow() {
+    if (widget._variant != _KaiButtonVariant.tide || _reduceMotion) {
+      return false;
+    }
+    switch (widget.tideAnim) {
+      case KaiTideAnim.none:
+        return false;
+      case KaiTideAnim.onState:
+        return widget.busy;
+      case KaiTideAnim.onInteraction:
+        return _hovered || _pressed;
+    }
+  }
+
+  void _syncFlow() {
+    if (!mounted) return;
+
+    final shouldFlow = _shouldFlow();
+
+    if (shouldFlow) {
+      // Lazily create the controller on first need.
+      if (_flowController == null) {
+        _flowController = AnimationController(
+          vsync: this,
+          duration: KaiMotion.ambient, // 2600 ms
+        );
+        _flowAnim = CurvedAnimation(
+          parent: _flowController!,
+          curve: KaiMotion.ambientCurve,
+        );
+      }
+      if (!_flowController!.isAnimating) {
+        _flowController!
+          ..reset()
+          ..repeat(reverse: true);
+      }
+    } else {
+      if (_flowController != null && _flowController!.isAnimating) {
+        _flowController!.stop();
+        _flowController!.value = 0;
+      }
+    }
+
+    // Trigger rebuild to switch between animated and static container.
+    if (mounted) setState(() {});
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _syncGradientController();
+    _syncFlow();
   }
 
   @override
   void didUpdateWidget(KaiButton oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget._variant != widget._variant) {
-      _syncGradientController();
-    }
-  }
-
-  void _syncGradientController() {
-    final isTide = widget._variant == _KaiButtonVariant.tide;
-    final reduceMotion =
-        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-
-    if (isTide && !reduceMotion) {
-      if (_gradientController == null) {
-        _gradientController = AnimationController(
-          vsync: this,
-          duration: KaiMotion.ambient, // 2600 ms
-        )..repeat(reverse: true);
-
-        _gradientAnim = CurvedAnimation(
-          parent: _gradientController!,
-          curve: KaiMotion.ambientCurve,
-        );
-      }
-    } else {
-      _gradientController?.dispose();
-      _gradientController = null;
-      _gradientAnim = null;
+    if (oldWidget._variant != widget._variant ||
+        oldWidget.tideAnim != widget.tideAnim ||
+        oldWidget.busy != widget.busy) {
+      _syncFlow();
     }
   }
 
   @override
   void dispose() {
-    _gradientController?.dispose();
+    _flowController?.dispose();
     super.dispose();
   }
 
   void _setPressed(bool v) {
     if (_pressed == v) return;
     setState(() => _pressed = v);
+    _syncFlow();
   }
 
   @override
@@ -311,17 +381,18 @@ class _KaiButtonState extends State<KaiButton>
     );
 
     // Build the decoration — tide variant uses an animated gradient when the
-    // controller is running, otherwise falls back to the static gradient.
+    // flow controller is running, otherwise falls back to the static gradient.
     Widget container;
 
     if (widget._variant == _KaiButtonVariant.tide &&
-        _gradientController != null &&
-        _gradientAnim != null) {
+        _flowController != null &&
+        _flowAnim != null &&
+        _flowController!.isAnimating) {
       // Animated tide button — rebuild on every animation tick.
       container = AnimatedBuilder(
-        animation: _gradientAnim!,
+        animation: _flowAnim!,
         builder: (context, child) {
-          final t = _gradientAnim!.value; // 0.0 → 1.0 → 0.0 (reverse loop)
+          final t = _flowAnim!.value; // 0.0 → 1.0 → 0.0 (reverse loop)
 
           // Subtle horizontal sweep: begin shifts from (-0.906, -0.423) to
           // (-0.4, -0.423) and end from (0.906, 0.423) to (1.4, 0.423).
@@ -355,7 +426,7 @@ class _KaiButtonState extends State<KaiButton>
         child: content,
       );
     } else {
-      // Static decoration (non-tide or reduce-motion).
+      // Static decoration (non-tide, reduce-motion, or flow not active).
       container = Container(
         width: (widget._variant == _KaiButtonVariant.ink && widget._fullWidth)
             ? double.infinity
@@ -380,13 +451,23 @@ class _KaiButtonState extends State<KaiButton>
       button: true,
       enabled: enabled,
       label: widget.label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: enabled ? (_) => _setPressed(true) : null,
-        onTapUp: enabled ? (_) => _setPressed(false) : null,
-        onTapCancel: enabled ? () => _setPressed(false) : null,
-        onTap: enabled ? widget.onPressed : null,
-        child: core,
+      child: MouseRegion(
+        onEnter: (_) {
+          _hovered = true;
+          _syncFlow();
+        },
+        onExit: (_) {
+          _hovered = false;
+          _syncFlow();
+        },
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: enabled ? (_) => _setPressed(true) : null,
+          onTapUp: enabled ? (_) => _setPressed(false) : null,
+          onTapCancel: enabled ? () => _setPressed(false) : null,
+          onTap: enabled ? widget.onPressed : null,
+          child: core,
+        ),
       ),
     );
   }
