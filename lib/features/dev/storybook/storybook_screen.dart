@@ -10,7 +10,9 @@ import 'story_registry.dart';
 // ── Layout breakpoint ─────────────────────────────────────────────────────────
 
 const _kSidebarWidth = 260.0;
+const _kPropsWidth = 280.0;
 const _kBreakpoint = 720.0;
+const _kWideBreakpoint = 1100.0;
 const _kFrameWidth = 390.0;
 
 // ── StorybookScreen ───────────────────────────────────────────────────────────
@@ -92,7 +94,10 @@ class _StorybookScreenState extends ConsumerState<StorybookScreen> {
         ];
 
         if (isWide) {
-          // Wide: persistent sidebar in a Row — no GlobalKey needed
+          // Wide: persistent sidebar + canvas + optional props panel
+          final isExtraWide = constraints.maxWidth >= _kWideBreakpoint;
+          final propsPanel = _StoryPropsPanel(story: _activeStory);
+
           return Scaffold(
             backgroundColor: c.bg,
             appBar: AppBar(
@@ -112,6 +117,14 @@ class _StorybookScreenState extends ConsumerState<StorybookScreen> {
                   color: c.line,
                 ),
                 Expanded(child: canvas),
+                if (isExtraWide) ...[
+                  VerticalDivider(
+                    width: 1,
+                    thickness: 1,
+                    color: c.line,
+                  ),
+                  SizedBox(width: _kPropsWidth, child: propsPanel),
+                ],
               ],
             ),
           );
@@ -323,6 +336,196 @@ class _StorybookCanvas extends StatelessWidget {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(KaiSpace.s6),
       child: storyContent,
+    );
+  }
+}
+
+// ── Props Panel ───────────────────────────────────────────────────────────────
+
+/// Right-side properties panel showing component metadata for the active story.
+///
+/// Shows: name, NOT-YET-BUILT banner (when applicable), import path,
+/// canon file + selector, description, and variants list.
+///
+/// Displayed on wide layouts (≥1100px) as a fixed-width right column.
+class _StoryPropsPanel extends StatelessWidget {
+  const _StoryPropsPanel({required this.story});
+
+  final Story story;
+
+  bool get _isUnbuilt =>
+      story.name.contains('[TODO]') ||
+      story.name.contains('(canon)') ||
+      story.description.contains('Not yet built') ||
+      story.description.contains('Not yet implemented');
+
+  @override
+  Widget build(BuildContext context) {
+    final c = KaiTheme.of(context).colors;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(KaiSpace.s4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Component name
+          Text(
+            story.name,
+            style: KaiType.h3(color: c.ink1),
+          ),
+          const SizedBox(height: KaiSpace.s3),
+
+          // NOT YET BUILT banner
+          if (_isUnbuilt) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: KaiSpace.s3,
+                vertical: KaiSpace.s2,
+              ),
+              decoration: BoxDecoration(
+                color: c.warningWash,
+                borderRadius: KaiRadius.br2,
+                border: Border.all(
+                  color: c.warning.withValues(alpha: 0.4),
+                ),
+              ),
+              child: Row(
+                children: [
+                  KaiText.micro(
+                    'NOT YET BUILT',
+                    color: c.warning,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: KaiSpace.s3),
+          ],
+
+          // Import path
+          _PropSection(
+            label: 'IMPORT',
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(KaiSpace.s2),
+              decoration: BoxDecoration(
+                color: c.surface2,
+                borderRadius: KaiRadius.br2,
+                border: Border.all(color: c.line),
+              ),
+              child: Text(
+                story.importPath,
+                style: TextStyle(
+                  fontFamily: 'JetBrainsMono',
+                  fontSize: 10,
+                  color: c.ink2,
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ),
+
+          // Canon file + selector
+          if (story.canonFile.isNotEmpty) ...[
+            const SizedBox(height: KaiSpace.s3),
+            _PropSection(
+              label: 'CANON',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    story.canonFile,
+                    style: TextStyle(
+                      fontFamily: 'JetBrainsMono',
+                      fontSize: 10,
+                      color: c.accent,
+                      height: 1.5,
+                    ),
+                  ),
+                  if (story.canonSelector.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      story.canonSelector,
+                      style: TextStyle(
+                        fontFamily: 'JetBrainsMono',
+                        fontSize: 10,
+                        color: c.ink3,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+
+          // Description
+          if (story.description.isNotEmpty) ...[
+            const SizedBox(height: KaiSpace.s3),
+            _PropSection(
+              label: 'DESCRIPTION',
+              child: Text(
+                story.description,
+                style: KaiType.small(color: c.ink2),
+              ),
+            ),
+          ],
+
+          // Variants
+          if (story.variants.isNotEmpty) ...[
+            const SizedBox(height: KaiSpace.s3),
+            _PropSection(
+              label: 'VARIANTS',
+              child: Wrap(
+                spacing: KaiSpace.s2,
+                runSpacing: KaiSpace.s2,
+                children: story.variants.map((v) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: KaiSpace.s2,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: c.surface2,
+                      borderRadius: KaiRadius.br1,
+                      border: Border.all(color: c.line),
+                    ),
+                    child: Text(
+                      v,
+                      style: TextStyle(
+                        fontFamily: 'JetBrainsMono',
+                        fontSize: 10,
+                        color: c.ink2,
+                        height: 1.4,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _PropSection extends StatelessWidget {
+  const _PropSection({required this.label, required this.child});
+
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = KaiTheme.of(context).colors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: KaiType.micro(color: c.ink3)),
+        const SizedBox(height: 4),
+        child,
+      ],
     );
   }
 }

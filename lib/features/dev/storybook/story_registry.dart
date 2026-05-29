@@ -474,23 +474,61 @@ final List<Story> kStories = [
     build: (_) => const _KaiOnboardingCardStory(),
   ),
 
-  // ── Placeholder stories for unimplemented components ─────────────────────────
+  // ── Unbuilt screens — spec-preview stories ───────────────────────────────────
+
   Story(
     layer: StoryLayer.organisms,
-    name: 'KaiForkCard [TODO]',
+    name: 'Voice Screen (canon)',
+    importPath: 'new-design/voice.html',
+    canonFile: 'new-design/voice.html',
+    canonSelector: '.voice-screen',
+    description:
+        'Voice mode surface — always dark (#08080A), never responds to theme. '
+        'Karaoke word-reveal + transcript timeline. Not yet built in Dart.',
+    variants: ['waiting', 'listening', 'speaking-karaoke', 'transcript'],
+    build: (ctx) => const _VoiceCanonPreview(),
+  ),
+
+  Story(
+    layer: StoryLayer.organisms,
+    name: 'Memory Screen (canon)',
+    importPath: 'new-design/memory.html',
+    canonFile: 'new-design/memory.html',
+    canonSelector: '.memory-screen',
+    description:
+        'Memory management screen — facts grouped by category, searchable. '
+        'Forget (danger) rows, memory hero card, toggle per-category. '
+        'Not yet built in Dart.',
+    variants: ['default', 'search active', 'fact expanded', 'category collapsed'],
+    build: (ctx) => const _MemoryCanonPreview(),
+  ),
+
+  Story(
+    layer: StoryLayer.organisms,
+    name: 'Trip Detail Screen (canon)',
+    importPath: 'new-design/trip-detail.html',
+    canonFile: 'new-design/trip-detail.html',
+    canonSelector: '.trip-screen',
+    description:
+        'Trip detail — hero card (glyph + name + stats + budget bar), facts grid, '
+        'chat items, source list, Q&A chips, "Ask about this" CTA. '
+        'Not yet built in Dart.',
+    variants: ['default', 'scrolled', 'chat tab'],
+    build: (ctx) => const _TripDetailCanonPreview(),
+  ),
+
+  Story(
+    layer: StoryLayer.organisms,
+    name: 'KaiForkCard (canon)',
     importPath: 'package:kai_app/design_system/organisms/organisms.dart',
     canonFile: 'new-design/fork.html',
     canonSelector: '.fc',
     description:
-        'Multi-country comparison card (F-L1-05) — two-column layout '
-        'comparing trip options with pricing, facts, and budget bars. '
-        'Not yet implemented — see new-design/fork.html .fc',
-    variants: ['normal', 'win column'],
-    build: (_) => const _TodoPlaceholderStory(
-      label: 'KaiForkCard',
-      canonFile: 'new-design/fork.html',
-      selector: '.fc',
-    ),
+        'Multi-country comparison card — in-chat molecule with two-column layout '
+        'comparing trip options. Visa chips (8px w600 r999), rating dots (5×5px), '
+        'budget rows, country headers (~65px). Not yet built in Dart.',
+    variants: ['normal', 'win column highlighted'],
+    build: (ctx) => const _ForkCardCanonPreview(),
   ),
 ];
 
@@ -516,44 +554,673 @@ class StorySection extends StatelessWidget {
   }
 }
 
-// ── TODO placeholder ──────────────────────────────────────────────────────────
 
-class _TodoPlaceholderStory extends StatelessWidget {
-  const _TodoPlaceholderStory({
-    required this.label,
-    required this.canonFile,
-    required this.selector,
-  });
+// ── Unbuilt screen spec previews ──────────────────────────────────────────────
 
-  final String label;
-  final String canonFile;
-  final String selector;
+/// Voice Screen spec-preview.
+///
+/// Always dark bg (#08080A) — never responds to theme.
+/// Shows key computed values from the Playwright audit so agents know exactly
+/// what to build when implementing the voice screen.
+class _VoiceCanonPreview extends StatelessWidget {
+  const _VoiceCanonPreview();
+
+  @override
+  Widget build(BuildContext context) {
+    const bg = Color(0xFF08080A); // voice screen bg — always dark
+    const white32 = Color(0x52FFFFFF); // rgba(255,255,255,0.32) NEXT words
+    const white40 = Color(0x66FFFFFF); // rgba(255,255,255,0.40) timestamps
+    const white25 = Color(0x40FFFFFF); // rgba(255,255,255,0.25) hint labels
+    const karaokeNowBg = Color(0x47F4B589); // tide-3 @ 0.28 opacity
+    const karaokeNowText = KaiTide.stop3; // tide-3 warm horizon
+
+    return StorySection(
+      title: 'Voice Screen — spec values (NOT YET BUILT)',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // NOT YET BUILT banner
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(KaiSpace.s3),
+            decoration: BoxDecoration(
+              color: const Color(0x1FD69E3E), // warning wash (dark)
+              borderRadius: KaiRadius.br2,
+              border: Border.all(
+                color: const Color(0xFFD69E3E).withValues(alpha: 0.4),
+              ),
+            ),
+            child: const Text(
+              'NOT YET BUILT — canon: new-design/voice.html',
+              style: TextStyle(
+                fontFamily: 'JetBrainsMono',
+                fontSize: 10,
+                color: Color(0xFFD69E3E),
+              ),
+            ),
+          ),
+          const SizedBox(height: KaiSpace.s4),
+
+          // Dark surface preview
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: bg,
+              borderRadius: KaiRadius.br3,
+            ),
+            padding: const EdgeInsets.all(KaiSpace.s4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // bg label
+                const Text(
+                  'bg: #08080A — ALWAYS DARK, never theme-aware',
+                  style: TextStyle(
+                    fontFamily: 'JetBrainsMono',
+                    fontSize: 9,
+                    color: white40,
+                  ),
+                ),
+                const SizedBox(height: KaiSpace.s4),
+
+                // Karaoke row
+                Wrap(
+                  spacing: KaiSpace.s2,
+                  runSpacing: KaiSpace.s2,
+                  children: [
+                    // NOW word
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 1),
+                      decoration: const BoxDecoration(
+                        color: karaokeNowBg,
+                        borderRadius: KaiRadius.br1,
+                      ),
+                      child: const Text(
+                        'NOW',
+                        style: TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: karaokeNowText,
+                        ),
+                      ),
+                    ),
+                    // NEXT words
+                    ...['next', 'words', 'here'].map(
+                      (w) => Text(
+                        w,
+                        style: const TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: white32,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: KaiSpace.s3),
+
+                // Spec notes
+                const _SpecNote('Karaoke NOW: bg rgba(244,181,137,0.28) = tide-3@0.28, r4, pad 1/5, 16px w500 white'),
+                const _SpecNote('Karaoke NEXT: color rgba(255,255,255,0.32), same font'),
+                const SizedBox(height: KaiSpace.s2),
+                const _SpecNote('Transcript events: pad 9/22/9/52'),
+                const _SpecNote('Timestamp: 8.5px w500, rgba(white,0.4) = Color(0x66FFFFFF)'),
+                const _SpecNote('Hint labels: 9px, rgba(white,0.25) = Color(0x40FFFFFF)'),
+                const SizedBox(height: KaiSpace.s2),
+
+                // Hint label demo
+                const Text(
+                  'tap to speak / swipe',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 9,
+                    color: white25,
+                  ),
+                ),
+                const SizedBox(height: KaiSpace.s2),
+                // Timestamp demo
+                const Text(
+                  '0:04',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w500,
+                    color: white40,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: KaiSpace.s3),
+          const _SpecNote('Dart components to reuse: KaiTideCurve (voice state), KaiButton.ink (stop), KaiText'),
+          const _SpecNote('NEW widgets needed: VoiceKaraoke, VoiceTranscriptRow, VoiceHintLabel'),
+        ],
+      ),
+    );
+  }
+}
+
+/// Memory Screen spec-preview.
+class _MemoryCanonPreview extends StatelessWidget {
+  const _MemoryCanonPreview();
 
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
+
     return StorySection(
-      title: '$label — Not yet implemented',
-      child: Container(
-        padding: const EdgeInsets.all(KaiSpace.s4),
-        decoration: BoxDecoration(
-          color: c.warningWash,
-          borderRadius: KaiRadius.br3,
-          border: Border.all(color: c.warning.withValues(alpha: 0.3)),
-        ),
+      title: 'Memory Screen — spec values (NOT YET BUILT)',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(KaiSpace.s3),
+            decoration: BoxDecoration(
+              color: c.warningWash,
+              borderRadius: KaiRadius.br2,
+              border: Border.all(color: c.warning.withValues(alpha: 0.4)),
+            ),
+            child: KaiText.micro(
+              'NOT YET BUILT — canon: new-design/memory.html',
+              color: c.warning,
+            ),
+          ),
+          const SizedBox(height: KaiSpace.s4),
+
+          // Memory hero card demo
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: c.surface2,
+              borderRadius: KaiRadius.br4,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                KaiText.small('Путешествия', color: c.ink1),
+                const SizedBox(height: 2),
+                KaiText.micro('3 воспоминания', color: c.ink3),
+              ],
+            ),
+          ),
+          const SizedBox(height: KaiSpace.s2),
+          const _SpecNote('Memory hero: r16 pad14; title 14px w600 ink1; sub 11px ink3'),
+
+          const SizedBox(height: KaiSpace.s3),
+
+          // Fact item demo
+          Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 11, vertical: 9),
+            decoration: BoxDecoration(
+              color: c.surface2,
+              borderRadius: KaiRadius.br8,
+              border: Border.all(color: c.line),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                KaiText.small(
+                    'Предпочитает прямые рейсы без пересадок',
+                    color: c.ink1),
+                const SizedBox(height: 2),
+                KaiText.micro('из chat · 2 дня назад', color: c.ink3),
+              ],
+            ),
+          ),
+          const SizedBox(height: KaiSpace.s2),
+          const _SpecNote('.fact-item: r8, pad 9/11; body 13px ink1; source 9.5px ink3'),
+
+          const SizedBox(height: KaiSpace.s3),
+
+          // Forget row demo
+          Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 12, vertical: 11),
+            decoration: BoxDecoration(
+              color: c.negativeWash,
+              borderRadius: KaiRadius.br8,
+            ),
+            child: KaiText.small('Забыть это воспоминание', color: c.negative),
+          ),
+          const SizedBox(height: KaiSpace.s2),
+          const _SpecNote('"Forget" row: r8, pad 11/12, negative color'),
+
+          const SizedBox(height: KaiSpace.s3),
+          const _SpecNote('Search bar: 12.5px ink3, r10, pad 9/12, bg surface-2 = KaiInput.line'),
+          const _SpecNote('Fact groups: bg surface-2, r12, pad 4px'),
+          const _SpecNote('Toggle: KaiToggle — positive (green = on)'),
+          const _SpecNote('App bar: ttl 13px w600; ic-btn: circle bg surface-2'),
+          const SizedBox(height: KaiSpace.s3),
+          const _SpecNote('Dart components to reuse: KaiInput.line, KaiToggle, KaiButton.ink(fullWidth), KaiAvatar'),
+          const _SpecNote('NEW widgets needed: MemoryFactGroup, MemoryFactItem, MemoryHero'),
+        ],
+      ),
+    );
+  }
+}
+
+/// Trip Detail Screen spec-preview.
+class _TripDetailCanonPreview extends StatelessWidget {
+  const _TripDetailCanonPreview();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = KaiTheme.of(context).colors;
+
+    return StorySection(
+      title: 'Trip Detail Screen — spec values (NOT YET BUILT)',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(KaiSpace.s3),
+            decoration: BoxDecoration(
+              color: c.warningWash,
+              borderRadius: KaiRadius.br2,
+              border: Border.all(color: c.warning.withValues(alpha: 0.4)),
+            ),
+            child: KaiText.micro(
+              'NOT YET BUILT — canon: new-design/trip-detail.html',
+              color: c.warning,
+            ),
+          ),
+          const SizedBox(height: KaiSpace.s4),
+
+          // Trip hero demo
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(KaiSpace.s4),
+            decoration: BoxDecoration(
+              color: c.surface2,
+              borderRadius: BorderRadius.circular(KaiRadius.r4),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    // Glyph (tide-corner gradient circle)
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: const BoxDecoration(
+                        gradient: KaiTide.gradientCorner,
+                        borderRadius: KaiRadius.brPill,
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'Т',
+                        style: TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFFFFFFF),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: KaiSpace.s3),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Токио 2026',
+                          style: TextStyle(
+                            fontFamily: 'Manrope',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: c.ink1,
+                          ),
+                        ),
+                        KaiText.micro('апр — май 2026', color: c.ink3),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: KaiSpace.s2),
+          const _SpecNote('.trip-hero: r16, pad 16; glyph 13px w700 white, r11 = KaiAvatar(size:~36)'),
+          const _SpecNote('Trip name: 16px w600; sub: 11px ink3'),
+          const _SpecNote('Stats: .stat .n 16px w600; .stat .l 9px w500 ink3'),
+          const _SpecNote('Budget bar: r999, bg surface-3, colored segments'),
+
+          const SizedBox(height: KaiSpace.s3),
+
+          // Facts grid demo
+          Wrap(
+            spacing: KaiSpace.s2,
+            runSpacing: KaiSpace.s2,
+            children: [
+              _FactCard(label: 'Виза', value: 'Нет', c: c),
+              _FactCard(label: 'Дней', value: '12', c: c),
+              _FactCard(label: 'Бюджет', value: '120k ₽', c: c),
+            ],
+          ),
+          const SizedBox(height: KaiSpace.s2),
+          const _SpecNote('.fact: bg surface-2, r12, pad 4; .fact .k 11px ink3; .fact .v 11.5px w500 ink1'),
+
+          const SizedBox(height: KaiSpace.s3),
+
+          // Chat item demo
+          Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 10, vertical: 9),
+            decoration: BoxDecoration(
+              color: c.accentWash,
+              borderRadius: KaiRadius.br2,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Визовые требования',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: c.accent,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                KaiText.micro('Для туристической визы нужен...', color: c.ink3),
+              ],
+            ),
+          ),
+          const SizedBox(height: KaiSpace.s2),
+          const _SpecNote('.chat-item: r10, pad 9/10, bg accent-wash; title 12px w600 accent; preview 10.5px ink3'),
+
+          const SizedBox(height: KaiSpace.s3),
+          const _SpecNote('"Ask about this" button: 13px w600 white bg ink1 r12 pad11 = KaiButton.ink(fullWidth:true)'),
+          const _SpecNote('Q&A chips: bg surface-2, r10, pad 9/6'),
+          const _SpecNote('App bar ic-btn: circle bg surface-2 ~32×32; title 13px w600 ink1'),
+          const SizedBox(height: KaiSpace.s3),
+          const _SpecNote('Dart components to reuse: KaiAvatar, KaiButton.ink, KaiSourceCard, KaiInput.line'),
+          const _SpecNote('NEW widgets needed: TripHeroCard, TripFactGrid, TripBudgetBar, TripChatItem'),
+        ],
+      ),
+    );
+  }
+}
+
+class _FactCard extends StatelessWidget {
+  const _FactCard({
+    required this.label,
+    required this.value,
+    required this.c,
+  });
+  final String label;
+  final String value;
+  final KaiColorTokens c;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: c.surface2,
+        borderRadius: KaiRadius.br12,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            KaiText.small(
-              'Not yet implemented — see $canonFile $selector',
-              color: c.warning,
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 11,
+                color: c.ink3,
+              ),
             ),
-            const SizedBox(height: KaiSpace.s2),
-            KaiText.micro(
-              'Add a Dart widget that matches the canonical HTML design.',
-              color: c.ink3,
+            Text(
+              value,
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 11.5,
+                fontWeight: FontWeight.w500,
+                color: c.ink1,
+              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Fork Card spec-preview.
+class _ForkCardCanonPreview extends StatelessWidget {
+  const _ForkCardCanonPreview();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = KaiTheme.of(context).colors;
+
+    return StorySection(
+      title: 'KaiForkCard — spec values (NOT YET BUILT)',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(KaiSpace.s3),
+            decoration: BoxDecoration(
+              color: c.warningWash,
+              borderRadius: KaiRadius.br2,
+              border: Border.all(color: c.warning.withValues(alpha: 0.4)),
+            ),
+            child: KaiText.micro(
+              'NOT YET BUILT — canon: new-design/fork.html  .fc',
+              color: c.warning,
+            ),
+          ),
+          const SizedBox(height: KaiSpace.s4),
+
+          // Two-column demo skeleton
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _ForkColumn(
+                  country: 'Япония',
+                  price: '145,000 ₽',
+                  delta: '+12%',
+                  positive: false,
+                  c: c,
+                ),
+              ),
+              const SizedBox(width: KaiSpace.s3),
+              Expanded(
+                child: _ForkColumn(
+                  country: 'Таиланд',
+                  price: '89,000 ₽',
+                  delta: '-8%',
+                  positive: true,
+                  c: c,
+                  winner: true,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: KaiSpace.s3),
+
+          const _SpecNote('CSS: .fc, .fc-h, .fc-cols, .fc-col, .fc-id, .fc-country'),
+          const _SpecNote('.fc-country header: ~65px wide'),
+          const _SpecNote('Visa chips: 8px w600, r999, pad 2/6, negative-wash/neutral'),
+          const _SpecNote('Rating dots: 5×5px circles, positive/neutral/negative colors'),
+          const _SpecNote('.fc-badge, .fc-sw, .fc-score (5-dot rating)'),
+          const SizedBox(height: KaiSpace.s3),
+
+          // Visa chip demo
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: c.negativeWash,
+                  borderRadius: KaiRadius.brPill,
+                ),
+                child: Text(
+                  'VISA',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 8,
+                    fontWeight: FontWeight.w600,
+                    color: c.negative,
+                  ),
+                ),
+              ),
+              const SizedBox(width: KaiSpace.s2),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: c.surface2,
+                  borderRadius: KaiRadius.brPill,
+                  border: Border.all(color: c.line),
+                ),
+                child: Text(
+                  'БЕЗВИЗ',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 8,
+                    fontWeight: FontWeight.w600,
+                    color: c.ink2,
+                  ),
+                ),
+              ),
+              const SizedBox(width: KaiSpace.s4),
+              // Rating dots
+              Row(
+                children: [
+                  _RatingDot(color: c.positive),
+                  const SizedBox(width: 3),
+                  _RatingDot(color: c.positive),
+                  const SizedBox(width: 3),
+                  _RatingDot(color: c.positive),
+                  const SizedBox(width: 3),
+                  _RatingDot(color: c.warning),
+                  const SizedBox(width: 3),
+                  _RatingDot(color: c.line),
+                ],
+              ),
+              const SizedBox(width: KaiSpace.s2),
+              KaiText.micro('рейтинг 4/5', color: c.ink3),
+            ],
+          ),
+          const SizedBox(height: KaiSpace.s3),
+          const _SpecNote('Dart to reuse: KaiSourceCard layout pattern, KaiText, KaiTide.gradientCorner'),
+          const _SpecNote('NEW: KaiForkCard, ForkColumn, ForkVisaChip, ForkRatingDots'),
+        ],
+      ),
+    );
+  }
+}
+
+class _ForkColumn extends StatelessWidget {
+  const _ForkColumn({
+    required this.country,
+    required this.price,
+    required this.delta,
+    required this.positive,
+    required this.c,
+    this.winner = false,
+  });
+  final String country;
+  final String price;
+  final String delta;
+  final bool positive;
+  final KaiColorTokens c;
+  final bool winner;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(KaiSpace.s3),
+      decoration: BoxDecoration(
+        color: winner ? c.accentWash : c.surface2,
+        borderRadius: KaiRadius.br3,
+        border: winner ? Border.all(color: c.accentLine) : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            country,
+            style: TextStyle(
+              fontFamily: 'Manrope',
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: c.ink1,
+            ),
+          ),
+          const SizedBox(height: KaiSpace.s2),
+          Text(
+            price,
+            style: TextStyle(
+              fontFamily: 'Manrope',
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: winner ? c.accent : c.ink1,
+            ),
+          ),
+          Text(
+            delta,
+            style: TextStyle(
+              fontFamily: 'Manrope',
+              fontSize: 11,
+              color: positive ? c.positive : c.negative,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RatingDot extends StatelessWidget {
+  const _RatingDot({required this.color});
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 5,
+      height: 5,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: KaiRadius.brPill,
+      ),
+    );
+  }
+}
+
+/// Inline spec annotation — monospace muted text.
+class _SpecNote extends StatelessWidget {
+  const _SpecNote(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = KaiTheme.of(context).colors;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Text(
+        '· $text',
+        style: TextStyle(
+          fontFamily: 'JetBrainsMono',
+          fontSize: 9,
+          color: c.ink3,
+          height: 1.5,
         ),
       ),
     );

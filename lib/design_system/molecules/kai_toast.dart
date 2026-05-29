@@ -170,10 +170,10 @@ class _ToastPill extends StatelessWidget {
           if (actionLabel != null && onAction != null) ...[
             // canon: 10px gap before action button
             const SizedBox(width: 10),
-            // canon: .toast .open = 12px / w600 / accent color (#2BA8C9)
+            // canon: .toast .open = 12px / w600 / tide-2 (#2BA8C9 = KaiTide.stop2)
             // — verified spec-viewer 2026-05-29.
             // KaiButton.text sm = 12.5px/w500 — that's a 0.5px/w100 delta.
-            // Use accent tone so color maps to c.accent; override size below.
+            // Custom _ToastActionButton used for pixel-exact spec match.
             _ToastActionButton(
               label: actionLabel!,
               onTap: onAction!,
@@ -302,10 +302,11 @@ _ToastPalette _buildPalette(BuildContext context, KaiToastType type) {
 
 /// Pixel-exact action button for the toast pill.
 ///
-/// Canon: `components.html .toast .open` — 12px / w600 / accent (#2BA8C9).
+/// Canon: `components.html .toast .open` — 12px / w600 / tide-2 (#2BA8C9 = KaiTide.stop2).
 /// Padding: 4px all sides.
 /// [KaiButton.text] sm = 12.5px/w500 diverges by 0.5px and one weight step;
 /// this widget reproduces the HTML spec exactly.
+/// Color is tide-2 (sea-glass, KaiTide.stop2), NOT the dark-palette accent.
 /// — verified spec-viewer 2026-05-29.
 class _ToastActionButton extends StatelessWidget {
   const _ToastActionButton({required this.label, required this.onTap});
@@ -315,9 +316,9 @@ class _ToastActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Dark island — toast is always on ink-1 bg; accent comes from dark palette
-    // so it matches the HTML computed color (#2BA8C9) regardless of app theme.
-    final accent = KaiTokens.dark.colors.accent;
+    // Canon: components.html .toast .open { color: rgb(43,168,201) }
+    // That is tide-2 (sea-glass) = KaiTide.stop2 = 0xFF2BA8C9.
+    // NOT the dark-palette accent (#5C8EFF) — verified spec-viewer 2026-05-29.
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -326,13 +327,13 @@ class _ToastActionButton extends StatelessWidget {
         padding: const EdgeInsets.all(4),
         child: Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontFamily: 'Manrope',
             // canon: .open { font-size: 12px; font-weight: 600 }
             // — verified spec-viewer 2026-05-29
             fontSize: 12, // canon: 12px
             fontWeight: FontWeight.w600, // canon: w600
-            color: accent,
+            color: KaiTide.stop2, // tide-2 sea-glass #2BA8C9
           ),
         ),
       ),
