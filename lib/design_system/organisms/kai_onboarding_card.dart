@@ -77,7 +77,10 @@ class KaiOnboardingCard extends StatelessWidget {
           const Spacer(flex: 1),
           _buildStep(context, tokens, l10n),
           const Spacer(flex: 1),
-          KaiStepIndicator(count: 4, active: stepIndex),
+          // Centre the step dots: the parent Column stretches its children to
+          // full width, so the mainAxisSize.min indicator must be centred
+          // explicitly (canon onboarding.html .ob-dots is centred).
+          Center(child: KaiStepIndicator(count: 4, active: stepIndex)),
           const SizedBox(height: 12),
           _buildCTA(l10n),
         ],
