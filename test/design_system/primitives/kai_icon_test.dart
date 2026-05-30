@@ -62,8 +62,14 @@ void main() {
       );
     });
 
+    testWidgets('waveform icon renders (voice-Kai glyph)', (tester) async {
+      await _pump(tester, const KaiIcon(KaiIconName.waveform, size: 16));
+      expect(find.byType(SvgPicture), findsOneWidget);
+    });
+
     test('all KaiIconName values have a non-empty assetName', () {
-      expect(KaiIconName.values.length, 33); // +2: thumbUp, thumbDown (v3 W2); +1: stop (C2a)
+      // +2: thumbUp, thumbDown (v3 W2); +1: stop (C2a); +1: waveform (R2 voice-Kai)
+      expect(KaiIconName.values.length, 34);
       for (final icon in KaiIconName.values) {
         expect(icon.assetName, isNotEmpty);
       }
@@ -77,6 +83,7 @@ void main() {
       expect(KaiIconName.thumbUp.assetName, 'thumb-up');
       expect(KaiIconName.thumbDown.assetName, 'thumb-down');
       expect(KaiIconName.stop.assetName, 'stop');
+      expect(KaiIconName.waveform.assetName, 'waveform');
     });
   });
 }
