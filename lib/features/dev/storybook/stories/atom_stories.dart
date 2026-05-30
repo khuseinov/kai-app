@@ -653,20 +653,23 @@ final List<Story> atomStories = [
     canonFile: 'new-design/fork.html',
     canonSelector: '.fc-score',
     description:
-        'Rating row of up to 5 small circles. Filled dots use positive (or custom '
-        'fillColor); empty dots use surface3. 5×5px circles, 3px gap.',
-    variants: const ['score=4/5', 'score=5/5', 'score=0/5', 'custom fillColor'],
+        'Rating row of up to 5 small circles. Filled dots use tide-2 (or custom '
+        'fillColor); empty dots use surface3. 5×5px circles, 3px gap; optional '
+        'trailing "n/max" label.',
+    variants: const ['score=4/5', 'score=5/5', 'score=0/5', 'with label', 'custom fill'],
     props: const [
       PropDoc('score', 'int', 'required', 'Number of filled dots'),
       PropDoc('max', 'int', '5', 'Total dot count'),
-      PropDoc('fillColor', 'Color?', 'c.positive', 'Override filled-dot color'),
+      PropDoc('fillColor', 'Color?', 'tide-2', 'Override filled-dot color'),
+      PropDoc('showLabel', 'bool', 'false', 'Show trailing "n/max" label'),
     ],
     build: (_) => const StoryPage(
       title: 'KaiForkScoreDots',
       layer: 'ATOM',
       blurb: 'Compact rating row used inside KaiForkCard. Row of max circles '
-          '(default 5); first score dots filled with positive token, rest with '
-          'surface3. 5×5px circles, 3px gap — all canon literals from fork.html.',
+          '(default 5); first score dots filled with tide-2 (#2BA8C9), rest with '
+          'surface3. 5×5px circles, 3px gap — all canon literals from fork.html. '
+          'showLabel adds a "n/max" mono label.',
       sections: [
         StorySection('Scores', [
           StoryCell('4/5', KaiForkScoreDots(score: 4)),
@@ -674,23 +677,24 @@ final List<Story> atomStories = [
           StoryCell('3/5', KaiForkScoreDots(score: 3)),
           StoryCell('0/5', KaiForkScoreDots(score: 0)),
         ]),
-        StorySection('Custom fill (tide-2)', [
+        StorySection('With label (canon .sl)', [
+          StoryCell('4/5 + label', KaiForkScoreDots(score: 4, showLabel: true)),
+        ]),
+        StorySection('Custom fill (accent)', [
           StoryCell(
-            'tide-2 fill',
-            KaiForkScoreDots(
-              score: 3,
-              fillColor: Color(0xFF2BA8C9),
-            ),
+            'accent fill',
+            KaiForkScoreDots(score: 3, fillColor: Color(0xFF2C5BE5)),
           ),
         ]),
       ],
-      usage: 'KaiForkScoreDots(score: 4)          // 4/5 positive\n'
-          'KaiForkScoreDots(score: 5, max: 5)   // full\n'
+      usage: 'KaiForkScoreDots(score: 4)               // 4/5, tide-2 fill\n'
+          'KaiForkScoreDots(score: 4, showLabel: true)  // dots + "4/5"\n'
           'KaiForkScoreDots(score: 3, fillColor: c.accent)',
       props: [
         PropDoc('score', 'int', 'required', 'Number of filled dots (0..max)'),
         PropDoc('max', 'int', '5', 'Total dot count'),
-        PropDoc('fillColor', 'Color?', 'c.positive', 'Override filled-dot color'),
+        PropDoc('fillColor', 'Color?', 'tide-2', 'Override filled-dot color'),
+        PropDoc('showLabel', 'bool', 'false', 'Show trailing "n/max" label'),
       ],
     ),
   ),
