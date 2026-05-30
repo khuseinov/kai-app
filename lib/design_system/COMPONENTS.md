@@ -756,6 +756,71 @@ HTML canon vs. current Dart implementation. Always read before editing.
 | `KaiButton.ghost(sm)`       | Font size         | 12px/600 — components.html `.act`   | 12.5px/500 (sm tier)    | LOW      | Toast `.open` is handled by internal `_ToastActionButton` (12px/600 exact). Generic sm tier is close but not identical. |
 | `KaiCareBlock`              | Interior padding  | 14px — edge-states.html             | 14px literal            | MATCH    | Correctly uses literal 14 between s3(12) and s4(16). |
 
+### 5.1 — 2026-05-30 Playwright canon re-audit (storybook-review handoff R1/R3/R4/R5)
+
+Re-extracted computed styles from `fork.html`, `voice.html`, `components.html` (toast),
+`nav.html` (badge), `room.html` (compose). New discrepancies found beyond the table above:
+
+**R4 · fork.html (`.fc*`)**
+- `KaiForkChip` font is WRONG: canon `.chip` = **JetBrains Mono 8px/600, UPPERCASE,
+  ls 0.04em (0.32px)** — Dart renders Manrope 8px/600 mixed-case. Fix font + uppercase + ls.
+- `KaiForkChip` is **missing the `warn` tone** (canon `.chip.warn` = `warning` #B57A0B on
+  `warningWash` #FBF1DC). Canon has 4 tones: bad/neu/ok/warn.
+- `KaiForkChip` neutral: canon bg = **surface2** (#F3F3F1) + **0.8px** `line` border — Dart uses
+  surface3 + 1px. (bad/ok have no border.)
+- `KaiForkScoreDots` filled dot color is WRONG: canon `.d.f` = **tide-2 #2BA8C9** (KaiTide.stop2),
+  not `positive` green. Empty `.d.e` = surface3 ✓. Canon also shows a trailing `.sl` score
+  label ("4/5", JetBrains Mono 8.5px/500, ink3) after the dots — not in Dart.
+- `KaiForkCard` MISSING `.fc-price-row` + `.fc-delta` (price-change pill): JetBrains Mono
+  8.5px/600, pad 1.5/5, brPill; `up` = `negative`/`negativeWash` (price rose = costlier),
+  `down` = `positive`/`positiveWash` (price fell = cheaper). → build `KaiForkPriceDelta` atom,
+  render price + delta in a baseline-aligned row.
+- `KaiForkCard` MISSING `.fc-sw` winner-summary footer: full-width strip below the columns,
+  pad 8/11, gap 5, bg tide-2 @ 4% `rgba(43,168,201,0.04)`, top 0.8px `line` border. Contains
+  `.wd` (5px tide-2 dot) + rich text (Manrope 10.5px/500, ink2) with bold country name.
+- `KaiForkCard._PickBadge` text is WRONG: canon `.fc-badge` = just **"✓"** (not "✓ лучший").
+  Style (JetBrains Mono 7.5px/600, tide-2 on rgba(tide2,0.10), pad 2/6, brPill, ls 0.05em) ✓.
+  The "лучший" wording lives in `.fc-sw`, not the badge.
+- `KaiForkCard` MISSING `.fresh` header marker ("✓ сегодня", JetBrains Mono 8.5px/500,
+  `positive` green) right-aligned in `.fc-h` after the label.
+- Win column bg: canon = `linear-gradient(170°, rgba(43,168,201,0.07), …0.02)` (subtle
+  gradient) — Dart uses a flat 7% fill. Top accent bar = `KaiTide.gradient` (115°) ✓.
+- `.fc` radius 15px (Dart br3=14px) — documented 1px drift, keep.
+
+**R5 · voice.html (`.tr-view` / `.karaoke`)**
+- `KaiTranscriptView` drifted heavily from canon (confirms user's "откуда взял" doubt):
+  - Timestamp `.ts`: canon = **JetBrains Mono** 8.5px/500, UPPERCASE, ls 0.14em (1.19px),
+    white@0.4 — Dart uses Manrope, no uppercase/ls.
+  - Canon `.ts` row contains a **`.who` label** ("you"/"kai", mono uppercase, white@0.55)
+    BEFORE the time — Dart omits the speaker label entirely.
+  - Body `.body`: canon = Manrope **12px**/400, lh 1.5, ls -0.005em; **you = white@0.6**,
+    **kai = full white** — Dart uses 13px, always full white (no speaker brightness split).
+  - Canon has a **timeline rail**: `.tr-rail::before` = 1px vertical line, white@0.12 at x=36,
+    and a 9px **rail dot** per event at x=32 — you = white@0.5 fill + 1.6px #08080A ring;
+    kai = `KaiTide.gradientCorner` fill + tide-2@0.25 glow ring. Dart draws neither.
+  - Dart's `KaiGradientBar(16×4)` above Kai timestamps is **invented** — canon marks Kai via
+    the rail dot + "kai" who-label, not a bar. Remove it.
+- `KaiKaraokeText`: canon `.karaoke` adds **ls -0.01em + lh 1.5**; `.now` radius = **4px**
+  (Dart uses br1=6px). Colors (now bg tide-3@0.28, next white@0.32, spoken white) ✓.
+
+**R3 · components.html (toast § 03.12) — TWO archetypes**
+- **Compact status toast** (`.toast.t-neutral/positive/negative/memory`): `.ti` icon (11px,
+  tone-tinted) + label (Manrope 11px/500, dark.ink1) — **NO action button** in canon. Icon
+  tints: neutral=dark.ink3, positive=dark.positive, negative=dark.negative; memory=tide bg +
+  `.t-tide-bar` 10×2.5 white@0.75 marker.
+- **Rich/action toast** (`.toast` with `.glyph` + `.body` + `.open`): 24px round `.glyph`,
+  `.body` = title (Manrope 13.5px/**600**) + `<small>` desc (11.5px/500), then `.open` action
+  (Manrope 12px/600, **tide-2 #2BA8C9**, pad 4 — a text-link affordance) ✓ matches `_ToastActionButton`.
+- Current Dart `KaiToast` only implements the compact form + bolts an action onto it — that
+  combination is non-canonical (root of the user's "не понимаю кнопку" confusion). The action
+  belongs on the rich title+desc toast.
+
+**R1 · nav.html (badge) — sizes are correct, "huge" is a Storybook layout artifact**
+- `.dot` = 6px accent circle ✓ (Dart 6px inner + 2px surface ring = 10px outer). Folder count
+  `.badge` = JetBrains Mono 9px/400, ink3 on **surface2**, pill, pad 1/6 — DISTINCT from the
+  accent `KaiBadge.count` (accent bg + white). Atom sizes are right; the Storybook "fills the
+  screen" must be diagnosed live in `_Cell`/`StoryPage`.
+
 ---
 
 ## 6. SCREENS / FEATURES IN PROGRESS
