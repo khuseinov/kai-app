@@ -856,7 +856,11 @@ fixed the dark-island bg from near-white `dark.ink1` → near-black #111114 — 
   combination is non-canonical (root of the user's "не понимаю кнопку" confusion). The action
   belongs on the rich title+desc toast.
 
-**R1 · nav.html (badge) — sizes are correct, "huge" is a Storybook layout artifact**
+**R1 · nav.html (badge)** — ✅ FIXED 2026-05-30. Root cause: `KaiBadge.count` used a min-only
+`BoxConstraints` + `alignment: center`, making the `Container` greedy → it ballooned to the parent
+width (the "huge badge" in Storybook). Dot/tide use `tightFor` so they were unaffected. Fix wraps
+count in `IntrinsicWidth` (hug + centre, no expansion); deterministic size-guard test added. Canon
+sizes (dot 6px, count ~16px pill, tide 8px) were already correct. Notes below kept for the record.
 - `.dot` = 6px accent circle ✓ (Dart 6px inner + 2px surface ring = 10px outer). Folder count
   `.badge` = JetBrains Mono 9px/400, ink3 on **surface2**, pill, pad 1/6 — DISTINCT from the
   accent `KaiBadge.count` (accent bg + white). Atom sizes are right; the Storybook "fills the

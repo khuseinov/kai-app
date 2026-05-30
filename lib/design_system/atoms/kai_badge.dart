@@ -133,22 +133,29 @@ class KaiBadge extends StatelessWidget {
     final tokens = KaiTheme.of(context);
     final label = _count > 99 ? '99+' : '$_count';
 
-    return Container(
-      constraints: const BoxConstraints(
-        minWidth: KaiSpace.s4,
-        minHeight: KaiSpace.s4,
-      ),
-      // 4px horizontal inset — a deliberate sub-grid value for a tight numeric
-      // badge; no narrower spacing token exists.
-      padding: const EdgeInsets.symmetric(horizontal: KaiSpace.s1),
-      decoration: BoxDecoration(
-        color: tokens.colors.accent,
-        borderRadius: KaiRadius.br8,
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        label,
-        style: KaiType.micro(color: Colors.white),
+    // R1 fix: wrap in IntrinsicWidth so the pill hugs its content. A bare
+    // Container with `alignment: center` is greedy and balloons to the parent's
+    // bounded width (the Storybook "huge badge" bug). IntrinsicWidth forces a
+    // tight width (max(content, 16px)); `alignment: center` then centres the
+    // digit within that tight box without expanding.
+    return IntrinsicWidth(
+      child: Container(
+        constraints: const BoxConstraints(
+          minWidth: KaiSpace.s4,
+          minHeight: KaiSpace.s4,
+        ),
+        // 4px horizontal inset — a deliberate sub-grid value for a tight numeric
+        // badge; no narrower spacing token exists.
+        padding: const EdgeInsets.symmetric(horizontal: KaiSpace.s1),
+        decoration: BoxDecoration(
+          color: tokens.colors.accent,
+          borderRadius: KaiRadius.br8,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: KaiType.micro(color: Colors.white),
+        ),
       ),
     );
   }

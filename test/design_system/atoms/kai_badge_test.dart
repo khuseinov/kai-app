@@ -147,6 +147,14 @@ void main() {
         });
         expect(found, isTrue, reason: 'explicit color must override tone');
       });
+
+      testWidgets('stays 10×10 in a wide parent (no expansion)', (tester) async {
+        await _pump(
+          tester,
+          const SizedBox(width: 400, child: Center(child: KaiBadge.dot())),
+        );
+        expect(tester.getSize(find.byType(KaiBadge)), const Size(10, 10));
+      });
     });
 
     group('tide', () {
@@ -237,6 +245,21 @@ void main() {
           return constraints != null && constraints.minHeight >= 16.0;
         });
         expect(found, isTrue, reason: 'count badge must have minHeight >= 16');
+      });
+
+      // R1: the count badge used a min-only BoxConstraints + alignment:center,
+      // which made the Container greedy and balloon to the parent width in the
+      // Storybook. It must hug its content instead.
+      testWidgets('hugs content — does NOT expand to fill parent width',
+          (tester) async {
+        await _pump(
+          tester,
+          const SizedBox(width: 400, child: Center(child: KaiBadge.count(5))),
+        );
+        final w = tester.getSize(find.byType(KaiBadge)).width;
+        expect(w, lessThan(40),
+            reason: 'count badge must hug (~16px), not fill parent width');
+        expect(w, greaterThanOrEqualTo(16));
       });
     });
   });
