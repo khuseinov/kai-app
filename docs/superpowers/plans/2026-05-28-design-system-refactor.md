@@ -1,5 +1,10 @@
 # Design-System Reusability & Fidelity Refactor — Implementation Plan
 
+> ⚠️ **SUPERSEDED 2026-05-28** by `docs/superpowers/plans/2026-05-28-kai-ui-atomic-library-v3.md`
+> (clean-slate v3 atomic-library rebuild, strangler-fig). The findings this plan encodes
+> live on in the v3 plan and the audit report. **Do not execute this plan** — execute the
+> v3 plan instead. Kept as the incremental-refactor alternative / historical record.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
