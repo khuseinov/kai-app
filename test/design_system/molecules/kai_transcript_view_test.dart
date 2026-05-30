@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/design_system/molecules/kai_transcript_view.dart';
 import 'package:kai_app/design_system/primitives/kai_gradient_bar.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child) async {
   await tester.pumpWidget(
@@ -21,6 +22,12 @@ Future<void> _pump(WidgetTester tester, Widget child) async {
   await tester.pump();
 }
 
+Iterable<Container> _gradientDots(WidgetTester tester) =>
+    tester.widgetList<Container>(find.byType(Container)).where((c) {
+      final d = c.decoration;
+      return d is BoxDecoration && d.gradient == KaiTide.gradientCorner;
+    });
+
 void main() {
   const youEvent = KaiTranscriptEvent(
     who: 'you',
@@ -30,104 +37,83 @@ void main() {
   const kaiEvent = KaiTranscriptEvent(
     who: 'kai',
     text: 'Ищу подходящие варианты…',
-    timestamp: '9:41',
+    timestamp: '9:42',
   );
 
   group('v3/KaiTranscriptView', () {
     testWidgets('renders both event texts', (tester) async {
-      await _pump(
-        tester,
-        const KaiTranscriptView(events: [youEvent, kaiEvent]),
-      );
+      await _pump(tester, const KaiTranscriptView(events: [youEvent, kaiEvent]));
       expect(find.text('Найди мне рейс в Токио'), findsOneWidget);
       expect(find.text('Ищу подходящие варианты…'), findsOneWidget);
     });
 
-    testWidgets('renders both timestamps', (tester) async {
-      await _pump(
-        tester,
-        const KaiTranscriptView(events: [youEvent, kaiEvent]),
-      );
-      // Both events share timestamp '9:41'.
-      expect(find.text('9:41'), findsNWidgets(2));
+    testWidgets('renders who labels uppercased', (tester) async {
+      await _pump(tester, const KaiTranscriptView(events: [youEvent, kaiEvent]));
+      expect(find.text('YOU'), findsOneWidget);
+      expect(find.text('KAI'), findsOneWidget);
     });
 
-    testWidgets('kai event shows KaiGradientBar (who-glyph)', (tester) async {
-      await _pump(
-        tester,
-        const KaiTranscriptView(events: [kaiEvent]),
-      );
-      expect(find.byType(KaiGradientBar), findsOneWidget);
+    testWidgets('renders timestamps', (tester) async {
+      await _pump(tester, const KaiTranscriptView(events: [youEvent, kaiEvent]));
+      expect(find.text('9:41'), findsOneWidget);
+      expect(find.text('9:42'), findsOneWidget);
     });
 
-    testWidgets('you event does NOT show KaiGradientBar', (tester) async {
-      await _pump(
-        tester,
-        const KaiTranscriptView(events: [youEvent]),
-      );
+    // ── No invented gradient bar; Kai is marked by a tide-gradient rail dot ──
+
+    testWidgets('no KaiGradientBar anywhere (canon uses rail dots)',
+        (tester) async {
+      await _pump(tester, const KaiTranscriptView(events: [youEvent, kaiEvent]));
       expect(find.byType(KaiGradientBar), findsNothing);
     });
 
-    testWidgets('mixed events: only kai events have KaiGradientBar',
-        (tester) async {
-      const events = [youEvent, kaiEvent, youEvent, kaiEvent];
-      await _pump(
-        tester,
-        const KaiTranscriptView(events: events),
-      );
-      // Two kai events → two gradient bars.
-      expect(find.byType(KaiGradientBar), findsNWidgets(2));
+    testWidgets('kai event has a tide-gradient rail dot', (tester) async {
+      await _pump(tester, const KaiTranscriptView(events: [kaiEvent]));
+      expect(_gradientDots(tester).length, 1);
     });
 
-    testWidgets('event padding has correct left offset (52px)', (tester) async {
-      await _pump(
-        tester,
-        const KaiTranscriptView(events: [youEvent]),
-      );
-      final padding = tester
-          .widgetList<Padding>(find.byType(Padding))
-          .firstWhere(
+    testWidgets('you event has no tide-gradient dot', (tester) async {
+      await _pump(tester, const KaiTranscriptView(events: [youEvent]));
+      expect(_gradientDots(tester).length, 0);
+    });
+
+    testWidgets('mixed: one tide dot per kai event', (tester) async {
+      await _pump(tester, const KaiTranscriptView(
+        events: [youEvent, kaiEvent, youEvent, kaiEvent]));
+      expect(_gradientDots(tester).length, 2);
+    });
+
+    // ── Typography / colours ───────────────────────────────────────────────
+
+    testWidgets('event padding left offset is 52px', (tester) async {
+      await _pump(tester, const KaiTranscriptView(events: [youEvent]));
+      final hit = tester.widgetList<Padding>(find.byType(Padding)).any(
             (p) => p.padding == const EdgeInsets.fromLTRB(52, 9, 22, 9),
-            orElse: () => throw TestFailure(
-                'Expected Padding with EdgeInsets.fromLTRB(52,9,22,9)'),
           );
-      expect(padding, isNotNull);
+      expect(hit, isTrue);
+    });
+
+    testWidgets('timestamp is JetBrains Mono uppercase, white@0.4',
+        (tester) async {
+      await _pump(tester, const KaiTranscriptView(events: [youEvent]));
+      final ts = tester.widget<Text>(find.text('9:41'));
+      expect(ts.style?.fontFamily, 'JetBrainsMono');
+      expect(ts.style?.fontSize, 8.5);
+      expect(ts.style?.color, const Color(0x66FFFFFF));
+    });
+
+    testWidgets('you body = white@0.6, kai body = full white', (tester) async {
+      await _pump(tester, const KaiTranscriptView(events: [youEvent, kaiEvent]));
+      final youBody = tester.widget<Text>(find.text('Найди мне рейс в Токио'));
+      final kaiBody = tester.widget<Text>(find.text('Ищу подходящие варианты…'));
+      expect(youBody.style?.color, const Color(0x99FFFFFF));
+      expect(kaiBody.style?.color, const Color(0xFFFFFFFF));
+      expect(youBody.style?.fontSize, 12);
     });
 
     testWidgets('renders empty events list without error', (tester) async {
-      await _pump(
-        tester,
-        const KaiTranscriptView(events: []),
-      );
+      await _pump(tester, const KaiTranscriptView(events: []));
       expect(find.byType(KaiTranscriptView), findsOneWidget);
-    });
-
-    testWidgets('body text uses full white Color(0xFFFFFFFF)', (tester) async {
-      await _pump(
-        tester,
-        const KaiTranscriptView(events: [youEvent]),
-      );
-      final texts =
-          tester.widgetList<Text>(find.byType(Text)).toList();
-      final bodyText = texts.firstWhere(
-        (t) => t.data == 'Найди мне рейс в Токио',
-        orElse: () => throw TestFailure('body text widget not found'),
-      );
-      expect(bodyText.style?.color, const Color(0xFFFFFFFF));
-    });
-
-    testWidgets('timestamp uses dim white Color(0x66FFFFFF)', (tester) async {
-      await _pump(
-        tester,
-        const KaiTranscriptView(events: [youEvent]),
-      );
-      final texts =
-          tester.widgetList<Text>(find.byType(Text)).toList();
-      final tsText = texts.firstWhere(
-        (t) => t.data == '9:41',
-        orElse: () => throw TestFailure('timestamp text widget not found'),
-      );
-      expect(tsText.style?.color, const Color(0x66FFFFFF));
     });
   });
 }

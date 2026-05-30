@@ -1432,9 +1432,10 @@ class _KaiTranscriptViewStory extends StatelessWidget {
     return StoryPage(
       title: 'KaiTranscriptView',
       layer: 'MOLECULE',
-      blurb: 'Voice-mode transcript timeline. Kai events show the tide '
-          'who-glyph (KaiGradientBar 16×4); "you" events do not. '
-          'Dark-surface only — fixed white/tide literals, not theme tokens.',
+      blurb: 'Voice-mode transcript timeline on a 1px rail. Each event has a 9px '
+          'rail dot (you = translucent white; kai = tide-gradient + glow), a meta '
+          'row (YOU/KAI label + timestamp, mono uppercase) and body text (you '
+          'white@0.6, kai full white). Dark-surface only — fixed literals.',
       sections: [
         StorySection('Transcript (mixed)', [
           StoryCell(

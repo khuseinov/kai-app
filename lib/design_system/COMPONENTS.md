@@ -262,7 +262,7 @@ Ordered by HTML source file. "D2" = authoritative design decision (overrides oth
 | HTML selector             | Dart widget                          | Import barrel | Notes                                   |
 |---------------------------|-------------------------------------|---------------|-----------------------------------------|
 | `.karaoke`                | `KaiKaraokeText`                    | atoms         | **Dark-surface only.** 16px/500 Manrope; now=tide-3 bg, next=dim white |
-| `.tr-view`                | `KaiTranscriptView`                 | molecules     | **Dark-surface only.** Event pad 52/9/22/9; ts 8.5px/500 white@0.4 |
+| `.tr-view`                | `KaiTranscriptView`                 | molecules     | **Dark-only.** Rail + dots (kai=tide glow); who label + mono ts white@0.4; body 12px |
 
 ### foundations.html (token reference only)
 | HTML class | Dart equivalent    | Notes                              |
@@ -514,7 +514,7 @@ KaiKaraokeText(words: ['Дай', 'рейс', 'из', 'Москвы'], currentInd
 ```
 **Dark-surface only** — fixed white/tide literals, does NOT adapt to light mode.
 Words before `currentIndex`: full white `0xFFFFFFFF` (spoken). Word at `currentIndex`: tide-3 amber bg `0x47F4B589` (r4, pad 1v/5h) + white text (now). Words after: dim white `0x52FFFFFF` (next).
-Font: 16px/w500 Manrope. Layout: `Wrap(spacing:4, runSpacing:4)`.
+Font: 16px/w500 Manrope, ls -0.01em, line-height 1.5. Layout: `Wrap(spacing:4, runSpacing:4)`.
 Canon: `voice.html .karaoke`.
 
 ---
@@ -723,10 +723,12 @@ File: `molecules/kai_transcript_view.dart`
 KaiTranscriptView(events: [KaiTranscriptEvent(who: 'kai', text: 'Найдено…', timestamp: '9:41')])
 ```
 `KaiTranscriptEvent({required who, required text, required timestamp})` — `who` must be `'you'` or `'kai'`.
-**Dark-surface only** — fixed white literals, does NOT adapt to light mode.
-Event padding: `EdgeInsets.fromLTRB(52, 9, 22, 9)`. Kai events show `KaiGradientBar(16×4)` above timestamp.
-Timestamp: 8.5px/w500 Manrope, white@0.4 (`0x66FFFFFF`). Body: 13px/w400, full white, lh 1.5.
-Canon: `voice.html .tr-view / .tr-event`.
+**Dark-surface only** — fixed white/tide literals, does NOT adapt to light mode.
+Event padding: `EdgeInsets.fromLTRB(52, 9, 22, 9)` on a 1px rail (white@0.12 at x=36). Each event has a
+9px rail dot in the gutter — **you = white@0.5; kai = `KaiTide.gradientCorner` + tide-2 glow** (the
+brand mark; NO gradient bar). Meta row (`.ts`): JetBrains Mono 8.5px/500 UPPERCASE ls 0.14em — `who`
+label white@0.55, timestamp white@0.4 (`0x66FFFFFF`). Body: Manrope 12px/400, lh 1.5 — you white@0.6
+(`0x99FFFFFF`), kai full white. Canon: `voice.html .tr-view / .tr-event`.
 
 ---
 
@@ -814,7 +816,9 @@ score dots tide-2 + label, `KaiForkPriceDelta` atom + price row, `.fc-sw` footer
   gradient) — Dart uses a flat 7% fill. Top accent bar = `KaiTide.gradient` (115°) ✓.
 - `.fc` radius 15px (Dart br3=14px) — documented 1px drift, keep.
 
-**R5 · voice.html (`.tr-view` / `.karaoke`)**
+**R5 · voice.html (`.tr-view` / `.karaoke`)** — ✅ FIXED 2026-05-30 (transcript: rail + dots
+[kai tide glow], who label, mono uppercase ts, 12px body you@0.6/kai-white, gradient bar removed;
+karaoke: ls/lh + 4px now-radius). Findings below kept for the record.
 - `KaiTranscriptView` drifted heavily from canon (confirms user's "откуда взял" doubt):
   - Timestamp `.ts`: canon = **JetBrains Mono** 8.5px/500, UPPERCASE, ls 0.14em (1.19px),
     white@0.4 — Dart uses Manrope, no uppercase/ls.
