@@ -700,6 +700,42 @@ final List<Story> atomStories = [
   ),
   Story(
     layer: StoryLayer.atoms,
+    name: 'KaiForkPriceDelta',
+    importPath: 'package:kai_app/design_system/atoms/atoms.dart',
+    canonFile: 'new-design/fork.html',
+    canonSelector: '.fc-delta',
+    description:
+        'Price-change pill for the fork card price row. JetBrains Mono 8.5px/600, '
+        'pill radius. up = costlier (negative/coral), down = cheaper '
+        '(positive/green) — inverse of a stock ticker.',
+    variants: const ['up (costlier)', 'down (cheaper)'],
+    props: const [
+      PropDoc('label', 'String', 'required', 'Delta text, e.g. "+\$500"'),
+      PropDoc('direction', 'KaiPriceDirection', 'required', 'up / down'),
+    ],
+    build: (_) => const StoryPage(
+      title: 'KaiForkPriceDelta',
+      layer: 'ATOM',
+      blurb: 'Travel-cost price delta used in KaiForkCard .fc-price-row. '
+          'A rising price is bad (coral), a falling price is good (green).',
+      sections: [
+        StorySection('Direction', [
+          StoryCell('up · costlier',
+              KaiForkPriceDelta('+\$500', direction: KaiPriceDirection.up)),
+          StoryCell('down · cheaper',
+              KaiForkPriceDelta('−\$500', direction: KaiPriceDirection.down)),
+        ]),
+      ],
+      usage: "KaiForkPriceDelta('+\$500', direction: KaiPriceDirection.up)\n"
+          "KaiForkPriceDelta('−\$500', direction: KaiPriceDirection.down)",
+      props: [
+        PropDoc('label', 'String', 'required', 'Delta text'),
+        PropDoc('direction', 'KaiPriceDirection', 'required', 'up / down'),
+      ],
+    ),
+  ),
+  Story(
+    layer: StoryLayer.atoms,
     name: 'KaiStepIndicator',
     importPath: 'package:kai_app/design_system/atoms/atoms.dart',
     canonFile: 'new-design/onboarding.html',

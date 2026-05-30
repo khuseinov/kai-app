@@ -11,6 +11,7 @@ export 'kai_button.dart';
 export 'kai_chip.dart';
 export 'kai_divider.dart';
 export 'kai_fork_chip.dart';
+export 'kai_fork_price_delta.dart';
 export 'kai_fork_score_dots.dart';
 export 'kai_icon_button.dart';
 export 'kai_input.dart';
