@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../tokens/kai_radius.dart';
-
 /// Voice-mode karaoke word-reveal atom.
 ///
 /// Renders a list of words inline with three distinct states:
@@ -44,13 +42,18 @@ class KaiKaraokeText extends StatelessWidget {
   static const Color _nextColor = Color(0x52FFFFFF);
 
   // ── Canon layout literals ────────────────────────────────────────────────────
-  // Canon .karaoke: 16px / w500 / Manrope.
+  // Canon .karaoke: 16px / w500 / Manrope, ls -0.01em, line-height 1.5 (24px).
   static const double _fontSize = 16;
   static const FontWeight _fontWeight = FontWeight.w500;
   static const String _fontFamily = 'Manrope';
+  static const double _letterSpacing = 16 * -0.01; // canon: -0.01em
+  static const double _lineHeight = 1.5; // canon: 24px / 16px
   // Canon .now padding: 1px vertical, 5px horizontal.
   static const EdgeInsets _nowPadding =
       EdgeInsets.symmetric(horizontal: 5, vertical: 1);
+  // Canon .now corner radius: 4px (literal — below KaiRadius.br1=6px).
+  static const BorderRadius _nowRadius =
+      BorderRadius.all(Radius.circular(4));
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +73,7 @@ class KaiKaraokeText extends StatelessWidget {
         padding: _nowPadding,
         decoration: const BoxDecoration(
           color: _nowBgColor,
-          borderRadius: KaiRadius.br1,
+          borderRadius: _nowRadius,
         ),
         child: Text(
           words[index],
@@ -78,6 +81,8 @@ class KaiKaraokeText extends StatelessWidget {
             fontFamily: _fontFamily,
             fontSize: _fontSize,
             fontWeight: _fontWeight,
+            letterSpacing: _letterSpacing,
+            height: _lineHeight,
             color: _nowTextColor,
           ),
         ),
@@ -91,6 +96,8 @@ class KaiKaraokeText extends StatelessWidget {
         fontFamily: _fontFamily,
         fontSize: _fontSize,
         fontWeight: _fontWeight,
+        letterSpacing: _letterSpacing,
+        height: _lineHeight,
         color: color,
       ),
     );

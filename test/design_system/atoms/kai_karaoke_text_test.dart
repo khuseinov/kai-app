@@ -59,7 +59,7 @@ void main() {
       );
     });
 
-    testWidgets('now-word container has KaiRadius.br1 (6px) corner radius',
+    testWidgets('now-word container has 4px corner radius (canon .now)',
         (tester) async {
       await _pump(
         tester,
@@ -67,7 +67,7 @@ void main() {
       );
       final containers =
           tester.widgetList<Container>(find.byType(Container)).toList();
-      const expectedBr = BorderRadius.all(Radius.circular(6));
+      const expectedBr = BorderRadius.all(Radius.circular(4));
       final hasCorrectRadius = containers.any((c) {
         final deco = c.decoration;
         return deco is BoxDecoration &&
@@ -75,7 +75,19 @@ void main() {
             deco.borderRadius == expectedBr;
       });
       expect(hasCorrectRadius, isTrue,
-          reason: 'now-word container must use KaiRadius.br1 (6px)');
+          reason: 'now-word container must use 4px radius (canon .now)');
+    });
+
+    testWidgets('words use canon letter-spacing (-0.01em) and line-height 1.5',
+        (tester) async {
+      await _pump(
+        tester,
+        const KaiKaraokeText(words: words, currentIndex: currentIndex),
+      );
+      for (final t in tester.widgetList<Text>(find.byType(Text))) {
+        expect(t.style?.letterSpacing, closeTo(16 * -0.01, 0.001));
+        expect(t.style?.height, 1.5);
+      }
     });
 
     testWidgets('next word uses dim white Color(0x52FFFFFF)', (tester) async {
