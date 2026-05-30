@@ -182,8 +182,9 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.text('виза нужна'), findsOneWidget);
-      expect(find.text('без визы'), findsOneWidget);
+      // KaiForkChip uppercases per canon (.chip text-transform).
+      expect(find.text('ВИЗА НУЖНА'), findsOneWidget);
+      expect(find.text('БЕЗ ВИЗЫ'), findsOneWidget);
     });
 
     // -------------------------------------------------------------------------

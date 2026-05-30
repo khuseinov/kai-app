@@ -5,291 +5,127 @@ import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 import '../../test_helpers.dart';
 
+Text _chipText(WidgetTester t) =>
+    t.widget<Text>(find.byType(Text));
+
+bool _anyContainer(WidgetTester t, bool Function(BoxDecoration) test) =>
+    t.widgetList<Container>(find.byType(Container)).any((c) {
+      final d = c.decoration;
+      return d is BoxDecoration && test(d);
+    });
+
 void main() {
   group('v3/KaiForkChip', () {
-    // -------------------------------------------------------------------------
-    // Label rendering
-    // -------------------------------------------------------------------------
+    // ── Canon typography: JetBrains Mono, 8px/600, UPPERCASE, ls 0.04em ──────
 
-    testWidgets('label is visible', (tester) async {
-      await tester.pumpWidget(
-        buildTestWidget(const KaiForkChip('без визы')),
-      );
-      await tester.pump();
-      expect(find.text('без визы'), findsOneWidget);
+    testWidgets('label is uppercased (canon text-transform)', (tester) async {
+      await tester.pumpWidget(buildTestWidget(
+        const KaiForkChip('без визы', tone: KaiForkChipTone.ok)));
+      expect(find.text('БЕЗ ВИЗЫ'), findsOneWidget);
+      expect(find.text('без визы'), findsNothing);
     });
 
-    testWidgets('label is not uppercased', (tester) async {
-      await tester.pumpWidget(
-        buildTestWidget(const KaiForkChip('без визы')),
-      );
-      await tester.pump();
-      // No uppercase transform applied.
-      expect(find.text('без визы'), findsOneWidget);
-      expect(find.text('БЕЗ ВИЗЫ'), findsNothing);
+    testWidgets('font is JetBrains Mono 8px/600 with 0.04em tracking',
+        (tester) async {
+      await tester.pumpWidget(buildTestWidget(const KaiForkChip('виза')));
+      final style = _chipText(tester).style!;
+      expect(style.fontFamily, 'JetBrainsMono');
+      expect(style.fontSize, 8.0);
+      expect(style.fontWeight, FontWeight.w600);
+      expect(style.letterSpacing, closeTo(8 * 0.04, 0.001));
     });
 
-    // -------------------------------------------------------------------------
-    // Tone: bad — negativeWash bg + negative text
-    // -------------------------------------------------------------------------
+    // ── Tone: bad — negative / negativeWash, no border ───────────────────────
 
     group('tone bad', () {
-      testWidgets('text color is negative (light)', (tester) async {
-        await tester.pumpWidget(
-          buildTestWidget(
-            const KaiForkChip('виза нужна', tone: KaiForkChipTone.bad),
-          ),
-        );
-        await tester.pump();
-        final texts = tester.widgetList<Text>(find.byType(Text)).toList();
-        final found = texts.any(
-          (t) => t.style?.color == KaiColors.light.negative,
-        );
-        expect(found, isTrue, reason: 'bad chip text must use negative color');
+      testWidgets('negative text + negativeWash bg (light)', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          const KaiForkChip('виза нужна', tone: KaiForkChipTone.bad)));
+        expect(_chipText(tester).style!.color, KaiColors.light.negative);
+        expect(_anyContainer(tester, (d) => d.color == KaiColors.light.negativeWash),
+            isTrue);
       });
 
-      testWidgets('bg is negativeWash (light)', (tester) async {
-        await tester.pumpWidget(
-          buildTestWidget(
-            const KaiForkChip('виза нужна', tone: KaiForkChipTone.bad),
-          ),
-        );
-        await tester.pump();
-        final containers =
-            tester.widgetList<Container>(find.byType(Container)).toList();
-        final found = containers.any((c) {
-          final deco = c.decoration;
-          return deco is BoxDecoration &&
-              deco.color == KaiColors.light.negativeWash;
-        });
-        expect(found, isTrue, reason: 'bad chip must use negativeWash bg');
-      });
-
-      testWidgets('text color is negative (dark)', (tester) async {
-        await tester.pumpWidget(
-          buildTestWidget(
-            const KaiForkChip('виза нужна', tone: KaiForkChipTone.bad),
-            themeMode: ThemeMode.dark,
-          ),
-        );
-        await tester.pump();
-        final texts = tester.widgetList<Text>(find.byType(Text)).toList();
-        final found = texts.any(
-          (t) => t.style?.color == KaiColors.dark.negative,
-        );
-        expect(found, isTrue,
-            reason: 'bad chip text must use negative color in dark mode');
-      });
-
-      testWidgets('bg is negativeWash (dark)', (tester) async {
-        await tester.pumpWidget(
-          buildTestWidget(
-            const KaiForkChip('виза нужна', tone: KaiForkChipTone.bad),
-            themeMode: ThemeMode.dark,
-          ),
-        );
-        await tester.pump();
-        final containers =
-            tester.widgetList<Container>(find.byType(Container)).toList();
-        final found = containers.any((c) {
-          final deco = c.decoration;
-          return deco is BoxDecoration &&
-              deco.color == KaiColors.dark.negativeWash;
-        });
-        expect(found, isTrue,
-            reason: 'bad chip must use negativeWash bg in dark mode');
+      testWidgets('negative text + negativeWash bg (dark)', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          const KaiForkChip('виза нужна', tone: KaiForkChipTone.bad),
+          themeMode: ThemeMode.dark));
+        expect(_chipText(tester).style!.color, KaiColors.dark.negative);
+        expect(_anyContainer(tester, (d) => d.color == KaiColors.dark.negativeWash),
+            isTrue);
       });
     });
 
-    // -------------------------------------------------------------------------
-    // Tone: neutral — surface3 bg + ink3 text + line border
-    // -------------------------------------------------------------------------
+    // ── Tone: neutral — ink3 / surface2 + 0.8px line border ──────────────────
 
     group('tone neutral (default)', () {
-      testWidgets('text color is ink3 (light)', (tester) async {
-        await tester.pumpWidget(
-          buildTestWidget(const KaiForkChip('14°C')),
-        );
-        await tester.pump();
-        final texts = tester.widgetList<Text>(find.byType(Text)).toList();
-        final found = texts.any(
-          (t) => t.style?.color == KaiColors.light.ink3,
-        );
-        expect(found, isTrue, reason: 'neutral chip text must use ink3');
+      testWidgets('ink3 text + surface2 bg (light)', (tester) async {
+        await tester.pumpWidget(buildTestWidget(const KaiForkChip('14°C')));
+        expect(_chipText(tester).style!.color, KaiColors.light.ink3);
+        expect(_anyContainer(tester, (d) => d.color == KaiColors.light.surface2),
+            isTrue);
       });
 
-      testWidgets('bg is surface3 (light)', (tester) async {
-        await tester.pumpWidget(
-          buildTestWidget(const KaiForkChip('14°C')),
-        );
-        await tester.pump();
-        final containers =
-            tester.widgetList<Container>(find.byType(Container)).toList();
-        final found = containers.any((c) {
-          final deco = c.decoration;
-          return deco is BoxDecoration &&
-              deco.color == KaiColors.light.surface3;
+      testWidgets('has a 0.8px line border (light)', (tester) async {
+        await tester.pumpWidget(buildTestWidget(const KaiForkChip('14°C')));
+        final found = _anyContainer(tester, (d) {
+          final b = d.border;
+          return b is Border &&
+              b.top.color == KaiColors.light.line &&
+              b.top.width == 0.8;
         });
-        expect(found, isTrue, reason: 'neutral chip must use surface3 bg');
+        expect(found, isTrue);
       });
 
-      testWidgets('has a border using line color (light)', (tester) async {
-        await tester.pumpWidget(
-          buildTestWidget(const KaiForkChip('14°C')),
-        );
-        await tester.pump();
-        final containers =
-            tester.widgetList<Container>(find.byType(Container)).toList();
-        final found = containers.any((c) {
-          final deco = c.decoration;
-          if (deco is! BoxDecoration) return false;
-          final border = deco.border;
-          if (border is! Border) return false;
-          return border.top.color == KaiColors.light.line;
-        });
-        expect(found, isTrue, reason: 'neutral chip must have a line border');
-      });
-
-      testWidgets('text color is ink3 (dark)', (tester) async {
-        await tester.pumpWidget(
-          buildTestWidget(
-            const KaiForkChip('14°C'),
-            themeMode: ThemeMode.dark,
-          ),
-        );
-        await tester.pump();
-        final texts = tester.widgetList<Text>(find.byType(Text)).toList();
-        final found = texts.any(
-          (t) => t.style?.color == KaiColors.dark.ink3,
-        );
-        expect(found, isTrue,
-            reason: 'neutral chip text must use ink3 in dark mode');
-      });
-
-      testWidgets('bg is surface3 (dark)', (tester) async {
-        await tester.pumpWidget(
-          buildTestWidget(
-            const KaiForkChip('14°C'),
-            themeMode: ThemeMode.dark,
-          ),
-        );
-        await tester.pump();
-        final containers =
-            tester.widgetList<Container>(find.byType(Container)).toList();
-        final found = containers.any((c) {
-          final deco = c.decoration;
-          return deco is BoxDecoration &&
-              deco.color == KaiColors.dark.surface3;
-        });
-        expect(found, isTrue,
-            reason: 'neutral chip must use surface3 bg in dark mode');
+      testWidgets('ink3 text + surface2 bg (dark)', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          const KaiForkChip('14°C'), themeMode: ThemeMode.dark));
+        expect(_chipText(tester).style!.color, KaiColors.dark.ink3);
+        expect(_anyContainer(tester, (d) => d.color == KaiColors.dark.surface2),
+            isTrue);
       });
     });
 
-    // -------------------------------------------------------------------------
-    // Tone: ok — positiveWash bg + positive text
-    // -------------------------------------------------------------------------
+    // ── Tone: ok — positive / positiveWash ───────────────────────────────────
 
     group('tone ok', () {
-      testWidgets('text color is positive (light)', (tester) async {
-        await tester.pumpWidget(
-          buildTestWidget(
-            const KaiForkChip('без визы', tone: KaiForkChipTone.ok),
-          ),
-        );
-        await tester.pump();
-        final texts = tester.widgetList<Text>(find.byType(Text)).toList();
-        final found = texts.any(
-          (t) => t.style?.color == KaiColors.light.positive,
-        );
-        expect(found, isTrue, reason: 'ok chip text must use positive color');
-      });
-
-      testWidgets('bg is positiveWash (light)', (tester) async {
-        await tester.pumpWidget(
-          buildTestWidget(
-            const KaiForkChip('без визы', tone: KaiForkChipTone.ok),
-          ),
-        );
-        await tester.pump();
-        final containers =
-            tester.widgetList<Container>(find.byType(Container)).toList();
-        final found = containers.any((c) {
-          final deco = c.decoration;
-          return deco is BoxDecoration &&
-              deco.color == KaiColors.light.positiveWash;
-        });
-        expect(found, isTrue, reason: 'ok chip must use positiveWash bg');
-      });
-
-      testWidgets('text color is positive (dark)', (tester) async {
-        await tester.pumpWidget(
-          buildTestWidget(
-            const KaiForkChip('без визы', tone: KaiForkChipTone.ok),
-            themeMode: ThemeMode.dark,
-          ),
-        );
-        await tester.pump();
-        final texts = tester.widgetList<Text>(find.byType(Text)).toList();
-        final found = texts.any(
-          (t) => t.style?.color == KaiColors.dark.positive,
-        );
-        expect(found, isTrue,
-            reason: 'ok chip text must use positive color in dark mode');
-      });
-
-      testWidgets('bg is positiveWash (dark)', (tester) async {
-        await tester.pumpWidget(
-          buildTestWidget(
-            const KaiForkChip('без визы', tone: KaiForkChipTone.ok),
-            themeMode: ThemeMode.dark,
-          ),
-        );
-        await tester.pump();
-        final containers =
-            tester.widgetList<Container>(find.byType(Container)).toList();
-        final found = containers.any((c) {
-          final deco = c.decoration;
-          return deco is BoxDecoration &&
-              deco.color == KaiColors.dark.positiveWash;
-        });
-        expect(found, isTrue,
-            reason: 'ok chip must use positiveWash bg in dark mode');
+      testWidgets('positive text + positiveWash bg (light)', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          const KaiForkChip('без визы', tone: KaiForkChipTone.ok)));
+        expect(_chipText(tester).style!.color, KaiColors.light.positive);
+        expect(_anyContainer(tester, (d) => d.color == KaiColors.light.positiveWash),
+            isTrue);
       });
     });
 
-    // -------------------------------------------------------------------------
-    // Pill radius
-    // -------------------------------------------------------------------------
+    // ── Tone: warn — warning / warningWash (added R4) ────────────────────────
+
+    group('tone warn', () {
+      testWidgets('warning text + warningWash bg (light)', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          const KaiForkChip('толпы', tone: KaiForkChipTone.warn)));
+        expect(find.text('ТОЛПЫ'), findsOneWidget);
+        expect(_chipText(tester).style!.color, KaiColors.light.warning);
+        expect(_anyContainer(tester, (d) => d.color == KaiColors.light.warningWash),
+            isTrue);
+      });
+
+      testWidgets('warning text + warningWash bg (dark)', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          const KaiForkChip('толпы', tone: KaiForkChipTone.warn),
+          themeMode: ThemeMode.dark));
+        expect(_chipText(tester).style!.color, KaiColors.dark.warning);
+        expect(_anyContainer(tester, (d) => d.color == KaiColors.dark.warningWash),
+            isTrue);
+      });
+    });
+
+    // ── Pill radius ──────────────────────────────────────────────────────────
 
     testWidgets('uses pill border radius', (tester) async {
-      await tester.pumpWidget(
-        buildTestWidget(const KaiForkChip('виза')),
-      );
-      await tester.pump();
-      final containers =
-          tester.widgetList<Container>(find.byType(Container)).toList();
-      final found = containers.any((c) {
-        final deco = c.decoration;
-        return deco is BoxDecoration &&
-            deco.borderRadius == KaiRadius.brPill;
-      });
-      expect(found, isTrue, reason: 'KaiForkChip must use pill border radius');
-    });
-
-    // -------------------------------------------------------------------------
-    // Font size
-    // -------------------------------------------------------------------------
-
-    testWidgets('uses 8px font size', (tester) async {
-      await tester.pumpWidget(
-        buildTestWidget(const KaiForkChip('виза')),
-      );
-      await tester.pump();
-      final texts = tester.widgetList<Text>(find.byType(Text)).toList();
-      final found = texts.any((t) => t.style?.fontSize == 8.0);
-      expect(found, isTrue,
-          reason: 'KaiForkChip must use 8px font size (canon fork.html)');
+      await tester.pumpWidget(buildTestWidget(const KaiForkChip('виза')));
+      expect(_anyContainer(tester, (d) => d.borderRadius == KaiRadius.brPill),
+          isTrue);
     });
   });
 }

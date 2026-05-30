@@ -6,28 +6,32 @@ import '../tokens/kai_tokens.dart';
 /// Tone variants for [KaiForkChip].
 ///
 /// - [bad]     → `c.negative` text on `c.negativeWash` background.
-/// - [neutral] → `c.ink3` text on `c.surface3` background + `c.line` border.
+/// - [neutral] → `c.ink3` text on `c.surface2` background + 0.8px `c.line` border.
 /// - [ok]      → `c.positive` text on `c.positiveWash` background.
+/// - [warn]    → `c.warning` text on `c.warningWash` background.
 enum KaiForkChipTone {
   /// Bad / invalid state — negativeWash bg + negative text.
   bad,
 
-  /// No semantic state — surface3 bg + ink3 text + line border.
+  /// No semantic state — surface2 bg + ink3 text + 0.8px line border.
   neutral,
 
   /// Good / valid state — positiveWash bg + positive text.
   ok,
+
+  /// Caution state — warningWash bg + warning text (e.g. "толпы↑").
+  warn,
 }
 
 /// Fork-card visa-status pill atom.
 ///
-/// Spec: `new-design/fork.html .chip` — 8px/600 Manrope (smaller than
-/// [KaiChip.status] which uses 12px JetBrains Mono), [KaiRadius.brPill],
+/// Spec: `new-design/fork.html .chip` — 8px/600 JetBrains Mono, UPPERCASE,
+/// 0.04em tracking (smaller than [KaiChip.status] which is 12px), [KaiRadius.brPill],
 /// padding 2v/6h. Used inside [KaiForkCard] to surface visa/weather/crowd
 /// facts at a glance.
 ///
 /// Canon literals — deliberately sub-token font size:
-/// - Font: 8px / w600 / Manrope (no token exists at this size)
+/// - Font: 8px / w600 / JetBrains Mono, uppercase, ls 0.04em (no token at this size)
 /// - Padding: 2px vertical, 6px horizontal (below [KaiSpace.s1])
 class KaiForkChip extends StatelessWidget {
   const KaiForkChip(
@@ -36,7 +40,7 @@ class KaiForkChip extends StatelessWidget {
     super.key,
   });
 
-  /// The text to display. Rendered as-is (no uppercase transform).
+  /// The text to display. Rendered UPPERCASE (canon `.chip` text-transform).
   final String label;
 
   /// Color tone of the chip. Defaults to [KaiForkChipTone.neutral].
@@ -57,12 +61,16 @@ class KaiForkChip extends StatelessWidget {
         border = null;
       case KaiForkChipTone.neutral:
         textColor = c.ink3;
-        bgColor = c.surface3;
-        // canon: .chip.neu has a 1px line border
-        border = Border.all(color: c.line, width: 1);
+        bgColor = c.surface2; // canon: .chip.neu bg surface2 (#F3F3F1)
+        // canon: .chip.neu has a 0.8px line border
+        border = Border.all(color: c.line, width: 0.8);
       case KaiForkChipTone.ok:
         textColor = c.positive;
         bgColor = c.positiveWash;
+        border = null;
+      case KaiForkChipTone.warn:
+        textColor = c.warning;
+        bgColor = c.warningWash;
         border = null;
     }
 
@@ -78,13 +86,15 @@ class KaiForkChip extends StatelessWidget {
         border: border,
       ),
       child: Text(
-        label,
-        style: const TextStyle(
-          fontFamily: 'Manrope',
-          fontSize: 8, // canon: fork.html .chip font-size 8px/600
+        label.toUpperCase(), // canon: .chip text-transform uppercase
+        style: TextStyle(
+          fontFamily: 'JetBrainsMono', // canon: .chip mono (8px/600)
+          fontSize: 8,
           fontWeight: FontWeight.w600,
+          letterSpacing: 8 * 0.04, // canon: 0.04em tracking
           height: 1.0,
-        ).copyWith(color: textColor),
+          color: textColor,
+        ),
       ),
     );
   }

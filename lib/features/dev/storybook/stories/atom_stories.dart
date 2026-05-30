@@ -621,26 +621,28 @@ final List<Story> atomStories = [
     build: (_) => const StoryPage(
       title: 'KaiForkChip',
       layer: 'ATOM',
-      blurb: 'Visa-status pill used inside ForkCard. Smaller than KaiChip.status '
-          '(8px Manrope vs 12px Mono) — purpose-built for dense 2-column comparison '
-          'layout. Three semantic tones map to negative / neutral / positive.',
+      blurb: 'Visa/weather/crowd status pill used inside ForkCard. JetBrains Mono '
+          '8px/600 UPPERCASE (canon fork.html .chip), smaller than KaiChip.status '
+          '(12px). Four semantic tones: bad / neutral / ok / warn.',
       sections: [
         StorySection('Tones', [
           StoryCell('bad', KaiForkChip('виза нужна', tone: KaiForkChipTone.bad)),
           StoryCell('neutral', KaiForkChip('14°C')),
           StoryCell('ok', KaiForkChip('без визы', tone: KaiForkChipTone.ok)),
+          StoryCell('warn', KaiForkChip('толпы↑', tone: KaiForkChipTone.warn)),
         ]),
         StorySection('More examples', [
-          StoryCell('warn neutral', KaiForkChip('толпы↑')),
           StoryCell('crowds ok', KaiForkChip('толпы↓', tone: KaiForkChipTone.ok)),
+          StoryCell('neutral temp', KaiForkChip('10°C')),
         ]),
       ],
       usage: "KaiForkChip('без визы', tone: KaiForkChipTone.ok)\n"
           "KaiForkChip('виза нужна', tone: KaiForkChipTone.bad)\n"
-          "KaiForkChip('14°C')  // neutral default",
+          "KaiForkChip('толпы↑', tone: KaiForkChipTone.warn)\n"
+          "KaiForkChip('14°C')  // neutral default · renders UPPERCASE",
       props: [
-        PropDoc('label', 'String', 'required', 'Text to display'),
-        PropDoc('tone', 'KaiForkChipTone', 'neutral', 'bad / neutral / ok'),
+        PropDoc('label', 'String', 'required', 'Text to display (rendered UPPERCASE)'),
+        PropDoc('tone', 'KaiForkChipTone', 'neutral', 'bad / neutral / ok / warn'),
       ],
     ),
   ),
