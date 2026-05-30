@@ -55,9 +55,9 @@ lib/
     tokens/                       — kai_colors / kai_type / kai_space / kai_radius / kai_shadow / kai_motion / kai_tide / kai_tokens
     theme/                        — KaiTheme InheritedWidget + Material bridge
     primitives/ (3)               — KaiIcon (single SVG source), KaiSurface, KaiGradientBar — sub-atom layer; atoms MAY import these
-    atoms/ (12)                   — KaiText (+tideWord), KaiButton (tide/ink/ghost/text · sm/md/lg · living tide gradient), KaiIconButton, KaiSendButton, KaiInput, KaiToggle, KaiChip, KaiBadge, KaiAvatar, KaiTideCurve, KaiDivider, KaiSheetShell
-    molecules/ (16)               — KaiUserBubble / KaiKaiBubble / KaiSystemBubble, ComposeIsland, SourceCard, CareBlock, AlertCard, KaiToast (+ KaiToastController), KaiActionSheet, KaiMessageDetailSheet, KaiSegmentedControl, KaiSettingsRow, KaiSettingsGroup, KaiAccountHero, NavItem
-    organisms/ (4)                — chat_list, nav_panel (+ nav_models view-models), edge_state_block, onboarding_card
+    atoms/ (17)                   — KaiText (+tideWord), KaiButton (tide/ink/ghost/text · sm/md/lg · tideAnim onInteraction[default]/onState · ink fg=surface for dark), KaiIconButton (surface/transparent/bare/toggle · sizes), KaiSendButton (streaming→stop glyph), KaiInput, KaiToggle, KaiChip (sm/md · semantic tones), KaiBadge (dot tones/count/tide), KaiAvatar (.user/.kai · sm/md/lg · breathing), KaiTideCurve (8 states · demoLoop), KaiDivider, KaiSheetShell, KaiStepIndicator (animated), KaiForkChip, KaiForkScoreDots, KaiBudgetBar, KaiKaraokeText (dark-only)
+    molecules/ (18)               — KaiUserBubble / KaiKaiBubble / KaiSystemBubble, KaiComposeIsland (standard/voice/offline), SourceCard, CareBlock, AlertCard, KaiToast (+ KaiToastController · countdown/undo), KaiActionSheet, KaiMessageDetailSheet, KaiSegmentedControl, KaiSettingsRow, KaiSettingsGroup, KaiAccountHero (full/compact), NavItem, KaiForkCard, KaiTranscriptView (dark-only)
+    organisms/ (4)                — chat_list, nav_panel (no chrome — swipe-close), edge_state_block, onboarding_card (KaiStepIndicator + step-0 ink→tide-flash)
   features/
     boot/                         — SplashScreen + BootingApp
     onboarding/                   — OnboardingScreen (4 steps)
@@ -84,7 +84,7 @@ voice, memory, trip-detail, fork.
 cp .env.example .env                                       # required by pubspec — flutter_test fails without it
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs    # *.g.dart / *.freezed.dart are gitignored
-flutter test                                                # expect 681/681 passing
+flutter test                                                # expect 838/838 passing
 flutter analyze                                             # expect "No issues found"
 ```
 
