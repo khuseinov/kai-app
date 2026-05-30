@@ -41,6 +41,8 @@ class KaiForkColumn {
     required this.glyph,
     required this.price,
     required this.rows,
+    this.priceDelta,
+    this.priceDirection,
   });
 
   /// Country name displayed below the glyph (e.g. "Япония").
@@ -51,6 +53,13 @@ class KaiForkColumn {
 
   /// Price string (e.g. "\$2,100").
   final String price;
+
+  /// Optional price-change delta text (e.g. "+\$500"). Rendered as a
+  /// [KaiForkPriceDelta] beside the price when [priceDirection] is also set.
+  final String? priceDelta;
+
+  /// Direction of the price change — required when [priceDelta] is shown.
+  final KaiPriceDirection? priceDirection;
 
   /// Fact rows — each may carry a chip, score dots, or just text.
   final List<KaiForkRow> rows;
@@ -76,6 +85,8 @@ class KaiForkCard extends StatelessWidget {
     required this.columns,
     this.pickIndex,
     this.headerLabel,
+    this.winnerSummary,
+    this.freshLabel,
     super.key,
   });
 
@@ -90,6 +101,15 @@ class KaiForkCard extends StatelessWidget {
   /// Optional header label (e.g. "сравниваем · 2 варианта").
   /// Defaults to "${columns.length} варианта".
   final String? headerLabel;
+
+  /// Optional winner-summary footer text (canon `.fc-sw`), e.g.
+  /// "Корея — лучший выбор для \$2k." Rendered as a full-width strip below the
+  /// columns when non-null. The "лучший" wording lives here, not in the badge.
+  final String? winnerSummary;
+
+  /// Optional freshness marker (canon `.fc-h .fresh`), e.g. "✓ сегодня".
+  /// Rendered right-aligned in the header when non-null.
+  final String? freshLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +132,7 @@ class KaiForkCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // ── Header ──────────────────────────────────────────────────────
-          _ForkHeader(label: label, colors: c),
+          _ForkHeader(label: label, freshLabel: freshLabel, colors: c),
           // ── Columns ─────────────────────────────────────────────────────
           IntrinsicHeight(
             child: Row(
@@ -136,6 +156,9 @@ class KaiForkCard extends StatelessWidget {
               ],
             ),
           ),
+          // ── Winner summary footer (.fc-sw) ───────────────────────────────
+          if (winnerSummary != null)
+            _ForkWinnerSummary(text: winnerSummary!, colors: c),
         ],
       ),
     );
@@ -147,9 +170,14 @@ class KaiForkCard extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _ForkHeader extends StatelessWidget {
-  const _ForkHeader({required this.label, required this.colors});
+  const _ForkHeader({
+    required this.label,
+    required this.colors,
+    this.freshLabel,
+  });
 
   final String label;
+  final String? freshLabel;
   final KaiColorTokens colors;
 
   @override
@@ -188,6 +216,18 @@ class _ForkHeader extends StatelessWidget {
               ),
             ),
           ),
+          // Freshness marker (.fresh) — right-aligned, e.g. "✓ сегодня".
+          if (freshLabel != null)
+            Text(
+              freshLabel!,
+              style: TextStyle(
+                fontFamily: 'JetBrainsMono', // canon: .fresh 8.5px/500 mono
+                fontSize: 8.5,
+                fontWeight: FontWeight.w500,
+                color: c.positive, // canon: positive green
+                letterSpacing: 8.5 * -0.01,
+              ),
+            ),
         ],
       ),
     );
@@ -217,11 +257,16 @@ class _ForkColumn extends StatelessWidget {
       children: [
         // Tinted background for winning column
         if (isPick)
-          Positioned.fill(
+          const Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
-                // canon: .fc-col.win gradient overlay ~7% tide-2
-                color: const Color(0xFF2BA8C9).withValues(alpha: 0.07),
+                // canon: .fc-col.win bg linear-gradient(170°, rgba(tide-2,0.07),
+                // rgba(tide-2,0.02)) — a near-vertical 7%→2% wash.
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0x122BA8C9), Color(0x052BA8C9)],
+                ),
               ),
             ),
           ),
@@ -278,17 +323,35 @@ class _ForkColumn extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 9), // canon: .fc-col gap 9px
-              // ── Price ──────────────────────────────────────────────────
-              Text(
-                column.price,
-                style: TextStyle(
-                  fontFamily: 'Manrope',
-                  fontSize: 19, // canon: .fc-price 19px/600
-                  fontWeight: FontWeight.w600,
-                  color: c.ink1,
-                  letterSpacing: 19 * (-0.025),
-                  height: 1.0,
-                ),
+              // ── Price row (.fc-price-row: price + delta, baseline-aligned) ─
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Flexible(
+                    child: Text(
+                      column.price,
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 19, // canon: .fc-price 19px/600
+                        fontWeight: FontWeight.w600,
+                        color: c.ink1,
+                        letterSpacing: 19 * (-0.025),
+                        height: 1.0,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (column.priceDelta != null &&
+                      column.priceDirection != null) ...[
+                    const SizedBox(width: 6), // canon: .fc-price-row gap 6px
+                    KaiForkPriceDelta(
+                      column.priceDelta!,
+                      direction: column.priceDirection!,
+                    ),
+                  ],
+                ],
               ),
               // ── Fact rows ──────────────────────────────────────────────
               if (column.rows.isNotEmpty) ...[
@@ -363,7 +426,8 @@ class _PickBadge extends StatelessWidget {
         borderRadius: KaiRadius.brPill,
       ),
       child: const Text(
-        '✓ лучший',
+        // canon: .fc-badge is a bare "✓" — the "лучший" wording lives in .fc-sw.
+        '✓',
         style: TextStyle(
           fontFamily: 'JetBrainsMono',
           fontSize: 7.5, // canon: .fc-badge 7.5px/600 mono
@@ -396,11 +460,12 @@ class _ForkRow extends StatelessWidget {
       runSpacing: 3,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        // Chip (visa, weather, crowd status)
+        // Chip (visa, weather, crowd status).
         if (hasChip)
           KaiForkChip(row.chipLabel!, tone: row.chipTone!)
-        else
-          // Plain value text when no chip
+        // Plain value text only when there's no chip AND no score
+        // (a score row is represented by its dots + label, canon .fc-score).
+        else if (row.score == null)
           Text(
             row.value,
             style: TextStyle(
@@ -410,9 +475,59 @@ class _ForkRow extends StatelessWidget {
               color: c.ink2,
             ),
           ),
-        // Score dots
-        if (row.score != null) KaiForkScoreDots(score: row.score!),
+        // Score dots + trailing "n/max" label (canon .fc-score .sl).
+        if (row.score != null)
+          KaiForkScoreDots(score: row.score!, showLabel: true),
       ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Internal: winner-summary footer (.fc-sw)
+// ---------------------------------------------------------------------------
+
+class _ForkWinnerSummary extends StatelessWidget {
+  const _ForkWinnerSummary({required this.text, required this.colors});
+
+  final String text;
+  final KaiColorTokens colors;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = colors;
+    return Container(
+      // canon: .fc-sw padding 8/11, gap 5, bg tide-2 @ 4%, top 0.8px line border
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0x0A2BA8C9), // tide-2 @ ~4%
+        border: Border(top: BorderSide(color: c.line, width: 0.8)),
+      ),
+      child: Row(
+        children: [
+          // .wd — 5px tide-2 dot
+          Container(
+            width: 5,
+            height: 5,
+            decoration: const BoxDecoration(
+              color: KaiTide.stop2,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 5), // canon: .fc-sw gap 5px
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 10.5, // canon: .fc-sw 10.5px/500
+                fontWeight: FontWeight.w500,
+                color: c.ink2,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1290,13 +1290,15 @@ class _KaiForkCardStory extends StatelessWidget {
       layer: 'MOLECULE',
       blurb:
           '2-column comparison card rendered in the chat feed. Composes '
-          'KaiForkChip visa-status pills and KaiForkScoreDots rating rows. '
-          'The winning column (pickIndex) gets a 2px tide-gradient top bar, '
-          'accentWash tint, and a "✓ лучший" badge. From new-design/fork.html.',
+          'KaiForkChip pills, KaiForkScoreDots (+ "n/max" label) and '
+          'KaiForkPriceDelta. The winning column (pickIndex) gets a 2px '
+          'tide-gradient top bar, a tide wash, and a "✓" badge; the "лучший" '
+          'verdict lives in the .fc-sw winner footer. Header carries a "✓ сегодня" '
+          'freshness marker. From new-design/fork.html.',
       sections: [
         StorySection('Japan vs Korea (pickIndex: 1 — Korea wins)', [
           StoryCell(
-            'minimal',
+            'full',
             SizedBox(
               width: 300,
               child: KaiForkCard(
@@ -1305,6 +1307,8 @@ class _KaiForkCardStory extends StatelessWidget {
                     name: 'Япония',
                     glyph: 'JP',
                     price: '\$2,100',
+                    priceDelta: '+\$500',
+                    priceDirection: KaiPriceDirection.up,
                     rows: [
                       KaiForkRow(
                         label: 'виза',
@@ -1313,10 +1317,10 @@ class _KaiForkCardStory extends StatelessWidget {
                         chipLabel: 'виза нужна',
                       ),
                       KaiForkRow(
-                        label: 'погода',
-                        value: '14°C',
-                        chipTone: KaiForkChipTone.neutral,
-                        chipLabel: '14°C',
+                        label: 'толпы',
+                        value: 'толпы↑',
+                        chipTone: KaiForkChipTone.warn,
+                        chipLabel: 'толпы↑',
                       ),
                       KaiForkRow(label: 'оценка', value: '4/5', score: 4),
                     ],
@@ -1325,6 +1329,8 @@ class _KaiForkCardStory extends StatelessWidget {
                     name: 'Корея',
                     glyph: 'KR',
                     price: '\$1,600',
+                    priceDelta: '−\$500',
+                    priceDirection: KaiPriceDirection.down,
                     rows: [
                       KaiForkRow(
                         label: 'виза',
@@ -1333,10 +1339,10 @@ class _KaiForkCardStory extends StatelessWidget {
                         chipLabel: 'без визы',
                       ),
                       KaiForkRow(
-                        label: 'погода',
-                        value: '10°C',
-                        chipTone: KaiForkChipTone.neutral,
-                        chipLabel: '10°C',
+                        label: 'толпы',
+                        value: 'толпы↓',
+                        chipTone: KaiForkChipTone.ok,
+                        chipLabel: 'толпы↓',
                       ),
                       KaiForkRow(label: 'оценка', value: '5/5', score: 5),
                     ],
@@ -1344,6 +1350,8 @@ class _KaiForkCardStory extends StatelessWidget {
                 ],
                 pickIndex: 1,
                 headerLabel: 'сравниваем · 2 варианта',
+                freshLabel: '✓ сегодня',
+                winnerSummary: 'Корея — лучший выбор для \$2k.',
               ),
             ),
           ),
@@ -1402,8 +1410,10 @@ class _KaiForkCardStory extends StatelessWidget {
           ')',
       props: [
         PropDoc('columns', 'List<KaiForkColumn>', 'required', 'Min 2 columns'),
-        PropDoc('pickIndex', 'int?', 'null', 'Winning column index (tide bar + badge)'),
+        PropDoc('pickIndex', 'int?', 'null', 'Winning column index (tide bar + ✓ badge)'),
         PropDoc('headerLabel', 'String?', 'null', 'Override default header ("N варианта")'),
+        PropDoc('winnerSummary', 'String?', 'null', '.fc-sw footer verdict text'),
+        PropDoc('freshLabel', 'String?', 'null', '.fresh header marker ("✓ сегодня")'),
       ],
     );
   }

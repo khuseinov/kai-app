@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/design_system/atoms/kai_fork_chip.dart';
+import 'package:kai_app/design_system/atoms/kai_fork_price_delta.dart';
 import 'package:kai_app/design_system/atoms/kai_fork_score_dots.dart';
 import 'package:kai_app/design_system/molecules/kai_fork_card.dart';
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
@@ -15,6 +16,8 @@ const _colJapan = KaiForkColumn(
   name: 'Япония',
   glyph: 'JP',
   price: '\$2,100',
+  priceDelta: '+\$500',
+  priceDirection: KaiPriceDirection.up,
   rows: [
     KaiForkRow(
       label: 'виза',
@@ -40,6 +43,8 @@ const _colKorea = KaiForkColumn(
   name: 'Корея',
   glyph: 'KR',
   price: '\$1,600',
+  priceDelta: '−\$500',
+  priceDirection: KaiPriceDirection.down,
   rows: [
     KaiForkRow(
       label: 'виза',
@@ -206,8 +211,9 @@ void main() {
         );
         await tester.pump();
 
-        // The pick badge shows "✓ лучший"
-        expect(find.text('✓ лучший'), findsOneWidget,
+        // The pick badge shows a bare "✓" (the "лучший" wording lives in the
+        // .fc-sw winner-summary footer, not the badge).
+        expect(find.text('✓'), findsOneWidget,
             reason: 'pickIndex=1 must show the pick badge on the Korea column');
       });
 
@@ -225,7 +231,7 @@ void main() {
         );
         await tester.pump();
 
-        expect(find.text('✓ лучший'), findsOneWidget,
+        expect(find.text('✓'), findsOneWidget,
             reason: 'pickIndex=0 must show the pick badge on the Japan column');
       });
 
@@ -242,7 +248,7 @@ void main() {
         );
         await tester.pump();
 
-        expect(find.text('✓ лучший'), findsNothing,
+        expect(find.text('✓'), findsNothing,
             reason: 'No pick badge when pickIndex is null');
       });
 
@@ -359,7 +365,90 @@ void main() {
 
       expect(find.text('Япония'), findsOneWidget);
       expect(find.text('Корея'), findsOneWidget);
-      expect(find.text('✓ лучший'), findsOneWidget);
+      expect(find.text('✓'), findsOneWidget);
+    });
+
+    // -------------------------------------------------------------------------
+    // R4 fidelity additions — price delta, winner footer, fresh marker
+    // -------------------------------------------------------------------------
+
+    testWidgets('price-row renders KaiForkPriceDelta when delta provided',
+        (tester) async {
+      await tester.pumpWidget(
+        buildTestWidget(
+          const SizedBox(
+            width: 300,
+            child: KaiForkCard(columns: [_colJapan, _colKorea]),
+          ),
+        ),
+      );
+      await tester.pump();
+      // one delta per column
+      expect(find.byType(KaiForkPriceDelta), findsNWidgets(2));
+      expect(find.text('+\$500'), findsOneWidget);
+      expect(find.text('−\$500'), findsOneWidget);
+    });
+
+    testWidgets('winnerSummary renders the .fc-sw footer', (tester) async {
+      await tester.pumpWidget(
+        buildTestWidget(
+          const SizedBox(
+            width: 300,
+            child: KaiForkCard(
+              columns: [_colJapan, _colKorea],
+              pickIndex: 1,
+              winnerSummary: 'Корея — лучший выбор для \$2k.',
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('Корея — лучший выбор для \$2k.'), findsOneWidget);
+    });
+
+    testWidgets('no footer when winnerSummary is null', (tester) async {
+      await tester.pumpWidget(
+        buildTestWidget(
+          const SizedBox(
+            width: 300,
+            child: KaiForkCard(columns: [_colJapan, _colKorea], pickIndex: 1),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.textContaining('лучший выбор'), findsNothing);
+    });
+
+    testWidgets('freshLabel renders in the header', (tester) async {
+      await tester.pumpWidget(
+        buildTestWidget(
+          const SizedBox(
+            width: 300,
+            child: KaiForkCard(
+              columns: [_colJapan, _colKorea],
+              freshLabel: '✓ сегодня',
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('✓ сегодня'), findsOneWidget);
+    });
+
+    testWidgets('score rows show dots with label, no duplicate value text',
+        (tester) async {
+      await tester.pumpWidget(
+        buildTestWidget(
+          const SizedBox(
+            width: 300,
+            child: KaiForkCard(columns: [_colJapan, _colKorea]),
+          ),
+        ),
+      );
+      await tester.pump();
+      // score-dot label appears once per column (4/5 and 5/5), not duplicated
+      expect(find.text('4/5'), findsOneWidget);
+      expect(find.text('5/5'), findsOneWidget);
     });
   });
 }

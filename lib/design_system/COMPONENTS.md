@@ -471,21 +471,28 @@ Canon: `onboarding.html .ob-dots`.
 #### KaiForkChip
 File: `atoms/kai_fork_chip.dart`
 ```dart
-KaiForkChip('безвиз', tone: KaiForkChipTone.ok)
+KaiForkChip('без визы', tone: KaiForkChipTone.ok)   // renders "БЕЗ ВИЗЫ"
 ```
-Fork-card visa-status pill. 8px/w600 Manrope (sub-token — no KaiType method at 8px), brPill, pad 2v/6h.
-`KaiForkChipTone`: `bad` (negativeWash+negative) / `neutral` (surface3+ink3+line border) / `ok` (positiveWash+positive).
-Distinct from `KaiChip.status` (12px mono uppercase) — this is 8px Manrope, mixed-case, smaller.
-Canon: `fork.html .chip` / `.fc-chip`.
+Fork-card status pill. **JetBrains Mono 8px/w600, UPPERCASE, ls 0.04em** (sub-token), brPill, pad 2v/6h.
+`KaiForkChipTone`: `bad` (negativeWash+negative) / `neutral` (surface2+ink3+0.8px line border) / `ok` (positiveWash+positive) / `warn` (warningWash+warning).
+Label is uppercased at render (canon `.chip` text-transform). Canon: `fork.html .chip`.
 
 #### KaiForkScoreDots
 File: `atoms/kai_fork_score_dots.dart`
 ```dart
-KaiForkScoreDots(score: 3, [max: 5, fillColor:])
+KaiForkScoreDots(score: 3, [max: 5, fillColor:, showLabel: false])
 ```
-Row of `max` (default 5) x 5px circles. First `score` are filled with `fillColor` (default `c.positive`); remainder with `c.surface3`. Gap 3px between dots.
-Score is clamped to `[0, max]` at build time.
-Canon: `fork.html .fc-score`.
+Row of `max` (default 5) x 5px circles. First `score` filled with `fillColor` (**default tide-2 `KaiTide.stop2` #2BA8C9**, not positive); remainder `c.surface3`. Gap 3px.
+`showLabel: true` appends a trailing "n/max" label (JetBrains Mono 8.5px/500 ink3 — canon `.sl`).
+Score clamped to `[0, max]`. Canon: `fork.html .fc-score`.
+
+#### KaiForkPriceDelta
+File: `atoms/kai_fork_price_delta.dart`
+```dart
+KaiForkPriceDelta('+\$500', direction: KaiPriceDirection.up)   // costlier → coral
+KaiForkPriceDelta('−\$500', direction: KaiPriceDirection.down) // cheaper → green
+```
+Price-change pill. JetBrains Mono 8.5px/600, pad 1.5v/5h, brPill. `up` = negative/negativeWash (more expensive), `down` = positive/positiveWash (cheaper) — inverse of a stock ticker. Canon: `fork.html .fc-delta`.
 
 #### KaiBudgetBar
 File: `atoms/kai_budget_bar.dart`
@@ -689,20 +696,24 @@ File: `molecules/kai_fork_card.dart`
 ```dart
 KaiForkCard(
   columns: [
-    KaiForkColumn(name: 'Япония', glyph: 'JP', price: '\$2,100', rows: [
-      KaiForkRow(label: 'виза', value: '', chipTone: KaiForkChipTone.ok, chipLabel: 'безвиз'),
-      KaiForkRow(label: 'погода', value: '27°C', score: 4),
+    KaiForkColumn(name: 'Корея', glyph: 'KR', price: '\$1,600',
+      priceDelta: '−\$500', priceDirection: KaiPriceDirection.down, rows: [
+        KaiForkRow(label: 'виза', value: '', chipTone: KaiForkChipTone.ok, chipLabel: 'без визы'),
+        KaiForkRow(label: 'погода', value: '10°C', score: 5),
     ]),
     KaiForkColumn(...),
   ],
   pickIndex: 0,
-  [headerLabel:],
+  [headerLabel:, freshLabel: '✓ сегодня', winnerSummary: 'Корея — лучший выбор…'],
 )
 ```
-`KaiForkColumn({required name, required glyph, required price, required rows})`.
-`KaiForkRow({required label, required value, chipTone?, chipLabel?, score?})` — `chipTone`+`chipLabel` renders `KaiForkChip`; `score` renders `KaiForkScoreDots`.
+`KaiForkColumn({required name, required glyph, required price, required rows, priceDelta?, priceDirection?})`.
+`KaiForkRow({required label, required value, chipTone?, chipLabel?, score?})` — `chipTone`+`chipLabel` renders `KaiForkChip`; `score` renders `KaiForkScoreDots` (with "n/max" label). A score row shows only the dots+label (no plain value text).
 2-column (or more) comparison rendered in the chat feed. Outer: surface, br3 (14px), 1px line border.
-Pick column (`pickIndex`): accentWash tint + 2px tide-gradient top border + "✓ лучший" badge.
+Price row (`.fc-price-row`): price 19px/600 + optional `KaiForkPriceDelta`, baseline-aligned.
+Pick column (`pickIndex`): tide wash gradient (170° 7%→2%) + 2px tide-gradient top border + bare "✓" badge.
+`winnerSummary` → `.fc-sw` footer (tide-2 4% bg, top border, 5px dot + 10.5px/500 ink2 verdict — where "лучший" lives).
+`freshLabel` → `.fresh` header marker (8.5px/500 mono positive, right-aligned).
 Header: 8.5px/500 JetBrainsMono ink3, 5px positive live-dot. Glyph: 18×18 tide-corner r5.
 Canon: `fork.html .fc`.
 
@@ -775,7 +786,9 @@ HTML canon vs. current Dart implementation. Always read before editing.
 Re-extracted computed styles from `fork.html`, `voice.html`, `components.html` (toast),
 `nav.html` (badge), `room.html` (compose). New discrepancies found beyond the table above:
 
-**R4 · fork.html (`.fc*`)**
+**R4 · fork.html (`.fc*`)** — ✅ FIXED 2026-05-30 (chip mono/uppercase/warn/surface2-border,
+score dots tide-2 + label, `KaiForkPriceDelta` atom + price row, `.fc-sw` footer, "✓" badge,
+`.fresh` marker, win-col gradient). Findings below kept for the record.
 - `KaiForkChip` font is WRONG: canon `.chip` = **JetBrains Mono 8px/600, UPPERCASE,
   ls 0.04em (0.32px)** — Dart renders Manrope 8px/600 mixed-case. Fix font + uppercase + ls.
 - `KaiForkChip` is **missing the `warn` tone** (canon `.chip.warn` = `warning` #B57A0B on
