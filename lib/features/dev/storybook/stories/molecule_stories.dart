@@ -126,16 +126,18 @@ final List<Story> moleculeStories = [
     layer: StoryLayer.molecules,
     name: 'KaiComposeIsland',
     importPath: 'package:kai_app/design_system/molecules/molecules.dart',
-    canonFile: 'new-design/components.html',
-    canonSelector: '.sheet.compose-sheet .compose',
+    canonFile: 'new-design/room.html',
+    canonSelector: '.compose-island',
     description:
-        'Pill-shaped chat input bar with growing textarea, optional mic '
-        'button, and send button lifecycle states. Three modes: standard, '
-        'voice (mic emphasis, send hidden until text), offline (disabled + hint).',
+        'Pill-shaped chat input bar. Composable affordances (+ / mic / voice-Kai / '
+        'send) shown per callback. Variant-1 "swap": voice persistent, far-right '
+        'slot swaps mic⇄send on text. Streaming collapses to "Kai отвечает…" + stop. '
+        'Offline = O-A calm queue (amber, never coral).',
     variants: [
-      'mode: standard',
-      'mode: voice',
-      'mode: offline',
+      'empty',
+      'typing',
+      'streaming',
+      'offline',
     ],
     build: (_) => const _KaiComposeIslandStory(),
   ),
@@ -553,15 +555,19 @@ class _KaiComposeIslandStory extends StatefulWidget {
 }
 
 class _KaiComposeIslandStoryState extends State<_KaiComposeIslandStory> {
-  final _ctrl = TextEditingController();
-  final _voiceCtrl = TextEditingController();
-  final _offlineCtrl = TextEditingController();
+  final _emptyCtrl = TextEditingController();
+  final _typingCtrl = TextEditingController(text: 'рейс в Токио на пятницу');
+  final _streamCtrl = TextEditingController();
+  final _offlineEmptyCtrl = TextEditingController();
+  final _offlineTypingCtrl = TextEditingController(text: 'напишу позже');
 
   @override
   void dispose() {
-    _ctrl.dispose();
-    _voiceCtrl.dispose();
-    _offlineCtrl.dispose();
+    _emptyCtrl.dispose();
+    _typingCtrl.dispose();
+    _streamCtrl.dispose();
+    _offlineEmptyCtrl.dispose();
+    _offlineTypingCtrl.dispose();
     super.dispose();
   }
 
@@ -571,43 +577,74 @@ class _KaiComposeIslandStoryState extends State<_KaiComposeIslandStory> {
       title: 'KaiComposeIsland',
       layer: 'MOLECULE',
       blurb:
-          'Pill-shaped chat input bar — growing textarea, optional mic button, '
-          'and KaiSendButton lifecycle (idle/busy/done). Three modes: standard '
-          '(default), voice (mic emphasis — send hidden until text), offline '
-          '(input disabled, "оффлайн" hint shown).',
+          'Pill-shaped chat input bar. Composable affordances — "+", mic '
+          '(dictation), voice-Kai (full voice mode) and send each render iff '
+          'their callback is set. Variant-1 "swap": voice is the persistent '
+          'inner-right button; the far-right slot swaps mic (empty) ⇄ send '
+          '(typing). Streaming collapses to "Kai отвечает…" + stop. Offline = '
+          'O-A calm queue (amber dot, never coral).',
       sections: [
-        StorySection('Modes', [
+        StorySection('States', [
           StoryCell(
-            'standard',
+            'empty · + / mic / voice',
             SizedBox(
               width: 320,
               child: KaiComposeIsland(
-                controller: _ctrl,
+                controller: _emptyCtrl,
                 onSend: () {},
+                onAddTap: () {},
                 onMicTap: () {},
+                onVoiceTap: () {},
               ),
             ),
           ),
           StoryCell(
-            'voice',
+            'typing · mic→send',
             SizedBox(
               width: 320,
               child: KaiComposeIsland(
-                controller: _voiceCtrl,
+                controller: _typingCtrl,
                 onSend: () {},
+                onAddTap: () {},
                 onMicTap: () {},
-                mode: KaiComposeMode.voice,
+                onVoiceTap: () {},
               ),
             ),
           ),
           StoryCell(
-            'offline',
+            'streaming · stop',
             SizedBox(
               width: 320,
               child: KaiComposeIsland(
-                controller: _offlineCtrl,
+                controller: _streamCtrl,
                 onSend: () {},
-                mode: KaiComposeMode.offline,
+                onStop: () {},
+                sendState: KaiSendState.streaming,
+              ),
+            ),
+          ),
+          StoryCell(
+            'offline · hint',
+            SizedBox(
+              width: 320,
+              child: KaiComposeIsland(
+                controller: _offlineEmptyCtrl,
+                onSend: () {},
+                onAddTap: () {},
+                offline: true,
+              ),
+            ),
+          ),
+          StoryCell(
+            'offline · queue',
+            SizedBox(
+              width: 320,
+              child: KaiComposeIsland(
+                controller: _offlineTypingCtrl,
+                onSend: () {},
+                onAddTap: () {},
+                offline: true,
+                onQueue: () {},
               ),
             ),
           ),
@@ -616,15 +653,21 @@ class _KaiComposeIslandStoryState extends State<_KaiComposeIslandStory> {
       usage: 'KaiComposeIsland(\n'
           '  controller: _ctrl,\n'
           '  onSend: _handleSend,\n'
-          '  onMicTap: _handleMic,\n'
-          '  mode: KaiComposeMode.standard,\n'
+          '  onMicTap: _handleMic,      // dictation\n'
+          '  onVoiceTap: _enterVoice,   // voice-Kai mode\n'
+          '  onAddTap: _showAddSheet,   // + attach/travel\n'
+          '  offline: isOffline,\n'
           ')',
       props: const [
         PropDoc('controller', 'TextEditingController', 'required', 'Input controller'),
         PropDoc('onSend', 'VoidCallback', 'required', 'Called when send tapped'),
-        PropDoc('onMicTap', 'VoidCallback?', 'null', 'Shows mic button when set'),
-        PropDoc('sendState', 'KaiSendState', 'ready', 'idle / sending / streaming'),
-        PropDoc('mode', 'KaiComposeMode', 'standard', 'standard / voice / offline'),
+        PropDoc('onAddTap', 'VoidCallback?', 'null', 'Shows "+" when set'),
+        PropDoc('onMicTap', 'VoidCallback?', 'null', 'Shows mic (swap) when set'),
+        PropDoc('onVoiceTap', 'VoidCallback?', 'null', 'Shows voice-Kai when set'),
+        PropDoc('onStop', 'VoidCallback?', 'null', 'Stop during streaming'),
+        PropDoc('sendState', 'KaiSendState', 'ready', 'streaming → collapsed frame'),
+        PropDoc('offline', 'bool', 'false', 'O-A calm-queue offline state'),
+        PropDoc('onQueue', 'VoidCallback?', 'null', 'Offline queue (defaults to onSend)'),
       ],
     );
   }

@@ -1,465 +1,207 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 import 'package:kai_app/design_system/atoms/kai_send_button.dart';
 import 'package:kai_app/design_system/molecules/kai_compose_island.dart';
+import 'package:kai_app/design_system/primitives/primitives.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 import '../../test_helpers.dart';
 
+const _micKey = ValueKey<String>('compose_mic_button');
+const _addKey = ValueKey<String>('compose_add_button');
+const _voiceKey = ValueKey<String>('compose_voice_button');
+const _queueKey = ValueKey<String>('compose_queue_button');
+
+bool _hasIcon(WidgetTester t, KaiIconName name) =>
+    t.widgetList<KaiIcon>(find.byType(KaiIcon)).any((i) => i.name == name);
+
 void main() {
   group('v3/KaiComposeIsland', () {
-    // -----------------------------------------------------------------------
-    // Mode enum
-    // -----------------------------------------------------------------------
+    // ── Variant-1 swap ──────────────────────────────────────────────────────
 
-    test('KaiComposeMode has exactly 3 values', () {
-      expect(KaiComposeMode.values.length, 3);
-    });
-
-    // -----------------------------------------------------------------------
-    // voice mode
-    // -----------------------------------------------------------------------
-
-    testWidgets('voice mode: mic button prominent (always shown)', (tester) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-            mode: KaiComposeMode.voice,
-          ),
-        ),
-      );
-      await tester.pump();
-
-      expect(
-        find.byKey(const ValueKey<String>('compose_mic_button')),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('voice mode: send hidden when controller is empty',
-        (tester) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-            mode: KaiComposeMode.voice,
-          ),
-        ),
-      );
-      await tester.pump();
-
+    testWidgets('empty field shows mic, not send', (tester) async {
+      final c = TextEditingController();
+      addTearDown(c.dispose);
+      await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
+        controller: c, onSend: () {}, onMicTap: () {}, onVoiceTap: () {},
+      )));
+      expect(find.byKey(_micKey), findsOneWidget);
       expect(find.byType(KaiSendButton), findsNothing);
     });
 
-    testWidgets('voice mode: send visible when controller has text',
-        (tester) async {
-      final controller = TextEditingController(text: 'hello');
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-            mode: KaiComposeMode.voice,
-          ),
-        ),
-      );
-      await tester.pump();
-
+    testWidgets('typing swaps mic → send', (tester) async {
+      final c = TextEditingController();
+      addTearDown(c.dispose);
+      await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
+        controller: c, onSend: () {}, onMicTap: () {}, onVoiceTap: () {},
+      )));
+      await tester.enterText(find.byType(TextField), 'рейс в Токио');
+      // Settle the mic→send AnimatedSwitcher (outgoing child removed a frame
+      // after the transition completes).
+      await tester.pumpAndSettle();
       expect(find.byType(KaiSendButton), findsOneWidget);
+      expect(find.byKey(_micKey), findsNothing);
     });
 
-    // -----------------------------------------------------------------------
-    // offline mode
-    // -----------------------------------------------------------------------
-
-    testWidgets('offline mode: input is disabled', (tester) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-            mode: KaiComposeMode.offline,
-          ),
-        ),
-      );
-      await tester.pump();
-
-      final textField = tester.widget<TextField>(find.byType(TextField));
-      expect(textField.enabled, isFalse);
-    });
-
-    testWidgets('offline mode: offline hint text is present', (tester) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-            mode: KaiComposeMode.offline,
-          ),
-        ),
-      );
-      await tester.pump();
-
-      expect(
-        find.byKey(const ValueKey<String>('compose_offline_hint')),
-        findsOneWidget,
-      );
-      expect(find.text('оффлайн'), findsOneWidget);
-    });
-
-    testWidgets('offline mode: send button is disabled', (tester) async {
-      final controller = TextEditingController(text: 'text does not matter');
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-            mode: KaiComposeMode.offline,
-          ),
-        ),
-      );
-      await tester.pump();
-
-      final sendBtn = tester.widget<KaiSendButton>(find.byType(KaiSendButton));
-      expect(sendBtn.state, KaiSendState.disabled);
-    });
-
-    // -----------------------------------------------------------------------
-    // standard mode (existing behaviour preserved)
-    // -----------------------------------------------------------------------
-
-    // -----------------------------------------------------------------------
-    // Renders child atoms
-    // -----------------------------------------------------------------------
-
-    testWidgets('renders a TextField', (tester) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-          ),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byType(TextField), findsOneWidget);
-    });
-
-    testWidgets('renders KaiSendButton', (tester) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-          ),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byType(KaiSendButton), findsOneWidget);
-    });
-
-    testWidgets('renders KaiIconButton mic when onMicTap provided',
+    testWidgets('no mic callback → far-right slot is send (disabled when empty)',
         (tester) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-            onMicTap: () {},
-          ),
-        ),
-      );
-      await tester.pump();
-
-      expect(
-        find.byKey(const ValueKey<String>('compose_mic_button')),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('omits mic button when onMicTap is null', (tester) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-            // onMicTap intentionally not provided
-          ),
-        ),
-      );
-      await tester.pump();
-
-      expect(
-        find.byKey(const ValueKey<String>('compose_mic_button')),
-        findsNothing,
-      );
-    });
-
-    // -----------------------------------------------------------------------
-    // Send state derivation
-    // -----------------------------------------------------------------------
-
-    testWidgets('send button is disabled when controller is empty',
-        (tester) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-          ),
-        ),
-      );
-      await tester.pump();
-
-      final sendBtn = tester.widget<KaiSendButton>(find.byType(KaiSendButton));
-      expect(sendBtn.state, KaiSendState.disabled);
-    });
-
-    testWidgets('send button is ready when controller has text', (tester) async {
-      final controller = TextEditingController(text: 'hello');
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-          ),
-        ),
-      );
-      await tester.pump();
-
-      final sendBtn = tester.widget<KaiSendButton>(find.byType(KaiSendButton));
-      expect(sendBtn.state, KaiSendState.ready);
-    });
-
-    testWidgets(
-        'send button transitions from disabled to ready when text is entered',
-        (tester) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-          ),
-        ),
-      );
-      await tester.pump();
-
-      // Initially disabled.
+      final c = TextEditingController();
+      addTearDown(c.dispose);
+      await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
+        controller: c, onSend: () {},
+      )));
+      expect(find.byKey(_micKey), findsNothing);
       expect(
         tester.widget<KaiSendButton>(find.byType(KaiSendButton)).state,
         KaiSendState.disabled,
       );
+    });
 
-      // Enter text.
-      await tester.enterText(find.byType(TextField), 'Hey Kai');
-      await tester.pump();
+    // ── Composable affordances ────────────────────────────────────────────────
 
+    testWidgets('voice + add hidden when callbacks null', (tester) async {
+      final c = TextEditingController();
+      addTearDown(c.dispose);
+      await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
+        controller: c, onSend: () {},
+      )));
+      expect(find.byKey(_voiceKey), findsNothing);
+      expect(find.byKey(_addKey), findsNothing);
+      expect(_hasIcon(tester, KaiIconName.waveform), isFalse);
+      expect(_hasIcon(tester, KaiIconName.plus), isFalse);
+    });
+
+    testWidgets('voice + add shown when callbacks set', (tester) async {
+      final c = TextEditingController();
+      addTearDown(c.dispose);
+      await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
+        controller: c, onSend: () {}, onAddTap: () {}, onVoiceTap: () {}, onMicTap: () {},
+      )));
+      expect(find.byKey(_voiceKey), findsOneWidget);
+      expect(find.byKey(_addKey), findsOneWidget);
+      expect(_hasIcon(tester, KaiIconName.waveform), isTrue);
+    });
+
+    testWidgets('onVoiceTap + onAddTap fire on tap', (tester) async {
+      final c = TextEditingController();
+      addTearDown(c.dispose);
+      var voice = false, add = false;
+      await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
+        controller: c, onSend: () {},
+        onAddTap: () => add = true, onVoiceTap: () => voice = true, onMicTap: () {},
+      )));
+      await tester.tap(find.byKey(_voiceKey));
+      await tester.tap(find.byKey(_addKey));
+      expect(voice, isTrue);
+      expect(add, isTrue);
+    });
+
+    // ── Streaming ──────────────────────────────────────────────────────────────
+
+    testWidgets('streaming collapses to stop, hides field; onStop fires',
+        (tester) async {
+      final c = TextEditingController(text: 'x');
+      addTearDown(c.dispose);
+      var stopped = false;
+      await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
+        controller: c, onSend: () {}, onStop: () => stopped = true,
+        sendState: KaiSendState.streaming,
+      )));
+      expect(find.byType(TextField), findsNothing);
+      expect(find.text('Kai отвечает…'), findsOneWidget);
+      final stopBtn = find.byType(KaiSendButton);
+      expect(stopBtn, findsOneWidget);
       expect(
-        tester.widget<KaiSendButton>(find.byType(KaiSendButton)).state,
-        KaiSendState.ready,
-      );
+        tester.widget<KaiSendButton>(stopBtn).state, KaiSendState.streaming);
+      await tester.tap(stopBtn);
+      expect(stopped, isTrue);
     });
 
-    testWidgets('explicit sending state is forwarded unchanged', (tester) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
+    // ── Offline (O-A) ───────────────────────────────────────────────────────────
 
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-            sendState: KaiSendState.sending,
-          ),
-        ),
+    testWidgets('offline empty shows amber hint, no negative/info', (tester) async {
+      final c = TextEditingController();
+      addTearDown(c.dispose);
+      await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
+        controller: c, onSend: () {}, offline: true,
+      )));
+      expect(find.text('оффлайн — отправлю, когда вернётся сеть'), findsOneWidget);
+      expect(_hasIcon(tester, KaiIconName.info), isFalse);
+      // hint dot uses warning, never negative
+      final ctx = tester.element(find.byType(KaiComposeIsland));
+      final colors = KaiTheme.of(ctx).colors;
+      final dot = tester.widgetList<Container>(find.byType(Container)).firstWhere(
+        (w) => (w.decoration is BoxDecoration) &&
+            (w.decoration as BoxDecoration).color == colors.warning,
+        orElse: () => Container(),
       );
-      await tester.pump();
-
-      final sendBtn = tester.widget<KaiSendButton>(find.byType(KaiSendButton));
-      expect(sendBtn.state, KaiSendState.sending);
+      expect((dot.decoration as BoxDecoration?)?.color, colors.warning);
+      expect((dot.decoration as BoxDecoration?)?.color == colors.negative, isFalse);
     });
 
-    testWidgets('explicit streaming state is forwarded unchanged',
+    testWidgets('offline + text shows queue affordance, fires onQueue',
         (tester) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-            sendState: KaiSendState.streaming,
-          ),
-        ),
-      );
-      await tester.pump();
-
-      final sendBtn = tester.widget<KaiSendButton>(find.byType(KaiSendButton));
-      expect(sendBtn.state, KaiSendState.streaming);
+      final c = TextEditingController(text: 'позже');
+      addTearDown(c.dispose);
+      var queued = false;
+      await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
+        controller: c, onSend: () {}, offline: true, onQueue: () => queued = true,
+      )));
+      expect(find.byKey(_queueKey), findsOneWidget);
+      expect(_hasIcon(tester, KaiIconName.clock), isTrue);
+      await tester.tap(find.byKey(_queueKey));
+      expect(queued, isTrue);
     });
 
-    // -----------------------------------------------------------------------
-    // Callbacks
-    // -----------------------------------------------------------------------
+    // ── Send behaviour ──────────────────────────────────────────────────────────
 
-    testWidgets('onSend fires when send button tapped in ready state',
-        (tester) async {
-      var called = false;
-      final controller = TextEditingController(text: 'test');
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () => called = true,
-          ),
-        ),
-      );
-      await tester.pump();
-
+    testWidgets('onSend fires when send tapped with text', (tester) async {
+      final c = TextEditingController(text: 'test');
+      addTearDown(c.dispose);
+      var sent = false;
+      await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
+        controller: c, onSend: () => sent = true,
+      )));
       await tester.tap(find.byType(KaiSendButton));
-      await tester.pump();
-
-      expect(called, isTrue);
+      expect(sent, isTrue);
     });
 
-    testWidgets('onSend does NOT fire when send button tapped in disabled state',
-        (tester) async {
-      var called = false;
-      final controller = TextEditingController(); // empty → disabled
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () => called = true,
-          ),
-        ),
-      );
-      await tester.pump();
-
-      await tester.tap(find.byType(KaiSendButton));
-      await tester.pump();
-
-      expect(called, isFalse);
+    testWidgets('onSend does NOT fire when empty (disabled)', (tester) async {
+      final c = TextEditingController();
+      addTearDown(c.dispose);
+      var sent = false;
+      await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
+        controller: c, onSend: () => sent = true,
+      )));
+      await tester.tap(find.byType(KaiSendButton), warnIfMissed: false);
+      expect(sent, isFalse);
     });
 
-    testWidgets('onMicTap fires when mic button tapped', (tester) async {
-      var micCalled = false;
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
+    // ── Structure ────────────────────────────────────────────────────────────────
 
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-            onMicTap: () => micCalled = true,
-          ),
-        ),
-      );
-      await tester.pump();
-
-      await tester.tap(
-        find.byKey(const ValueKey<String>('compose_mic_button')),
-      );
-      await tester.pump();
-
-      expect(micCalled, isTrue);
-    });
-
-    // -----------------------------------------------------------------------
-    // Visual structure
-    // -----------------------------------------------------------------------
-
-    testWidgets('outer container has pill border radius', (tester) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-          ),
-        ),
-      );
-      await tester.pump();
-
-      final containers = tester
-          .widgetList<Container>(find.byType(Container))
-          .toList();
-      final hasPill = containers.any((c) {
-        final deco = c.decoration;
-        if (deco is! BoxDecoration) return false;
-        final br = deco.borderRadius;
-        if (br is! BorderRadius) return false;
-        return br.topLeft == const Radius.circular(KaiRadius.pill);
+    testWidgets('outer container uses pill radius', (tester) async {
+      final c = TextEditingController();
+      addTearDown(c.dispose);
+      await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
+        controller: c, onSend: () {},
+      )));
+      final hasPill = tester.widgetList<Container>(find.byType(Container)).any((w) {
+        final d = w.decoration;
+        return d is BoxDecoration &&
+            d.borderRadius is BorderRadius &&
+            (d.borderRadius as BorderRadius).topLeft ==
+                const Radius.circular(KaiRadius.pill);
       });
-      expect(hasPill, isTrue,
-          reason: 'outer pill must use KaiRadius.brPill (r=999)');
+      expect(hasPill, isTrue);
     });
 
-    testWidgets('shows placeholder text when empty', (tester) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        buildTestWidget(
-          KaiComposeIsland(
-            controller: controller,
-            onSend: () {},
-            placeholder: 'Type here…',
-          ),
-        ),
-      );
-      await tester.pump();
-
-      // The placeholder is rendered as hintText inside the TextField.
+    testWidgets('shows placeholder when empty', (tester) async {
+      final c = TextEditingController();
+      addTearDown(c.dispose);
+      await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
+        controller: c, onSend: () {}, placeholder: 'Type here…',
+      )));
       expect(find.text('Type here…'), findsOneWidget);
     });
   });

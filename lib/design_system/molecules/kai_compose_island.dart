@@ -6,267 +6,307 @@ import '../atoms/atoms.dart';
 import '../primitives/primitives.dart';
 
 // ---------------------------------------------------------------------------
-// Mode enum
-// ---------------------------------------------------------------------------
-
-/// Interaction mode for [KaiComposeIsland].
-///
-/// - [standard] — default pill input bar with optional mic button.
-/// - [voice] — mic is the primary affordance (accent-toned, md size);
-///   send button hidden until the controller has text.
-/// - [offline] — input disabled, "оффлайн" hint shown, send disabled.
-enum KaiComposeMode { standard, voice, offline }
-
-// ---------------------------------------------------------------------------
 // KaiComposeIsland
 // ---------------------------------------------------------------------------
 
 /// v3 compose island — the pill-shaped chat input bar.
 ///
-/// Ports v2 `ComposeIsland` (pill variant only; the dead `.sheet` variant
-/// was dropped per the design-system audit).
+/// Composable affordances — each optional button is shown iff its callback is
+/// provided. This expresses both compose "variants" (full · `+`/mic/voice) as
+/// call-site configuration of one widget.
 ///
-/// Layout (canon: `new-design/room.html .compose-island`):
+/// Layout (Variant-1 "swap", canon `room.html .compose-island` + the
+/// 2026-05-30 redesign spec):
 /// ```
-/// ┌──────────────────────────────────────────────────────────┐
-/// │  text field…                             [mic]  [send]  │
-/// └──────────────────────────────────────────────────────────┘
+/// empty    │ (+)  Спросить Kai…        (voice) (mic)  │
+/// typing   │ (+)  рейс в Токио|        (voice) (send) │
+/// streaming│ Kai отвечает…                    (stop)  │
+/// offline  │ (+)  ⚬ оффлайн — отправлю позже          │ (empty)
+///          │ (+)  текст…                    (в очередь)│ (typing)
 /// ```
 ///
-/// - Outer pill: `surface` bg + 1px `line` border + `KaiRadius.brPill`.
-///   Padding: 5/5/5/16 (canon).
-/// - [KaiInput.pill] for the text field — its own border/fill is suppressed
-///   to avoid double-bordering; we pass a `_NoBorderInput` wrapper instead.
-/// - [KaiIconButton.transparent] for mic (ink3, 30×30 effective tap target).
-/// - [KaiSendButton] for send — 30×30, icon 12.
+/// - `voice` (voice-Kai → full voice mode) is the persistent inner-right button;
+///   the far-right slot swaps `mic` (dictation, empty) ⇄ `send` (text).
+/// - When [onMicTap] is null the far-right slot is always `send` (disabled when
+///   empty) — the room.html canon behaviour.
+/// - `streaming` ([sendState] == [KaiSendState.streaming]) collapses to
+///   "Kai отвечает…" + a stop button (canon room.html frame 3).
+/// - `offline` keeps the field live (O-A "calm queue"): a warning-amber dot +
+///   hint, and `send` → an amber "queue" affordance. Warning token, never coral.
 ///
-/// **Send state derivation** (matches v2 logic):
-/// - Caller can pass [KaiSendState.sending] / [KaiSendState.streaming] to lock
-///   the animated states explicitly.
-/// - Otherwise: `ready` when controller has text, `disabled` when empty.
-///
-/// **Mode** ([KaiComposeMode]):
-/// - [KaiComposeMode.standard] — default behaviour.
-/// - [KaiComposeMode.voice] — mic is emphasised (accent toggle, md); send
-///   hidden until the controller has text.
-/// - [KaiComposeMode.offline] — input disabled, "оффлайн" hint label shown,
-///   send always disabled.
-///
-/// This widget is purely presentational — it owns no Riverpod or state logic.
+/// Pure-presentational — owns no Riverpod or state logic.
 class KaiComposeIsland extends StatelessWidget {
   const KaiComposeIsland({
     required this.controller,
     required this.onSend,
+    this.onAddTap,
     this.onMicTap,
+    this.onVoiceTap,
+    this.onStop,
     this.sendState = KaiSendState.ready,
-    this.placeholder = 'Сообщение Kai…',
-    this.mode = KaiComposeMode.standard,
+    this.offline = false,
+    this.onQueue,
+    this.placeholder = 'Спросить Kai…',
     super.key,
   });
 
   /// Buffer for the user's draft message.
   final TextEditingController controller;
 
-  /// Fires when the send button is tapped in a [KaiSendState.ready] state.
+  /// Fires when the send button is tapped while there is text.
   final VoidCallback onSend;
 
-  /// Optional mic tap callback. When null, the mic button is omitted in
-  /// [KaiComposeMode.standard]. In [KaiComposeMode.voice] the mic is always
-  /// shown (using [onMicTap] if set, otherwise a no-op).
+  /// "+" add/attach + travel menu. Null hides the button.
+  final VoidCallback? onAddTap;
+
+  /// Dictation (speech→text). Null hides the mic → far-right slot is always send.
   final VoidCallback? onMicTap;
 
-  /// Explicit send state. When [KaiSendState.sending] or
-  /// [KaiSendState.streaming], those states are shown regardless of text
-  /// content. Otherwise the effective state is derived from whether the
-  /// controller has text.
+  /// Enter the full voice mode (voice-Kai). Null hides the button.
+  final VoidCallback? onVoiceTap;
+
+  /// Stop the streaming response. Used when [sendState] == streaming.
+  final VoidCallback? onStop;
+
+  /// Explicit send state. [KaiSendState.streaming] collapses the pill to the
+  /// "Kai отвечает…" + stop frame. Otherwise the active state is derived from
+  /// text presence.
   final KaiSendState sendState;
 
-  /// Placeholder shown when [controller.text] is empty.
+  /// O-A offline state — field stays live, send becomes an amber queue action.
+  final bool offline;
+
+  /// Offline queue action. Defaults to [onSend] when null.
+  final VoidCallback? onQueue;
+
+  /// Placeholder shown when the field is empty.
   final String placeholder;
 
-  /// Interaction mode. Defaults to [KaiComposeMode.standard].
-  final KaiComposeMode mode;
-
-  // -------------------------------------------------------------------------
-  // Helpers
-  // -------------------------------------------------------------------------
-
-  /// Derives the effective [KaiSendState] from caller intent + controller text.
-  /// In [KaiComposeMode.offline] always returns [KaiSendState.disabled].
-  KaiSendState _effectiveSendState(String text) {
-    if (mode == KaiComposeMode.offline) return KaiSendState.disabled;
-    // Animated/locked states are passed through unchanged.
-    if (sendState == KaiSendState.sending ||
-        sendState == KaiSendState.streaming) {
-      return sendState;
-    }
-    return text.isNotEmpty ? KaiSendState.ready : KaiSendState.disabled;
-  }
-
-  // -------------------------------------------------------------------------
-  // Build
-  // -------------------------------------------------------------------------
+  // Canon literals (room.html .compose-island).
+  static const double _padLeft = 16; // s4
+  static const double _padOther = 5;
+  static const double _gap = 4;
+  static const double _btn = 30;
 
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
-
-    // Canon: room.html .compose-island — padding 5/5/5/16, gap 4.
-    const paddingLeft = 16.0; // canon: s4
-    const paddingVH = 5.0; // canon: vertical + right inset
-    const gap = 4.0; // canon: gap between children
-    const buttonSize = 30.0; // canon: mic/send 30×30
-    const sendIconSize = 12.0; // canon: arrow-up glyph inside send
-
-    final isVoice = mode == KaiComposeMode.voice;
-    final isOffline = mode == KaiComposeMode.offline;
+    final streaming = sendState == KaiSendState.streaming;
+    final switchDuration =
+        (MediaQuery.maybeOf(context)?.disableAnimations ?? false)
+            ? Duration.zero
+            : KaiMotion.standard;
 
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        // canon: room.html .compose-island border = 0.8px solid line
-        // — verified spec-viewer 2026-05-29
+        // canon: room.html .compose-island border = 0.8px solid line.
         border: Border.all(color: c.line, width: 0.8),
         borderRadius: KaiRadius.brPill,
       ),
+      // canon: padding 5/5/5/16 (LTRB 16/5/5/5).
       padding: const EdgeInsets.fromLTRB(
-        paddingLeft,
-        paddingVH,
-        paddingVH,
-        paddingVH,
+        _padLeft,
+        _padOther,
+        _padOther,
+        _padOther,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Expanded text field — bare TextField (no internal fill/border)
-              // to avoid double-pill styling; the outer Container is the visual
-              // pill. Disabled in offline mode.
-              Expanded(
-                child: _ComposeField(
-                  controller: controller,
-                  placeholder: placeholder,
-                  enabled: !isOffline,
-                ),
-              ),
-              // Mic affordance.
-              // standard: shown only when onMicTap is wired.
-              // voice: always shown, accent-toned (KaiIconButton.toggle active).
-              // offline: omitted.
-              if (!isOffline) ...[
-                if (isVoice || onMicTap != null) ...[
-                  const SizedBox(width: gap),
-                  SizedBox(
-                    width: buttonSize,
-                    height: buttonSize,
-                    child: isVoice
-                        ? KaiIconButton.toggle(
-                            active: true,
-                            onPressed: onMicTap ?? () {},
-                            icon: KaiIconName.mic,
-                            iconSize: KaiIconButtonSize.md,
-                            key: const ValueKey<String>('compose_mic_button'),
-                          )
-                        : KaiIconButton.transparent(
-                            onPressed: onMicTap,
-                            icon: KaiIconName.mic,
-                            size: 14, // canon: mic glyph 14px inside 30×30
-                            key: const ValueKey<String>('compose_mic_button'),
-                          ),
-                  ),
-                ],
-              ],
-              const SizedBox(width: gap),
-              // Send button — rebuilt when controller text changes.
-              // voice: hidden until controller has text.
-              ListenableBuilder(
+      child: AnimatedSwitcher(
+        duration: switchDuration,
+        child: streaming
+            ? _buildStreaming(c)
+            : ListenableBuilder(
+                key: const ValueKey<String>('compose_active'),
                 listenable: controller,
-                builder: (_, __) {
-                  final effective = _effectiveSendState(controller.text);
-                  // In voice mode, hide send when empty.
-                  if (isVoice && controller.text.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
-                  return KaiSendButton(
-                    state: effective,
-                    onPressed: effective == KaiSendState.disabled ? null : onSend,
-                    size: buttonSize,
-                    iconSize: sendIconSize,
-                  );
-                },
+                builder: (_, __) => _buildActive(c),
               ),
-            ],
-          ),
-          // Offline hint label.
-          if (isOffline) ...[
-            const SizedBox(height: 2),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 2),
-              child: Text(
-                'оффлайн',
-                key: const ValueKey<String>('compose_offline_hint'),
-                style: KaiType.mono(color: c.ink3).copyWith(fontSize: 10),
-              ),
-            ),
-          ],
-        ],
       ),
     );
   }
+
+  // ── Streaming: "Kai отвечает…" + stop (canon room.html frame 3) ────────────
+  Widget _buildStreaming(KaiColorTokens c) {
+    return Row(
+      key: const ValueKey<String>('compose_streaming'),
+      children: [
+        Expanded(
+          child: Text(
+            'Kai отвечает…',
+            style: _fieldStyle(c).copyWith(color: c.ink4),
+          ),
+        ),
+        const SizedBox(width: _gap),
+        KaiSendButton(
+          state: KaiSendState.streaming,
+          onPressed: onStop,
+          size: _btn,
+          iconSize: 12,
+        ),
+      ],
+    );
+  }
+
+  // ── Active (empty / typing / offline) ──────────────────────────────────────
+  Widget _buildActive(KaiColorTokens c) {
+    final hasText = controller.text.isNotEmpty;
+    final children = <Widget>[];
+
+    // "+" add — leftmost, present whenever wired.
+    if (onAddTap != null) {
+      children
+        ..add(_iconBtn(
+            const ValueKey<String>('compose_add_button'),
+            KaiIconName.plus,
+            onAddTap!,
+            c.ink3))
+        ..add(const SizedBox(width: _gap));
+    }
+
+    // Field, or the offline-empty hint.
+    if (offline && !hasText) {
+      children.add(Expanded(child: _offlineHint(c)));
+    } else {
+      children.add(Expanded(
+        child: _ComposeField(
+          controller: controller,
+          placeholder: placeholder,
+          style: _fieldStyle(c),
+          hintStyle: _fieldStyle(c).copyWith(color: c.ink4),
+          cursor: c.accent,
+        ),
+      ));
+    }
+
+    // Trailing cluster.
+    if (offline) {
+      // O-A: queue affordance appears only with text (nothing to queue empty).
+      if (hasText) {
+        children
+          ..add(const SizedBox(width: _gap))
+          ..add(_iconBtn(
+              const ValueKey<String>('compose_queue_button'),
+              KaiIconName.clock,
+              onQueue ?? onSend,
+              c.warning));
+      }
+    } else {
+      // Persistent voice-Kai (inner), then the swap slot (mic ⇄ send).
+      if (onVoiceTap != null) {
+        children
+          ..add(const SizedBox(width: _gap))
+          ..add(_iconBtn(
+              const ValueKey<String>('compose_voice_button'),
+              KaiIconName.waveform,
+              onVoiceTap!,
+              c.ink3));
+      }
+      children
+        ..add(const SizedBox(width: _gap))
+        ..add(_trailingSwap(hasText));
+    }
+
+    return Row(
+      key: const ValueKey<String>('compose_active_row'),
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: children,
+    );
+  }
+
+  /// Far-right slot: mic (empty) ⇄ send (text). When [onMicTap] is null the
+  /// slot is always send (disabled when empty) — the room.html canon.
+  Widget _trailingSwap(bool hasText) {
+    final showSend = hasText || onMicTap == null;
+    final child = showSend
+        ? KaiSendButton(
+            key: const ValueKey<String>('compose_send'),
+            state: hasText ? KaiSendState.ready : KaiSendState.disabled,
+            onPressed: hasText ? onSend : null,
+            size: _btn,
+            iconSize: 12,
+          )
+        : SizedBox(
+            key: const ValueKey<String>('compose_mic_button'),
+            width: _btn,
+            height: _btn,
+            child: KaiIconButton.transparent(
+              onPressed: onMicTap,
+              icon: KaiIconName.mic,
+              size: 14, // canon: mic glyph 14px
+            ),
+          );
+    return AnimatedSwitcher(duration: KaiMotion.micro, child: child);
+  }
+
+  Widget _iconBtn(Key key, KaiIconName icon, VoidCallback onTap, Color color) {
+    return SizedBox(
+      key: key,
+      width: _btn,
+      height: _btn,
+      child: KaiIconButton.bare(onPressed: onTap, icon: icon, color: color),
+    );
+  }
+
+  Widget _offlineHint(KaiColorTokens c) {
+    return Row(
+      key: const ValueKey<String>('compose_offline_hint'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Warning-amber dot — calm offline signal, never coral.
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(color: c.warning, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            'оффлайн — отправлю, когда вернётся сеть',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: _fieldStyle(c).copyWith(color: c.ink3),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // canon: room.html .compose-island input — Manrope 400 13.5px, ls -0.005em.
+  TextStyle _fieldStyle(KaiColorTokens c) => TextStyle(
+        fontFamily: 'Manrope',
+        fontSize: 13.5,
+        fontWeight: FontWeight.w400,
+        color: c.ink1,
+        letterSpacing: 13.5 * -0.005,
+      );
 }
 
 // ---------------------------------------------------------------------------
 // Internal: bare text field (no fill/border — outer pill is the chrome)
 // ---------------------------------------------------------------------------
 
-/// Bare [TextField] for the compose pill.
-///
-/// Intentionally does NOT use [KaiInput] directly because [KaiInput.pill]
-/// renders its own surface-2 fill + outline border, which would create a
-/// double-pill visual inside our outer Container. Instead we use a plain
-/// [TextField] with no decoration chrome, matching the v2 `_ComposeField`
-/// approach.
-///
-/// Canon styles from `room.html .compose-island input`:
-/// ```css
-/// font: 400 13.5px Manrope; color: var(--ink-1); letter-spacing: -0.005em
-/// ```
 class _ComposeField extends StatelessWidget {
   const _ComposeField({
     required this.controller,
     required this.placeholder,
-    this.enabled = true,
+    required this.style,
+    required this.hintStyle,
+    required this.cursor,
   });
 
   final TextEditingController controller;
   final String placeholder;
-  final bool enabled;
+  final TextStyle style;
+  final TextStyle hintStyle;
+  final Color cursor;
 
   @override
   Widget build(BuildContext context) {
-    final c = KaiTheme.of(context).colors;
-
-    // canon: room.html `.compose-island input { font: 400 13.5px Manrope; }`
-    const fontSize = 13.5; // canon: literal compose-island font size
-    final inputStyle = TextStyle(
-      fontFamily: 'Manrope',
-      fontSize: fontSize,
-      fontWeight: FontWeight.w400,
-      color: c.ink1,
-      letterSpacing: fontSize * -0.005, // canon: -0.005em
-    );
-    final hintStyle = inputStyle.copyWith(color: c.ink4);
-
     return TextField(
       controller: controller,
-      enabled: enabled,
       minLines: 1,
       maxLines: 4,
-      style: inputStyle,
-      cursorColor: c.accent,
+      style: style,
+      cursorColor: cursor,
       textInputAction: TextInputAction.newline,
       decoration: InputDecoration(
         isDense: true,

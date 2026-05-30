@@ -544,22 +544,36 @@ Streaming caret: 7x14px block, ink1, blink 500ms half-period.
 React row: KaiIconButton.bare 11px thumbUp/thumbDown, ink3.
 
 #### KaiComposeIsland
-File: `molecules/kai_compose_island.dart`
+File: `molecules/kai_compose_island.dart` (redesigned 2026-05-30 — R2; `KaiComposeMode` removed)
 ```dart
 KaiComposeIsland(
   controller: controller,
   onSend: () {},
-  onMicTap: () {},            // omit to hide mic in standard mode
+  onAddTap: () {},      // "+" attach/travel menu — null hides
+  onMicTap: () {},      // dictation — null → far-right slot is always send
+  onVoiceTap: () {},    // voice-Kai (full voice mode) — null hides
+  onStop: () {},        // stop while sendState == streaming
   sendState: KaiSendState.ready,
-  placeholder: 'Сообщение Kai…',
-  mode: KaiComposeMode.standard,
+  offline: false,       // O-A calm-queue offline state
+  onQueue: () {},       // offline queue action (defaults to onSend)
+  placeholder: 'Спросить Kai…',
 )
 ```
-`KaiComposeMode`: `standard` (default) / `voice` (mic accent-toggle, send hidden until text) / `offline` (input disabled, "оффлайн" hint, send always disabled).
-Outer: surface bg, 0.8px line border, brPill, pad 5/5/5/16, gap 4 between children.
-Text field: bare `TextField` (no double-border), 13.5px/400/lh1.4 Manrope.
-Mic: `KaiIconButton.transparent` (standard) or `KaiIconButton.toggle(active:true)` (voice mode), size 14, 30x30.
-Send: `KaiSendButton` 30x30, iconSize 12. State derived from text unless explicitly passed.
+**Composable affordances** — each optional button shows iff its callback is set
+(replaces the old `KaiComposeMode {standard,voice,offline}` enum).
+Variant-1 "swap": `voice` (waveform glyph) is the persistent inner-right button;
+the far-right slot swaps `mic` (empty) ⇄ `send` (text). `mic`=dictation,
+`voice`=enter voice mode — two distinct affordances.
+States: **empty** `(+) field (voice)(mic)` · **typing** `(+) field (voice)(send)` ·
+**streaming** (`sendState==streaming`) collapses to "Kai отвечает…" + stop (no field) ·
+**offline** (O-A) empty = amber dot + hint, typing = `(+) field (queue)` (amber clock,
+`c.warning` — never coral).
+Outer: surface bg, 0.8px line border, brPill, pad 5/5/5/16, gap 4. Field: bare
+`TextField`, Manrope 13.5px/400 ls -0.005em. Buttons 30×30 (mic glyph 14px). Send:
+`KaiSendButton` tide-gradient (the one tide CTA). Swap + voice show/hide via
+`AnimatedSwitcher` (`KaiMotion.standard`/`micro`; reduced-motion → instant).
+Migration note: `RoomScreen` passes `offline`/`onStop`; mic/voice/add are null until
+those features land (see room_screen TODO).
 
 #### KaiSourceCard
 File: `molecules/kai_source_card.dart`

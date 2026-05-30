@@ -174,7 +174,14 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                 child: KaiComposeIsland(
                   controller: _composeController,
                   onSend: _onSend,
+                  // TODO(R2 follow-up): wire onMicTap (dictation), onVoiceTap
+                  // (voice-mode route) and onAddTap (attach/travel sheet) once
+                  // those features exist. Null keeps the buttons hidden today.
+                  onStop: () => ref
+                      .read(roomNotifierProvider.notifier)
+                      .cancelStreaming(),
                   sendState: _sendStateFrom(roomState),
+                  offline: roomState.isOffline,
                   placeholder: AppLocalizations.of(context).composePlaceholder,
                 ),
               ),
