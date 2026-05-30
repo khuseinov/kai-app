@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/design_system/atoms/kai_button.dart';
 import 'package:kai_app/design_system/molecules/kai_toast.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 import '../../test_helpers.dart';
 
@@ -371,6 +372,79 @@ void main() {
       expect(find.text('Повторить'), findsOneWidget);
       // Action button is now _ToastActionButton (GestureDetector+Text) — not KaiButton.
       // Verified by text presence; KaiButton is absent (canon-exact: 12px/w600/accent).
+      expect(find.byType(KaiButton), findsNothing);
+    });
+
+    // -------------------------------------------------------------------------
+    // Dark-island background — near-black #111114, not the near-white dark.ink1
+    // -------------------------------------------------------------------------
+
+    testWidgets('compact pill bg is near-black #111114 (visible dark island)',
+        (tester) async {
+      await tester.pumpWidget(
+        buildTestWidget(const KaiToast(type: KaiToastType.neutral, label: 'X')),
+      );
+      await tester.pump();
+      final hasNearBlack =
+          tester.widgetList<Container>(find.byType(Container)).any((c) {
+        final d = c.decoration;
+        return d is BoxDecoration && d.color == const Color(0xFF111114);
+      });
+      expect(hasNearBlack, isTrue,
+          reason: 'toast pill bg must be #111114 (not #F5F5F2 — white-on-white)');
+    });
+
+    // -------------------------------------------------------------------------
+    // KaiToast.rich archetype (glyph + title + description + action)
+    // -------------------------------------------------------------------------
+
+    testWidgets('rich shows title, description, action; onAction fires',
+        (tester) async {
+      var opened = false;
+      await tester.pumpWidget(
+        buildTestWidget(
+          KaiToast.rich(
+            title: 'Сохранено.',
+            description: 'Учту при планировании.',
+            actionLabel: 'Открыть',
+            onAction: () => opened = true,
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('Сохранено.'), findsOneWidget);
+      expect(find.text('Учту при планировании.'), findsOneWidget);
+      await tester.tap(find.text('Открыть'));
+      await tester.pump();
+      expect(opened, isTrue);
+    });
+
+    testWidgets('rich has a 24px tide-gradient Kai glyph', (tester) async {
+      await tester.pumpWidget(
+        buildTestWidget(
+          const KaiToast.rich(title: 'T', description: 'D'),
+        ),
+      );
+      await tester.pump();
+      final hasGlyph =
+          tester.widgetList<Container>(find.byType(Container)).any((c) {
+        final d = c.decoration;
+        return d is BoxDecoration &&
+            d.shape == BoxShape.circle &&
+            d.gradient == KaiTide.gradientCorner;
+      });
+      expect(hasGlyph, isTrue,
+          reason: 'rich toast must show a 24px tide-gradient glyph');
+    });
+
+    testWidgets('rich without action shows no action text', (tester) async {
+      await tester.pumpWidget(
+        buildTestWidget(
+          const KaiToast.rich(title: 'T', description: 'D'),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('T'), findsOneWidget);
       expect(find.byType(KaiButton), findsNothing);
     });
   });

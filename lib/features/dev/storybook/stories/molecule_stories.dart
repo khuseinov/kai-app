@@ -767,13 +767,15 @@ class _KaiToastStory extends StatelessWidget {
       title: 'KaiToast',
       layer: 'MOLECULE',
       blurb:
-          'Dark-island pill toast. Four types — neutral/positive/negative share '
-          'ink-1 bg; memory uses tide gradient. Presented by KaiToastController. '
-          'showCountdown shows a 2px bar under the pill (animated by controller). '
-          'KaiToast.undo() convenience factory pre-fills "Отменить" action.',
+          'Dark-island pill toast (near-black #111114 — NOT white). TWO archetypes: '
+          'COMPACT (icon + short label, no action) for neutral/positive/negative/memory, '
+          'and RICH (KaiToast.rich — 24px Kai glyph + title + description + a tide-2 '
+          'action). The action belongs on the rich toast, not the compact one. '
+          'showCountdown adds a 2px bar (animated by controller); KaiToast.undo() '
+          'pre-fills "Отменить".',
       sections: [
-        StorySection('Types', [
-          const StoryCell(
+        const StorySection('Compact (icon + label, no action)', [
+          StoryCell(
             'neutral',
             Align(
               alignment: Alignment.centerLeft,
@@ -783,37 +785,57 @@ class _KaiToastStory extends StatelessWidget {
               ),
             ),
           ),
-          const StoryCell(
+          StoryCell(
             'positive',
             Align(
               alignment: Alignment.centerLeft,
               child: KaiToast(
                 type: KaiToastType.positive,
-                label: 'Воспоминание сохранено',
+                label: 'Факт сохранён',
               ),
             ),
           ),
           StoryCell(
-            'negative + action',
+            'negative',
             Align(
               alignment: Alignment.centerLeft,
               child: KaiToast(
                 type: KaiToastType.negative,
-                label: 'Не удалось отправить',
-                actionLabel: 'Повторить',
-                onAction: () {},
+                label: 'Не отправлено',
               ),
             ),
           ),
           StoryCell(
-            'memory + action',
+            'memory',
             Align(
               alignment: Alignment.centerLeft,
               child: KaiToast(
                 type: KaiToastType.memory,
-                label: 'Kai запомнил это',
+                label: 'Kai запомнил',
+              ),
+            ),
+          ),
+        ]),
+        StorySection('Rich (glyph + title + description + action)', [
+          StoryCell(
+            'rich + action',
+            Align(
+              alignment: Alignment.centerLeft,
+              child: KaiToast.rich(
+                title: 'Сохранено.',
+                description: 'Вы предпочитаете небольшие гостиницы. Учту при планировании.',
                 actionLabel: 'Открыть',
                 onAction: () {},
+              ),
+            ),
+          ),
+          const StoryCell(
+            'rich, no action',
+            Align(
+              alignment: Alignment.centerLeft,
+              child: KaiToast.rich(
+                title: 'Память обновлена.',
+                description: 'Запомнил твой стиль путешествий.',
               ),
             ),
           ),
@@ -884,6 +906,7 @@ class _KaiToastStory extends StatelessWidget {
         PropDoc('actionLabel', 'String?', 'null', 'Optional action button label'),
         PropDoc('onAction', 'VoidCallback?', 'null', 'Action tap handler'),
         PropDoc('showCountdown', 'bool', 'false', '2px countdown bar under pill'),
+        PropDoc('KaiToast.rich', 'ctor', '-', 'Glyph + title + description + action archetype'),
         PropDoc('KaiToast.undo', 'factory', '-', 'Pre-fills "Отменить" + countdown'),
       ],
     );

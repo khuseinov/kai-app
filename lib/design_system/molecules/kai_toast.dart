@@ -58,7 +58,27 @@ class KaiToast extends StatelessWidget {
     this.onAction,
     this.showCountdown = false,
     super.key,
-  });
+  })  : _description = null,
+        _rich = false;
+
+  /// Rich / action toast archetype.
+  ///
+  /// Canon `components.html § 03.12` — the `.toast` with a 24px round `.glyph`,
+  /// a `.body` (title + `<small>` description) and an `.open` action. This is
+  /// the archetype that carries an **action**; the compact [KaiToast] should
+  /// stay action-free (only the rich toast pairs text with a tappable affordance,
+  /// which resolves the "what is this button?" ambiguity of compact+action).
+  const KaiToast.rich({
+    required String title,
+    required String description,
+    this.actionLabel,
+    this.onAction,
+    this.type = KaiToastType.neutral,
+    super.key,
+  })  : label = title,
+        _description = description,
+        _rich = true,
+        showCountdown = false;
 
   /// Convenience factory for an undo toast.
   ///
@@ -104,8 +124,24 @@ class KaiToast extends StatelessWidget {
   /// hidden when false.
   final bool showCountdown;
 
+  /// Rich-archetype description line (the `<small>` under the title). Null for
+  /// the compact archetype.
+  final String? _description;
+
+  /// Whether this is the rich (glyph + title + description + action) archetype.
+  final bool _rich;
+
   @override
   Widget build(BuildContext context) {
+    if (_rich) {
+      return _RichToastPill(
+        title: label,
+        description: _description ?? '',
+        actionLabel: actionLabel,
+        onAction: onAction,
+      );
+    }
+
     final palette = _buildPalette(context, type);
 
     return Column(
@@ -208,6 +244,104 @@ class _ToastPill extends StatelessWidget {
   }
 }
 
+// ─── Rich pill (glyph + title + description + action) ──────────────────────────
+
+/// Rich/action toast layout — canon `components.html § 03.12 .toast` with
+/// `.glyph` + `.body` (`<strong>` title + `<small>` desc) + `.open` action.
+///
+/// 24px tide-gradient Kai glyph, title (Manrope 13.5px/600), description
+/// (11.5px/500, muted), and the canon-exact tide-2 action. Sits on the same
+/// near-black dark-island pill as the compact variant.
+class _RichToastPill extends StatelessWidget {
+  const _RichToastPill({
+    required this.title,
+    required this.description,
+    required this.actionLabel,
+    required this.onAction,
+  });
+
+  final String title;
+  final String description;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = KaiTokens.dark.colors;
+    final nearBlack = KaiTokens.light.colors.ink1; // #111114 dark-island bg
+
+    return Container(
+      // canon: same pill padding as compact (7/14/7/9)
+      padding: const EdgeInsets.fromLTRB(9, 7, 14, 7),
+      decoration: BoxDecoration(
+        color: nearBlack,
+        borderRadius: KaiRadius.brPill,
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.16),
+            blurRadius: 12,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // canon: .glyph — 24px round Kai mark (tide gradient)
+          Container(
+            width: 24,
+            height: 24,
+            decoration: const BoxDecoration(
+              gradient: KaiTide.gradientCorner,
+              shape: BoxShape.circle,
+            ),
+          ),
+          // canon: 8px glyph-to-body gap
+          const SizedBox(width: 8),
+          Flexible(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // canon: .body strong — 13.5px/600
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.005 * 13.5,
+                    color: dark.ink1, // near-white on the dark pill
+                    height: 1.45,
+                  ),
+                ),
+                const SizedBox(height: 2), // canon: .body small margin-top 2px
+                // canon: .body small — 11.5px/500 (muted caption)
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.005 * 11.5,
+                    color: dark.ink3, // muted on dark pill
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (actionLabel != null && onAction != null) ...[
+            const SizedBox(width: 10), // canon: 10px gap before action
+            _ToastActionButton(label: actionLabel!, onTap: onAction!),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 // ─── Countdown bar (static) ───────────────────────────────────────────────────
 
 /// Static countdown bar — 110×2px pill with translucent track.
@@ -274,12 +408,17 @@ class _ToastPalette {
 _ToastPalette _buildPalette(BuildContext context, KaiToastType type) {
   // Always-dark surface — pull from KaiTokens.dark regardless of theme.
   final dark = KaiTokens.dark.colors;
+  // Dark-island background = the near-black ink (#111114 = light-palette ink1),
+  // NOT dark.ink1 (#F5F5F2, which is the light TEXT colour). Canon
+  // components.html .toast bg = rgb(17,17,20). (Prior code used dark.ink1 for the
+  // bg → a near-white pill with near-white text, i.e. an invisible toast.)
+  final nearBlack = KaiTokens.light.colors.ink1;
 
   switch (type) {
     case KaiToastType.neutral:
       // Canon: bg ink-1, icon ink-3 (#8E8E88 — muted on dark), text ink-1
       return _ToastPalette(
-        bg: dark.ink1,
+        bg: nearBlack,
         gradient: null,
         textColor: dark.ink1,
         icon: KaiIcon(KaiIconName.copy, size: 11, color: dark.ink3),
@@ -288,7 +427,7 @@ _ToastPalette _buildPalette(BuildContext context, KaiToastType type) {
     case KaiToastType.positive:
       // Canon: bg ink-1, icon positive (#3DBE7A dark-green), text ink-1
       return _ToastPalette(
-        bg: dark.ink1,
+        bg: nearBlack,
         gradient: null,
         textColor: dark.ink1,
         icon: KaiIcon(KaiIconName.check, size: 11, color: dark.positive),
@@ -300,7 +439,7 @@ _ToastPalette _buildPalette(BuildContext context, KaiToastType type) {
       // user taps the action. The widget itself is ignorant of this; it just
       // renders. Sticky behaviour lives in KaiToastController.
       return _ToastPalette(
-        bg: dark.ink1,
+        bg: nearBlack,
         gradient: null,
         textColor: dark.ink1,
         icon: KaiIcon(KaiIconName.info, size: 11, color: dark.negative),

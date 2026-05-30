@@ -605,15 +605,22 @@ Text: 13.5px/400, lh 1.5. Bold prefix: w600.
 #### KaiToast
 File: `molecules/kai_toast.dart`
 ```dart
-KaiToast(type: KaiToastType.neutral, label: 'Скопировано', actionLabel: 'Открыть', onAction: () {}, showCountdown: false)
+// Compact archetype (icon + label — keep action-free):
+KaiToast(type: KaiToastType.neutral, label: 'Скопировано', showCountdown: false)
+// Rich archetype (carries the action):
+KaiToast.rich(title: 'Сохранено.', description: 'Учту при планировании.', actionLabel: 'Открыть', onAction: () {})
 KaiToast.undo(label:, onUndo:, [type: KaiToastType.neutral, showCountdown: true])
 ```
-Types: neutral / positive / negative / memory. Always dark surface (dark-island pattern).
+**TWO archetypes** (canon components.html § 03.12):
+- **Compact** — `.ti` 11px icon + label (Manrope 11px/500, `#F5F5F2`). No action in canon.
+- **Rich** (`KaiToast.rich`) — 24px tide-gradient Kai glyph + title (13.5px/600) + description
+  (11.5px/500, muted) + `.open` action. The action belongs here, not on compact.
+Always dark surface (dark-island): **bg = #111114 (near-black = light-palette ink1)**, text #F5F5F2.
+(Was `dark.ink1` for bg → a near-white invisible pill; fixed 2026-05-30.)
 Pill: brPill, pad 7/14/7/9, shadow 0 2px 12px rgba(0,0,0,0.16).
-Label: Manrope 11px/500, ls -0.005em. Text: `#F5F5F2` (dark.ink1).
 Action: 12px/600 Manrope, `KaiTide.stop2` color — NOT dark-palette accent.
-Countdown bar (`showCountdown:true`): static 110×2px pill (20% white track + 60% white fill). Animation driven externally by KaiToastController.
-Memory variant: KaiTide.gradient bg, white text, white-75% pill marker.
+Countdown bar (`showCountdown:true`): static 110×2px pill (20% white track + 60% white fill). Compact only.
+Memory variant (compact): KaiTide.gradient bg, white text, white-75% pill marker.
 `KaiToast.undo` — convenience factory: `actionLabel='Отменить'`, `showCountdown` defaults true.
 
 #### KaiAlertCard
@@ -834,7 +841,10 @@ karaoke: ls/lh + 4px now-radius). Findings below kept for the record.
 - `KaiKaraokeText`: canon `.karaoke` adds **ls -0.01em + lh 1.5**; `.now` radius = **4px**
   (Dart uses br1=6px). Colors (now bg tide-3@0.28, next white@0.32, spoken white) ✓.
 
-**R3 · components.html (toast § 03.12) — TWO archetypes**
+**R3 · components.html (toast § 03.12) — TWO archetypes** — ✅ FIXED 2026-05-30 (added
+`KaiToast.rich` glyph+title+desc+action archetype; compact stays action-free in the story; and
+fixed the dark-island bg from near-white `dark.ink1` → near-black #111114 — the likely root of the
+"что это за кнопка?" confusion). Findings below kept for the record.
 - **Compact status toast** (`.toast.t-neutral/positive/negative/memory`): `.ti` icon (11px,
   tone-tinted) + label (Manrope 11px/500, dark.ink1) — **NO action button** in canon. Icon
   tints: neutral=dark.ink3, positive=dark.positive, negative=dark.negative; memory=tide bg +
