@@ -26,7 +26,12 @@ class KaiAppBar extends StatelessWidget implements PreferredSizeWidget {
     final tokens = KaiTheme.of(context);
     final c = tokens.colors;
 
-    final hasBack = onBackPressed != null || Navigator.of(context).canPop();
+    // Use ModalRoute instead of Navigator.canPop() so KaiAppBar rebuilds
+    // automatically whenever the route stack changes (e.g. after a bottom
+    // sheet opens on top). Navigator.canPop() is a one-shot snapshot that
+    // does not register a dependency, so StatelessWidget would not rebuild.
+    final hasBack =
+        onBackPressed != null || (ModalRoute.of(context)?.canPop ?? false);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(KaiSpace.s4, KaiSpace.s4, KaiSpace.s4, 0), // 16, 16, 16, 0
@@ -37,6 +42,7 @@ class KaiAppBar extends StatelessWidget implements PreferredSizeWidget {
             // Left slot: back button or spacer
             if (hasBack)
               Transform.flip(
+                key: const Key('kai_app_bar_back'),
                 flipX: true,
                 child: KaiIconButton.surface(
                   onPressed: onBackPressed ?? () {
