@@ -6,7 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../../core/network/connectivity_listener.dart';
 import '../../core/providers/root.dart';
 import '../../core/repositories/chat_repository.dart';
-import '../../design_system/organisms/kai_chat_list.dart';
+import 'components/kai_chat_list.dart';
 import '../../design_system/tokens/kai_tide.dart';
 
 /// Immutable value class for the room's UI state.

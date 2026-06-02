@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../../design_system/atoms/atoms.dart';
-import '../../../../design_system/organisms/organisms.dart';
+import '../../../nav/components/kai_nav_panel.dart';
+import '../../../nav/components/nav_models.dart';
+import '../../../onboarding/components/kai_onboarding_card.dart';
+import '../../../room/components/kai_chat_list.dart';
+import '../../../room/components/kai_edge_state_block.dart';
 import '../../../../design_system/theme/kai_theme.dart';
 import '../../../../design_system/tokens/kai_tokens.dart';
 import '../story_page.dart';

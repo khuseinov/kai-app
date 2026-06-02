@@ -21,7 +21,7 @@
 /// matching v2 behaviour (comment: "Future-dated (clock skew) → today").
 library;
 
-import 'package:kai_app/design_system/organisms/nav_models.dart'
+import 'package:kai_app/features/nav/components/nav_models.dart'
     show SessionPreview;
 
 // ─── Public API ───────────────────────────────────────────────────────────────

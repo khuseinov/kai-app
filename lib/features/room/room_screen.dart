@@ -5,8 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
 import '../../design_system/atoms/atoms.dart';
-import '../../design_system/molecules/molecules.dart';
-import '../../design_system/organisms/organisms.dart';
+import 'components/kai_chat_list.dart';
+import 'components/kai_edge_state_block.dart';
+import 'components/kai_compose_island.dart';
 import '../nav/nav_screen.dart';
 import 'room_state.dart';
 

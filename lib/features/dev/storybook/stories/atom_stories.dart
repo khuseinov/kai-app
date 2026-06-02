@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../design_system/atoms/atoms.dart';
+import '../../../onboarding/components/kai_step_indicator.dart';
+import '../../../trip_detail/components/kai_budget_bar.dart';
+import '../../../trip_detail/components/kai_fork_chip.dart';
+import '../../../trip_detail/components/kai_fork_price_delta.dart';
+import '../../../trip_detail/components/kai_fork_score_dots.dart';
+import '../../../voice/components/kai_karaoke_text.dart';
+import '../../../room/components/kai_send_button.dart';
 import '../../../../design_system/primitives/primitives.dart';
 import '../../../../design_system/tokens/kai_tokens.dart';
 import '../story_page.dart';

@@ -6,7 +6,7 @@ import '../../core/storage/hive_setup.dart';
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
 import '../../design_system/atoms/atoms.dart';
-import '../../design_system/organisms/kai_onboarding_card.dart';
+import 'components/kai_onboarding_card.dart';
 
 /// 4-step onboarding flow matching `new-design/onboarding.html`.
 ///

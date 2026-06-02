@@ -1,6 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../../../../design_system/atoms/atoms.dart';
+import '../../../room/components/kai_compose_island.dart';
+import '../../../room/components/chat_bubbles/kai_user_bubble.dart';
+import '../../../room/components/chat_bubbles/kai_kai_bubble.dart';
+import '../../../room/components/chat_bubbles/kai_system_bubble.dart';
+import '../../../room/components/cards/kai_alert_card.dart';
+import '../../../room/components/cards/kai_care_block.dart';
+import '../../../room/components/cards/kai_source_card.dart';
+import '../../../room/components/sheets/kai_action_sheet.dart';
+import '../../../room/components/sheets/kai_message_detail_sheet.dart';
+import '../../../voice/components/kai_transcript_view.dart';
+import '../../../trip_detail/components/kai_fork_card.dart';
+import '../../../trip_detail/components/kai_fork_chip.dart';
+import '../../../trip_detail/components/kai_fork_price_delta.dart';
+import '../../../nav/components/kai_nav_item.dart';
 import '../../../../design_system/molecules/molecules.dart';
 import '../../../../design_system/primitives/primitives.dart';
 import '../../../../design_system/theme/kai_theme.dart';
