@@ -5,7 +5,6 @@ import '../../../design_system/tokens/kai_tokens.dart';
 import '../../../design_system/atoms/atoms.dart';
 import '../../../design_system/primitives/primitives.dart';
 import 'kai_send_button.dart';
-export 'kai_send_button.dart' show KaiSendState;
 
 // ---------------------------------------------------------------------------
 // KaiComposeIsland

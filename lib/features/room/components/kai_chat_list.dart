@@ -6,7 +6,6 @@ import 'chat_bubbles/kai_system_bubble.dart';
 import 'cards/kai_alert_card.dart';
 import 'cards/kai_care_block.dart';
 
-
 import '../../../design_system/theme/kai_theme.dart';
 import '../../../design_system/tokens/kai_tokens.dart';
 import '../../../design_system/atoms/atoms.dart';

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../design_system/atoms/atoms.dart';
 import '../../../room/components/kai_compose_island.dart';
+import '../../../room/components/kai_send_button.dart';
 import '../../../room/components/chat_bubbles/kai_user_bubble.dart';
 import '../../../room/components/chat_bubbles/kai_kai_bubble.dart';
 import '../../../room/components/chat_bubbles/kai_system_bubble.dart';

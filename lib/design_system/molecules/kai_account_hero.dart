@@ -103,7 +103,7 @@ class KaiAccountHero extends StatelessWidget {
   // Full layout: avatar + name column (email + plan badge)
   // -------------------------------------------------------------------------
 
-  Widget _buildFull(dynamic c) {
+  Widget _buildFull(KaiColorTokens c) {
     return Row(
       children: [
         KaiAvatar(size: _avatarSize, initial: initial),
@@ -152,7 +152,7 @@ class KaiAccountHero extends StatelessWidget {
   // Compact layout: avatar (sm) + name only, single row
   // -------------------------------------------------------------------------
 
-  Widget _buildCompact(dynamic c) {
+  Widget _buildCompact(KaiColorTokens c) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

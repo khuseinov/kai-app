@@ -8,6 +8,7 @@ import '../../design_system/atoms/atoms.dart';
 import 'components/kai_chat_list.dart';
 import 'components/kai_edge_state_block.dart';
 import 'components/kai_compose_island.dart';
+import 'components/kai_send_button.dart';
 import '../nav/nav_screen.dart';
 import 'room_state.dart';
 
@@ -105,11 +106,13 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
               Column(
                 children: [
                   SizedBox(height: topInset + 4),
-                  SizedBox(
-                    height: 16,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 18),
-                      child: KaiTideCurve(state: roomState.tideState, height: 16),
+                  RepaintBoundary(
+                    child: SizedBox(
+                      height: 16,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 18),
+                        child: KaiTideCurve(state: roomState.tideState, height: 16),
+                      ),
                     ),
                   ),
                   Expanded(
