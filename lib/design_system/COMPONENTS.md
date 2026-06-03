@@ -894,8 +894,8 @@ Timestamped event list. See Section 4.
 
 **Tide states used:** All 8 standard KaiTide states via `KaiTideCurve`.
 
-Still needed (screen assembly):
-- `KaiVoiceScaffold` — dark scaffold bg Color(0xFF08080A), no theme switching — screen-level wrapper, not a DS component
+**Voice Screen Assembly** — **BUILT: `VoiceScreen`** (in `lib/features/voice/voice_screen.dart`)
+Full screen containing animated tide wave, karaoke response, swipe timeline dialog history, and Dev Hub routing.
 
 ### 6.2 Memory App — `new-design/memory.html`
 
@@ -972,11 +972,10 @@ Still needed:
 ## 7. WIDGETS STILL NEEDED (seen in HTML, not yet in Dart system)
 
 Built in C1-C3 cycles and removed from this list: `KaiKaraokeText`, `KaiTranscriptView`,
-`KaiBudgetBar`, `KaiForkCard`, `KaiForkChip`, `KaiForkScoreDots`, `KaiStepIndicator`.
+`KaiBudgetBar`, `KaiForkCard`, `KaiForkChip`, `KaiForkScoreDots`, `KaiStepIndicator`, `VoiceScreen`.
 
 | Widget name         | Source file              | Description                                                      |
 |---------------------|-------------------------|------------------------------------------------------------------|
-| `KaiVoiceScaffold`  | voice.html              | Dark scaffold Color(0xFF08080A), always dark, no theme toggle    |
 | `KaiFactGrid`       | trip-detail.html        | 2-col key/value grid in surface2 cards                           |
 | `KaiChatPreviewItem`| trip-detail.html        | accentWash r10 compact row: title accent + preview ink3          |
 | `KaiForkPriceDelta` | fork.html               | Price + directional delta indicator (`.fc-delta`)                |

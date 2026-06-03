@@ -71,10 +71,10 @@ tool/                             — Dart scripts (e.g. PNG generator)
 test/                             — mirrors lib/ structure
 ```
 
-Production screens on the v3 library: **room · onboarding · nav · settings**
+Production screens on the v3 library: **room · onboarding · nav · settings · voice**
 (+ boot/splash). edge-states is not a standalone screen — it renders inline in
 room via the `edge_state_block` organism. Remaining from `new-design/`:
-voice, memory, trip-detail, fork.
+memory, trip-detail, fork.
 
 ---
 
