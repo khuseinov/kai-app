@@ -11,6 +11,7 @@ import '../../../../design_system/tokens/kai_tokens.dart';
 import '../story_page.dart';
 import '../story_registry.dart';
 import '_story_helpers.dart';
+import '../../../voice/voice_screen.dart';
 
 final List<Story> organismStories = [
   Story(
@@ -84,6 +85,19 @@ final List<Story> organismStories = [
         'Not yet built in Dart.',
     variants: ['default', 'search active', 'fact expanded', 'category collapsed'],
     build: (_) => const _MemoryCanonStoryPage(),
+  ),
+  Story(
+    layer: StoryLayer.organisms,
+    name: 'Voice Screen',
+    importPath: 'package:kai_app/features/voice/voice_screen.dart',
+    canonFile: 'new-design/voice.html',
+    canonSelector: '.voice',
+    description:
+        'Voice mode screen with 4 interactive states: waiting (idle), '
+        'recording (listening), speaking (karaoke response), and '
+        'timeline dialog history (transcript). Tap/swipe-driven transitions.',
+    variants: const ['interactive screen demo'],
+    build: (_) => const _VoiceScreenStoryPage(),
   ),
 ];
 
@@ -490,6 +504,37 @@ class _MemoryCanonStoryPage extends StatelessWidget {
           StoryCell('memory.html', MemoryCanonPreview()),
         ]),
       ],
+    );
+  }
+}
+
+class _VoiceScreenStoryPage extends StatelessWidget {
+  const _VoiceScreenStoryPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return const StoryPage(
+      title: 'Voice Screen',
+      layer: 'ORGANISM',
+      blurb:
+          'Fully interactive screen demo of the Voice mode. Includes '
+          'speech-simulation timer, wave morph animation controls, and transcript history.',
+      sections: [
+        StorySection('Interactive Phone Frame', [
+          StoryCell(
+            'phone layout',
+            SizedBox(
+              width: 320,
+              height: 568,
+              child: ClipRRect(
+                borderRadius: BorderRadius.all(Radius.circular(32)),
+                child: VoiceScreen(),
+              ),
+            ),
+          ),
+        ]),
+      ],
+      usage: 'VoiceScreen()',
     );
   }
 }

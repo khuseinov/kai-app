@@ -12,6 +12,7 @@ import '../../features/room/room_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../storage/entities/settings.dart';
 import '../storage/hive_setup.dart';
+import '../../features/voice/voice_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -41,6 +42,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/voice',
+        builder: (context, state) => const VoiceScreen(),
       ),
       GoRoute(
         path: '/_dev',
@@ -86,6 +91,13 @@ class _DevHubScreen extends StatelessWidget {
             label: 'Storybook',
             subtitle: 'All components · sidebar + canvas + knobs',
             onTap: () => context.go('/_dev/storybook'),
+          ),
+          const SizedBox(height: KaiSpace.s3),
+          _hubTile(
+            context,
+            label: 'Voice Screen',
+            subtitle: 'Voice mode with waves, karaoke, and transcript',
+            onTap: () => context.go('/voice'),
           ),
         ],
       ),
