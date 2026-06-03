@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:kai_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
 import '../../design_system/atoms/atoms.dart';
+import '../../design_system/primitives/primitives.dart';
 import 'components/kai_chat_list.dart';
 import 'components/kai_edge_state_block.dart';
 import 'components/kai_compose_island.dart';
 import 'components/kai_send_button.dart';
+import 'components/sheets/kai_action_sheet.dart';
 import '../nav/nav_screen.dart';
 import 'room_state.dart';
 
@@ -178,9 +181,30 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                 child: KaiComposeIsland(
                   controller: _composeController,
                   onSend: _onSend,
-                  // TODO(R2 follow-up): wire onMicTap (dictation), onVoiceTap
-                  // (voice-mode route) and onAddTap (attach/travel sheet) once
-                  // those features exist. Null keeps the buttons hidden today.
+                  onAddTap: () {
+                    showKaiActionSheet(
+                      context,
+                      items: [
+                        KaiActionItem(
+                          icon: KaiIconName.plus,
+                          title: 'Новое путешествие',
+                          onTap: () {},
+                        ),
+                        KaiActionItem(
+                          icon: KaiIconName.folder,
+                          title: 'Мои поездки',
+                          onTap: () {},
+                        ),
+                        KaiActionItem(
+                          icon: KaiIconName.settings,
+                          title: 'Настройки',
+                          onTap: () => context.go('/settings'),
+                        ),
+                      ],
+                    );
+                  },
+                  onMicTap: () {},
+                  onVoiceTap: () => context.go('/voice'),
                   onStop: () => ref
                       .read(roomNotifierProvider.notifier)
                       .cancelStreaming(),
