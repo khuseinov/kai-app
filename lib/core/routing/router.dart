@@ -13,6 +13,7 @@ import '../../features/settings/settings_screen.dart';
 import '../storage/entities/settings.dart';
 import '../storage/hive_setup.dart';
 import '../../features/voice/voice_screen.dart';
+import '../utils/url_launcher.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -98,6 +99,13 @@ class _DevHubScreen extends StatelessWidget {
             label: 'Voice Screen',
             subtitle: 'Voice mode with waves, karaoke, and transcript',
             onTap: () => context.go('/voice'),
+          ),
+          const SizedBox(height: KaiSpace.s3),
+          _hubTile(
+            context,
+            label: 'Spec Viewer',
+            subtitle: 'HTML design specs at http://localhost:8743/spec-viewer.html',
+            onTap: () => launchUrlString('http://localhost:8743/spec-viewer.html'),
           ),
         ],
       ),

@@ -210,6 +210,7 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                       .cancelStreaming(),
                   sendState: _sendStateFrom(roomState),
                   offline: roomState.isOffline,
+                  onQueue: _onSend,
                   placeholder: AppLocalizations.of(context).composePlaceholder,
                 ),
               ),
