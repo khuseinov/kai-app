@@ -227,7 +227,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newChat => 'New chat';
 
   @override
-  String get search => 'Search';
+  String get search => 'Search trips and chats';
 
   @override
   String get tripsLabel => 'TRIPS';
@@ -264,4 +264,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get streamingStatusThinking => 'thinking';
+
+  @override
+  String memoryFactsCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count facts about you',
+      one: '1 fact about you',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String memoryLastSaved(String time) {
+    return 'last saved $time ago';
+  }
+
+  @override
+  String get memorySearchPlaceholder => 'Search facts';
+
+  @override
+  String get memoryCategoryAbout => 'about you';
+
+  @override
+  String get memoryCategoryPreferences => 'preferences';
+
+  @override
+  String get memoryCategoryRestrictions => 'restrictions';
+
+  @override
+  String get memoryCategoryTrips => 'trips';
+
+  @override
+  String get memoryCategoryFacts => 'facts';
+
+  @override
+  String get memorySourceFrom => 'from';
+
+  @override
+  String get memorySourceExplicit => 'set explicitly';
+
+  @override
+  String get memorySourceLinked => 'linked';
+
+  @override
+  String get memoryDangerWipeAll => 'Forget all (GDPR-deletion)';
+
+  @override
+  String get memoryWipeConfirmation =>
+      'Are you sure you want to forget everything? This action is irreversible.';
+
+  @override
+  String get memoryWipeConfirmAction => 'Forget';
+
+  @override
+  String get memoryWipeCancelAction => 'Cancel';
+
+  @override
+  String get memoryEditFactTitle => 'Edit fact';
+
+  @override
+  String get memoryDeleteFactAction => 'Delete';
+
+  @override
+  String get memoryEditFactAction => 'Edit';
+
+  @override
+  String get memoryGoToSourceAction => 'Go to source';
 }

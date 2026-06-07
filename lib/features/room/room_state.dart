@@ -18,6 +18,7 @@ class RoomStateData {
     this.isStreaming = false,
     this.activeSessionId,
     this.streamingMessageId,
+    this.thinkingStep,
     this.isOffline = false,
     this.isRateLimited = false,
     this.rateLimitRetryAfter,
@@ -32,6 +33,12 @@ class RoomStateData {
 
   /// id of the Kai message currently being streamed.
   final String? streamingMessageId;
+
+  /// Active thinking step label during streaming (e.g. "ищу информацию о рейсах").
+  /// - null + partialContent empty → State 1: "думаю"
+  /// - not null                    → State 2: "ищу информацию о рейсах"
+  /// - partialContent not empty    → State 3: streaming text
+  final String? thinkingStep;
 
   final bool isOffline;
   final bool isRateLimited;
@@ -59,6 +66,7 @@ class RoomStateData {
     bool? isStreaming,
     Object? activeSessionId = _sentinel,
     Object? streamingMessageId = _sentinel,
+    Object? thinkingStep = _sentinel,
     bool? isOffline,
     bool? isRateLimited,
     Object? rateLimitRetryAfter = _sentinel,
@@ -75,6 +83,9 @@ class RoomStateData {
       streamingMessageId: streamingMessageId == _sentinel
           ? this.streamingMessageId
           : streamingMessageId as String?,
+      thinkingStep: thinkingStep == _sentinel
+          ? this.thinkingStep
+          : thinkingStep as String?,
       isOffline: isOffline ?? this.isOffline,
       isRateLimited: isRateLimited ?? this.isRateLimited,
       rateLimitRetryAfter: rateLimitRetryAfter == _sentinel
@@ -185,9 +196,11 @@ class RoomNotifier extends Notifier<RoomStateData> {
           }
           return msg;
         }).toList();
+        // State 3: text arriving — clear thinkingStep
         state = current.copyWith(
           messages: updated,
           currentFrame: RoomFrame.streaming,
+          thinkingStep: null,
         );
       case ChatEventCorrection(:final content, :final messageId):
         final current = state;
@@ -233,8 +246,9 @@ class RoomNotifier extends Notifier<RoomStateData> {
         if (data['memory_saved'] == true) {
           _triggerMemoryEphemeral();
         }
-      // Ignore in Phase 5a.
-      case ChatEventThinking():
+      // State 2: backend signals a named thinking step
+      case ChatEventThinking(:final step):
+        state = state.copyWith(thinkingStep: step);
       case ChatEventApproval():
     }
   }
@@ -269,6 +283,7 @@ class RoomNotifier extends Notifier<RoomStateData> {
       currentFrame: nextFrame,
       tideState: KaiTide.success,
       streamingMessageId: null,
+      thinkingStep: null,
     );
     _successTimer?.cancel();
     _successTimer = Timer(const Duration(milliseconds: 1200), () {
@@ -292,6 +307,7 @@ class RoomNotifier extends Notifier<RoomStateData> {
       currentFrame: RoomFrame.error,
       tideState: KaiTide.error,
       streamingMessageId: null,
+      thinkingStep: null,
     );
   }
 

@@ -62,6 +62,7 @@ class KaiKaiBubble extends StatefulWidget {
     this.sourcesLabel,
     this.sources = const [],
     this.streaming = false,
+    this.hideWho = false,
     this.onThumbUp,
     this.onThumbDown,
     super.key,
@@ -81,6 +82,9 @@ class KaiKaiBubble extends StatefulWidget {
   /// When `true`, appends a blinking 7×14 caret after the last text character.
   /// Canon: `animation: cursor 1s steps(1) infinite; 50% { opacity: 0 }`.
   final bool streaming;
+
+  /// When `true`, hides the `.who` row entirely.
+  final bool hideWho;
 
   /// Callback for thumb-up reaction. Omit to hide the react button.
   final VoidCallback? onThumbUp;
@@ -149,30 +153,32 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // ── .who row ────────────────────────────────────────────────────────
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Canon: .who::before — 16×4 tide-gradient pill
-            const KaiGradientBar(width: 16, height: 4),
-            // canon: .kai-b .who { gap: 6px } — verified spec-viewer 2026-05-29
-            // (was 8px, room.html shows 6px)
-            const SizedBox(width: 6), // canon: gap 6px
-            Text(
-              'KAI',
-              style: KaiType.mono(color: c.ink3).copyWith(
-                // canon (D2 locked): 9px — room.html .who (components shows 10).
-                fontSize: 9, // canon: 9 (room / D2)
-                letterSpacing: 9 * 0.08, // canon: 0.08em
+        if (!widget.hideWho) ...[
+          // ── .who row ────────────────────────────────────────────────────────
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Canon: .who::before — 16×4 tide-gradient pill
+              const KaiGradientBar(width: 16, height: 4),
+              // canon: .kai-b .who { gap: 6px } — verified spec-viewer 2026-05-29
+              // (was 8px, room.html shows 6px)
+              const SizedBox(width: 6), // canon: gap 6px
+              Text(
+                'KAI',
+                style: KaiType.mono(color: c.ink3).copyWith(
+                  // canon (D2 locked): 9px — room.html .who (components shows 10).
+                  fontSize: 9, // canon: 9 (room / D2)
+                  letterSpacing: 9 * 0.08, // canon: 0.08em
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
 
-        // Gap between .who and .txt — canon: .kai-b flex gap 5px
-        // — verified spec-viewer 2026-05-29 (was 6px)
-        const SizedBox(height: 5), // canon: gap 5px
+          // Gap between .who and .txt — canon: .kai-b flex gap 5px
+          // — verified spec-viewer 2026-05-29 (was 6px)
+          const SizedBox(height: 5), // canon: gap 5px
+        ],
 
         // ── .txt — body with inline citation parsing ────────────────────────
         _buildBodyText(c),

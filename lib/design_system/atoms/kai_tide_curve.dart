@@ -95,6 +95,15 @@ class _KaiTideCurveState extends State<KaiTideCurve>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final disabled = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (disabled) {
+      _controller?.stop();
+    }
+  }
+
+  @override
   void didUpdateWidget(covariant KaiTideCurve old) {
     super.didUpdateWidget(old);
     if (old.state.name != widget.state.name) {
@@ -105,7 +114,10 @@ class _KaiTideCurveState extends State<KaiTideCurve>
       }
       _renderState = widget.state;
       _disposeController();
-      _wireAnimation();
+      final disabled = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+      if (!disabled) {
+        _wireAnimation();
+      }
     }
   }
 

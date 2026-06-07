@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../design_system/atoms/atoms.dart';
+import '../../design_system/primitives/primitives.dart';
 import '../../design_system/tokens/kai_tokens.dart';
 import 'components/kai_karaoke_text.dart';
 import 'components/kai_tide_large.dart';
@@ -35,9 +36,14 @@ class VoiceScreen extends StatefulWidget {
   State<VoiceScreen> createState() => _VoiceScreenState();
 }
 
-class _VoiceScreenState extends State<VoiceScreen> {
+class _VoiceScreenState extends State<VoiceScreen>
+    with SingleTickerProviderStateMixin {
   _VoiceState _state = _VoiceState.idle;
   _VoiceState _previousStateBeforeTranscript = _VoiceState.idle;
+  double _dragDeltaY = 0;
+
+  late final AnimationController _transcriptController;
+  late final Animation<Offset> _transcriptOffset;
 
   // Karaoke parameters
   final List<String> _karaokeWords = [
@@ -77,7 +83,25 @@ class _VoiceScreenState extends State<VoiceScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _transcriptController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+    _transcriptOffset = Tween<Offset>(
+      begin: const Offset(0.0, -1.0), // Offscreen top
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _transcriptController,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    ));
+  }
+
+  @override
   void dispose() {
+    _transcriptController.dispose();
     _stopKaraokeTimer();
     super.dispose();
   }
@@ -136,29 +160,42 @@ class _VoiceScreenState extends State<VoiceScreen> {
         _previousStateBeforeTranscript = _state;
         _state = _VoiceState.transcript;
       });
+      _transcriptController.forward();
     }
   }
 
   void _returnFromTranscript() {
-    if (_state == _VoiceState.transcript) {
-      setState(() {
-        _state = _previousStateBeforeTranscript;
+    if (_state == _VoiceState.transcript &&
+        _transcriptController.status != AnimationStatus.reverse &&
+        _transcriptController.status != AnimationStatus.dismissed) {
+      _transcriptController.reverse().then((_) {
+        if (mounted) {
+          setState(() {
+            _state = _previousStateBeforeTranscript;
+          });
+          // If returning to speaking, restart the simulation
+          if (_state == _VoiceState.speaking) {
+            _startSpeakingSimulation();
+          }
+        }
       });
-      // If returning to speaking, restart the simulation
-      if (_state == _VoiceState.speaking) {
-        _startSpeakingSimulation();
-      }
     }
   }
 
   void _handleVerticalDrag(DragEndDetails details) {
-    // Swipe up (negative velocity) to view transcript
-    // Swipe down (positive velocity) to return
     final velocity = details.primaryVelocity ?? 0;
-    if (velocity < -200) {
+    if (velocity > 200 || _dragDeltaY > 100) {
+      // Swipe down opens transcript
       _goToTranscript();
-    } else if (velocity > 200) {
-      _returnFromTranscript();
+    } else if (velocity < -200 || _dragDeltaY < -100) {
+      // Swipe up:
+      if (_state == _VoiceState.transcript) {
+        // Return to voice from transcript
+        _returnFromTranscript();
+      } else {
+        // Close voice mode and return to room
+        context.go('/room');
+      }
     }
   }
 
@@ -171,11 +208,31 @@ class _VoiceScreenState extends State<VoiceScreen> {
       backgroundColor: voiceBg,
       body: SafeArea(
         child: GestureDetector(
+          onVerticalDragStart: (details) {
+            _dragDeltaY = 0;
+          },
+          onVerticalDragUpdate: (details) {
+            _dragDeltaY += details.delta.dy;
+          },
           onVerticalDragEnd: _handleVerticalDrag,
           onTap: _state == _VoiceState.transcript ? null : _handleTap,
           behavior: HitTestBehavior.opaque,
           child: Stack(
             children: [
+              // Voice Layout is always on background
+              _buildVoiceLayout(),
+
+              // Transcript View slides in as a cover overlay
+              Positioned.fill(
+                child: SlideTransition(
+                  position: _transcriptOffset,
+                  child: Container(
+                    color: voiceBg,
+                    child: _buildTranscriptView(),
+                  ),
+                ),
+              ),
+
               // Notch/island bar
               Align(
                 alignment: Alignment.topCenter,
@@ -190,31 +247,6 @@ class _VoiceScreenState extends State<VoiceScreen> {
                     ),
                   ),
                 ),
-              ),
-
-              // Return button to go back to main RoomScreen
-              Positioned(
-                top: 46,
-                left: 18,
-                child: GestureDetector(
-                  onTap: () => context.go('/room'),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new,
-                      size: 14,
-                      color: Color(0x66FFFFFF),
-                    ),
-                  ),
-                ),
-              ),
-
-              // Dynamic content layer
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: _state == _VoiceState.transcript
-                    ? _buildTranscriptView()
-                    : _buildVoiceLayout(),
               ),
 
               // Bottom home indicator bar
@@ -251,29 +283,35 @@ class _VoiceScreenState extends State<VoiceScreen> {
     return Stack(
       key: const ValueKey<String>('voice_layout'),
       children: [
-        // Top instruction hints (only when not in transcript)
+        // Close button: circular white-opaque button (KaiIconName.close)
         Positioned(
-          top: 46,
-          left: 50,
-          child: Text(
-            _state == _VoiceState.idle
-                ? 'нажмите, чтобы говорить'
-                : (_state == _VoiceState.listening ? 'слушаю…' : 'kai говорит'),
-            style: const TextStyle(
-              fontFamily: 'JetBrainsMono',
-              fontSize: 9,
-              color: Color(0x40FFFFFF),
-              letterSpacing: 0.12,
+          top: 8,
+          left: 18,
+          child: GestureDetector(
+            onTap: () => context.go('/room'),
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: const BoxDecoration(
+                color: Color(0x1AFFFFFF),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: KaiIcon(
+                KaiIconName.close,
+                size: 14,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
-        Positioned(
-          top: 46,
-          right: 18,
-          child: GestureDetector(
-            onTap: _goToTranscript,
+        // Top instruction hints (only when not in transcript)
+        if (_state == _VoiceState.idle) ...[
+          Positioned(
+            top: 12,
+            left: 54,
             child: const Text(
-              'SWIPE ↑',
+              'нажмите, чтобы говорить',
               style: TextStyle(
                 fontFamily: 'JetBrainsMono',
                 fontSize: 9,
@@ -282,7 +320,23 @@ class _VoiceScreenState extends State<VoiceScreen> {
               ),
             ),
           ),
-        ),
+          Positioned(
+            top: 12,
+            right: 18,
+            child: GestureDetector(
+              onTap: () => context.go('/room'),
+              child: const Text(
+                'SWIPE ↑',
+                style: TextStyle(
+                  fontFamily: 'JetBrainsMono',
+                  fontSize: 9,
+                  color: Color(0x40FFFFFF),
+                  letterSpacing: 0.12,
+                ),
+              ),
+            ),
+          ),
+        ],
 
         // Centered large animated wave + text cluster
         Center(
@@ -296,7 +350,7 @@ class _VoiceScreenState extends State<VoiceScreen> {
                 const SizedBox(height: 28),
                 // Text slot
                 Container(
-                  height: 80,
+                  height: 48,
                   alignment: Alignment.center,
                   child: _state == _VoiceState.speaking
                       ? KaiKaraokeText(
@@ -327,52 +381,77 @@ class _VoiceScreenState extends State<VoiceScreen> {
   }
 
   Widget _buildTranscriptView() {
-    return Column(
+    return Stack(
       key: const ValueKey<String>('transcript_view'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Header
-        const Padding(
-          padding: EdgeInsets.fromLTRB(22, 50, 22, 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Mini wave representing the header tide
-              SizedBox(
-                width: 56,
-                height: 8,
-                child: KaiTideCurve(
-                  state: KaiTide.muted,
-                  height: 8,
+        // Main content column containing header, line, and timeline
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header
+            const Padding(
+              padding: EdgeInsets.fromLTRB(22, 16, 22, 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Mini wave representing the header tide
+                  SizedBox(
+                    width: 56,
+                    height: 8,
+                    child: KaiTideCurve(
+                      state: KaiTide.muted,
+                      height: 8,
+                    ),
+                  ),
+                  // Time label
+                  Text(
+                    'сегодня · 12:34',
+                    style: TextStyle(
+                      fontFamily: 'JetBrainsMono',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0x66FFFFFF),
+                      letterSpacing: 0.1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Divider line
+            Container(
+              height: 1,
+              color: const Color(0x0FFFFFFF),
+            ),
+            // Timeline content
+            Expanded(
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (ScrollNotification notification) {
+                  if (notification is ScrollUpdateNotification) {
+                    final metrics = notification.metrics;
+                    if (metrics.pixels <= 0) {
+                      final dragDeltaY = notification.dragDetails?.delta.dy ?? 0;
+                      final scrollDelta = notification.scrollDelta ?? 0;
+                      if (dragDeltaY > 0 || scrollDelta < 0) {
+                        _returnFromTranscript();
+                      }
+                    }
+                  } else if (notification is OverscrollNotification) {
+                    if (notification.overscroll < 0) {
+                      _returnFromTranscript();
+                    }
+                  }
+                  return false;
+                },
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.only(top: 8, bottom: 76),
+                  child: KaiTranscriptView(events: _mockEvents),
                 ),
               ),
-              // Time label
-              Text(
-                'сегодня · 12:34',
-                style: TextStyle(
-                  fontFamily: 'JetBrainsMono',
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0x66FFFFFF),
-                  letterSpacing: 0.1,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-        // Divider line
-        Container(
-          height: 1,
-          color: const Color(0x0FFFFFFF),
-        ),
-        // Timeline content
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(top: 14, bottom: 80),
-            child: KaiTranscriptView(events: _mockEvents),
-          ),
-        ),
-        // Return button at bottom
+        // Return button absolutely positioned at the bottom
         Align(
           alignment: Alignment.bottomCenter,
           child: Padding(
@@ -381,8 +460,9 @@ class _VoiceScreenState extends State<VoiceScreen> {
               onTap: _returnFromTranscript,
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                color: Colors.transparent, // Expand gesture target area
                 child: const Text(
-                  'НАЖМИТЕ, ЧТОБЫ ВЕРНУТЬСЯ',
+                  'СВАЙП ↑ · ВЕРНУТЬСЯ К ГОЛОСУ',
                   style: TextStyle(
                     fontFamily: 'JetBrainsMono',
                     fontSize: 10,

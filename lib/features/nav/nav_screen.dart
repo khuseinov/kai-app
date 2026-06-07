@@ -67,8 +67,10 @@ class NavScreen extends ConsumerWidget {
           roomNotifier.switchSession(id);
           Navigator.of(context).pop();
         },
-        // Memory screen not yet implemented — pop for now.
-        onMemoryTap: () => Navigator.of(context).pop(),
+        onMemoryTap: () {
+          Navigator.of(context).pop();
+          context.go('/memory');
+        },
         onSettingsTap: () {
           Navigator.of(context).pop();
           context.go('/settings');

@@ -82,8 +82,8 @@ void main() {
       // Frame immediately transitions to streaming (streaming begins).
       expect(container!.read(roomNotifierProvider).currentFrame, RoomFrame.streaming);
 
-      // Pump through the full mock stream (total ~800ms delays).
-      await tester.pump(const Duration(milliseconds: 1200));
+      // Pump through the full mock stream (State1: 800ms + State2: 800ms + chunks + done ≈ 3000ms).
+      await tester.pump(const Duration(milliseconds: 3500));
 
       // After done event, frame should be live and not streaming.
       final finalState = container!.read(roomNotifierProvider);
@@ -104,15 +104,15 @@ void main() {
       notifier.sendMessage('stream me');
 
       // Pump enough to get past state events but before done.
-      // MockChatRepository: 80ms + 120ms + 100ms = 300ms before first chunk.
-      await tester.pump(const Duration(milliseconds: 400));
+      // MockChatRepository: 80ms + 800ms (State1) + 800ms (State2) before first chunk.
+      await tester.pump(const Duration(milliseconds: 1000));
 
       final midState = container!.read(roomNotifierProvider);
       expect(midState.isStreaming, isTrue);
 
       // Drain remaining mock timers so the test closes cleanly.
-      // Total mock stream is ~800ms; we've pumped 400ms, so pump 800ms more.
-      await tester.pump(const Duration(milliseconds: 800));
+      // Total mock stream ≈2700ms; we've pumped 1000ms, so pump 2500ms more.
+      await tester.pump(const Duration(milliseconds: 2500));
     });
   });
 }

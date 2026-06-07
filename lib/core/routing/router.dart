@@ -10,6 +10,7 @@ import '../../features/dev/theme_showcase_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/room/room_screen.dart';
 import '../../features/settings/settings_screen.dart';
+import '../../features/memory/memory_screen.dart';
 import '../storage/entities/settings.dart';
 import '../storage/hive_setup.dart';
 import '../../features/voice/voice_screen.dart';
@@ -43,6 +44,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/memory',
+        builder: (context, state) => const MemoryScreen(),
       ),
       GoRoute(
         path: '/voice',
@@ -104,8 +109,8 @@ class _DevHubScreen extends StatelessWidget {
           _hubTile(
             context,
             label: 'Spec Viewer',
-            subtitle: 'HTML design specs at http://localhost:8743/spec-viewer.html',
-            onTap: () => launchUrlString('http://localhost:8743/spec-viewer.html'),
+            subtitle: 'HTML design specs — opens in new tab',
+            onTap: () => launchUrlString('/spec-viewer.html'),
           ),
         ],
       ),

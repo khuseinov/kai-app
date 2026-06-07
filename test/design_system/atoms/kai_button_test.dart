@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/core/providers/root.dart';
@@ -940,6 +941,162 @@ void main() {
           expect(find.byType(KaiButton), findsOneWidget,
               reason: 'KaiButton.tide must render for tideAnim=$mode');
         }
+      });
+
+      // -----------------------------------------------------------------------
+      // neutralAtRest
+      // -----------------------------------------------------------------------
+      group('neutralAtRest', () {
+        testWidgets(
+            'at rest (not hovered/pressed/busy) -> solid ink1 color, no gradient or shadow',
+            (tester) async {
+          await _pump(
+            tester,
+            KaiButton.tide(
+              onPressed: () {},
+              label: 'Neutral',
+              neutralAtRest: true,
+            ),
+          );
+
+          final containers =
+              tester.widgetList<Container>(find.byType(Container)).toList();
+          final found = containers.any((c) {
+            final deco = c.decoration;
+            return deco is BoxDecoration &&
+                deco.color == KaiColors.light.ink1 &&
+                deco.borderRadius == KaiRadius.br3 &&
+                deco.gradient == null &&
+                deco.boxShadow == null;
+          });
+          expect(found, isTrue,
+              reason: 'Must render solid ink1 background with no gradient/shadow');
+        });
+
+        testWidgets(
+            'glow emphasis at rest -> solid ink1 color, br2 radius, no gradient or shadow',
+            (tester) async {
+          await _pump(
+            tester,
+            KaiButton.tide(
+              onPressed: () {},
+              label: 'Glow Neutral',
+              neutralAtRest: true,
+              emphasis: KaiButtonEmphasis.glow,
+            ),
+          );
+
+          final containers =
+              tester.widgetList<Container>(find.byType(Container)).toList();
+          final found = containers.any((c) {
+            final deco = c.decoration;
+            return deco is BoxDecoration &&
+                deco.color == KaiColors.light.ink1 &&
+                deco.borderRadius == KaiRadius.br2 &&
+                deco.gradient == null &&
+                deco.boxShadow == null;
+          });
+          expect(found, isTrue,
+              reason: 'Glow neutral button must use br2 radius and no gradient/shadow');
+        });
+
+        testWidgets('when pressed -> switches to tide gradient and shadow',
+            (tester) async {
+          await _pump(
+            tester,
+            KaiButton.tide(
+              onPressed: () {},
+              label: 'Press me',
+              neutralAtRest: true,
+            ),
+          );
+
+          // Initially at rest: solid color
+          var containers =
+              tester.widgetList<Container>(find.byType(Container)).toList();
+          expect(
+            containers.any((c) =>
+                c.decoration is BoxDecoration &&
+                (c.decoration as BoxDecoration).color == KaiColors.light.ink1),
+            isTrue,
+          );
+
+          // Start press gesture
+          final gesture =
+              await tester.startGesture(tester.getCenter(find.byType(KaiButton)));
+          await tester.pump();
+
+          // When pressed, it switches to the tide gradient (animated or static).
+          // Since tideAnim defaults to onInteraction, when pressed it should flow (animated gradient).
+          containers =
+              tester.widgetList<Container>(find.byType(Container)).toList();
+          final hasGradient = containers.any((c) {
+            final deco = c.decoration;
+            return deco is BoxDecoration && deco.gradient != null;
+          });
+          expect(hasGradient, isTrue,
+              reason: 'Must switch to gradient when pressed');
+
+          // Finish gesture
+          await gesture.up();
+          await tester.pump();
+        });
+
+        testWidgets('when busy -> switches to tide gradient and shadow',
+            (tester) async {
+          await _pump(
+            tester,
+            KaiButton.tide(
+              onPressed: () {},
+              label: 'Busy button',
+              neutralAtRest: true,
+              busy: true,
+              tideAnim: KaiTideAnim.none, // Static gradient for easy verification
+            ),
+          );
+
+          final containers =
+              tester.widgetList<Container>(find.byType(Container)).toList();
+          final hasGradient = containers.any((c) {
+            final deco = c.decoration;
+            return deco is BoxDecoration &&
+                deco.gradient != null &&
+                deco.boxShadow != null &&
+                deco.boxShadow!.isNotEmpty;
+          });
+          expect(hasGradient, isTrue,
+              reason: 'Must show static tide gradient and shadow when busy');
+        });
+
+        testWidgets('when hovered -> switches to tide gradient',
+            (tester) async {
+          await _pump(
+            tester,
+            KaiButton.tide(
+              onPressed: () {},
+              label: 'Hover me',
+              neutralAtRest: true,
+            ),
+          );
+
+          // Simulate hover using a mouse gesture
+          final gesture =
+              await tester.createGesture(kind: PointerDeviceKind.mouse);
+          await gesture.addPointer(location: Offset.zero);
+          await gesture.moveTo(tester.getCenter(find.byType(KaiButton)));
+          await tester.pump();
+
+          final containers =
+              tester.widgetList<Container>(find.byType(Container)).toList();
+          final hasGradient = containers.any((c) {
+            final deco = c.decoration;
+            return deco is BoxDecoration && deco.gradient != null;
+          });
+          expect(hasGradient, isTrue,
+              reason: 'Must switch to gradient when hovered');
+
+          await gesture.removePointer();
+        });
       });
     });
   });

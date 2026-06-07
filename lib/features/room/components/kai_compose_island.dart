@@ -46,10 +46,13 @@ class KaiComposeIsland extends StatelessWidget {
     this.onStop,
     this.sendState = KaiSendState.ready,
     this.offline = false,
+    this.dictating = false,
     this.onQueue,
     this.placeholder = 'Спросить Kai…',
     super.key,
   });
+
+  final bool dictating;
 
   /// Buffer for the user's draft message.
   final TextEditingController controller;
@@ -166,6 +169,16 @@ class KaiComposeIsland extends StatelessWidget {
     // Field, or the offline-empty hint.
     if (offline && !hasText) {
       children.add(Expanded(child: _offlineHint(c)));
+    } else if (dictating) {
+      children.add(Expanded(
+        child: Text(
+          'Слушаю вас...',
+          style: _fieldStyle(c).copyWith(
+            color: c.accent,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ));
     } else {
       children.add(Expanded(
         child: _ComposeField(
@@ -229,10 +242,11 @@ class KaiComposeIsland extends StatelessWidget {
             key: const ValueKey<String>('compose_mic_button'),
             width: _btn,
             height: _btn,
-            child: KaiIconButton.transparent(
+            child: KaiIconButton.toggle(
+              active: dictating,
               onPressed: onMicTap,
               icon: KaiIconName.mic,
-              size: 14, // canon: mic glyph 14px
+              iconSize: KaiIconButtonSize.sm,
             ),
           );
     return AnimatedSwitcher(duration: KaiMotion.micro, child: child);

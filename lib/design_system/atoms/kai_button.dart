@@ -99,9 +99,11 @@ class KaiButton extends StatefulWidget {
     this.size = KaiButtonSize.md,
     this.tideAnim = KaiTideAnim.onInteraction,
     this.busy = false,
+    this.neutralAtRest = false,
+    bool fullWidth = false,
     super.key,
   })  : _variant = _KaiButtonVariant.tide,
-        _fullWidth = false,
+        _fullWidth = fullWidth,
         _tone = KaiButtonTone.neutral,
         _pill = false;
 
@@ -126,7 +128,8 @@ class KaiButton extends StatefulWidget {
         _tone = KaiButtonTone.neutral,
         _pill = false,
         tideAnim = KaiTideAnim.none,
-        busy = false;
+        busy = false,
+        neutralAtRest = false;
 
   // -------------------------------------------------------------------------
   // ghost
@@ -150,7 +153,8 @@ class KaiButton extends StatefulWidget {
         _tone = tone,
         _pill = pill,
         tideAnim = KaiTideAnim.none,
-        busy = false;
+        busy = false,
+        neutralAtRest = false;
 
   // -------------------------------------------------------------------------
   // text
@@ -172,7 +176,8 @@ class KaiButton extends StatefulWidget {
         _tone = tone,
         _pill = false,
         tideAnim = KaiTideAnim.none,
-        busy = false;
+        busy = false,
+        neutralAtRest = false;
 
   // -------------------------------------------------------------------------
   // Fields
@@ -196,6 +201,7 @@ class KaiButton extends StatefulWidget {
   /// Whether Kai is actively "busy" (e.g. generating a response).
   /// Only meaningful for [KaiTideAnim.onState]; drives the flow when `true`.
   final bool busy;
+  final bool neutralAtRest;
 
   final _KaiButtonVariant _variant;
   final bool _fullWidth;
@@ -410,8 +416,7 @@ class _KaiButtonState extends State<KaiButton>
           );
 
           return Container(
-            width: (widget._variant == _KaiButtonVariant.ink &&
-                    widget._fullWidth)
+            width: widget._fullWidth
                 ? double.infinity
                 : null,
             padding: contentPadding,
@@ -432,7 +437,7 @@ class _KaiButtonState extends State<KaiButton>
     } else {
       // Static decoration (non-tide, reduce-motion, or flow not active).
       container = Container(
-        width: (widget._variant == _KaiButtonVariant.ink && widget._fullWidth)
+        width: widget._fullWidth
             ? double.infinity
             : null,
         padding: contentPadding,
@@ -485,6 +490,9 @@ class _KaiButtonState extends State<KaiButton>
     final c = tokens.colors;
     switch (widget._variant) {
       case _KaiButtonVariant.tide:
+        if (widget.neutralAtRest && !_hovered && !_pressed && !widget.busy) {
+          return tokens.colors.surface;
+        }
         return const Color(0xFFFFFFFF);
       case _KaiButtonVariant.ink:
         return tokens.colors.surface;
@@ -529,6 +537,14 @@ class _KaiButtonState extends State<KaiButton>
     final c = tokens.colors;
     switch (widget._variant) {
       case _KaiButtonVariant.tide:
+        if (widget.neutralAtRest && !_hovered && !_pressed && !widget.busy) {
+          return BoxDecoration(
+            color: c.ink1,
+            borderRadius: widget.emphasis == KaiButtonEmphasis.glow
+                ? KaiRadius.br2
+                : KaiRadius.br3,
+          );
+        }
         final isGlow = widget.emphasis == KaiButtonEmphasis.glow;
         return BoxDecoration(
           gradient: KaiTide.gradient,

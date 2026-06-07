@@ -275,7 +275,11 @@ class _SettingsTopBar extends StatelessWidget {
             // Back button — 28×28 circle, surface-2 bg, ink-1 chev-left.
             GestureDetector(
               onTap: () {
-                if (context.canPop()) context.pop();
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/room');
+                }
               },
               child: Container(
                 width: 28,

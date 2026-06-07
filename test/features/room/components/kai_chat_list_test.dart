@@ -152,7 +152,7 @@ void main() {
         expect(find.byType(KaiChatList), findsOneWidget);
       });
 
-      testWidgets('shows a streaming KaiKaiBubble',
+      testWidgets('shows streamed text content inline',
           (WidgetTester tester) async {
         await _pump(
           tester,
@@ -162,14 +162,10 @@ void main() {
           ),
         );
         await tester.pump(const Duration(milliseconds: 100));
-        // KaiKaiBubble uses Text.rich — textContaining works across spans.
+        // State 3: text is rendered inline in _StreamingKaiBubble (no nested KaiKaiBubble).
         expect(find.textContaining('JR Pass стоит'), findsOneWidget);
-        // A KaiKaiBubble with streaming:true is present
-        final bubbles = tester
-            .widgetList<KaiKaiBubble>(find.byType(KaiKaiBubble))
-            .toList();
-        expect(bubbles.any((b) => b.streaming), isTrue,
-            reason: 'streaming frame must show a KaiKaiBubble(streaming:true)');
+        // The single KAI label must be present (tide bar row).
+        expect(find.text('KAI'), findsOneWidget);
       });
 
       testWidgets('shows KAI .who label during streaming',

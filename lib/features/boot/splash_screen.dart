@@ -50,14 +50,22 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _pulse = AnimationController(
       vsync: this,
-      // Canon: glyph-pulse 2.4s ease-in-out
-      duration: const Duration(milliseconds: 2400),
-    )..repeat(reverse: true);
+      // Canon: glyph-pulse 2.4s ease-in-out.
+      // A full cycle (1.0 -> 1.06 -> 1.0) takes 2.4s.
+      // So forward (1200ms) + reverse (1200ms) = 2400ms.
+      duration: const Duration(milliseconds: 1200),
+    );
 
-    // 1.0 → 1.06 → 1.0 (reverse loop). With reverse, controller goes 0→1→0.
     _scale = Tween<double>(begin: 1.0, end: 1.06).animate(
       CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
     );
+
+    // Pulse exactly once on boot
+    _pulse.forward().then((_) {
+      if (mounted) {
+        _pulse.reverse();
+      }
+    });
   }
 
   @override
@@ -87,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen>
                 color: c.ink1,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 16),
             Text(
               widget.tag,
               style: TextStyle(

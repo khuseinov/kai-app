@@ -69,7 +69,7 @@
   "onboardingContextLangsLabel": "владею языками",
   "onboardingContextCountryPlaceholder": "Российская Федерация",
   "newChat": "Новый чат",
-  "search": "Поиск",
+  "search": "Поиск поездок и чатов",
   "tripsLabel": "ПОЕЗДКИ",
   "dateToday": "СЕГОДНЯ",
   "dateYesterday": "ВЧЕРА",
@@ -81,5 +81,38 @@
   "accountFreePlan": "Free",
   "noChats": "Нет чатов",
   "dateOlder": "РАНЕЕ",
-  "streamingStatusThinking": "думаю"
+  "streamingStatusThinking": "думаю",
+  "memoryFactsCount": "{count, plural, one{{count} факт о вас} few{{count} факта о вас} other{{count} фактов о вас}}",
+  "@memoryFactsCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "memoryLastSaved": "последнее сохранение {time} назад",
+  "@memoryLastSaved": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "memorySearchPlaceholder": "Поиск фактов",
+  "memoryCategoryAbout": "о вас",
+  "memoryCategoryPreferences": "предпочтения",
+  "memoryCategoryRestrictions": "ограничения",
+  "memoryCategoryTrips": "поездки",
+  "memoryCategoryFacts": "факты",
+  "memorySourceFrom": "из",
+  "memorySourceExplicit": "установлено явно",
+  "memorySourceLinked": "связано",
+  "memoryDangerWipeAll": "Забыть всё (GDPR-удаление)",
+  "memoryWipeConfirmation": "Вы уверены, что хотите забыть всё? Это действие необратимо.",
+  "memoryWipeConfirmAction": "Забыть",
+  "memoryWipeCancelAction": "Отмена",
+  "memoryEditFactTitle": "Редактировать факт",
+  "memoryDeleteFactAction": "Удалить",
+  "memoryEditFactAction": "Редактировать",
+  "memoryGoToSourceAction": "Перейти к источнику"
 }

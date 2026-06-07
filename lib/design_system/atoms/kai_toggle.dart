@@ -22,11 +22,13 @@ class KaiToggle extends StatelessWidget {
   const KaiToggle({
     required this.value,
     required this.onChanged,
+    this.activeColor,
     super.key,
   });
 
   final bool value;
   final ValueChanged<bool>? onChanged;
+  final Color? activeColor;
 
   // -------------------------------------------------------------------------
   // Component dimensions (canonical; documented above — not token-scale values)
@@ -49,7 +51,7 @@ class KaiToggle extends StatelessWidget {
       height: _trackHeight,
       padding: const EdgeInsets.all(_padding),
       decoration: BoxDecoration(
-        color: value ? c.accent : c.surface3,
+        color: value ? (activeColor ?? c.accent) : c.surface3,
         borderRadius: KaiRadius.brPill,
       ),
       child: AnimatedAlign(

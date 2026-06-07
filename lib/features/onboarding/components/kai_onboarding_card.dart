@@ -27,19 +27,14 @@ import 'kai_step_indicator.dart';
 ///   .ob-btn { background: var(--ink-1); ... }                /* default: solid ink-1 */
 ///   .frame-card:first-child .ob-btn { background: var(--tide-gradient); ... } /* step 0 only */
 ///   ```
-/// Canon refinement: **step 0 (welcome) shows a [KaiButton.ink] at rest** with
-/// a brief tide-gradient flash on tap before calling the [onNext] callback.
-/// The ink button signals that the action is safe/expected; the tide flash
-/// confirms the interaction in-brand before advancing. Steps 1–3 use a plain
-/// [KaiButton.ink] with no flash.
+/// Canon alignment: **step 0 (welcome) shows a [KaiButton.tide] (gradient) at rest**
+/// and steps 1–3 use a plain [KaiButton.ink] (black) at rest to match the design.
 ///
 /// R1 audit fix: the bespoke `_OnboardingCTA` StatefulWidget from v2 is
-/// dropped. The CTA is now a [KaiButton] atom or [_Step0Cta] for step 0.
+/// dropped. The CTA is now a [KaiButton] atom.
 class KaiOnboardingCard extends StatelessWidget {
   const KaiOnboardingCard({
     required this.stepIndex,
-    this.onNext,
-    this.onComplete,
     super.key,
   }) : assert(
           stepIndex >= 0 && stepIndex <= 3,
@@ -49,41 +44,37 @@ class KaiOnboardingCard extends StatelessWidget {
   /// 0 = welcome, 1 = tide, 2 = gestures, 3 = context.
   final int stepIndex;
 
-  /// Called when the CTA button is tapped on steps 0–2 (non-final steps).
-  ///
-  /// Callers should advance [stepIndex] by 1 in response.
-  final VoidCallback? onNext;
-
-  /// Called when the final CTA button is tapped on step 3 ("Начать…").
-  ///
-  /// Callers should navigate to the main chat screen in response.
-  final VoidCallback? onComplete;
-
   @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    // Steps 1–3 have the tide-bar overlay above them. Minimum top inset keeps
-    // content clear of the curve; weighted Spacers vertically center the step
-    // body so the gap between the body and the CTA doesn't blow up on tall
-    // screens (390×844).
-    final topPad = stepIndex == 0 ? 24.0 : 36.0;
+    // Steps 1–2 have the tide-bar overlay above them. Minimum top inset keeps
+    // content clear of the curve.
+    final double topPad;
+    if (stepIndex == 1 || stepIndex == 2) {
+      topPad = 36.0; // 80px from top border (with ~44px SafeArea)
+    } else {
+      topPad = 16.0; // 60px from top border (with ~44px SafeArea)
+    }
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(22, topPad, 22, 20),
+      padding: const EdgeInsets.fromLTRB(22, 0, 22, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Spacer(flex: 1),
-          _buildStep(context, tokens, l10n),
-          const Spacer(flex: 1),
-          // Centre the step dots: the parent Column stretches its children to
-          // full width, so the mainAxisSize.min indicator must be centred
-          // explicitly (canon onboarding.html .ob-dots is centred).
-          Center(child: KaiStepIndicator(count: 4, active: stepIndex)),
-          const SizedBox(height: 12),
-          _buildCTA(l10n),
+          SizedBox(height: topPad),
+          Expanded(
+            child: Center(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: _buildStep(context, tokens, l10n),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -103,36 +94,6 @@ class KaiOnboardingCard extends StatelessWidget {
       default:
         return const SizedBox.shrink();
     }
-  }
-
-  Widget _buildCTA(AppLocalizations l10n) {
-    final String label;
-    final VoidCallback? callback;
-
-    switch (stepIndex) {
-      case 1:
-        label = l10n.onboardingStep1CTA; // "Понятно"
-        callback = onNext;
-      case 3:
-        label = l10n.onboardingStart; // "Начать использовать Kai"
-        callback = onComplete;
-      default:
-        label = l10n.onboardingNext; // "Продолжить"
-        callback = onNext;
-    }
-
-    // Canon (new-design/onboarding.html):
-    //   Step 0 (welcome): ink button at rest, brief tide-flash on tap
-    //   (confirmation in brand), then calls the callback.
-    //   Steps 1–3: KaiButton.ink — solid ink-1, the standard non-hero primary.
-    //   CSS: `.ob-btn { background: var(--ink-1) }`.
-    if (stepIndex == 0) {
-      return _Step0Cta(label: label, onPressed: callback);
-    }
-    return KaiButton.ink(
-      onPressed: callback,
-      label: label,
-    );
   }
 }
 
@@ -230,7 +191,7 @@ class _TideStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           l10n.onboardingTideTitle,
@@ -348,7 +309,7 @@ class _GesturesStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           l10n.onboardingGesturesTitle,
@@ -475,7 +436,7 @@ class _ContextStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           l10n.onboardingContextTitle,
@@ -621,114 +582,6 @@ class _LangChip extends StatelessWidget {
   }
 }
 
-// ─── Step 0 CTA — ink at rest, tide-flash on tap ─────────────────────────────
-
-/// Step-0 CTA: ink button at rest; on tap plays a brief tide-gradient flash
-/// overlay (duration: [KaiMotion.standard]) then calls [onPressed].
-///
-/// Respects `MediaQuery.maybeOf(context)?.disableAnimations` — when true,
-/// fires [onPressed] immediately without the flash animation.
-class _Step0Cta extends StatefulWidget {
-  const _Step0Cta({required this.label, this.onPressed});
-
-  final String label;
-  final VoidCallback? onPressed;
-
-  @override
-  State<_Step0Cta> createState() => _Step0CtaState();
-}
-
-class _Step0CtaState extends State<_Step0Cta>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _opacity;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: KaiMotion.standard,
-    );
-    _opacity = CurvedAnimation(
-      parent: _controller,
-      curve: KaiMotion.standardCurve,
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  bool get _reduceMotion =>
-      MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-
-  Future<void> _onTap() async {
-    if (widget.onPressed == null) return;
-    if (_reduceMotion) {
-      widget.onPressed!();
-      return;
-    }
-    // Play: 0 → 1 (flash in), then 1 → 0 (flash out) over standard duration.
-    await _controller.forward();
-    await _controller.reverse();
-    if (mounted) widget.onPressed!();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = KaiTheme.of(context).colors;
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Base ink button (always present — tapped via GestureDetector below).
-        KaiButton.ink(
-          onPressed: null, // handled by GestureDetector wrapper
-          label: widget.label,
-        ),
-        // Tide-flash overlay: fades in/out on top of the ink button.
-        AnimatedBuilder(
-          animation: _opacity,
-          builder: (context, child) {
-            if (_opacity.value == 0) return const SizedBox.shrink();
-            return Opacity(
-              opacity: _opacity.value,
-              child: child,
-            );
-          },
-          child: IgnorePointer(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: KaiTide.gradient,
-                borderRadius: KaiRadius.br3,
-              ),
-              padding: const EdgeInsets.symmetric(
-                vertical: KaiSpace.s3,
-                horizontal: KaiSpace.s5,
-              ),
-              child: Text(
-                widget.label,
-                style: KaiType.small(color: c.surface).copyWith(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ),
-        // Full-area tap target.
-        Positioned.fill(
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: widget.onPressed != null ? _onTap : null,
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 /// Centralized text styles used inside onboarding card steps.
 class _OnboardingStyles {

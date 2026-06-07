@@ -15,6 +15,12 @@ import '../repositories/mock_session_repository.dart';
 import '../repositories/real_chat_repository.dart';
 import '../repositories/real_session_repository.dart';
 import '../repositories/session_repository.dart';
+import '../repositories/memory_repository.dart';
+import '../repositories/mock_memory_repository.dart';
+import '../repositories/real_memory_repository.dart';
+import '../storage/entities/memory_fact.dart';
+import '../storage/entities/settings.dart';
+import '../storage/hive_setup.dart';
 import '../telemetry/telemetry_service.dart';
 
 /// Env-loaded configuration. Populated by [bootstrap] via flutter_dotenv.
@@ -88,3 +94,69 @@ final sessionRepositoryProvider = Provider<SessionRepository>((ref) {
 final telemetryProvider = Provider<TelemetryService>((ref) {
   return const NoOpTelemetryService();
 });
+
+/// Memory repository. Switches between mock and real based on [EnvConfig.useRealChat].
+final memoryRepositoryProvider = Provider<MemoryRepository>((ref) {
+  final env = ref.watch(envProvider);
+  if (env.useRealChat) return RealMemoryRepository();
+  return MockMemoryRepository();
+});
+
+/// Notifier provider for memory facts list.
+final memoryFactsNotifierProvider =
+    NotifierProvider<MemoryFactsNotifier, List<MemoryFact>>(
+        MemoryFactsNotifier.new);
+
+class MemoryFactsNotifier extends Notifier<List<MemoryFact>> {
+  @override
+  List<MemoryFact> build() {
+    _load();
+    return const [];
+  }
+
+  Future<void> _load() async {
+    final repo = ref.read(memoryRepositoryProvider);
+    state = await repo.getMemoryFacts();
+  }
+
+  Future<void> addFact(MemoryFact fact) async {
+    final repo = ref.read(memoryRepositoryProvider);
+    await repo.saveMemoryFact(fact);
+    await _load();
+  }
+
+  Future<void> deleteFact(String id) async {
+    final repo = ref.read(memoryRepositoryProvider);
+    await repo.deleteMemoryFact(id);
+    await _load();
+  }
+
+  Future<void> clearAll() async {
+    final repo = ref.read(memoryRepositoryProvider);
+    await repo.clearAllMemory();
+    await _load();
+  }
+}
+
+/// Notifier provider for global memory enabled state.
+final memoryEnabledNotifierProvider =
+    NotifierProvider<MemoryEnabledNotifier, bool>(MemoryEnabledNotifier.new);
+
+class MemoryEnabledNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    _load();
+    return true;
+  }
+
+  Future<void> _load() async {
+    final repo = ref.read(memoryRepositoryProvider);
+    state = await repo.isMemoryEnabled();
+  }
+
+  Future<void> toggle(bool enabled) async {
+    final repo = ref.read(memoryRepositoryProvider);
+    await repo.setMemoryEnabled(enabled);
+    state = enabled;
+  }
+}

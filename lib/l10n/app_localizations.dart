@@ -515,7 +515,7 @@ abstract class AppLocalizations {
   /// No description provided for @search.
   ///
   /// In en, this message translates to:
-  /// **'Search'**
+  /// **'Search trips and chats'**
   String get search;
 
   /// No description provided for @tripsLabel.
@@ -589,6 +589,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'thinking'**
   String get streamingStatusThinking;
+
+  /// No description provided for @memoryFactsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 fact about you} other{{count} facts about you}}'**
+  String memoryFactsCount(num count);
+
+  /// No description provided for @memoryLastSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'last saved {time} ago'**
+  String memoryLastSaved(String time);
+
+  /// No description provided for @memorySearchPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search facts'**
+  String get memorySearchPlaceholder;
+
+  /// No description provided for @memoryCategoryAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'about you'**
+  String get memoryCategoryAbout;
+
+  /// No description provided for @memoryCategoryPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'preferences'**
+  String get memoryCategoryPreferences;
+
+  /// No description provided for @memoryCategoryRestrictions.
+  ///
+  /// In en, this message translates to:
+  /// **'restrictions'**
+  String get memoryCategoryRestrictions;
+
+  /// No description provided for @memoryCategoryTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'trips'**
+  String get memoryCategoryTrips;
+
+  /// No description provided for @memoryCategoryFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'facts'**
+  String get memoryCategoryFacts;
+
+  /// No description provided for @memorySourceFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'from'**
+  String get memorySourceFrom;
+
+  /// No description provided for @memorySourceExplicit.
+  ///
+  /// In en, this message translates to:
+  /// **'set explicitly'**
+  String get memorySourceExplicit;
+
+  /// No description provided for @memorySourceLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'linked'**
+  String get memorySourceLinked;
+
+  /// No description provided for @memoryDangerWipeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget all (GDPR-deletion)'**
+  String get memoryDangerWipeAll;
+
+  /// No description provided for @memoryWipeConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to forget everything? This action is irreversible.'**
+  String get memoryWipeConfirmation;
+
+  /// No description provided for @memoryWipeConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget'**
+  String get memoryWipeConfirmAction;
+
+  /// No description provided for @memoryWipeCancelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get memoryWipeCancelAction;
+
+  /// No description provided for @memoryEditFactTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit fact'**
+  String get memoryEditFactTitle;
+
+  /// No description provided for @memoryDeleteFactAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get memoryDeleteFactAction;
+
+  /// No description provided for @memoryEditFactAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get memoryEditFactAction;
+
+  /// No description provided for @memoryGoToSourceAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to source'**
+  String get memoryGoToSourceAction;
 }
 
 class _AppLocalizationsDelegate

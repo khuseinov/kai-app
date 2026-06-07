@@ -36,7 +36,15 @@ class _BootingAppState extends State<BootingApp> {
 
   Future<void> _start() async {
     try {
+      final stopwatch = Stopwatch()..start();
       final container = await bootstrap();
+      stopwatch.stop();
+
+      final elapsed = stopwatch.elapsedMilliseconds;
+      if (elapsed < 600) {
+        await Future.delayed(Duration(milliseconds: 600 - elapsed));
+      }
+
       if (!mounted) {
         container.dispose();
         return;
@@ -86,7 +94,66 @@ class _BootingAppState extends State<BootingApp> {
     }
     return UncontrolledProviderScope(
       container: _container!,
-      child: const KaiApp(),
+      child: _BootingAppFadeOverlay(
+        child: const KaiApp(),
+      ),
+    );
+  }
+}
+
+/// A stack overlay that fades out the splash screen over the initialized app.
+class _BootingAppFadeOverlay extends StatefulWidget {
+  final Widget child;
+  const _BootingAppFadeOverlay({required this.child});
+
+  @override
+  State<_BootingAppFadeOverlay> createState() => _BootingAppFadeOverlayState();
+}
+
+class _BootingAppFadeOverlayState extends State<_BootingAppFadeOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _fadeController;
+  bool _showSplash = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    // Start the fade out transition immediately
+    _fadeController.forward().then((_) {
+      if (mounted) {
+        setState(() => _showSplash = false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_showSplash) return widget.child;
+
+    return Stack(
+      textDirection: TextDirection.ltr,
+      children: [
+        widget.child,
+        FadeTransition(
+          opacity: Tween<double>(begin: 1.0, end: 0.0).animate(_fadeController),
+          child: const MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: KaiTheme(
+              child: SplashScreen(),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

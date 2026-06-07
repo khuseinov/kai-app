@@ -204,5 +204,16 @@ void main() {
       )));
       expect(find.text('Type here…'), findsOneWidget);
     });
+
+    testWidgets('dictating state shows listening text and toggled mic button', (tester) async {
+      final c = TextEditingController();
+      addTearDown(c.dispose);
+      await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
+        controller: c, onSend: () {}, onMicTap: () {}, dictating: true,
+      )));
+      expect(find.text('Слушаю вас...'), findsOneWidget);
+      expect(find.byType(TextField), findsNothing);
+      expect(find.byKey(_micKey), findsOneWidget);
+    });
   });
 }

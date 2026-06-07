@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280,initial-scale=1">
+<title>kai · приложение Память</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink-1); font-family: var(--font-sans); }
+  .shell { max-width: 1280px; margin: 0 auto; padding: 56px 64px 120px; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 56px; }
+  .top .mark { font-weight: 700; font-size: 18px; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 10px; }
+  .top .meta { display: flex; gap: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+
+  .hero { padding-bottom: 48px; border-bottom: 1px solid var(--line); margin-bottom: 56px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 22px; display: inline-flex; align-items: center; gap: 8px; }
+  .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--ink-3); }
+  .hero h1 { font-size: 60px; font-weight: 600; line-height: 0.98; letter-spacing: -0.03em; max-width: 960px; margin: 0; }
+  .hero h1 .ocean { background: var(--tide-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; font-style: italic; font-weight: 500; }
+  .hero .lead { margin-top: 22px; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 720px; }
+
+  .layout { display: grid; grid-template-columns: 340px 1fr; gap: 56px; align-items: start; }
+  .phone-frame { background: var(--surface-3); border: 1px solid var(--line); border-radius: 24px; padding: 32px; display: flex; justify-content: center; }
+  .phone { width: 280px; height: 620px; background: var(--surface); border: 1px solid var(--line); border-radius: 38px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+  .phone .island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 90px; height: 26px; background: var(--ink-1); border-radius: 999px; z-index: 10; }
+  .phone .home { position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%); width: 90px; height: 4px; border-radius: 999px; background: var(--ink-3); opacity: 0.3; z-index: 10; }
+  .phone .tide-bar { position: absolute; top: 46px; left: 18px; width: calc(100% - 36px); height: 14px; z-index: 2; }
+
+  .appbar { position: absolute; top: 16px; left: 0; right: 0; height: 28px; padding: 0 16px; z-index: 8; display: flex; align-items: center; justify-content: space-between; }
+  .appbar .ic-btn { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-2); border: 0; display: flex; align-items: center; justify-content: center; color: var(--ink-1); }
+  .appbar .ttl { font: 600 13px var(--font-sans); color: var(--ink-1); letter-spacing: -0.005em; }
+
+  .memory { padding: 70px 16px 24px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+
+  /* Top stats */
+  .mem-hero {
+    background: linear-gradient(135deg, rgba(43,168,201,0.08), rgba(244,181,137,0.06));
+    border: 1px solid var(--accent-line); border-radius: 16px; padding: 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .mem-hero .gl { width: 36px; height: 36px; border-radius: 11px; background: var(--tide-gradient); background-size: 200% 100%; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; }
+  .mem-hero .info { flex: 1; min-width: 0; }
+  .mem-hero .info .t { font: 600 14px var(--font-sans); color: var(--ink-1); letter-spacing: -0.01em; }
+  .mem-hero .info .s { font: 400 11px var(--font-mono); color: var(--ink-3); margin-top: 1px; }
+  .mem-hero .toggle { width: 34px; height: 20px; border-radius: 999px; background: var(--positive); padding: 2px; flex-shrink: 0; }
+  .mem-hero .toggle .knob { width: 16px; height: 16px; border-radius: 50%; background: var(--surface); transform: translateX(14px); box-shadow: 0 1px 3px rgba(0,0,0,0.18); }
+
+  /* Search */
+  .search { background: var(--surface-2); border-radius: 10px; padding: 9px 12px; display: flex; align-items: center; gap: 8px; font: 400 12.5px var(--font-sans); color: var(--ink-3); }
+  .search svg { color: var(--ink-3); flex-shrink: 0; }
+
+  /* Section label */
+  .s-label { font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; padding: 8px 4px 4px; display: flex; justify-content: space-between; align-items: baseline; }
+  .s-label .ct { color: var(--ink-4); }
+
+  .group { background: var(--surface-2); border-radius: 12px; padding: 4px; display: flex; flex-direction: column; }
+  .fact-item {
+    padding: 9px 11px; border-radius: 8px;
+    display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: flex-start;
+  }
+  .fact-item:hover { background: var(--surface-3); }
+  .fact-item .body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .fact-item .body .t { font: 500 12px var(--font-sans); color: var(--ink-1); letter-spacing: -0.005em; line-height: 1.35; }
+  .fact-item .body .src { font: 400 9.5px var(--font-mono); color: var(--ink-3); display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+  .fact-item .body .src .из { color: var(--accent); }
+  .fact-item .body .src .ttl {
+    font: 500 9px var(--font-mono); color: var(--warning);
+    background: var(--warning-wash); padding: 1px 5px; border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+  .fact-item .body .src .ttl.critical { color: var(--negative); background: var(--negative-wash); }
+  .fact-item .dots { color: var(--ink-3); padding: 4px; }
+
+  /* Danger zone */
+  .danger {
+    margin-top: 18px;
+    background: var(--surface); border: 1px solid var(--negative-wash); border-radius: 12px;
+    padding: 4px;
+  }
+  .danger .danger-row {
+    padding: 11px 12px; display: grid; grid-template-columns: 16px 1fr; gap: 10px; align-items: center;
+    border-radius: 8px;
+  }
+  .danger svg { color: var(--negative); }
+  .danger .t { font: 500 12px var(--font-sans); color: var(--negative); letter-spacing: -0.005em; }
+
+  /* Notes */
+  .notes h3 { font-size: 24px; font-weight: 600; letter-spacing: -0.018em; margin-bottom: 18px; }
+  .notes p { font-size: 14.5px; color: var(--ink-2); line-height: 1.55; margin-bottom: 22px; max-width: 560px; }
+  .anatomy-list { display: flex; flex-direction: column; gap: 22px; }
+  .anatomy-item { border-left: 2px solid var(--line); padding: 4px 0 4px 18px; }
+  .anatomy-item.kept { border-left-color: var(--tide-2); }
+  .anatomy-item.new { border-left-color: var(--tide-3); }
+  .anatomy-item .ref { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .anatomy-item.kept .ref { color: var(--tide-2); }
+  .anatomy-item.new .ref { color: #C68B4A; }
+  .anatomy-item h4 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 6px; }
+  .anatomy-item p { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin: 0; max-width: 560px; }
+
+  /* ── Shared entrance animations ── */
+  @keyframes kai-fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes kai-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes kai-scale-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Phone frames fade up with stagger */
+  .phone, .frame-card {
+    animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) both;
+  }
+  .frame-card:nth-child(1) { animation-delay: 0.02s; }
+  .frame-card:nth-child(2) { animation-delay: 0.04s; }
+  .frame-card:nth-child(3) { animation-delay: 0.07s; }
+  .frame-card:nth-child(4) { animation-delay: 0.10s; }
+
+  /* Phone-frame wrappers */
+  .phone-frame .phone { animation: kai-fade-up 0.5s cubic-bezier(.2,0,0,1) 0.1s both; }
+  .layout .phone-frame { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.06s both; }
+  .layout .notes       { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.18s both; }
+
+
+  /* Tide curve entrance — already animates; just ensure visibility */
+  .phone .tide-bar, .phone .tide-svg { animation: kai-fade-in 0.6s ease 0.2s both; }
+
+
+  /* Staggered fact items */
+  @keyframes fact-in {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .fact-item { animation: fact-in 0.32s cubic-bezier(.2,0,0,1) both; }
+  .group .fact-item:nth-child(1) { animation-delay: 0.10s; }
+  .group .fact-item:nth-child(2) { animation-delay: 0.18s; }
+  .group .fact-item:nth-child(3) { animation-delay: 0.26s; }
+  .group .fact-item:nth-child(4) { animation-delay: 0.34s; }
+
+  /* TTL chip pulse — critical fading */
+  @keyframes ttl-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  .fact-item .ttl.critical {
+    animation: ttl-pulse 1.8s ease-in-out infinite;
+  }
+
+  /* Memory hero entrance */
+  .mem-hero { animation: kai-scale-in 0.4s cubic-bezier(.2,0,0,1) 0.08s both; }
+
+  /* Danger zone entrance */
+  .danger { animation: kai-fade-up 0.4s cubic-bezier(.2,0,0,1) 0.5s both; }
+
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-tide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1B4FB0"/><stop offset="0.5" stop-color="#2BA8C9"/><stop offset="1" stop-color="#F4B589"/></linearGradient>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-mem" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="white" stroke-width="2"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 21V4M4 4h12l-3 5 3 5H4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell">
+
+  <div class="top">
+    <div class="mark">
+      <svg width="28" height="6" viewBox="0 0 28 6"><path d="M 1 3 Q 7 0, 14 3 T 27 3" stroke="url(#g-tide)" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      <span>kai</span>
+      <span style="color:var(--ink-3);font-weight:500;letter-spacing:0;">— приложение Память</span>
+    </div>
+    <div class="meta">
+      <span>творческое дополнение</span>
+      <span style="color:var(--ink-1)">·</span>
+      <span>что помнит Kai</span>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="eyebrow">творческое — экран приложения Память</div>
+    <h1>Каждый факт, хранимый Kai —<br><span class="ocean">виден, редактируем, удаляем</span>.</h1>
+    <p class="lead">
+      Память — это договор доверия. Пользователь должен видеть что хранится, редактировать,
+      удалять отдельный факт или забыть всё (GDPR). Сгруппировано по типу — о вас · предпочтения ·
+      ограничения · поездки · факты.
+    </p>
+  </header>
+
+  <div class="layout">
+
+    <div class="phone-frame">
+      <div class="phone">
+        <div class="island"></div>
+        <div class="appbar">
+          <button class="ic-btn"><svg width="14" height="14"><use href="#i-back"/></svg></button>
+          <div class="ttl">Memory</div>
+          <button class="ic-btn"><svg width="14" height="14"><use href="#i-dots"/></svg></button>
+        </div>
+        <svg class="tide-bar" viewBox="0 0 244 14" preserveAspectRatio="none"><path d="M 2 8 Q 30 4, 56 8 T 110 8 T 168 8 T 244 6" stroke="url(#g-tide)" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.45"/></svg>
+
+        <div class="memory">
+
+          <div class="mem-hero">
+            <div class="gl"><svg width="18" height="18"><use href="#i-mem"/></svg></div>
+            <div class="info">
+              <div class="t">23 факта о вас</div>
+              <div class="s">последнее сохранение 12 мин назад</div>
+            </div>
+            <div class="toggle"><div class="knob"></div></div>
+          </div>
+
+          <div class="search">
+            <svg width="13" height="13"><use href="#i-search"/></svg>
+            Поиск фактов
+          </div>
+
+          <div>
+            <div class="s-label">о вас <span class="ct">3</span></div>
+            <div class="group">
+              <div class="fact-item">
+                <div class="body">
+                  <div class="t">Гражданин России</div>
+                  <div class="src"><span class="из">из</span><span>Виза для Японии · 12 мин назад</span><span class="ttl">expires 23h</span></div>
+                </div>
+                <div class="dots"><svg width="13" height="13"><use href="#i-dots"/></svg></div>
+              </div>
+              <div class="fact-item">
+                <div class="body">
+                  <div class="t">Живёт в Алматы</div>
+                  <div class="src"><span class="из">установлено явно</span><span>3 нед назад</span></div>
+                </div>
+                <div class="dots"><svg width="13" height="13"><use href="#i-dots"/></svg></div>
+              </div>
+              <div class="fact-item">
+                <div class="body">
+                  <div class="t">Путешествует в одиночку большую часть времени</div>
+                  <div class="src"><span class="из">из</span><span>10 дней в Турции · 2 нед назад</span></div>
+                </div>
+                <div class="dots"><svg width="13" height="13"><use href="#i-dots"/></svg></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="s-label">предпочтения <span class="ct">5</span></div>
+            <div class="group">
+              <div class="fact-item">
+                <div class="body">
+                  <div class="t">Предпочитает небольшие гостиницы отелям</div>
+                  <div class="src"><span class="из">из</span><span>Что поесть в Токио · 1 день назад</span><span class="ttl critical">expires 3h</span></div>
+                </div>
+                <div class="dots"><svg width="13" height="13"><use href="#i-dots"/></svg></div>
+              </div>
+              <div class="fact-item">
+                <div class="body">
+                  <div class="t">Любит уличную еду, умеренно-средняя острота</div>
+                  <div class="src"><span class="из">из</span><span>Лучшая уличная еда в Токио · 1 день назад</span></div>
+                </div>
+                <div class="dots"><svg width="13" height="13"><use href="#i-dots"/></svg></div>
+              </div>
+              <div class="fact-item">
+                <div class="body">
+                  <div class="t">Поезда вместо самолётов при возможности</div>
+                  <div class="src"><span class="из">из</span><span>Цена JR Pass · 12 мин назад</span><span class="ttl">expires 23h</span></div>
+                </div>
+                <div class="dots"><svg width="13" height="13"><use href="#i-dots"/></svg></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="s-label">ограничения <span class="ct">2</span></div>
+            <div class="group">
+              <div class="fact-item">
+                <div class="body">
+                  <div class="t">Потолок бюджета: ~$2,500 за поездку</div>
+                  <div class="src"><span class="из">установлено явно</span><span>2 нед назад</span></div>
+                </div>
+                <div class="dots"><svg width="13" height="13"><use href="#i-dots"/></svg></div>
+              </div>
+              <div class="fact-item">
+                <div class="body">
+                  <div class="t">Ограничение подвижности — избегать длинных лестниц</div>
+                  <div class="src"><span class="из">из</span><span>Планирование Дубровника · 1 мес назад</span></div>
+                </div>
+                <div class="dots"><svg width="13" height="13"><use href="#i-dots"/></svg></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="s-label">поездки <span class="ct">3</span></div>
+            <div class="group">
+              <div class="fact-item">
+                <div class="body">
+                  <div class="t">Япония · Ноябрь 2026 (активно)</div>
+                  <div class="src"><span class="из">связано</span><span>7 чатов · 5 фактов</span></div>
+                </div>
+                <div class="dots"><svg width="13" height="13"><use href="#i-dots"/></svg></div>
+              </div>
+              <div class="fact-item">
+                <div class="body">
+                  <div class="t">Турция · зима</div>
+                  <div class="src"><span class="из">связано</span><span>3 чата · 2 факта</span></div>
+                </div>
+                <div class="dots"><svg width="13" height="13"><use href="#i-dots"/></svg></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="danger">
+            <div class="danger-row">
+              <svg width="14" height="14"><use href="#i-trash"/></svg>
+              <span class="t">Забыть всё (GDPR-удаление)</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="home"></div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <h3>Что заслуживает своего места.</h3>
+      <p>Five sections + danger zone. Every fact carries its source — the chat it came из, or "установлено явно" if user typed it. Trust through traceability.</p>
+
+      <div class="anatomy-list">
+        <div class="anatomy-item kept">
+          <div class="ref">kept · из trip detail</div>
+          <h4>Герой с главным переключателем</h4>
+          <p>Тот же стиль градиентного глифа как у героя поездки. Переключатель справа — глобальный «Память ВКЛ/ВЫКЛ» — когда выключен, Kai перестаёт сохранять и читать память. Честность через переключатель.</p>
+        </div>
+        <div class="anatomy-item new">
+          <div class="ref">новое · этот экран</div>
+          <h4>Сгруппировано по типу</h4>
+          <p>О вас · предпочтения · ограничения · поездки · факты. Каждая группа — плоская карточка. Внутри каждой карточки факты упорядочены по новизне. Счётчики в метках секций для быстрого обзора.</p>
+        </div>
+        <div class="anatomy-item new">
+          <div class="ref">новое · этот экран</div>
+          <h4>Источник для каждого факта</h4>
+          <p>"из Виза для Японии · 12 мин назад" or "установлено явно · 3 нед назад". User can always tap the chip to jump to the conversation that produced this memory. No hidden inference.</p>
+        </div>
+        <div class="anatomy-item kept">
+          <div class="ref">kept · из list rows</div>
+          <h4>3 точки на элемент · редактировать / удалить</h4>
+          <p>Tap dots = sheet with Edit · Delete · Where did this come из? Same pattern as message long-press actions.</p>
+        </div>
+        <div class="anatomy-item new">
+          <div class="ref">новое · этот экран</div>
+          <h4>Опасная зона · забыть всё</h4>
+          <p>Обрамлено с негативной подложкой. GDPR Статья 17 — необратимо. Подтвердить двойным нажатием или вводом фразы («забыть всё»).</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>

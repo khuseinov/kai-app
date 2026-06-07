@@ -6,22 +6,17 @@ import '../../core/storage/hive_setup.dart';
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
 import '../../design_system/atoms/atoms.dart';
+import '../../l10n/app_localizations.dart';
 import 'components/kai_onboarding_card.dart';
+import 'components/kai_step_indicator.dart';
 
 /// 4-step onboarding flow matching `new-design/onboarding.html`.
 ///
 /// Full-screen layout: SafeArea > Stack.
-///   - Bottom layer: PageView of [KaiOnboardingCard]s (each fills all
-///     available space).
+///   - Bottom layer: Column of PageView (transitioning content) + fixed footer.
 ///   - Overlay: tide curve positioned at the top, shown on steps 1–3 only.
 ///
 /// On completion writes `onboarded = true` to Hive and navigates to `/room`.
-///
-/// ## v3 migration (W4)
-/// Migrated from v2 [OnboardingCard] + v2 [KaiTideCurve] to:
-///   - [KaiOnboardingCard] (v3 organism) — wires [onNext] for steps 0-2 and
-///     [onComplete] for step 3.
-///   - [KaiTideCurve] from `design_system/atoms/atoms.dart`.
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -89,6 +84,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (mounted) context.go('/room');
   }
 
+  Widget _buildFixedCTA(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final String label;
+    final VoidCallback callback;
+
+    switch (_currentPage) {
+      case 1:
+        label = l10n.onboardingStep1CTA; // "Понятно"
+        callback = _nextPage;
+      case 3:
+        label = l10n.onboardingStart; // "Начать использовать Kai"
+        callback = _finish;
+      default:
+        label = l10n.onboardingNext; // "Продолжить"
+        callback = _nextPage;
+    }
+
+    return KaiButton.tide(
+      onPressed: callback,
+      label: label,
+      size: KaiButtonSize.md,
+      neutralAtRest: true,
+      fullWidth: true,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = KaiTheme.of(context).colors;
@@ -98,16 +119,40 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       backgroundColor: colors.surface,
       body: Stack(
         children: [
-          // ── Content: full-screen PageView inside SafeArea ──────────────────
+          // ── Content: full-screen transition PageView + static footer ──────
           SafeArea(
-            child: PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                KaiOnboardingCard(stepIndex: 0, onNext: _nextPage),
-                KaiOnboardingCard(stepIndex: 1, onNext: _nextPage),
-                KaiOnboardingCard(stepIndex: 2, onNext: _nextPage),
-                KaiOnboardingCard(stepIndex: 3, onComplete: _finish),
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: const [
+                      KaiOnboardingCard(stepIndex: 0),
+                      KaiOnboardingCard(stepIndex: 1),
+                      KaiOnboardingCard(stepIndex: 2),
+                      KaiOnboardingCard(stepIndex: 3),
+                    ],
+                  ),
+                ),
+                // Fixed Footer: step dots + CTA button in stationary flow
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(22, 12, 22, 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Center(
+                        child: KaiStepIndicator(
+                          count: 4,
+                          active: _currentPage,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildFixedCTA(context),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

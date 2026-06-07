@@ -41,17 +41,20 @@ class MockChatRepository implements ChatRepository {
         return;
       }
 
+      // State 1: думаю (no thinkingStep set yet)
       controller.add(const ChatEventState(state: 'thinking'));
-      await Future<void>.delayed(const Duration(milliseconds: 120));
+      await Future<void>.delayed(const Duration(milliseconds: 800));
       if (controller.isClosed) return;
 
-      controller.add(const ChatEventThinking(step: 'Planning response'));
-      await Future<void>.delayed(const Duration(milliseconds: 100));
+      // State 2: named thinking step
+      controller.add(const ChatEventThinking(step: 'ищу информацию о рейсах'));
+      await Future<void>.delayed(const Duration(milliseconds: 800));
       if (controller.isClosed) return;
 
+      // State 3: text arriving
       controller.add(const ChatEventState(state: 'responding'));
 
-      const chunks = ['Hello', ' from', ' Kai!'];
+      const chunks = ['Вот', ' что', ' я', ' нашёл', ' по', ' вашему', ' запросу.'];
       for (final chunk in chunks) {
         await Future<void>.delayed(const Duration(milliseconds: 150));
         if (controller.isClosed) return;
@@ -62,7 +65,7 @@ class MockChatRepository implements ChatRepository {
       if (controller.isClosed) return;
       controller.add(
         const ChatEventCorrection(
-          content: 'Hello from Kai! (corrected)',
+          content: 'Вот что я нашёл по вашему запросу.',
           messageId: messageId,
         ),
       );

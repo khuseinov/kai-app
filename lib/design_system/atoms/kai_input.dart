@@ -40,6 +40,7 @@ class KaiInput extends StatelessWidget {
     this.onChanged,
     this.focusNode,
     this.enabled = true,
+    this.prefix,
     super.key,
   }) : _variant = _KaiInputVariant.line;
 
@@ -56,6 +57,7 @@ class KaiInput extends StatelessWidget {
     this.onChanged,
     this.focusNode,
     this.enabled = true,
+    this.prefix,
     super.key,
   }) : _variant = _KaiInputVariant.pill;
 
@@ -70,6 +72,7 @@ class KaiInput extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final FocusNode? focusNode;
   final bool enabled;
+  final Widget? prefix;
 
   final _KaiInputVariant _variant;
 
@@ -143,6 +146,10 @@ class KaiInput extends StatelessWidget {
         enabledBorder: enabledBorder,
         focusedBorder: focusedBorder,
         disabledBorder: disabledBorder,
+        prefixIcon: prefix,
+        prefixIconConstraints: prefix != null
+            ? const BoxConstraints(minWidth: 32, minHeight: 32)
+            : null,
       ),
       onChanged: onChanged,
     );

@@ -85,7 +85,7 @@
   "onboardingContextLangsLabel": "languages I speak",
   "onboardingContextCountryPlaceholder": "Russian Federation",
   "newChat": "New chat",
-  "search": "Search",
+  "search": "Search trips and chats",
   "tripsLabel": "TRIPS",
   "dateToday": "TODAY",
   "dateYesterday": "YESTERDAY",
@@ -99,5 +99,38 @@
   "dateOlder": "OLDER",
   "@dateOlder": {"description": "Nav panel date group label for sessions older than 7 days"},
   "streamingStatusThinking": "thinking",
-  "@streamingStatusThinking": {"description": "Italic status suffix shown next to KAI label while streaming"}
+  "@streamingStatusThinking": {"description": "Italic status suffix shown next to KAI label while streaming"},
+  "memoryFactsCount": "{count, plural, =1{1 fact about you} other{{count} facts about you}}",
+  "@memoryFactsCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "memoryLastSaved": "last saved {time} ago",
+  "@memoryLastSaved": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "memorySearchPlaceholder": "Search facts",
+  "memoryCategoryAbout": "about you",
+  "memoryCategoryPreferences": "preferences",
+  "memoryCategoryRestrictions": "restrictions",
+  "memoryCategoryTrips": "trips",
+  "memoryCategoryFacts": "facts",
+  "memorySourceFrom": "from",
+  "memorySourceExplicit": "set explicitly",
+  "memorySourceLinked": "linked",
+  "memoryDangerWipeAll": "Forget all (GDPR-deletion)",
+  "memoryWipeConfirmation": "Are you sure you want to forget everything? This action is irreversible.",
+  "memoryWipeConfirmAction": "Forget",
+  "memoryWipeCancelAction": "Cancel",
+  "memoryEditFactTitle": "Edit fact",
+  "memoryDeleteFactAction": "Delete",
+  "memoryEditFactAction": "Edit",
+  "memoryGoToSourceAction": "Go to source"
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:kai_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,6 +40,9 @@ class RoomScreen extends ConsumerStatefulWidget {
 class _RoomScreenState extends ConsumerState<RoomScreen> {
   late final TextEditingController _composeController;
   double _dragStartX = 0;
+  double _dragDeltaX = 0;
+  bool _isDictating = false;
+  Timer? _dictationTimer;
 
   @override
   void initState() {
@@ -48,7 +53,30 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
   @override
   void dispose() {
     _composeController.dispose();
+    _dictationTimer?.cancel();
     super.dispose();
+  }
+
+  void _onMicTap() {
+    if (_isDictating) {
+      _dictationTimer?.cancel();
+      _dictationTimer = null;
+      setState(() {
+        _isDictating = false;
+      });
+    } else {
+      setState(() {
+        _isDictating = true;
+      });
+      _dictationTimer = Timer(const Duration(milliseconds: 1500), () {
+        if (mounted) {
+          setState(() {
+            _composeController.text = 'рейс в Токио на пятницу';
+            _isDictating = false;
+          });
+        }
+      });
+    }
   }
 
   void _onSend() {
@@ -60,12 +88,22 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
 
   void _onHorizontalDragStart(DragStartDetails details) {
     _dragStartX = details.localPosition.dx;
+    _dragDeltaX = 0;
+  }
+
+  void _onHorizontalDragUpdate(DragUpdateDetails details) {
+    _dragDeltaX += details.delta.dx;
   }
 
   void _onHorizontalDragEnd(DragEndDetails details) {
     final velocity = details.primaryVelocity ?? 0;
-    final isLeftEdge = _dragStartX < 24;
-    final isRightward = velocity > 200;
+    final isDesktop = kIsWeb ||
+        Theme.of(context).platform == TargetPlatform.windows ||
+        Theme.of(context).platform == TargetPlatform.macOS ||
+        Theme.of(context).platform == TargetPlatform.linux;
+    final edgeWidth = isDesktop ? 80.0 : 24.0;
+    final isLeftEdge = _dragStartX < edgeWidth;
+    final isRightward = velocity > 200 || _dragDeltaX > 100;
     if (isLeftEdge && isRightward) {
       _openNav();
     }
@@ -101,6 +139,7 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onHorizontalDragStart: _onHorizontalDragStart,
+        onHorizontalDragUpdate: _onHorizontalDragUpdate,
         onHorizontalDragEnd: _onHorizontalDragEnd,
         child: SafeArea(
           top: false,
@@ -122,8 +161,11 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                     child: KaiChatList(
                       frame: roomState.currentFrame,
                       messages: roomState.messages,
-                      // M1: wire accumulated partial text from streaming message
                       partialContent: roomState.streamingPartial,
+                      thinkingStep: roomState.thinkingStep,
+                      bottomPadding: (roomState.isOffline || roomState.isRateLimited || roomState.isCrisis)
+                          ? 16.0  // Small padding if offline block is present, since the column itself has the 88px spacer
+                          : 88.0, // Full 88px padding to avoid compose island
                       onRetry: () {
                         final messages = roomState.messages;
                         var lastUserText = '';
@@ -169,9 +211,12 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                       ),
                       child: KaiEdgeStateBlock(surface: KaiEdgeSurface.crisis),
                     ),
-                  // Reserve space so chat content doesn't hide behind compose island.
-                  // 26 (bottom) + 44 (island height) + 18 (top margin) = 88
-                  const SizedBox(height: 88),
+                  // Reserve space so edge state blocks don't hide behind compose island.
+                  // Only active when edge blocks are present; otherwise padding is inside ListView.
+                  if (roomState.isOffline || roomState.isRateLimited || roomState.isCrisis)
+                    const SizedBox(height: 88)
+                  else
+                    const SizedBox(height: 0),
                 ],
               ),
               Positioned(
@@ -203,13 +248,14 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                       ],
                     );
                   },
-                  onMicTap: () {},
+                  onMicTap: _onMicTap,
                   onVoiceTap: () => context.go('/voice'),
                   onStop: () => ref
                       .read(roomNotifierProvider.notifier)
                       .cancelStreaming(),
                   sendState: _sendStateFrom(roomState),
                   offline: roomState.isOffline,
+                  dictating: _isDictating,
                   onQueue: _onSend,
                   placeholder: AppLocalizations.of(context).composePlaceholder,
                 ),

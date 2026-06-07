@@ -124,7 +124,7 @@ class KaiNavStrings {
 /// This organism is NEW (v3 parallel build).  The v2 [NavPanel] is untouched.
 /// W4 migrates the screen to use this organism by constructing [KaiNavStrings]
 /// from `AppLocalizations`.
-class KaiNavPanel extends StatelessWidget {
+class KaiNavPanel extends StatefulWidget {
   const KaiNavPanel({
     required this.strings,
     this.onClose,
@@ -191,16 +191,30 @@ class KaiNavPanel extends StatelessWidget {
   final DateTime? now;
 
   @override
+  State<KaiNavPanel> createState() => _KaiNavPanelState();
+}
+
+class _KaiNavPanelState extends State<KaiNavPanel> {
+  double _dragDeltaX = 0;
+
+  @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
 
     // Bucket the sessions with the pure presenter (R3 fix).
-    final dateGroups = groupSessionsByDate(sessions, now: now);
+    final dateGroups = groupSessionsByDate(widget.sessions, now: widget.now);
 
     return GestureDetector(
+      onHorizontalDragStart: (details) {
+        _dragDeltaX = 0;
+      },
+      onHorizontalDragUpdate: (details) {
+        _dragDeltaX += details.delta.dx;
+      },
       onHorizontalDragEnd: (details) {
-        if ((details.primaryVelocity ?? 0) < -200) {
-          onClose?.call();
+        final velocity = details.primaryVelocity ?? 0;
+        if (velocity < -200 || _dragDeltaX < -100) {
+          widget.onClose?.call();
         }
       },
       child: Container(
@@ -212,16 +226,16 @@ class KaiNavPanel extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+                padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
                 child: KaiButton.ink(
-                  onPressed: onNewChat,
-                  label: strings.newChat,
+                  onPressed: widget.onNewChat,
+                  label: widget.strings.newChat,
                   icon: KaiIconName.plus,
                   fullWidth: true,
                 ),
               ),
               _NavSearchBox(
-                placeholder: strings.search,
+                placeholder: widget.strings.search,
                 tokens: tokens,
               ),
               Expanded(
@@ -229,33 +243,33 @@ class KaiNavPanel extends StatelessWidget {
                   padding: EdgeInsets.zero,
                   children: [
                     // ── Pinned trip card ──
-                    if (pinnedTrip != null)
+                    if (widget.pinnedTrip != null)
                       _NavPinnedTripCard(
-                        title: pinnedTrip!.title,
-                        subtitle: pinnedTrip!.subtitle,
-                        initial: pinnedTrip!.initial,
-                        onTap: onTripTap == null
+                        title: widget.pinnedTrip!.title,
+                        subtitle: widget.pinnedTrip!.subtitle,
+                        initial: widget.pinnedTrip!.initial,
+                        onTap: widget.onTripTap == null
                             ? null
-                            : () => onTripTap!(pinnedTrip!.id),
+                            : () => widget.onTripTap!(widget.pinnedTrip!.id),
                         tokens: tokens,
                       ),
 
                     // ── Trips section ──
-                    if (trips.isNotEmpty) ...[
+                    if (widget.trips.isNotEmpty) ...[
                       _NavSectionLabel(
-                        label: strings.tripsLabel,
-                        count: trips.length,
+                        label: widget.strings.tripsLabel,
+                        count: widget.trips.length,
                       ),
-                      for (final t in trips)
+                      for (final t in widget.trips)
                         KaiNavItem(
                           label: t.title,
                           icon: KaiIconName.folder,
                           trailing: t.chatCount > 0
                               ? _CountBadge(count: t.chatCount, tokens: tokens)
                               : null,
-                          onTap: onTripTap == null
+                          onTap: widget.onTripTap == null
                               ? null
-                              : () => onTripTap!(t.id),
+                              : () => widget.onTripTap!(t.id),
                         ),
                     ],
 
@@ -263,7 +277,7 @@ class KaiNavPanel extends StatelessWidget {
                     if (dateGroups.isNotEmpty)
                       for (final group in dateGroups) ...[
                         _NavSectionLabel(
-                          label: strings.bucketLabel(group.bucket),
+                          label: widget.strings.bucketLabel(group.bucket),
                           count: group.sessions.length,
                         ),
                         for (final s in group.sessions)
@@ -277,13 +291,13 @@ class KaiNavPanel extends StatelessWidget {
                                 color: tokens.colors.ink3,
                               ),
                             ),
-                            active: s.id == activeSessionId,
-                            onTap: onSessionTap == null
+                            active: s.id == widget.activeSessionId,
+                            onTap: widget.onSessionTap == null
                                 ? null
-                                : () => onSessionTap!(s.id),
+                                : () => widget.onSessionTap!(s.id),
                           ),
                       ]
-                    else if (trips.isEmpty && pinnedTrip == null)
+                    else if (widget.trips.isEmpty && widget.pinnedTrip == null)
                       Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
@@ -291,7 +305,7 @@ class KaiNavPanel extends StatelessWidget {
                         ),
                         child: Center(
                           child: Text(
-                            strings.noChats,
+                            widget.strings.noChats,
                             style: TextStyle(
                               fontFamily: 'Manrope',
                               fontSize: 11, // canon: 11px ink4
@@ -301,29 +315,29 @@ class KaiNavPanel extends StatelessWidget {
                         ),
                       ),
 
-                    // ── Apps section ──
-                    _NavSectionLabel(label: strings.appsLabel),
+                    // ── Memory and Settings (Apps header removed in AFTER design) ──
+                    const SizedBox(height: 14),
                     KaiNavItem(
-                      label: strings.memoryLabel,
+                      label: widget.strings.memoryLabel,
                       icon: KaiIconName.memory,
                       trailing:
-                          hasUnseenMemory ? const KaiBadge.dot() : null,
-                      onTap: onMemoryTap,
+                          widget.hasUnseenMemory ? const KaiBadge.dot() : null,
+                      onTap: widget.onMemoryTap,
                     ),
                     KaiNavItem(
-                      label: strings.settingsLabel,
+                      label: widget.strings.settingsLabel,
                       icon: KaiIconName.settings,
-                      onTap: onSettingsTap,
+                      onTap: widget.onSettingsTap,
                     ),
                   ],
                 ),
               ),
               _NavAccountAnchor(
                 tokens: tokens,
-                initial: accountInitial,
-                name: accountName ?? strings.accountAnonymous,
-                plan: accountPlan ?? strings.accountFreePlan,
-                onTap: onAccountTap,
+                initial: widget.accountInitial,
+                name: widget.accountName ?? widget.strings.accountAnonymous,
+                plan: widget.accountPlan ?? widget.strings.accountFreePlan,
+                onTap: widget.onAccountTap,
               ),
             ],
           ),
@@ -353,15 +367,15 @@ class _NavSearchBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+      padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: 10, // canon: 10px
-          vertical: 7, // canon: 7px
+          horizontal: 12, // canon: 12px
+          vertical: 9, // canon: 9px
         ),
         decoration: BoxDecoration(
           color: tokens.colors.surface2,
-          borderRadius: BorderRadius.circular(9), // canon: r9
+          borderRadius: BorderRadius.circular(10), // canon: r10
         ),
         child: Row(
           children: [
@@ -398,7 +412,7 @@ class _NavSectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
@@ -448,13 +462,13 @@ class _NavPinnedTripCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 3),
+      padding: const EdgeInsets.fromLTRB(14, 0, 14, 4),
       child: GestureDetector(
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(
-            horizontal: 10, // canon: 10px
-            vertical: 8, // canon: 8px
+            horizontal: 12, // canon: 12px
+            vertical: 11, // canon: 11px
           ),
           decoration: BoxDecoration(
             // canon: subtle tide tint — rgba(43,168,201,0.06) → rgba(244,181,137,0.04)
@@ -590,8 +604,8 @@ class _NavAccountAnchor extends StatelessWidget {
           ),
         ),
         padding: const EdgeInsets.symmetric(
-          horizontal: 12, // canon: 12px
-          vertical: 9, // canon: 9px
+          horizontal: 14, // canon: 14px
+          vertical: 11, // canon: 11px
         ),
         child: Row(
           children: [

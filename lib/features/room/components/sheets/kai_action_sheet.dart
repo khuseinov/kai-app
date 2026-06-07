@@ -52,17 +52,34 @@ class KaiActionItem {
 /// Shell chrome (radius `24 24 0 0`, drag indicator, padding 12×14×16)
 /// is provided by [KaiSheetShell].
 class KaiActionSheet extends StatelessWidget {
-  const KaiActionSheet({required this.items, super.key});
+  const KaiActionSheet({required this.items, this.title, super.key});
 
   final List<KaiActionItem> items;
+  final String? title;
 
   @override
   Widget build(BuildContext context) {
+    final c = KaiTheme.of(context).colors;
     return KaiSheetShell(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (title != null) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+              child: Text(
+                title!,
+                style: TextStyle(
+                  fontFamily: 'Manrope',
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w400,
+                  color: c.ink3,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
           for (final item in items)
             _ActionRow(item: item),
         ],
@@ -82,6 +99,7 @@ class KaiActionSheet extends StatelessWidget {
 Future<void> showKaiActionSheet(
   BuildContext context, {
   required List<KaiActionItem> items,
+  String? title,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -89,6 +107,7 @@ Future<void> showKaiActionSheet(
     elevation: 0,
     isScrollControlled: false,
     builder: (sheetContext) => KaiActionSheet(
+      title: title,
       items: items
           .map(
             (item) => KaiActionItem(

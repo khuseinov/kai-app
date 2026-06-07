@@ -1,5 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'entities/memory_fact.dart';
 import 'entities/message.dart';
 import 'entities/session.dart';
 import 'entities/settings.dart';
@@ -21,6 +22,9 @@ class HiveSetup {
   /// Box of [AppSettings] — single value under `settingsKey`.
   static const String settingsBoxName = 'settings_v1';
 
+  /// Box of [MemoryFact] keyed by fact id.
+  static const String memoryFactsBoxName = 'memory_facts_v1';
+
   /// Stable key for the single [AppSettings] record.
   static const String settingsKey = 'app';
 
@@ -36,6 +40,7 @@ class HiveSetup {
       Hive.openBox<Session>(sessionsBoxName),
       Hive.openBox<Message>(messagesBoxName),
       Hive.openBox<AppSettings>(settingsBoxName),
+      Hive.openBox<MemoryFact>(memoryFactsBoxName),
     ]);
     _initialized = true;
   }
@@ -48,6 +53,9 @@ class HiveSetup {
 
   /// Box accessor — settings.
   static Box<AppSettings> get settings => Hive.box<AppSettings>(settingsBoxName);
+
+  /// Box accessor — memory facts.
+  static Box<MemoryFact> get memoryFacts => Hive.box<MemoryFact>(memoryFactsBoxName);
 
   static void _registerAdapters() {
     if (!Hive.isAdapterRegistered(0)) {
@@ -67,6 +75,9 @@ class HiveSetup {
     }
     if (!Hive.isAdapterRegistered(5)) {
       Hive.registerAdapter(AppSettingsAdapter());
+    }
+    if (!Hive.isAdapterRegistered(6)) {
+      Hive.registerAdapter(MemoryFactAdapter());
     }
   }
 }

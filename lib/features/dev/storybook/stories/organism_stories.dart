@@ -12,6 +12,7 @@ import '../story_page.dart';
 import '../story_registry.dart';
 import '_story_helpers.dart';
 import '../../../voice/voice_screen.dart';
+import '../../../memory/memory_screen.dart';
 
 final List<Story> organismStories = [
   Story(
@@ -75,16 +76,15 @@ final List<Story> organismStories = [
 
   Story(
     layer: StoryLayer.organisms,
-    name: 'Memory Screen (canon)',
-    importPath: 'new-design/memory.html',
+    name: 'MemoryScreen',
+    importPath: 'package:kai_app/features/memory/memory_screen.dart',
     canonFile: 'new-design/memory.html',
-    canonSelector: '.memory-screen',
+    canonSelector: '.memory',
     description:
         'Memory management screen — facts grouped by category, searchable. '
-        'Forget (danger) rows, memory hero card, toggle per-category. '
-        'Not yet built in Dart.',
-    variants: ['default', 'search active', 'fact expanded', 'category collapsed'],
-    build: (_) => const _MemoryCanonStoryPage(),
+        'Forget (danger) rows, memory hero card, toggle per-category.',
+    variants: const ['interactive screen demo'],
+    build: (_) => const _MemoryScreenStoryPage(),
   ),
   Story(
     layer: StoryLayer.organisms,
@@ -452,10 +452,6 @@ class _KaiOnboardingCardStoryState extends State<_KaiOnboardingCardStory> {
                         color: c.bg,
                         child: KaiOnboardingCard(
                           stepIndex: _step,
-                          onNext: () => setState(() {
-                            if (_step < 3) _step++;
-                          }),
-                          onComplete: () => setState(() => _step = 0),
                         ),
                       ),
                     ),
@@ -468,14 +464,9 @@ class _KaiOnboardingCardStoryState extends State<_KaiOnboardingCardStory> {
       ],
       usage: 'KaiOnboardingCard(\n'
           '  stepIndex: 0,\n'
-          '  onNext: () {},\n'
-          '  onComplete: () {},\n'
           ')',
       props: const [
         PropDoc('stepIndex', 'int', 'required', '0–3'),
-        PropDoc('onNext', 'VoidCallback', 'required', 'Advance to next step'),
-        PropDoc('onComplete', 'VoidCallback', 'required',
-            'Called after step 3 (last step)'),
       ],
     );
   }
@@ -487,8 +478,8 @@ class _KaiOnboardingCardStoryState extends State<_KaiOnboardingCardStory> {
 // layers. Memory remains here as a screen-level placeholder — no single
 // component covers the full memory screen yet.
 
-class _MemoryCanonStoryPage extends StatelessWidget {
-  const _MemoryCanonStoryPage();
+class _MemoryScreenStoryPage extends StatelessWidget {
+  const _MemoryScreenStoryPage();
 
   @override
   Widget build(BuildContext context) {
@@ -496,14 +487,25 @@ class _MemoryCanonStoryPage extends StatelessWidget {
       title: 'Memory Screen',
       layer: 'ORGANISM',
       blurb:
-          'Canon spec preview — not yet built in Dart (Cycle 2).\n'
-          'Facts grouped by category, searchable. '
-          'Forget (danger) rows, memory hero card, toggle per-category.',
+          'Fully interactive screen demo of the Memory management screen. '
+          'Includes category sections with counters, TTL chips (expires Nh / critical pulse), '
+          'search filtering, toggle settings, edit/delete actions, and GDPR bulk wipe confirmation.',
       sections: [
-        StorySection('Spec preview', [
-          StoryCell('memory.html', MemoryCanonPreview()),
+        StorySection('Interactive Phone Frame', [
+          StoryCell(
+            'phone layout',
+            SizedBox(
+              width: 320,
+              height: 568,
+              child: ClipRRect(
+                borderRadius: BorderRadius.all(Radius.circular(32)),
+                child: MemoryScreen(),
+              ),
+            ),
+          ),
         ]),
       ],
+      usage: 'MemoryScreen()',
     );
   }
 }

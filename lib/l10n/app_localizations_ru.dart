@@ -231,7 +231,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get newChat => 'Новый чат';
 
   @override
-  String get search => 'Поиск';
+  String get search => 'Поиск поездок и чатов';
 
   @override
   String get tripsLabel => 'ПОЕЗДКИ';
@@ -268,4 +268,73 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get streamingStatusThinking => 'думаю';
+
+  @override
+  String memoryFactsCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count фактов о вас',
+      few: '$count факта о вас',
+      one: '$count факт о вас',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String memoryLastSaved(String time) {
+    return 'последнее сохранение $time назад';
+  }
+
+  @override
+  String get memorySearchPlaceholder => 'Поиск фактов';
+
+  @override
+  String get memoryCategoryAbout => 'о вас';
+
+  @override
+  String get memoryCategoryPreferences => 'предпочтения';
+
+  @override
+  String get memoryCategoryRestrictions => 'ограничения';
+
+  @override
+  String get memoryCategoryTrips => 'поездки';
+
+  @override
+  String get memoryCategoryFacts => 'факты';
+
+  @override
+  String get memorySourceFrom => 'из';
+
+  @override
+  String get memorySourceExplicit => 'установлено явно';
+
+  @override
+  String get memorySourceLinked => 'связано';
+
+  @override
+  String get memoryDangerWipeAll => 'Забыть всё (GDPR-удаление)';
+
+  @override
+  String get memoryWipeConfirmation =>
+      'Вы уверены, что хотите забыть всё? Это действие необратимо.';
+
+  @override
+  String get memoryWipeConfirmAction => 'Забыть';
+
+  @override
+  String get memoryWipeCancelAction => 'Отмена';
+
+  @override
+  String get memoryEditFactTitle => 'Редактировать факт';
+
+  @override
+  String get memoryDeleteFactAction => 'Удалить';
+
+  @override
+  String get memoryEditFactAction => 'Редактировать';
+
+  @override
+  String get memoryGoToSourceAction => 'Перейти к источнику';
 }

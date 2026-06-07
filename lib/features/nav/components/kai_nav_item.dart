@@ -48,8 +48,8 @@ class KaiNavItem extends StatelessWidget {
 
     final row = Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: 14, // canon: nav row horizontal padding
-        vertical: 7, // canon: nav row vertical padding
+        horizontal: 18, // canon: 18px horizontal padding in nav.html
+        vertical: 8.5, // canon: average of 8px (chat) and 9px (folder/app) in nav.html
       ),
       child: Row(
         children: [

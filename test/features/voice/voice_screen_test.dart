@@ -40,7 +40,7 @@ Widget _buildVoiceTest() {
 }
 
 void main() {
-  testWidgets('VoiceScreen renders in idle state initially', (tester) async {
+  testWidgets('VoiceScreen renders in idle state initially without back arrow', (tester) async {
     await tester.pumpWidget(_buildVoiceTest());
     await tester.pump();
 
@@ -48,9 +48,12 @@ void main() {
     expect(find.text('нажмите, чтобы говорить'), findsOneWidget);
     expect(find.text('SWIPE ↑'), findsOneWidget);
     expect(find.text('Kai ожидает'), findsOneWidget);
+    
+    // Back arrow icon must be removed/hidden
+    expect(find.byIcon(Icons.arrow_back_ios_new), findsNothing);
   });
 
-  testWidgets('Tapping on idle transitions to listening', (tester) async {
+  testWidgets('Tapping on idle transitions to listening (and hides hints)', (tester) async {
     await tester.pumpWidget(_buildVoiceTest());
     await tester.pump();
 
@@ -58,11 +61,15 @@ void main() {
     await tester.tap(find.byType(VoiceScreen));
     await tester.pump(const Duration(milliseconds: 350));
 
-    expect(find.text('слушаю…'), findsOneWidget);
+    // Active state: hints must be hidden
+    expect(find.text('нажмите, чтобы говорить'), findsNothing);
+    expect(find.text('SWIPE ↑'), findsNothing);
+    expect(find.text('слушаю…'), findsNothing);
+
     expect(find.text('Говорите…'), findsOneWidget);
   });
 
-  testWidgets('Tapping on listening transitions to speaking and animates karaoke', (tester) async {
+  testWidgets('Tapping on listening transitions to speaking and animates karaoke (hides hints)', (tester) async {
     await tester.pumpWidget(_buildVoiceTest());
     await tester.pump();
 
@@ -74,28 +81,70 @@ void main() {
     await tester.tap(find.byType(VoiceScreen));
     await tester.pump(const Duration(milliseconds: 350));
 
-    expect(find.text('kai говорит'), findsOneWidget);
+    // Active state: hints must be hidden
+    expect(find.text('нажмите, чтобы говорить'), findsNothing);
+    expect(find.text('SWIPE ↑'), findsNothing);
+    expect(find.text('kai говорит'), findsNothing);
+
     // Karaoke widget should exist
     expect(find.text('Синкансэн'), findsOneWidget);
   });
 
-  testWidgets('Swipe up transitions to transcript view and swipe down returns', (tester) async {
+  testWidgets('Swipe down transitions to transcript view and swipe up/tap returns', (tester) async {
     await tester.pumpWidget(_buildVoiceTest());
     await tester.pump();
 
-    // Swipe up
-    await tester.fling(find.byType(VoiceScreen), const Offset(0, -300), 1000);
-    await tester.pump(const Duration(milliseconds: 350));
+    // Swipe down (positive offset) opens transcript
+    await tester.fling(find.byType(VoiceScreen), const Offset(0, 300), 1000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
-    // Should render transcript view time header
+    // Should render transcript view time header and new return label
     expect(find.text('сегодня · 12:34'), findsOneWidget);
-    expect(find.text('НАЖМИТЕ, ЧТОБЫ ВЕРНУТЬСЯ'), findsOneWidget);
+    expect(find.text('СВАЙП ↑ · ВЕРНУТЬСЯ К ГОЛОСУ'), findsOneWidget);
 
-    // Tap return button to return to idle
-    await tester.tap(find.text('НАЖМИТЕ, ЧТОБЫ ВЕРНУТЬСЯ'));
-    await tester.pump(const Duration(milliseconds: 350));
+    // Swipe up (negative offset) returns to voice
+    await tester.fling(find.byType(VoiceScreen), const Offset(0, -300), 1000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('Kai ожидает'), findsOneWidget);
+
+    // Swipe down again
+    await tester.fling(find.byType(VoiceScreen), const Offset(0, 300), 1000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    // Tap return button to return to voice
+    await tester.tap(find.text('СВАЙП ↑ · ВЕРНУТЬСЯ К ГОЛОСУ'));
+    await tester.pump(const Duration(seconds: 1));
 
     // Should return to voice layout
     expect(find.text('Kai ожидает'), findsOneWidget);
+  });
+
+  testWidgets('Swipe up in idle voice state exits to /room', (tester) async {
+    await tester.pumpWidget(_buildVoiceTest());
+    await tester.pump();
+
+    // Swipe up (negative offset) exits
+    await tester.fling(find.byType(VoiceScreen), const Offset(0, -300), 1000);
+    await tester.pumpAndSettle();
+
+    // Should navigate to room
+    expect(find.text('room'), findsOneWidget);
+    expect(find.byType(VoiceScreen), findsNothing);
+  });
+
+  testWidgets('Tapping SWIPE ↑ text in idle exits to /room', (tester) async {
+    await tester.pumpWidget(_buildVoiceTest());
+    await tester.pump();
+
+    // Tap SWIPE ↑ text
+    await tester.tap(find.text('SWIPE ↑'));
+    await tester.pumpAndSettle();
+
+    // Should navigate to room
+    expect(find.text('room'), findsOneWidget);
+    expect(find.byType(VoiceScreen), findsNothing);
   });
 }

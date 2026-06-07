@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280,initial-scale=1">
+<title>kai · тёмная тема</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink-1); font-family: var(--font-sans); }
+  .shell { max-width: 1280px; margin: 0 auto; padding: 56px 64px 120px; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 56px; }
+  .top .mark { font-weight: 700; font-size: 18px; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 10px; color: var(--ink-1); }
+  .top .meta { display: flex; gap: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+
+  .hero { padding-bottom: 48px; border-bottom: 1px solid var(--line); margin-bottom: 64px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 22px; display: inline-flex; align-items: center; gap: 8px; }
+  .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--ink-3); }
+  .hero h1 { font-size: 60px; font-weight: 600; line-height: 0.98; letter-spacing: -0.03em; max-width: 960px; margin: 0; color: var(--ink-1); }
+  .hero h1 .ocean { background: var(--tide-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; font-style: italic; font-weight: 500; }
+  .hero .lead { margin-top: 22px; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 720px; }
+
+  /* Palette swatches */
+  .palette {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+    background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+    margin-bottom: 64px;
+  }
+  .swatch { background: var(--surface); padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 8px; min-height: 120px; }
+  .swatch .chip { width: 100%; height: 44px; border-radius: 8px; border: 1px solid var(--line); }
+  .swatch .name { font-size: 13px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.005em; }
+  .swatch .hex { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-3); }
+
+  /* Section */
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  .sec-head { display: grid; grid-template-columns: 220px 1fr; gap: 64px; margin-bottom: 40px; align-items: baseline; }
+  .sec-head .idx { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .sec-head h2 { font-size: 36px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.05; color: var(--ink-1); }
+  .sec-head .blurb { font-size: 16px; color: var(--ink-2); line-height: 1.55; max-width: 580px; margin-top: 14px; }
+
+  /* Frames grid */
+  .frames { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .frame-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 22px;
+    padding: 32px 0 24px;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+  }
+  .frame-num { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .frame-card h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.015em; color: var(--ink-1); }
+  .frame-card .desc { font-size: 13px; color: var(--ink-2); line-height: 1.55; padding: 0 28px; text-align: center; max-width: 320px; }
+
+  /* iPhone — dark theme */
+  .phone {
+    width: 270px; height: 530px;
+    background: var(--bg);
+    border: 1px solid var(--line); border-radius: 36px;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .phone .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 88px; height: 24px; background: #050507; border-radius: 999px; z-index: 8; }
+  .phone .home { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 86px; height: 4px; border-radius: 999px; background: var(--ink-3); opacity: 0.5; z-index: 8; }
+  .phone .tide-svg { position: absolute; top: 44px; left: 18px; width: calc(100% - 36px); height: 16px; z-index: 2; }
+  .phone .sb {
+    position: absolute; top: 15px; left: 22px; right: 22px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-2);
+    z-index: 7;
+  }
+
+  /* FRAME 01 — empty */
+  .f01 .chat { padding: 70px 22px 100px; display: flex; flex-direction: column; align-items: stretch; justify-content: center; flex: 1; gap: 22px; }
+  .f01 .invitation { text-align: center; display: flex; flex-direction: column; gap: 6px; }
+  .f01 .invitation .ti { font: 600 24px/1.2 var(--font-sans); color: var(--ink-1); letter-spacing: -0.022em; }
+  .f01 .invitation .sub { font: 400 12.5px/1.5 var(--font-sans); color: var(--ink-3); }
+  .f01 .suggest { display: flex; flex-direction: column; gap: 8px; }
+  .f01 .sugg {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px;
+    padding: 10px 12px; display: flex; flex-direction: column; gap: 1px;
+    text-align: left;
+  }
+  .f01 .sugg .q { font: 500 12px var(--font-sans); color: var(--ink-1); letter-spacing: -0.005em; }
+  .f01 .sugg .hint { font: 400 10px var(--font-mono); color: var(--ink-3); }
+  .f01 .compose-island {
+    position: absolute; left: 18px; right: 18px; bottom: 24px;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px;
+    padding: 5px 5px 5px 14px; display: flex; align-items: center; gap: 4px;
+    z-index: 6;
+  }
+  .f01 .compose-island input { flex: 1; border: 0; outline: 0; background: transparent; font: 400 12.5px var(--font-sans); color: var(--ink-1); min-width: 0; }
+  .f01 .compose-island input::placeholder { color: var(--ink-4); }
+  .f01 .compose-island .send {
+    width: 28px; height: 28px; border-radius: 50%; border: 0;
+    background: var(--tide-gradient); background-size: 200% 100%; color: white;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(43,168,201,0.18);
+  }
+  .f01 .compose-island .mic {
+    width: 28px; height: 28px; border-radius: 50%; border: 0;
+    background: transparent; color: var(--ink-3);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+
+  /* FRAME 02 — active conversation */
+  .f02 .chat { padding: 70px 16px 100px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+  .f02 .day { text-align: center; font-family: var(--font-mono); font-size: 9px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; margin: 4px 0 0; }
+  .f02 .user-b {
+    align-self: flex-end;
+    background: var(--surface-2);
+    padding: 8px 12px;
+    border-radius: 14px 14px 4px 14px;
+    font-size: 12.5px; line-height: 1.45; color: var(--ink-1);
+    max-width: 78%;
+  }
+  .f02 .kai-b { display: flex; flex-direction: column; gap: 4px; max-width: 92%; }
+  .f02 .kai-b .who { font-family: var(--font-mono); font-size: 9px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; display: inline-flex; align-items: center; gap: 6px; }
+  .f02 .kai-b .who::before { content: ""; display: inline-block; width: 12px; height: 3px; border-radius: 999px; background: var(--tide-gradient); }
+  .f02 .kai-b .txt { font-size: 13px; line-height: 1.5; color: var(--ink-1); letter-spacing: -0.005em; }
+  .f02 .kai-b .txt .cite { color: var(--accent); font-weight: 500; }
+  .f02 .kai-b .src-card {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 8px 10px; margin-top: 2px;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .f02 .kai-b .src-card .h { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 9px; color: var(--ink-3); }
+  .f02 .kai-b .src-card .h .fav { width: 10px; height: 10px; border-radius: 3px; background: var(--accent); }
+  .f02 .kai-b .src-card .h .ok { margin-left: auto; color: var(--positive); }
+  .f02 .kai-b .src-card .t { font-size: 11.5px; color: var(--ink-1); font-weight: 500; }
+  .f02 .kai-b .src-card .s { font-size: 10px; color: var(--ink-3); line-height: 1.4; }
+  .f02 .compose-island {
+    position: absolute; left: 18px; right: 18px; bottom: 24px;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px;
+    padding: 5px 5px 5px 14px; display: flex; align-items: center; gap: 4px;
+    z-index: 6;
+  }
+  .f02 .compose-island input { flex: 1; border: 0; outline: 0; background: transparent; font: 400 12.5px var(--font-sans); color: var(--ink-4); }
+  .f02 .compose-island .mic, .f02 .compose-island .send { width: 28px; height: 28px; border-radius: 50%; border: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .f02 .compose-island .mic { background: transparent; color: var(--ink-3); }
+  .f02 .compose-island .send { background: var(--ink-4); color: var(--surface); opacity: 0.5; }
+
+  
+  /* iOS-style status bar */
+  .sb { display: flex; }
+  .sb .sb-right { display: inline-flex; gap: 5px; align-items: center; }
+  .sb .sb-right .bars { display: inline-flex; align-items: flex-end; gap: 1.5px; height: 9px; }
+  .sb .sb-right .bars i { display: inline-block; width: 2.5px; background: currentColor; border-radius: 1px; }
+  .sb .sb-right .bars i:nth-child(1) { height: 3px; }
+  .sb .sb-right .bars i:nth-child(2) { height: 5px; }
+  .sb .sb-right .bars i:nth-child(3) { height: 7px; }
+  .sb .sb-right .bars i:nth-child(4) { height: 9px; }
+  .sb .sb-right .b { display: inline-block; width: 16px; height: 8px; border: 1px solid currentColor; border-radius: 2px; padding: 1px; opacity: 0.8; position: relative; box-sizing: border-box; }
+  .sb .sb-right .b::before { content: ""; position: absolute; left: 1px; top: 1px; bottom: 1px; width: 70%; background: currentColor; border-radius: 1px; }
+
+  /* FRAME 03 — panel (full-screen, dark) */
+  .f03 .panel {
+    position: absolute; inset: 0;
+    background: var(--surface);
+    z-index: 5;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    border-radius: 36px;
+  }
+  .f03 .panel-top {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 44px; padding: 0 22px;
+    display: flex; align-items: center; justify-content: space-between;
+    z-index: 7;
+  }
+  .f03 .panel-top .close {
+    background: var(--surface-2); border: 0; border-radius: 50%;
+    width: 28px; height: 28px; color: var(--ink-1);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .f03 .panel-top .ttl { font: 600 14px var(--font-sans); color: var(--ink-1); letter-spacing: -0.005em; }
+  .f03 .panel-top .spacer { width: 28px; }
+  .f03 .panel-inner { flex: 1; overflow-y: auto; padding: 90px 0 8px; }
+  .f03 .new-chat {
+    margin: 0 16px 10px;
+    width: calc(100% - 32px);
+    background: var(--ink-1); color: var(--bg);
+    border: 0; border-radius: 11px;
+    padding: 10px;
+    font: 600 12.5px var(--font-sans); letter-spacing: -0.005em;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+  }
+  .f03 .search-box {
+    margin: 0 16px 8px;
+    background: var(--surface-2); border-radius: 10px;
+    padding: 8px 10px; display: flex; align-items: center; gap: 7px;
+    font-size: 11.5px; color: var(--ink-3);
+  }
+  .f03 .sec-label {
+    font-family: var(--font-mono); font-size: 9px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 12px 20px 6px;
+    display: flex; justify-content: space-between;
+  }
+  .f03 .sec-label .ct { color: var(--ink-4); font-size: 9px; }
+  .f03 .pin-trip {
+    margin: 0 16px 4px;
+    padding: 10px 11px;
+    background: rgba(43,168,201,0.1);
+    border: 1px solid rgba(92,142,255,0.2);
+    border-radius: 11px;
+    display: grid; grid-template-columns: 26px 1fr; gap: 9px; align-items: center;
+  }
+  .f03 .pin-trip .gl {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: var(--tide-gradient); background-size: 200% 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 10px; font-weight: 700;
+  }
+  .f03 .pin-trip .t { font-size: 12px; color: var(--ink-1); font-weight: 600; letter-spacing: -0.005em; }
+  .f03 .pin-trip .s { font-size: 10px; color: var(--ink-3); font-family: var(--font-mono); margin-top: 1px; }
+  .f03 .folder-row, .f03 .app-row {
+    padding: 8px 20px; display: grid; grid-template-columns: 14px 1fr auto; gap: 11px; align-items: center;
+  }
+  .f03 .folder-row svg, .f03 .app-row svg { color: var(--ink-3); }
+  .f03 .folder-row .t, .f03 .app-row .t { font-size: 12px; color: var(--ink-1); font-weight: 500; letter-spacing: -0.005em; }
+  .f03 .folder-row .badge { font-family: var(--font-mono); font-size: 9px; color: var(--ink-3); padding: 1px 5px; background: var(--surface-2); border-radius: 999px; }
+  .f03 .app-row .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .f03 .chat-row { padding: 7px 20px; border-left: 2px solid transparent; }
+  .f03 .chat-row.active { background: rgba(92,142,255,0.12); border-left-color: var(--accent); }
+  .f03 .chat-row .t { font-size: 12px; color: var(--ink-1); font-weight: 500; letter-spacing: -0.005em; line-height: 1.3; }
+  .f03 .chat-row.active .t { color: var(--accent); font-weight: 600; }
+  .f03 .chat-row .s { font-size: 9px; color: var(--ink-3); font-family: var(--font-mono); margin-top: 1px; }
+  .f03 .account {
+    border-top: 1px solid var(--line);
+    padding: 11px 16px; display: grid; grid-template-columns: 28px 1fr 12px; gap: 9px; align-items: center;
+    background: var(--surface);
+  }
+  .f03 .account .av {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--tide-gradient); background-size: 200% 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 11px; font-weight: 700;
+  }
+  .f03 .account .n { font-size: 12px; color: var(--ink-1); font-weight: 500; letter-spacing: -0.005em; }
+  .f03 .account .plan { font-size: 9px; color: var(--ink-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+  .f03 .account svg { color: var(--ink-3); }
+
+  /* FRAME 04 — compose sheet */
+  .f04 .bg-chat { padding: 70px 16px 100px; display: flex; flex-direction: column; gap: 8px; }
+  .f04 .bg-chat .b {
+    align-self: flex-end; background: var(--surface-2); border-radius: 12px 12px 4px 12px;
+    padding: 8px 11px; font-size: 12px; color: var(--ink-1); max-width: 78%;
+  }
+  .f04 .bg-chat .k { font-size: 12px; color: var(--ink-1); line-height: 1.5; padding-right: 8px; }
+  .f04 .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 4; }
+  .f04 .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: var(--surface); border-top: 1px solid var(--line);
+    border-radius: 22px 22px 0 0;
+    padding: 14px 14px 22px;
+    z-index: 5;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .f04 .sheet::before { content: ""; width: 32px; height: 4px; border-radius: 999px; background: var(--ink-4); align-self: center; margin-bottom: 2px; }
+  .f04 .sheet .compose-row {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 16px;
+    padding: 9px 8px 9px 13px;
+    display: flex; align-items: flex-end; gap: 6px;
+  }
+  .f04 .sheet textarea {
+    flex: 1; border: 0; outline: 0; resize: none; background: transparent;
+    font: 400 13px var(--font-sans); color: var(--ink-1); line-height: 1.4;
+    min-height: 32px; padding: 0; overflow: hidden;
+  }
+  .f04 .sheet .mic, .f04 .sheet .send {
+    width: 30px; height: 30px; border-radius: 50%; border: 0;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .f04 .sheet .mic { background: transparent; color: var(--ink-3); }
+  .f04 .sheet .send { background: var(--tide-gradient); background-size: 200% 100%; color: white; }
+
+  /* Notes section */
+  .notes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+  .note-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px;
+  }
+  .note-card .lbl { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .note-card h4 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 8px; color: var(--ink-1); }
+  .note-card p { font-size: 13px; color: var(--ink-2); line-height: 1.5; margin: 0; }
+  .note-card code { font-family: var(--font-mono); font-size: 11px; background: var(--surface-2); padding: 1px 6px; border-radius: 4px; color: var(--accent); }
+
+  /* ── Shared entrance animations ── */
+  @keyframes kai-fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes kai-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes kai-scale-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Phone frames fade up with stagger */
+  .phone, .frame-card {
+    animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) both;
+  }
+  .frame-card:nth-child(1) { animation-delay: 0.02s; }
+  .frame-card:nth-child(2) { animation-delay: 0.04s; }
+  .frame-card:nth-child(3) { animation-delay: 0.07s; }
+  .frame-card:nth-child(4) { animation-delay: 0.10s; }
+
+  /* Phone-frame wrappers */
+  .phone-frame .phone { animation: kai-fade-up 0.5s cubic-bezier(.2,0,0,1) 0.1s both; }
+  .layout .phone-frame { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.06s both; }
+  .layout .notes       { animation: kai-fade-up 0.48s cubic-bezier(.2,0,0,1) 0.18s both; }
+
+
+  /* Tide curve entrance — already animates; just ensure visibility */
+  .phone .tide-bar, .phone .tide-svg { animation: kai-fade-in 0.6s ease 0.2s both; }
+
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-tide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1B4FB0"/><stop offset="0.5" stop-color="#2BA8C9"/><stop offset="1" stop-color="#F4B589"/></linearGradient>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-mem" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-set" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 11v1a7 7 0 0 0 14 0v-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell">
+
+  <div class="top">
+    <div class="mark">
+      <svg width="28" height="6" viewBox="0 0 28 6"><path d="M 1 3 Q 7 0, 14 3 T 27 3" stroke="url(#g-tide)" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      <span>kai</span>
+      <span style="color:var(--ink-3);font-weight:500;letter-spacing:0;">— тёмная тема · шаг 01</span>
+    </div>
+    <div class="meta">
+      <span>тема · тёмная</span>
+      <span style="color:var(--ink-1)">·</span>
+      <span>data-theme="dark"</span>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="eyebrow">шаг 01 — тёмная тема</div>
+    <h1>Свет — это основа.<br><span class="ocean">Тёмная — та же комната ночью.</span></h1>
+    <p class="lead">
+      Полная смена темы. Токены добавлены в <code style="font-family:var(--font-mono);font-size:14px;background:var(--surface-2);padding:2px 8px;border-radius:4px;color:var(--accent);">colors_and_type.css</code>
+      через <code style="font-family:var(--font-mono);font-size:14px;background:var(--surface-2);padding:2px 8px;border-radius:4px;color:var(--accent);">[data-theme="dark"]</code> селектор + <code style="font-family:var(--font-mono);font-size:14px;background:var(--surface-2);padding:2px 8px;border-radius:4px;color:var(--accent);">prefers-color-scheme</code>
+      фоллбэк. Градиент прилива остаётся точно таким же — знак бренда не меняется с темой, он живёт в обеих. Ниже: палитра + четыре кадра комнаты в тёмной теме.
+    </p>
+  </header>
+
+  <!-- Palette swatches -->
+  <div style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">поверхности · чернила (тёмные)</div>
+  <div class="palette">
+    <div class="swatch"><div class="chip" style="background:#0E0E11"></div><div class="name">bg</div><div class="hex">#0E0E11</div></div>
+    <div class="swatch"><div class="chip" style="background:#16161A"></div><div class="name">surface</div><div class="hex">#16161A</div></div>
+    <div class="swatch"><div class="chip" style="background:#1E1E23"></div><div class="name">surface-2</div><div class="hex">#1E1E23</div></div>
+    <div class="swatch"><div class="chip" style="background:#25252A"></div><div class="name">surface-3</div><div class="hex">#25252A</div></div>
+    <div class="swatch"><div class="chip" style="background:#F5F5F2"></div><div class="name">ink-1</div><div class="hex">#F5F5F2</div></div>
+    <div class="swatch"><div class="chip" style="background:#C8C8C2"></div><div class="name">ink-2</div><div class="hex">#C8C8C2</div></div>
+    <div class="swatch"><div class="chip" style="background:#8E8E88"></div><div class="name">ink-3</div><div class="hex">#8E8E88</div></div>
+    <div class="swatch"><div class="chip" style="background:#5C5C58"></div><div class="name">ink-4</div><div class="hex">#5C5C58</div></div>
+  </div>
+
+  <div style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">акцент · семантика · линии (тёмные)</div>
+  <div class="palette">
+    <div class="swatch"><div class="chip" style="background:#5C8EFF"></div><div class="name">accent</div><div class="hex">#5C8EFF</div></div>
+    <div class="swatch"><div class="chip" style="background:rgba(92,142,255,0.12)"></div><div class="name">accent-wash</div><div class="hex">12%</div></div>
+    <div class="swatch"><div class="chip" style="background:#3DBE7A"></div><div class="name">positive</div><div class="hex">#3DBE7A</div></div>
+    <div class="swatch"><div class="chip" style="background:#D69E3E"></div><div class="name">warning</div><div class="hex">#D69E3E</div></div>
+    <div class="swatch"><div class="chip" style="background:#E66F60"></div><div class="name">negative</div><div class="hex">#E66F60</div></div>
+    <div class="swatch"><div class="chip" style="background:#2A2A2F"></div><div class="name">line</div><div class="hex">#2A2A2F</div></div>
+    <div class="swatch"><div class="chip" style="background:#3A3A3F"></div><div class="name">line-strong</div><div class="hex">#3A3A3F</div></div>
+    <div class="swatch"><div class="chip" style="background:linear-gradient(115deg,#1B4FB0,#2BA8C9,#F4B589)"></div><div class="name">прилив</div><div class="hex">без изменений</div></div>
+  </div>
+
+  <!-- Frames -->
+  <section>
+    <div class="sec-head">
+      <div class="idx">комната · тёмная</div>
+      <div>
+        <h2>Те же четыре кадра, ночью.</h2>
+        <p class="blurb">Every Layer 3 frame redrawn against the dark palette. Tide curve unchanged. Status pills, source cards, panel, compose sheet — all theme-mapped через tokens, zero hard-coded colors.</p>
+      </div>
+    </div>
+
+    <div class="frames">
+
+      <!-- 01 Empty -->
+      <div class="frame-card">
+        <div class="phone">
+          <div class="island"></div>
+          <div class="sb"><span>9:41</span><span class="sb-right"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="b"></span></span></div>
+          <svg class="tide-svg" viewBox="0 0 234 16" preserveAspectRatio="none"><path stroke="url(#g-tide)" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.5" d="M 2 9 Q 32 4, 64 9 T 128 9 T 192 9 T 234 7"/></svg>
+          <div class="f01">
+            <div class="chat">
+              <div class="invitation">
+                <div class="ti">Куда едем сегодня?</div>
+                <div class="sub">Спросите о месте, визе или маршруте.</div>
+              </div>
+              <div class="suggest">
+                <button class="sugg"><span class="q">Правила визы в Японию</span><span class="hint">Ноябрьская поездка · Российский паспорт</span></button>
+                <button class="sugg"><span class="q">10 дней в Турции, $1,500</span><span class="hint">маршрут + жильё</span></button>
+                <button class="sugg"><span class="q">Сколько дней Шенгена осталось?</span><span class="hint">Калькулятор 90/180</span></button>
+              </div>
+            </div>
+            <div class="compose-island">
+              <input placeholder="Спросить Kai…">
+              <button class="mic"><svg width="13" height="13"><use href="#i-mic"/></svg></button>
+              <button class="send"><svg width="12" height="12"><use href="#i-arrow-up"/></svg></button>
+            </div>
+          </div>
+          <div class="home"></div>
+        </div>
+        <div class="frame-num">кадр 01 · пустой · тёмный</div>
+        <h3>Первое открытие</h3>
+        <p class="desc">Suggestion chips sit on surface-2. Idle tide is muted через opacity.</p>
+      </div>
+
+      <!-- 02 Active -->
+      <div class="frame-card">
+        <div class="phone">
+          <div class="island"></div>
+          <div class="sb"><span>9:41</span><span class="sb-right"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="b"></span></span></div>
+          <svg class="tide-svg" viewBox="0 0 234 16" preserveAspectRatio="none">
+            <path stroke="url(#g-tide)" stroke-width="2.5" stroke-linecap="round" fill="none"
+                  stroke-dasharray="12 4"
+                  d="M 2 9 Q 32 4, 64 9 T 128 9 T 192 9 T 234 7">
+              <animate attributeName="stroke-dashoffset" from="0" to="-32" dur="1.4s" repeatCount="indefinite"/>
+            </path>
+          </svg>
+          <div class="f02">
+            <div class="chat">
+              <div class="day">— today —</div>
+              <div class="user-b">Виза в Японию из России?</div>
+              <div class="kai-b">
+                <span class="who">kai</span>
+                <div class="txt">Виза нужна. 4 рабочих дня через визовый центр, ¥3,000 <span class="cite">[1]</span>.</div>
+                <div class="src-card">
+                  <div class="h"><span class="fav"></span>visa.go.jp · официальный<span class="ok">✓ fresh</span></div>
+                  <div class="t">Сбор за туристическую визу — ¥3,000 · 4 дня</div>
+                  <div class="s">"Заявления принимаются во всех центрах." Обновлено 2026-04-12.</div>
+                </div>
+              </div>
+              <div class="user-b">JR Pass на 14 дней?</div>
+            </div>
+            <div class="compose-island">
+              <input placeholder="Ответить Kai…">
+              <button class="mic"><svg width="13" height="13"><use href="#i-mic"/></svg></button>
+              <button class="send"><svg width="12" height="12"><use href="#i-arrow-up"/></svg></button>
+            </div>
+          </div>
+          <div class="home"></div>
+        </div>
+        <div class="frame-num">кадр 02 · отвечает · тёмный</div>
+        <h3>Живой ответ</h3>
+        <p class="desc">Карточка источника на surface-2 + граница линии. Прилив стримит так же.</p>
+      </div>
+
+      <!-- 03 Panel (full-screen) -->
+      <div class="frame-card">
+        <div class="phone">
+          <div class="island"></div>
+          <div class="f03">
+            <div class="panel">
+              <div class="panel-top">
+                <button class="close"><svg width="11" height="11" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+                <div class="ttl">Kai</div>
+                <div class="spacer"></div>
+              </div>
+              <div class="panel-inner">
+                <button class="new-chat"><svg width="11" height="11"><use href="#i-plus"/></svg>Новый чат</button>
+                <div class="search-box"><svg width="11" height="11"><use href="#i-search"/></svg>Search</div>
+                <div class="sec-label">закреплено</div>
+                <div class="pin-trip"><div class="gl">JP</div><div><div class="t">Япония · Ноябрь 2026</div><div class="s">7 chats · active</div></div></div>
+                <div class="sec-label">поездки <span class="ct">3</span></div>
+                <div class="folder-row"><svg width="12" height="12"><use href="#i-folder"/></svg><span class="t">Турция · зима</span><span class="badge">3</span></div>
+                <div class="folder-row"><svg width="12" height="12"><use href="#i-folder"/></svg><span class="t">Шенген — открытый</span><span class="badge">5</span></div>
+                <div class="sec-label">сегодня</div>
+                <div class="chat-row active"><div class="t">Виза для Японии</div><div class="s">сейчас · 4 источника</div></div>
+                <div class="chat-row"><div class="t">Цена JR Pass</div></div>
+                <div class="sec-label">вчера</div>
+                <div class="chat-row"><div class="t">Лучшая уличная еда Токио</div></div>
+                <div class="app-row" style="margin-top:8px"><svg width="12" height="12"><use href="#i-mem"/></svg><span class="t">Память</span><span class="dot"></span></div>
+                <div class="app-row"><svg width="12" height="12"><use href="#i-set"/></svg><span class="t">Настройки</span><span></span></div>
+              </div>
+              <div class="account">
+                <div class="av">A</div>
+                <div><div class="n">Aibek</div><div class="plan">kai · plus</div></div>
+                <svg width="11" height="11"><use href="#i-chev"/></svg>
+              </div>
+            </div>
+          </div>
+          <div class="home"></div>
+        </div>
+        <div class="frame-num">кадр 03 · панель · тёмная</div>
+        <h3>Панель</h3>
+        <p class="desc">Полноэкранный оверлей. Активный чат подкрашен accent-wash. Аватар прилива остаётся ярким.</p>
+      </div>
+
+      <!-- 04 Compose sheet -->
+      <div class="frame-card">
+        <div class="phone">
+          <div class="island"></div>
+          <div class="sb"><span>9:41</span><span class="sb-right"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="b"></span></span></div>
+          <svg class="tide-svg" viewBox="0 0 234 16" preserveAspectRatio="none"><path stroke="url(#g-tide)" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.4" d="M 2 9 Q 32 4, 64 9 T 128 9 T 192 9 T 234 7"/></svg>
+          <div class="f04">
+            <div class="bg-chat">
+              <div class="b">Виза в Японию из России?</div>
+              <div class="k">Visa required. 4 business days, ¥3,000 [1].</div>
+              <div class="b">JR Pass на 14 дней?</div>
+            </div>
+            <div class="scrim"></div>
+            <div class="sheet">
+              <div class="compose-row">
+                <textarea rows="2">Из Токио в Киото в ноябре — дешевле всего?</textarea>
+                <button class="mic"><svg width="14" height="14"><use href="#i-mic"/></svg></button>
+                <button class="send"><svg width="13" height="13"><use href="#i-arrow-up"/></svg></button>
+              </div>
+            </div>
+          </div>
+          <div class="home"></div>
+        </div>
+        <div class="frame-num">кадр 04 · ввод · тёмный</div>
+        <h3>Ввод сообщения</h3>
+        <p class="desc">Скрим темнеет до истинного чёрного/50. Кнопка отправки сохраняет Прилив — момент бренда.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Implementation notes -->
+  <section>
+    <div class="sec-head">
+      <div class="idx">как это работает</div>
+      <div>
+        <h2>Три строки — и готово.</h2>
+        <p class="blurb">Нигде нет захардкоженных цветов. Переключатель — это просто атрибут данных или системное предпочтение. Всё ниже по потоку автоматически меняет тему.</p>
+      </div>
+    </div>
+
+    <div class="notes-grid">
+      <div class="note-card">
+        <div class="lbl">явное переключение</div>
+        <h4>data-theme</h4>
+        <p>Set <code>&lt;body data-theme="dark"&gt;</code> for forced dark, <code>data-theme="light"</code> for forced light, or omit for системное предпочтение.</p>
+      </div>
+      <div class="note-card">
+        <div class="lbl">системное предпочтение</div>
+        <h4>prefers-color-scheme</h4>
+        <p>Auto-dark через <code>@media (prefers-color-scheme: dark)</code> fallback. Respects iOS / Android system setting out of the box.</p>
+      </div>
+      <div class="note-card">
+        <div class="lbl">что не меняется</div>
+        <h4>Прилив.</h4>
+        <p>Градиент Прилива остаётся точно таким же в обеих темах. Бренд независим от темы. Каждый другой цвет приходит из токена который переключается.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

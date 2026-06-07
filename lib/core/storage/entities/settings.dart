@@ -27,6 +27,7 @@ class AppSettings with _$AppSettings {
     @HiveField(0) @Default(AppThemeMode.system) AppThemeMode themeMode,
     @HiveField(1) @Default('ru') String locale,
     @HiveField(2) @Default(false) bool onboarded,
+    @HiveField(3) @Default(true) bool memoryEnabled,
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, Object?> json) =>
@@ -78,7 +79,7 @@ class AppThemeModeAdapter extends TypeAdapter<AppThemeMode> {
           typeId == other.typeId;
 }
 
-/// Hive TypeAdapter for [AppSettings]. Field count: 3 (0-2).
+/// Hive TypeAdapter for [AppSettings]. Field count: 4 (0-3).
 class AppSettingsAdapter extends TypeAdapter<AppSettings> {
   @override
   final int typeId = 5;
@@ -93,19 +94,22 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       themeMode: fields[0] as AppThemeMode? ?? AppThemeMode.system,
       locale: fields[1] as String? ?? 'ru',
       onboarded: fields[2] as bool? ?? false,
+      memoryEnabled: fields[3] as bool? ?? true,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.themeMode)
       ..writeByte(1)
       ..write(obj.locale)
       ..writeByte(2)
-      ..write(obj.onboarded);
+      ..write(obj.onboarded)
+      ..writeByte(3)
+      ..write(obj.memoryEnabled);
   }
 
   @override

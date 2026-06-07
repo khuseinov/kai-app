@@ -1,0 +1,130 @@
+{
+  "$schema": "https://kai.wize.ai/tokens/v1",
+  "version": "0.2.0",
+  "name": "kai-design-tokens",
+  "description": "Kai design system — production tokens. Generated from colors_and_type.css. Light + dark theme parity.",
+
+  "color": {
+    "light": {
+      "bg":           { "value": "#FAFAF9", "description": "Page background — barely warm" },
+      "surface":      { "value": "#FFFFFF", "description": "Elevated content — modals, the chat input island" },
+      "surface-2":    { "value": "#F3F3F1", "description": "Recessed — user message bubbles, code blocks" },
+      "surface-3":    { "value": "#ECECEA", "description": "Deeper recess — quiet wells" },
+      "ink-1":        { "value": "#111114", "description": "Primary text — near-black, slight warm" },
+      "ink-2":        { "value": "#43434A", "description": "Secondary text" },
+      "ink-3":        { "value": "#76767E", "description": "Tertiary text — meta, timestamps" },
+      "ink-4":        { "value": "#A8A8AE", "description": "Placeholder, disabled" },
+      "line":         { "value": "#E8E8E5" },
+      "line-strong":  { "value": "#D2D2CE" },
+      "accent":       { "value": "#2C5BE5" },
+      "accent-deep":  { "value": "#1E48C7" },
+      "accent-wash":  { "value": "#EEF2FD" },
+      "accent-line":  { "value": "#C3D2F6" },
+      "positive":     { "value": "#1B8E4E" },
+      "positive-wash":{ "value": "#E6F4ED" },
+      "warning":      { "value": "#B57A0B" },
+      "warning-wash": { "value": "#FBF1DC" },
+      "negative":     { "value": "#C44A3C" },
+      "negative-wash":{ "value": "#F8E6E3" }
+    },
+    "dark": {
+      "bg":           { "value": "#0E0E11" },
+      "surface":      { "value": "#16161A" },
+      "surface-2":    { "value": "#1E1E23" },
+      "surface-3":    { "value": "#25252A" },
+      "ink-1":        { "value": "#F5F5F2" },
+      "ink-2":        { "value": "#C8C8C2" },
+      "ink-3":        { "value": "#8E8E88" },
+      "ink-4":        { "value": "#5C5C58" },
+      "line":         { "value": "#2A2A2F" },
+      "line-strong":  { "value": "#3A3A3F" },
+      "accent":       { "value": "#5C8EFF" },
+      "accent-deep":  { "value": "#4275E5" },
+      "accent-wash":  { "value": "rgba(92, 142, 255, 0.12)" },
+      "accent-line":  { "value": "rgba(92, 142, 255, 0.28)" },
+      "positive":     { "value": "#3DBE7A" },
+      "positive-wash":{ "value": "rgba(61, 190, 122, 0.12)" },
+      "warning":      { "value": "#D69E3E" },
+      "warning-wash": { "value": "rgba(214, 158, 62, 0.12)" },
+      "negative":     { "value": "#E66F60" },
+      "negative-wash":{ "value": "rgba(230, 111, 96, 0.12)" }
+    },
+    "tide": {
+      "stop-1": { "value": "#1B4FB0", "description": "Deep ocean — gradient start" },
+      "stop-2": { "value": "#2BA8C9", "description": "Sea-glass — gradient mid" },
+      "stop-3": { "value": "#F4B589", "description": "Warm horizon — gradient end" },
+      "gradient-css": { "value": "linear-gradient(115deg, #1B4FB0 0%, #2BA8C9 52%, #F4B589 100%)" },
+      "gradient-corner-css": {
+        "value": "linear-gradient(135deg, #1B4FB0 0%, #2BA8C9 55%, #F4B589 100%)",
+        "description": "Corner-to-corner variant — for square surfaces only (app icon, splash glyph, OG bg-curve, avatar circles). Stop-2 shifted to 55% to land brighter on the diagonal."
+      },
+      "angle-deg": { "value": 115 },
+      "angle-deg-corner": { "value": 135 },
+      "description": "Theme-independent. Identical in light + dark. Two gradients: 115° default (tide curve, hero text), 135° corner-to-corner (square surfaces)."
+    }
+  },
+
+  "space": {
+    "1":  { "value": 4,   "unit": "px" },
+    "2":  { "value": 8,   "unit": "px" },
+    "3":  { "value": 12,  "unit": "px" },
+    "4":  { "value": 16,  "unit": "px" },
+    "5":  { "value": 20,  "unit": "px" },
+    "6":  { "value": 24,  "unit": "px" },
+    "7":  { "value": 32,  "unit": "px" },
+    "8":  { "value": 40,  "unit": "px" },
+    "9":  { "value": 56,  "unit": "px" },
+    "10": { "value": 80,  "unit": "px" },
+    "11": { "value": 120, "unit": "px" }
+  },
+
+  "radius": {
+    "1":    { "value": 6,   "unit": "px", "description": "Tags, small chips" },
+    "2":    { "value": 10,  "unit": "px", "description": "Inputs" },
+    "3":    { "value": 14,  "unit": "px", "description": "Buttons" },
+    "4":    { "value": 20,  "unit": "px", "description": "Cards, bubbles" },
+    "5":    { "value": 28,  "unit": "px", "description": "Sheets, hero surfaces" },
+    "pill": { "value": 999, "unit": "px" }
+  },
+
+  "type": {
+    "font-family-sans":    { "value": "Manrope, -apple-system, Segoe UI, system-ui, sans-serif" },
+    "font-family-mono":    { "value": "JetBrains Mono, ui-monospace, SF Mono, Menlo, monospace" },
+
+    "hero":      { "size": 72, "weight": 600, "line-height": 0.96, "letter-spacing": "-0.035em" },
+    "display":   { "size": 56, "weight": 600, "line-height": 1.02, "letter-spacing": "-0.025em" },
+    "h1":        { "size": 36, "weight": 600, "line-height": 1.1,  "letter-spacing": "-0.022em" },
+    "h2":        { "size": 24, "weight": 600, "line-height": 1.2,  "letter-spacing": "-0.015em" },
+    "h3":        { "size": 18, "weight": 600, "line-height": 1.3,  "letter-spacing": "-0.01em" },
+    "lead":      { "size": 20, "weight": 400, "line-height": 1.5,  "letter-spacing": "-0.005em" },
+    "body":      { "size": 16, "weight": 400, "line-height": 1.55, "letter-spacing": "0" },
+    "small":     { "size": 14, "weight": 400, "line-height": 1.5,  "letter-spacing": "0" },
+    "micro":     { "size": 12, "weight": 500, "line-height": 1.4,  "letter-spacing": "0.02em", "transform": "uppercase" },
+    "mono":      { "size": 12, "weight": 400, "line-height": 1.4,  "letter-spacing": "0", "family": "mono" }
+  },
+
+  "motion": {
+    "duration": {
+      "standard": { "value": 240, "unit": "ms", "description": "UI panels, sheets, drawers" },
+      "ambient":  { "value": 2600, "unit": "ms", "description": "Tide pulse, brand cycles" },
+      "micro":    { "value": 120, "unit": "ms", "description": "Press states, micro feedback" }
+    },
+    "easing": {
+      "standard":   { "value": "cubic-bezier(0.2, 0, 0, 1)", "description": "Material 3 emphasized" },
+      "ambient":    { "value": "cubic-bezier(0.4, 0, 0.6, 1)", "description": "Symmetric breathing" },
+      "exit":       { "value": "cubic-bezier(0.4, 0, 0.6, 1)", "description": "Snappier than enter" },
+      "linear":     { "value": "linear", "description": "Stroke flow, gradient slide" }
+    }
+  },
+
+  "tide-states": {
+    "idle":       { "stroke-px": 1.5, "stroke-color": "ink-4", "opacity": 0.4, "animation": null, "dash": null },
+    "listening":  { "stroke-px": 2.0, "stroke-color": "tide-gradient", "opacity": 0.8, "animation": { "type": "bob", "duration-ms": 2200, "easing": "ambient" }, "dash": null },
+    "thinking":   { "stroke-px": 2.0, "stroke-color": "tide-gradient", "opacity": 0.85, "animation": { "type": "flow", "duration-ms": 3000, "easing": "linear", "direction": "right-to-left" }, "dash": "6 4" },
+    "responding": { "stroke-px": 2.5, "stroke-color": "tide-gradient", "opacity": 1.0,  "animation": { "type": "stream", "duration-ms": 1400, "easing": "linear", "direction": "right-to-left" }, "dash": "12 4" },
+    "success":    { "stroke-px": 2.5, "stroke-color": "gradient-success", "opacity": 1.0, "animation": { "type": "flash", "duration-ms": 1200, "easing": "ease-out" }, "dash": null, "ephemeral": true },
+    "error":      { "stroke-px": 2.0, "stroke-color": "gradient-error",   "opacity": 0.95,"animation": { "type": "wobble", "duration-ms": 600, "easing": "ease-in-out", "repeat": 2 }, "dash": null, "ephemeral": true },
+    "memory":     { "stroke-px": 2.0, "stroke-color": "tide-gradient",    "opacity": 1.0, "animation": { "type": "pop", "duration-ms": 900, "easing": "ease-out" }, "dash": null, "ephemeral": true },
+    "sleep":      { "stroke-px": 1.0, "stroke-color": "ink-4", "opacity": 0.2, "animation": null, "dash": null, "trigger": "60s inactivity" }
+  }
+}

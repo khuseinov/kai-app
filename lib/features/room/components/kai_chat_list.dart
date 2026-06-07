@@ -74,6 +74,8 @@ class KaiChatList extends StatefulWidget {
     this.messages = const [],
     this.onRetry,
     this.partialContent,
+    this.thinkingStep,
+    this.bottomPadding = 88.0,
     super.key,
   });
 
@@ -88,6 +90,12 @@ class KaiChatList extends StatefulWidget {
   /// Partial Kai response text during streaming.  Null = empty streaming
   /// bubble.
   final String? partialContent;
+
+  /// Active thinking step label (State 2). Null when not in a named step.
+  final String? thinkingStep;
+
+  /// Bottom padding to reserve space for compose island.
+  final double bottomPadding;
 
   @override
   State<KaiChatList> createState() => _KaiChatListState();
@@ -136,18 +144,18 @@ class _KaiChatListState extends State<KaiChatList>
       case RoomFrame.empty:
         return _EmptyFrame(messages: widget.messages);
       case RoomFrame.live:
-        return _LiveFrame(messages: widget.messages);
+        return _LiveFrame(messages: widget.messages, bottomPadding: widget.bottomPadding);
       case RoomFrame.panel:
         return IgnorePointer(
           child: Opacity(
             opacity: 0.25, // canon: panel dims chat to 25 %
-            child: _LiveFrame(messages: widget.messages),
+            child: _LiveFrame(messages: widget.messages, bottomPadding: widget.bottomPadding),
           ),
         );
       case RoomFrame.compose:
         return Stack(
           children: [
-            _LiveFrame(messages: widget.messages),
+            _LiveFrame(messages: widget.messages, bottomPadding: widget.bottomPadding),
             // canon: compose scrim rgba(0,0,0,0.18)
             Container(color: Colors.black.withValues(alpha: 0.18)),
           ],
@@ -156,11 +164,14 @@ class _KaiChatListState extends State<KaiChatList>
         return _StreamingFrame(
           messages: widget.messages,
           partialContent: widget.partialContent ?? '',
+          thinkingStep: widget.thinkingStep,
           tideBarController: _tideBarController,
+          bottomPadding: widget.bottomPadding,
         );
       case RoomFrame.error:
         return _ErrorFrame(
           messages: widget.messages,
+          bottomPadding: widget.bottomPadding,
           onRetry: widget.onRetry,
         );
     }
@@ -341,9 +352,10 @@ class _SuggestionChip extends StatelessWidget {
 // ─── Live frame ───────────────────────────────────────────────────────────────
 
 class _LiveFrame extends StatelessWidget {
-  const _LiveFrame({required this.messages});
+  const _LiveFrame({required this.messages, this.bottomPadding = 8.0});
 
   final List<Map<String, dynamic>> messages;
+  final double bottomPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -353,6 +365,7 @@ class _LiveFrame extends StatelessWidget {
     final tokens = KaiTheme.of(context);
     final l10n = AppLocalizations.of(context);
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Day header — JetBrainsMono 9 ink3 uppercase ls 0.1em, margin-top 4px
         Padding(
@@ -372,9 +385,11 @@ class _LiveFrame extends StatelessWidget {
         Expanded(
           child: ListView.builder(
             reverse: true,
-            padding: const EdgeInsets.symmetric(
-              horizontal: KaiSpace.s4,
-              vertical: KaiSpace.s2,
+            padding: EdgeInsets.only(
+              left: KaiSpace.s4,
+              right: KaiSpace.s4,
+              top: KaiSpace.s2,
+              bottom: bottomPadding,
             ),
             itemCount: messages.length,
             itemBuilder: (context, index) {
@@ -397,65 +412,134 @@ class _LiveFrame extends StatelessWidget {
 /// HTML canon: room.html § F05 Streaming frame.
 ///
 /// Shows previous messages via [_LiveFrame] (Expanded) +
-/// a streaming [KaiKaiBubble] at bottom.  The tide bar animation is driven by
-/// the parent's [AnimationController] so the W4 screen can observe it if needed.
-/// The caret blink is handled inside [KaiKaiBubble](streaming: true) — no
-/// separate cursor controller is required here.
+/// a streaming indicator at bottom.
+///
+/// Three streaming states:
+///   State 1 (думаю):       partialContent empty, thinkingStep null
+///                          → tide bar + "KAI · думаю"
+///   State 2 (ищу шаг):    partialContent empty, thinkingStep not null
+///                          → tide bar + "KAI · ищу информацию о рейсах"
+///   State 3 (текст идёт): partialContent not empty
+///                          → tide bar + "KAI" + streamed text + blinking caret
 class _StreamingFrame extends StatelessWidget {
   const _StreamingFrame({
     required this.messages,
     required this.partialContent,
     required this.tideBarController,
+    required this.bottomPadding,
+    this.thinkingStep,
   });
 
   final List<Map<String, dynamic>> messages;
   final String partialContent;
   final AnimationController tideBarController;
+  final double bottomPadding;
+  final String? thinkingStep;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    // Exclude the last message (the Kai response currently streaming/pending)
+    // from the previous messages list so it doesn't get rendered twice.
+    final previousMessages = messages.isNotEmpty
+        ? messages.sublist(0, messages.length - 1)
+        : messages;
+
+    // Resolve which status suffix to show:
+    //   State 3 (text arriving) → no suffix, show text inline
+    //   State 2 (named step)    → thinkingStep label
+    //   State 1 (waiting)       → l10n.streamingStatusThinking ("думаю")
+    final statusSuffix = partialContent.isNotEmpty
+        ? null
+        : (thinkingStep != null && thinkingStep!.isNotEmpty)
+            ? thinkingStep
+            : l10n.streamingStatusThinking;
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (messages.isNotEmpty)
-          Expanded(child: _LiveFrame(messages: messages))
+        if (previousMessages.isNotEmpty)
+          Expanded(
+            child: _LiveFrame(
+              messages: previousMessages,
+              bottomPadding: 16.0, // Small bottom padding since it is above the streaming bubble
+            ),
+          )
         else
           const Spacer(),
-        // Streaming Kai bubble — animated tide bar + content + blinking caret
-        _StreamingKaiBubble(
-          partialContent: partialContent,
-          tideBarController: tideBarController,
-          statusText: l10n.streamingStatusThinking,
+        // Single unified streaming row — no nested KaiKaiBubble to avoid
+        // duplicate KAI labels.
+        Padding(
+          padding: EdgeInsets.only(bottom: bottomPadding),
+          child: _StreamingKaiBubble(
+            partialContent: partialContent,
+            tideBarController: tideBarController,
+            statusSuffix: statusSuffix,
+          ),
         ),
       ],
     );
   }
 }
 
-/// Streaming Kai bubble — animated tide bar header above [KaiKaiBubble].
+/// Unified streaming Kai bubble — ONE animated tide bar row +
+/// either a status suffix (States 1 & 2) or streamed text + caret (State 3).
 ///
-/// The animated tide bar (10→22 px, 1.6 s ease-in-out reverse) is a layout
-/// element of the streaming frame header and is rendered here.  The .who row
-/// (static `KaiGradientBar` + "KAI" label) and the blinking caret are already
-/// built into [KaiKaiBubble](streaming: true) — so this widget composes:
-///   1. An animated progress indicator row (tide bar + status suffix).
-///   2. [KaiKaiBubble](streaming: true) which contributes its own .who + body.
-///
-/// This avoids the duplicate "KAI" label that would appear if both this
-/// wrapper and [KaiKaiBubble] rendered a .who row.
-class _StreamingKaiBubble extends StatelessWidget {
+/// Deliberately does NOT embed [KaiKaiBubble] to avoid double "KAI" labels.
+class _StreamingKaiBubble extends StatefulWidget {
   const _StreamingKaiBubble({
     required this.partialContent,
     required this.tideBarController,
-    this.statusText,
+    this.statusSuffix,
   });
 
   final String partialContent;
   final AnimationController tideBarController;
 
-  /// Optional status suffix shown alongside the animated tide bar.
-  /// Canon: room.html § .f05 .who .st — italic Manrope 9 ink4.
-  final String? statusText;
+  /// Status suffix shown next to "KAI" for States 1 & 2.
+  /// Null in State 3 (text is rendered inline instead).
+  final String? statusSuffix;
+
+  @override
+  State<_StreamingKaiBubble> createState() => _StreamingKaiBubbleState();
+}
+
+class _StreamingKaiBubbleState extends State<_StreamingKaiBubble>
+    with SingleTickerProviderStateMixin {
+  AnimationController? _caretController;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.partialContent.isNotEmpty) {
+      _startCaret();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _StreamingKaiBubble old) {
+    super.didUpdateWidget(old);
+    final hasText = widget.partialContent.isNotEmpty;
+    if (hasText && _caretController == null) {
+      _startCaret();
+    } else if (!hasText && _caretController != null) {
+      _caretController!.dispose();
+      _caretController = null;
+    }
+  }
+
+  void _startCaret() {
+    _caretController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _caretController?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -464,69 +548,115 @@ class _StreamingKaiBubble extends StatelessWidget {
     // Tide bar width: 10→22 px (HTML canon: .f05 tide-bar animation)
     final tideBarWidth = Tween<double>(begin: 10, end: 22).animate(
       CurvedAnimation(
-        parent: tideBarController,
-        curve: Curves.easeInOut, // canon: ease-in-out
+        parent: widget.tideBarController,
+        curve: Curves.easeInOut,
       ),
     );
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 18, // canon: 18px side padding
-        vertical: KaiSpace.s2, // canon: 8px vertical
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Animated progress indicator row:
-          //   animated tide bar + optional "· думаю" status suffix.
-          // NOTE: "KAI" label is intentionally omitted here — KaiKaiBubble
-          // renders its own static .who row below.
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              AnimatedBuilder(
-                animation: tideBarWidth,
-                builder: (context, _) {
-                  return Container(
-                    width: tideBarWidth.value,
-                    height: 3, // canon: 3px height
-                    decoration: const BoxDecoration(
-                      gradient: KaiTide.gradient,
-                      borderRadius: KaiRadius.brPill,
-                    ),
-                  );
-                },
-              ),
-              // H6: · statusText — italic Manrope 9 ink4 (canon: .f05 .who .st)
-              if (statusText != null) ...[
-                const SizedBox(width: 6), // canon: 6px gap
+    final isState3 = widget.partialContent.isNotEmpty;
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: KaiSpace.s2,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Single "who" row: tide bar + "KAI" + optional suffix ──────────
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                AnimatedBuilder(
+                  animation: tideBarWidth,
+                  builder: (context, _) {
+                    return Container(
+                      width: tideBarWidth.value,
+                      height: 3,
+                      decoration: const BoxDecoration(
+                        gradient: KaiTide.gradient,
+                        borderRadius: KaiRadius.brPill,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 6),
                 Text(
-                  '· $statusText',
-                  style: TextStyle(
-                    fontFamily: 'Manrope',
-                    fontSize: 9, // canon: 9px
-                    fontWeight: FontWeight.w400,
-                    fontStyle: FontStyle.italic,
-                    color: c.ink4,
+                  'KAI',
+                  style: KaiType.mono(color: c.ink3).copyWith(
+                    fontSize: 9,
+                    letterSpacing: 9 * 0.08,
                   ),
                 ),
+                // States 1 & 2: show suffix text
+                if (widget.statusSuffix != null) ...[
+                  const SizedBox(width: 6),
+                  Text(
+                    '· ${widget.statusSuffix}',
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 9,
+                      fontWeight: FontWeight.w400,
+                      fontStyle: FontStyle.italic,
+                      color: c.ink4,
+                    ),
+                  ),
+                ],
               ],
+            ),
+            // State 3: streamed text content + blinking caret
+            if (isState3) ...[
+              const SizedBox(height: 5),
+              _buildTextWithCaret(c),
             ],
-          ),
-          const SizedBox(height: 4), // visual breathing room before bubble
-          // KaiKaiBubble(streaming: true) handles:
-          //   - static .who row (KaiGradientBar + "KAI" label)
-          //   - body text with inline citations
-          //   - blinking 7×14 caret
-          KaiKaiBubble(
-            text: partialContent,
-            streaming: true,
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildTextWithCaret(KaiColorTokens c) {
+    final baseStyle = TextStyle(
+      fontFamily: 'Manrope',
+      fontSize: 13.5,
+      fontWeight: FontWeight.w400,
+      height: 1.55,
+      letterSpacing: 13.5 * -0.005,
+      color: c.ink1,
+    );
+
+    final spans = <InlineSpan>[
+      TextSpan(text: widget.partialContent, style: baseStyle),
+    ];
+
+    if (_caretController != null) {
+      spans.add(
+        WidgetSpan(
+          alignment: PlaceholderAlignment.bottom,
+          child: AnimatedBuilder(
+            animation: _caretController!,
+            builder: (context, _) {
+              final visible = _caretController!.value < 0.5;
+              return Opacity(
+                opacity: visible ? 1.0 : 0.0,
+                child: Container(
+                  width: 7,
+                  height: 14,
+                  margin: const EdgeInsets.only(left: 2),
+                  color: c.ink1,
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+
+    return Text.rich(TextSpan(children: spans, style: baseStyle));
   }
 }
 
@@ -542,10 +672,12 @@ class _StreamingKaiBubble extends StatelessWidget {
 class _ErrorFrame extends StatelessWidget {
   const _ErrorFrame({
     required this.messages,
+    required this.bottomPadding,
     this.onRetry,
   });
 
   final List<Map<String, dynamic>> messages;
+  final double bottomPadding;
   final VoidCallback? onRetry;
 
   @override
@@ -554,14 +686,19 @@ class _ErrorFrame extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(child: _LiveFrame(messages: messages)),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 18, // canon: 18px
-            vertical: KaiSpace.s2, // canon: 8px
+        Expanded(
+          child: _LiveFrame(
+            messages: messages,
+            bottomPadding: 16.0, // Small bottom padding since it is above the error container
           ),
-          child: Align(
+        ),
+        Padding(
+          padding: EdgeInsets.only(bottom: bottomPadding),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
+            child: Align(
             alignment: Alignment.centerLeft,
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -693,6 +830,7 @@ class _ErrorFrame extends StatelessWidget {
               },
             ),
           ),
+        ),
         ),
       ],
     );

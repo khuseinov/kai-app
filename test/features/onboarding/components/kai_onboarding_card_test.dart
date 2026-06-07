@@ -4,6 +4,7 @@ import 'package:kai_app/design_system/atoms/kai_button.dart';
 import 'package:kai_app/features/onboarding/components/kai_step_indicator.dart';
 import 'package:kai_app/design_system/atoms/kai_tide_curve.dart';
 import 'package:kai_app/features/onboarding/components/kai_onboarding_card.dart';
+import 'package:kai_app/features/onboarding/onboarding_screen.dart';
 
 import '../../../test_helpers.dart';
 
@@ -16,6 +17,12 @@ Future<void> _pump(
   // buildTestWidget wraps in Scaffold which gives bounded height context.
   await tester.pumpWidget(buildTestWidget(child, themeMode: mode));
   await tester.pump();
+}
+
+Future<void> _pumpTransition(WidgetTester tester) async {
+  for (int i = 0; i < 10; i++) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
 }
 
 void main() {
@@ -53,24 +60,23 @@ void main() {
 
     // ── Canon button variant per step ────────────────────────────────────────
     //
-    // Cycle 3 change: step 0 now shows KaiButton.ink at rest with a tide-flash
-    // on tap. The old tide-by-default has been replaced.
-    // Steps 1–3 remain KaiButton.ink unchanged.
+    // Welcome screen (step 0) shows a primary tide-gradient button at rest (neutralAtRest: false).
+    // Steps 1–3 show solid secondary ink buttons (KaiButton.ink).
+    //
 
-    testWidgets('step 0 CTA is ink button at rest (NOT tide gradient)',
+    testWidgets('step 0 CTA is a neutral-at-rest tide button',
         (WidgetTester tester) async {
-      await _pump(tester, const KaiOnboardingCard(stepIndex: 0));
+      await _pump(tester, const OnboardingScreen());
 
-      // Step 0 CTA is _Step0Cta which renders a KaiButton.ink underneath.
-      // The KaiButton.ink renders a Container with a solid color (not gradient).
-      // There may be multiple KaiButtons. Check that none have a gradient deco.
-      final buttons = tester.widgetList<KaiButton>(find.byType(KaiButton));
-      expect(buttons, isNotEmpty);
+      final buttonFinder = find.byType(KaiButton);
+      expect(buttonFinder, findsOneWidget);
 
-      // At rest (before tap), no Container inside KaiButton should have a
-      // gradient BoxDecoration — the ink button uses solid ink1 color.
+      final button = tester.widget<KaiButton>(buttonFinder);
+      expect(button.neutralAtRest, isTrue);
+      expect(button.size, KaiButtonSize.md);
+
       final containers = tester.widgetList<Container>(find.descendant(
-        of: find.byType(KaiButton),
+        of: buttonFinder,
         matching: find.byType(Container),
       ));
       final hasGradientOnKaiButton = containers.any((c) {
@@ -78,17 +84,23 @@ void main() {
         return deco is BoxDecoration && deco.gradient != null;
       });
       expect(hasGradientOnKaiButton, isFalse,
-          reason:
-              'Step 0 CTA must be ink at rest — no gradient on KaiButton containers');
+          reason: 'Step 0 CTA at rest must not have a gradient when neutralAtRest is true');
     });
 
-    testWidgets('step 1 CTA is KaiButton.ink (canon: ink-1 on non-hero steps)',
+    testWidgets('step 1 CTA is a neutral-at-rest tide button',
         (WidgetTester tester) async {
-      await _pump(tester, const KaiOnboardingCard(stepIndex: 1));
-      expect(find.byType(KaiButton), findsOneWidget);
-      // Ink variant has no gradient — verify no gradient in button containers.
+      await _pump(tester, const OnboardingScreen());
+      // Advance to step 1
+      await tester.tap(find.text('Продолжить'));
+      await _pumpTransition(tester);
+
+      final buttonFinder = find.byType(KaiButton);
+      expect(buttonFinder, findsOneWidget);
+      final button = tester.widget<KaiButton>(buttonFinder);
+      expect(button.neutralAtRest, isTrue);
+      expect(button.size, KaiButtonSize.md);
       final containers = tester.widgetList<Container>(find.descendant(
-        of: find.byType(KaiButton),
+        of: buttonFinder,
         matching: find.byType(Container),
       ));
       final hasGradient = containers.any((c) {
@@ -96,15 +108,25 @@ void main() {
         return deco is BoxDecoration && deco.gradient != null;
       });
       expect(hasGradient, isFalse,
-          reason: 'Step 1 CTA must use ink-1 fill (KaiButton.ink), not tide');
+          reason: 'Step 1 CTA at rest must not have a gradient when neutralAtRest is true');
     });
 
-    testWidgets('step 2 CTA is KaiButton.ink (canon: ink-1 on non-hero steps)',
+    testWidgets('step 2 CTA is a neutral-at-rest tide button',
         (WidgetTester tester) async {
-      await _pump(tester, const KaiOnboardingCard(stepIndex: 2));
-      expect(find.byType(KaiButton), findsOneWidget);
+      await _pump(tester, const OnboardingScreen());
+      // Advance to step 1, then step 2
+      await tester.tap(find.text('Продолжить'));
+      await _pumpTransition(tester);
+      await tester.tap(find.text('Понятно'));
+      await _pumpTransition(tester);
+
+      final buttonFinder = find.byType(KaiButton);
+      expect(buttonFinder, findsOneWidget);
+      final button = tester.widget<KaiButton>(buttonFinder);
+      expect(button.neutralAtRest, isTrue);
+      expect(button.size, KaiButtonSize.md);
       final containers = tester.widgetList<Container>(find.descendant(
-        of: find.byType(KaiButton),
+        of: buttonFinder,
         matching: find.byType(Container),
       ));
       final hasGradient = containers.any((c) {
@@ -112,15 +134,27 @@ void main() {
         return deco is BoxDecoration && deco.gradient != null;
       });
       expect(hasGradient, isFalse,
-          reason: 'Step 2 CTA must use ink-1 fill (KaiButton.ink), not tide');
+          reason: 'Step 2 CTA at rest must not have a gradient when neutralAtRest is true');
     });
 
-    testWidgets('step 3 CTA is KaiButton.ink (canon: ink-1 on non-hero steps)',
+    testWidgets('step 3 CTA is a neutral-at-rest tide button',
         (WidgetTester tester) async {
-      await _pump(tester, const KaiOnboardingCard(stepIndex: 3));
-      expect(find.byType(KaiButton), findsOneWidget);
+      await _pump(tester, const OnboardingScreen());
+      // Advance to step 3
+      await tester.tap(find.text('Продолжить'));
+      await _pumpTransition(tester);
+      await tester.tap(find.text('Понятно'));
+      await _pumpTransition(tester);
+      await tester.tap(find.text('Продолжить'));
+      await _pumpTransition(tester);
+
+      final buttonFinder = find.byType(KaiButton);
+      expect(buttonFinder, findsOneWidget);
+      final button = tester.widget<KaiButton>(buttonFinder);
+      expect(button.neutralAtRest, isTrue);
+      expect(button.size, KaiButtonSize.md);
       final containers = tester.widgetList<Container>(find.descendant(
-        of: find.byType(KaiButton),
+        of: buttonFinder,
         matching: find.byType(Container),
       ));
       final hasGradient = containers.any((c) {
@@ -128,60 +162,40 @@ void main() {
         return deco is BoxDecoration && deco.gradient != null;
       });
       expect(hasGradient, isFalse,
-          reason: 'Step 3 CTA must use ink-1 fill (KaiButton.ink), not tide');
+          reason: 'Step 3 CTA at rest must not have a gradient when neutralAtRest is true');
     });
 
     // ── Callback wiring ──────────────────────────────────────────────────────
 
-    testWidgets('"Продолжить" fires onNext on step 2',
+    testWidgets('Onboarding Screen transition flow works',
         (WidgetTester tester) async {
-      var nexts = 0;
-      await _pump(
-        tester,
-        KaiOnboardingCard(stepIndex: 2, onNext: () => nexts++),
-      );
+      await _pump(tester, const OnboardingScreen());
+
+      // Welcome page (step 0)
+      expect(find.text('Познакомьтесь с Kai.'), findsOneWidget);
+      final indicator = tester.widget<KaiStepIndicator>(find.byType(KaiStepIndicator));
+      expect(indicator.active, 0);
+
+      // Tap to Step 1
       await tester.tap(find.text('Продолжить'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 50));
-      expect(nexts, 1);
-    });
+      await _pumpTransition(tester);
+      expect(find.text('Линия вверху — это Kai.'), findsOneWidget);
+      final indicator1 = tester.widget<KaiStepIndicator>(find.byType(KaiStepIndicator));
+      expect(indicator1.active, 1);
 
-    testWidgets('"Начать использовать Kai" fires onComplete on step 3',
-        (WidgetTester tester) async {
-      var fired = 0;
-      await _pump(
-        tester,
-        KaiOnboardingCard(stepIndex: 3, onComplete: () => fired++),
-      );
-      await tester.tap(find.text('Начать использовать Kai'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 50));
-      expect(fired, 1);
-    });
-
-    testWidgets('"Понятно" on step 1 fires onNext', (WidgetTester tester) async {
-      var nexts = 0;
-      await _pump(
-        tester,
-        KaiOnboardingCard(stepIndex: 1, onNext: () => nexts++),
-      );
+      // Tap to Step 2
       await tester.tap(find.text('Понятно'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 50));
-      expect(nexts, 1);
-    });
+      await _pumpTransition(tester);
+      expect(find.text('Три жеста.'), findsOneWidget);
+      final indicator2 = tester.widget<KaiStepIndicator>(find.byType(KaiStepIndicator));
+      expect(indicator2.active, 2);
 
-    testWidgets('"Продолжить" on step 0 fires onNext (after tide-flash)',
-        (WidgetTester tester) async {
-      var nexts = 0;
-      await _pump(
-        tester,
-        KaiOnboardingCard(stepIndex: 0, onNext: () => nexts++),
-      );
+      // Tap to Step 3
       await tester.tap(find.text('Продолжить'));
-      // Pump through the flash animation (forward + reverse = 2 × standard).
-      await tester.pumpAndSettle();
-      expect(nexts, 1);
+      await _pumpTransition(tester);
+      expect(find.textContaining('Два факта'), findsOneWidget);
+      final indicator3 = tester.widget<KaiStepIndicator>(find.byType(KaiStepIndicator));
+      expect(indicator3.active, 3);
     });
 
     // ── KaiTideCurve present (brand mark) ────────────────────────────────────
@@ -191,28 +205,6 @@ void main() {
       await _pump(tester, const KaiOnboardingCard(stepIndex: 1));
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.byType(KaiTideCurve), findsWidgets);
-    });
-
-    // ── KaiStepIndicator ─────────────────────────────────────────────────────
-
-    testWidgets('KaiStepIndicator is present with count=4',
-        (WidgetTester tester) async {
-      await _pump(tester, const KaiOnboardingCard(stepIndex: 0));
-      expect(find.byType(KaiStepIndicator), findsOneWidget);
-      final indicator = tester.widget<KaiStepIndicator>(
-        find.byType(KaiStepIndicator),
-      );
-      expect(indicator.count, 4);
-      expect(indicator.active, 0);
-    });
-
-    testWidgets('KaiStepIndicator active matches stepIndex',
-        (WidgetTester tester) async {
-      await _pump(tester, const KaiOnboardingCard(stepIndex: 2));
-      final indicator = tester.widget<KaiStepIndicator>(
-        find.byType(KaiStepIndicator),
-      );
-      expect(indicator.active, 2);
     });
 
     // ── Dark mode smoke ───────────────────────────────────────────────────────

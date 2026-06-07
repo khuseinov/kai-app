@@ -110,42 +110,63 @@ class _LargeTidePainter extends CustomPainter {
     List<double>? dashPattern;
     double dashOffset = 0;
 
-    // We overlay multiple sine wave cycles or dynamic Q curves.
-    // For listening/speaking, we add an offset factor driven by `animationValue`.
     final t = animationValue * 2.0 * math.pi;
+
+    // Gradients matching voice.html definitions
+    final gMute = ui.Gradient.linear(
+      Offset.zero,
+      Offset(size.width, 0),
+      [
+        const Color(0xFF5C5C58),
+        const Color(0xFF76767E),
+      ],
+      [0.0, 1.0],
+    );
+
+    final gBlue = ui.Gradient.linear(
+      Offset.zero,
+      Offset(size.width, 0),
+      [
+        const Color(0xFF1B4FB0),
+        const Color(0xFF6FA7FF),
+      ],
+      [0.0, 1.0],
+    );
+
+    final gWarm = ui.Gradient.linear(
+      Offset.zero,
+      Offset(size.width, 0),
+      [
+        const Color(0xFF2BA8C9),
+        const Color(0xFFF4B589),
+      ],
+      [0.0, 1.0],
+    );
 
     switch (state) {
       case KaiTideLargeState.idle:
+        // Idle: stroke-width: 2.5, opacity: 0.45, stroke: url(#g-mute)
         strokeWidth = 2.5;
         opacity = 0.45;
-        paint.color = tokens.colors.ink4;
+        paint.shader = gMute;
         break;
 
       case KaiTideLargeState.listening:
+        // Listening: stroke-width: 3.0, opacity: 1.0, stroke: url(#g-blue)
         strokeWidth = 3.0;
         opacity = 1.0;
-        // Warm cyan/blue gradient for listening
-        paint.shader = ui.Gradient.linear(
-          Offset.zero,
-          Offset(size.width, 0),
-          [
-            tokens.colors.accent,
-            tokens.colors.accentLine,
-          ],
-        );
+        paint.shader = gBlue;
         break;
 
       case KaiTideLargeState.speaking:
+        // Speaking: stroke-width: 3.5, opacity: 1.0, stroke: url(#g-warm), stroke-dasharray: 16 5
         strokeWidth = 3.5;
         opacity = 1.0;
-        // Warm orange/tide gradient for speaking
-        paint.shader = KaiTide.gradient.createShader(
-          Rect.fromLTWH(0, 0, size.width, size.height),
-        );
+        paint.shader = gWarm;
+
         dashPattern = const [16.0, 5.0];
-        // Dash flow: shift offset in reverse over time
-        final stride = dashPattern[0] + dashPattern[1];
-        dashOffset = -animationValue * stride * 8.0; // flow factor
+        // Animate stroke-dashoffset from 0 to -42 over 2.6s (loop period is 6s)
+        dashOffset = animationValue * (-42.0 / 2.6) * 6.0;
         break;
     }
 
@@ -175,75 +196,53 @@ class _LargeTidePainter extends CustomPainter {
   Path _buildPath(Size size, double sx, double sy, double t) {
     final p = Path();
 
-    // Base coordinate anchors from HTML canon: M 6 56 Q 50 24...
-    // We add sine perturbation to the control points to create organic waving.
-    final startY = 56 * sy;
-    p.moveTo(6 * sx, startY);
-
     if (state == KaiTideLargeState.idle) {
-      // Static wave, low amplitude, no animations
-      p.quadraticBezierTo(
-        50 * sx,
-        38 * sy,
-        100 * sx,
-        56 * sy,
-      );
-      p.quadraticBezierTo(
-        150 * sx,
-        56 * sy,
-        200 * sx,
-        56 * sy,
-      );
-      p.quadraticBezierTo(
-        257 * sx,
-        51 * sy,
-        314 * sx,
-        46 * sy,
-      );
+      // Idle state path: M 6 56 Q 50 38, 100 56 T 200 56 T 314 46
+      final yStart = 56.0 * sy;
+      final yCtrl1 = 38.0 * sy;
+      final yEnd1 = 56.0 * sy;
+      final yEnd2 = 56.0 * sy;
+      final yEnd3 = 46.0 * sy;
+
+      p.moveTo(6 * sx, yStart);
+      p.quadraticBezierTo(50 * sx, yCtrl1, 100 * sx, yEnd1);
+      final yCtrl2 = 2.0 * yEnd1 - yCtrl1;
+      p.quadraticBezierTo(150 * sx, yCtrl2, 200 * sx, yEnd2);
+      final yCtrl3 = 2.0 * yEnd2 - yCtrl2;
+      p.quadraticBezierTo(250 * sx, yCtrl3, 314 * sx, yEnd3);
     } else if (state == KaiTideLargeState.listening) {
-      // Dynamic blue wave, medium amplitude
-      final dy = math.sin(t * 1.0) * 10 * sy;
-      final dy2 = math.cos(t * 1.5) * 8 * sy;
-      p.quadraticBezierTo(
-        50 * sx,
-        (24 + dy) * sy,
-        100 * sx,
-        (56 + dy2) * sy,
-      );
-      p.quadraticBezierTo(
-        150 * sx,
-        (56 - dy2) * sy,
-        200 * sx,
-        (56 + dy) * sy,
-      );
-      p.quadraticBezierTo(
-        257 * sx,
-        (40 - dy) * sy,
-        314 * sx,
-        40 * sy,
-      );
+      // Listening state path: interpolates between Path 1 and Path 2 dynamically
+      // u: 0.0 -> 1.0 -> 0.0
+      // Path 1: M 6 56 Q 50 24, 100 56 T 200 56 T 314 40
+      // Path 2: M 6 54 Q 50 72, 100 54 T 200 48 T 314 60
+      final u = (math.sin(t) + 1.0) / 2.0;
+
+      final yStart = (56.0 + (54.0 - 56.0) * u) * sy;
+      final yCtrl1 = (24.0 + (72.0 - 24.0) * u) * sy;
+      final yEnd1 = (56.0 + (54.0 - 56.0) * u) * sy;
+      final yEnd2 = (56.0 + (48.0 - 56.0) * u) * sy;
+      final yEnd3 = (40.0 + (60.0 - 40.0) * u) * sy;
+
+      p.moveTo(6 * sx, yStart);
+      p.quadraticBezierTo(50 * sx, yCtrl1, 100 * sx, yEnd1);
+      final yCtrl2 = 2.0 * yEnd1 - yCtrl1;
+      p.quadraticBezierTo(150 * sx, yCtrl2, 200 * sx, yEnd2);
+      final yCtrl3 = 2.0 * yEnd2 - yCtrl2;
+      p.quadraticBezierTo(250 * sx, yCtrl3, 314 * sx, yEnd3);
     } else {
-      // Dynamic warm speaking wave, higher amplitude
-      final dy = math.sin(t * 2.0) * 14 * sy;
-      final dy2 = math.cos(t * 1.8) * 11 * sy;
-      p.quadraticBezierTo(
-        50 * sx,
-        (20 + dy) * sy,
-        100 * sx,
-        (56 + dy2) * sy,
-      );
-      p.quadraticBezierTo(
-        150 * sx,
-        (56 - dy2) * sy,
-        200 * sx,
-        (56 + dy) * sy,
-      );
-      p.quadraticBezierTo(
-        257 * sx,
-        (38 - dy) * sy,
-        314 * sx,
-        40 * sy,
-      );
+      // Speaking state path (Responding): static M 6 56 Q 50 24, 100 56 T 200 56 T 314 40
+      final yStart = 56.0 * sy;
+      final yCtrl1 = 24.0 * sy;
+      final yEnd1 = 56.0 * sy;
+      final yEnd2 = 56.0 * sy;
+      final yEnd3 = 40.0 * sy;
+
+      p.moveTo(6 * sx, yStart);
+      p.quadraticBezierTo(50 * sx, yCtrl1, 100 * sx, yEnd1);
+      final yCtrl2 = 2.0 * yEnd1 - yCtrl1;
+      p.quadraticBezierTo(150 * sx, yCtrl2, 200 * sx, yEnd2);
+      final yCtrl3 = 2.0 * yEnd2 - yCtrl2;
+      p.quadraticBezierTo(250 * sx, yCtrl3, 314 * sx, yEnd3);
     }
 
     return p;
