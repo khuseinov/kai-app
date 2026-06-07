@@ -28,6 +28,11 @@ jobs:
       - name: Generate code (build_runner)
         run: dart run build_runner build --delete-conflicting-outputs
 
+      # .env is gitignored but declared as a Flutter asset — create a stub so
+      # the asset bundler doesn't fail. Real secrets are injected via env vars at runtime.
+      - name: Create stub .env
+        run: touch .env
+
       # SIGNING NOTES (do not remove these env vars):
       # Flutter 3.x validates DEVELOPMENT_TEAM even with --no-codesign.
       # The project.pbxproj Runner target has DEVELOPMENT_TEAM=PLACEHOLDER +
