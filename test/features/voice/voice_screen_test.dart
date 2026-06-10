@@ -46,7 +46,7 @@ void main() {
 
     // Check that we see the idle state texts
     expect(find.text('нажмите, чтобы говорить'), findsOneWidget);
-    expect(find.text('SWIPE ↑'), findsOneWidget);
+    expect(find.text('SWIPE ↑ · ТРАНСКРИПЦИЯ'), findsOneWidget);
     expect(find.text('Kai ожидает'), findsOneWidget);
     
     // Back arrow icon must be removed/hidden
@@ -63,7 +63,7 @@ void main() {
 
     // Active state: hints must be hidden
     expect(find.text('нажмите, чтобы говорить'), findsNothing);
-    expect(find.text('SWIPE ↑'), findsNothing);
+    expect(find.text('SWIPE ↑ · ТРАНСКРИПЦИЯ'), findsNothing);
     expect(find.text('слушаю…'), findsNothing);
 
     expect(find.text('Говорите…'), findsOneWidget);
@@ -83,19 +83,19 @@ void main() {
 
     // Active state: hints must be hidden
     expect(find.text('нажмите, чтобы говорить'), findsNothing);
-    expect(find.text('SWIPE ↑'), findsNothing);
+    expect(find.text('SWIPE ↑ · ТРАНСКРИПЦИЯ'), findsNothing);
     expect(find.text('kai говорит'), findsNothing);
 
     // Karaoke widget should exist
     expect(find.text('Синкансэн'), findsOneWidget);
   });
 
-  testWidgets('Swipe down transitions to transcript view and swipe up/tap returns', (tester) async {
+  testWidgets('Swipe UP opens transcript view and swipe down/tap returns', (tester) async {
     await tester.pumpWidget(_buildVoiceTest());
     await tester.pump();
 
-    // Swipe down (positive offset) opens transcript
-    await tester.fling(find.byType(VoiceScreen), const Offset(0, 300), 1000);
+    // Swipe UP (negative offset) opens transcript
+    await tester.fling(find.byType(VoiceScreen), const Offset(0, -300), 1000);
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
@@ -103,14 +103,14 @@ void main() {
     expect(find.text('сегодня · 12:34'), findsOneWidget);
     expect(find.text('СВАЙП ↑ · ВЕРНУТЬСЯ К ГОЛОСУ'), findsOneWidget);
 
-    // Swipe up (negative offset) returns to voice
-    await tester.fling(find.byType(VoiceScreen), const Offset(0, -300), 1000);
+    // Swipe DOWN (positive offset) returns to voice
+    await tester.fling(find.byType(VoiceScreen), const Offset(0, 300), 1000);
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('Kai ожидает'), findsOneWidget);
 
-    // Swipe down again
-    await tester.fling(find.byType(VoiceScreen), const Offset(0, 300), 1000);
+    // Swipe UP again
+    await tester.fling(find.byType(VoiceScreen), const Offset(0, -300), 1000);
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
@@ -122,12 +122,12 @@ void main() {
     expect(find.text('Kai ожидает'), findsOneWidget);
   });
 
-  testWidgets('Swipe up in idle voice state exits to /room', (tester) async {
+  testWidgets('Swipe DOWN in idle voice state exits to /room', (tester) async {
     await tester.pumpWidget(_buildVoiceTest());
     await tester.pump();
 
-    // Swipe up (negative offset) exits
-    await tester.fling(find.byType(VoiceScreen), const Offset(0, -300), 1000);
+    // Swipe down (positive offset) exits
+    await tester.fling(find.byType(VoiceScreen), const Offset(0, 300), 1000);
     await tester.pumpAndSettle();
 
     // Should navigate to room
@@ -135,16 +135,16 @@ void main() {
     expect(find.byType(VoiceScreen), findsNothing);
   });
 
-  testWidgets('Tapping SWIPE ↑ text in idle exits to /room', (tester) async {
+  testWidgets('Tapping SWIPE ↑ · ТРАНСКРИПЦИЯ text in idle opens transcript', (tester) async {
     await tester.pumpWidget(_buildVoiceTest());
     await tester.pump();
 
-    // Tap SWIPE ↑ text
-    await tester.tap(find.text('SWIPE ↑'));
-    await tester.pumpAndSettle();
+    // Tap SWIPE ↑ · ТРАНСКРИПЦИЯ text
+    await tester.tap(find.text('SWIPE ↑ · ТРАНСКРИПЦИЯ'));
+    await tester.pump(const Duration(seconds: 1));
 
-    // Should navigate to room
-    expect(find.text('room'), findsOneWidget);
-    expect(find.byType(VoiceScreen), findsNothing);
+    // Should open transcript view
+    expect(find.text('сегодня · 12:34'), findsOneWidget);
+    expect(find.byType(VoiceScreen), findsOneWidget);
   });
 }

@@ -79,30 +79,67 @@ class _SplashScreenState extends State<SplashScreen>
     final c = KaiTheme.of(context).colors;
     return ColoredBox(
       color: c.bg,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      child: SafeArea(
+        child: Stack(
           children: [
-            ScaleTransition(scale: _scale, child: const _SplashGlyph()),
-            const SizedBox(height: 16),
-            Text(
-              'kai',
-              style: TextStyle(
-                fontFamily: 'Manrope',
-                fontSize: 26,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.025 * 26,
-                color: c.ink1,
+            // Center content: glyph + wordmark + tagline
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ScaleTransition(scale: _scale, child: const _SplashGlyph()),
+                  const SizedBox(height: 16),
+                  Text(
+                    'kai',
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.025 * 26,
+                      color: c.ink1,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.tag,
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w400,
+                      color: c.ink3,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              widget.tag,
-              style: TextStyle(
-                fontFamily: 'Manrope',
-                fontSize: 12.5,
-                fontWeight: FontWeight.w400,
-                color: c.ink3,
+            // Island / notch indicator (brand.html canon)
+            Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Container(
+                  width: 90,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: c.ink1,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+            ),
+            // Home bar indicator (brand.html canon)
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 7),
+                child: Container(
+                  width: 90,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: c.ink3.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
               ),
             ),
           ],

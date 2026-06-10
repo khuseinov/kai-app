@@ -184,16 +184,18 @@ class _VoiceScreenState extends State<VoiceScreen>
 
   void _handleVerticalDrag(DragEndDetails details) {
     final velocity = details.primaryVelocity ?? 0;
-    if (velocity > 200 || _dragDeltaY > 100) {
-      // Swipe down opens transcript
-      _goToTranscript();
-    } else if (velocity < -200 || _dragDeltaY < -100) {
-      // Swipe up:
+    // Swipe UP (velocity < 0, dragDeltaY < 0) opens transcript.
+    if (velocity < -200 || _dragDeltaY < -100) {
       if (_state == _VoiceState.transcript) {
-        // Return to voice from transcript
+        // Already in transcript: do nothing (handled separately)
+      } else {
+        _goToTranscript();
+      }
+    } else if (velocity > 200 || _dragDeltaY > 100) {
+      // Swipe down: close voice mode / return to room
+      if (_state == _VoiceState.transcript) {
         _returnFromTranscript();
       } else {
-        // Close voice mode and return to room
         context.go('/room');
       }
     }
@@ -320,22 +322,22 @@ class _VoiceScreenState extends State<VoiceScreen>
               ),
             ),
           ),
-          Positioned(
-            top: 12,
-            right: 18,
-            child: GestureDetector(
-              onTap: () => context.go('/room'),
-              child: const Text(
-                'SWIPE ↑',
-                style: TextStyle(
-                  fontFamily: 'JetBrainsMono',
-                  fontSize: 9,
-                  color: Color(0x40FFFFFF),
-                  letterSpacing: 0.12,
+            Positioned(
+              top: 12,
+              right: 18,
+              child: GestureDetector(
+                onTap: _goToTranscript,
+                child: const Text(
+                  'SWIPE ↑ · ТРАНСКРИПЦИЯ',
+                  style: TextStyle(
+                    fontFamily: 'JetBrainsMono',
+                    fontSize: 9,
+                    color: Color(0x40FFFFFF),
+                    letterSpacing: 0.12,
+                  ),
                 ),
               ),
             ),
-          ),
         ],
 
         // Centered large animated wave + text cluster

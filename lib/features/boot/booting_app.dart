@@ -85,9 +85,20 @@ class _BootingAppState extends State<BootingApp> {
       // Splash phase — temporary ProviderScope so KaiTheme can read
       // themeModeProvider. This scope is discarded when bootstrap returns;
       // the real container takes over.
-      return const ProviderScope(
+      return ProviderScope(
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
+          builder: (context, child) {
+            final mediaQuery = MediaQuery.of(context);
+            return MediaQuery(
+              data: mediaQuery.copyWith(
+                textScaler: mediaQuery.textScaler.clamp(
+                  minScaleFactor: 1.0,
+                ),
+              ),
+              child: child!,
+            );
+          },
           home: KaiTheme(child: SplashScreen()),
         ),
       );
@@ -146,7 +157,7 @@ class _BootingAppFadeOverlayState extends State<_BootingAppFadeOverlay>
         widget.child,
         FadeTransition(
           opacity: Tween<double>(begin: 1.0, end: 0.0).animate(_fadeController),
-          child: const MaterialApp(
+          child: MaterialApp(
             debugShowCheckedModeBanner: false,
             home: KaiTheme(
               child: SplashScreen(),

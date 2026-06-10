@@ -101,9 +101,9 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
         Theme.of(context).platform == TargetPlatform.windows ||
         Theme.of(context).platform == TargetPlatform.macOS ||
         Theme.of(context).platform == TargetPlatform.linux;
-    final edgeWidth = isDesktop ? 80.0 : 24.0;
+    final edgeWidth = isDesktop ? 100.0 : 60.0;
     final isLeftEdge = _dragStartX < edgeWidth;
-    final isRightward = velocity > 200 || _dragDeltaX > 100;
+    final isRightward = velocity > 100 || _dragDeltaX > 50;
     if (isLeftEdge && isRightward) {
       _openNav();
     }
@@ -136,18 +136,16 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
 
     return Scaffold(
       backgroundColor: colors.bg,
-      body: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onHorizontalDragStart: _onHorizontalDragStart,
-        onHorizontalDragUpdate: _onHorizontalDragUpdate,
-        onHorizontalDragEnd: _onHorizontalDragEnd,
-        child: SafeArea(
-          top: false,
-          child: Stack(
-            children: [
-              Column(
-                children: [
-                  SizedBox(height: topInset + 4),
+      body: Stack(
+        children: [
+          // ── Main content ──────────────────────────────────────────────
+          SafeArea(
+            top: false,
+            child: Stack(
+              children: [
+                Column(
+                  children: [
+                    SizedBox(height: topInset + 4),
                   RepaintBoundary(
                     child: SizedBox(
                       height: 16,
@@ -263,6 +261,21 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
             ],
           ),
         ),
+        // ── Left-edge swipe catcher ────────────────────────────────────
+        Positioned(
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: 60,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onHorizontalDragStart: _onHorizontalDragStart,
+            onHorizontalDragUpdate: _onHorizontalDragUpdate,
+            onHorizontalDragEnd: _onHorizontalDragEnd,
+            child: Container(color: Colors.transparent),
+          ),
+        ),
+      ],
       ),
     );
   }

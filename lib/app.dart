@@ -26,8 +26,17 @@ class KaiApp extends ConsumerWidget {
       // KaiTheme sits inside MaterialApp so MediaQuery.platformBrightnessOf
       // (called from KaiTheme.build) has the MediaQuery ancestor MaterialApp
       // inserts. Outside MaterialApp it would throw on the first frame.
-      builder: (context, child) =>
-          KaiTheme(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(
+            textScaler: mediaQuery.textScaler.clamp(
+              minScaleFactor: 1.0,
+            ),
+          ),
+          child: KaiTheme(child: child ?? const SizedBox.shrink()),
+        );
+      },
     );
   }
 }
