@@ -20,7 +20,7 @@ Future<void> _pump(
 }
 
 Future<void> _pumpTransition(WidgetTester tester) async {
-  for (int i = 0; i < 10; i++) {
+  for (var i = 0; i < 10; i++) {
     await tester.pump(const Duration(milliseconds: 50));
   }
 }

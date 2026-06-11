@@ -1,7 +1,8 @@
 // Brand PNG generator — direct Canvas/PictureRecorder rendering (no widget
 // tree, no RepaintBoundary.toImage which timed out in TestWidgetsBinding).
 // Reproduces the canon curve paths from `brand.html § 02.1–02.2` and exports
-// 1024×1024 PNG masters for `flutter_launcher_icons` + `flutter_native_splash`.
+// 1024×1024 PNG masters for `flutter_launcher_icons` + `flutter_native_splash`,
+// plus the 1200×630 OG card from `brand.html § 02.2`.
 //
 // Usage:
 //   flutter test tool/generate_brand_pngs.dart
@@ -11,16 +12,18 @@
 //   brand/icon-1024-dark.png   (dark slate + tide-gradient curve)
 //   brand/icon-1024-mono.png   (#111114 + white curve)
 //   brand/splash-glyph-1024.png (rounded glyph with built-in radius 22%)
+//   brand/og-default.png        (1200×630 OG card)
+//   web/og-default.png          (copy for web OpenGraph meta tags)
 
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/painting.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
-enum _Variant { primary, dark, mono, splashGlyph }
+enum _Variant { primary, dark, mono, splashGlyph, ogCard }
 
 const int _size = 1024;
 
@@ -29,6 +32,7 @@ final _assets = <(_Variant, String)>[
   (_Variant.dark, 'brand/icon-1024-dark.png'),
   (_Variant.mono, 'brand/icon-1024-mono.png'),
   (_Variant.splashGlyph, 'brand/splash-glyph-1024.png'),
+  (_Variant.ogCard, 'brand/og-default.png'),
 ];
 
 void main() {
@@ -37,19 +41,36 @@ void main() {
     () async {
       // ensureInitialized — `test` (not `testWidgets`) doesn't pre-init bindings.
       TestWidgetsFlutterBinding.ensureInitialized();
+      await _loadBrandFont();
       for (final (variant, target) in _assets) {
-        final bytes = await _renderTile(variant, _size);
+        final bytes = variant == _Variant.ogCard
+            ? await _renderOgCard()
+            : await _renderTile(variant, _size);
         await File(target).writeAsBytes(bytes);
+        if (variant == _Variant.ogCard) {
+          await File('web/og-default.png').writeAsBytes(bytes);
+        }
         // ignore: avoid_print
         print(
           '  ✓ $target  '
-          '$_size×$_size  '
+          '${variant == _Variant.ogCard ? '1200×630' : '$_size×$_size'}  '
           '(${(bytes.lengthInBytes / 1024).toStringAsFixed(1)} KB)',
         );
       }
     },
     timeout: const Timeout(Duration(minutes: 2)),
   );
+}
+
+Future<void> _loadBrandFont() async {
+  final file = File('assets/fonts/Manrope.ttf');
+  if (!file.existsSync()) {
+    throw StateError('Brand font not found at assets/fonts/Manrope.ttf');
+  }
+  final bytes = await file.readAsBytes();
+  final byteData = bytes.buffer.asByteData(bytes.offsetInBytes, bytes.lengthInBytes);
+  final loader = FontLoader('Manrope')..addFont(Future.value(byteData));
+  await loader.load();
 }
 
 Future<Uint8List> _renderTile(_Variant variant, int size) async {
@@ -60,11 +81,12 @@ Future<Uint8List> _renderTile(_Variant variant, int size) async {
   final recorder = ui.PictureRecorder();
   final canvas = ui.Canvas(recorder);
 
-  // Splash glyph bakes in the iOS round-rect radius (22% on 64 = 14;
-  // scaled to 1024 = 224). Icon variants stay square — platform applies mask.
+  // Splash glyph bakes in the splash-glyph radius (20 px on 64 = 31.25%;
+  // scaled to 1024 = 320), matching brand/splash-glyph.svg rx="320".
+  // Icon variants stay square — platform applies mask.
   if (isSplash) {
     canvas.clipRRect(
-      RRect.fromRectAndRadius(fullRect, Radius.circular(s * 0.22)),
+      RRect.fromRectAndRadius(fullRect, Radius.circular(s * (20 / 64))),
     );
   }
 
@@ -82,6 +104,8 @@ Future<Uint8List> _renderTile(_Variant variant, int size) async {
       ).createShader(fullRect);
     case _Variant.mono:
       bgPaint.color = const Color(0xFF111114);
+    case _Variant.ogCard:
+      throw UnsupportedError('Use _renderOgCard() for the OG card variant');
   }
   canvas.drawRect(fullRect, bgPaint);
 
@@ -147,4 +171,210 @@ void _drawCurve(Canvas canvas, double s, _Variant variant, Rect fullRect) {
   }
 
   canvas.restore();
+}
+
+Future<Uint8List> _renderOgCard() async {
+  const width = 1200;
+  const height = 630;
+  const paddingX = 64.0;
+  const paddingY = 56.0;
+  const ink1 = Color(0xFF111114);
+
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder);
+  final cardRect = Rect.fromLTWH(0, 0, width.toDouble(), height.toDouble());
+
+  // Ink-1 background.
+  canvas.drawRect(cardRect, Paint()..color = ink1);
+
+  // Soft blurred radial bg-curve (sea-glass glow).
+  // HTML: right:-100px; top:50%; width/height:700px; blur:20px;
+  //        radial-gradient(circle, rgba(43,168,201,0.4), transparent 65%).
+  const glowCenter = Offset(width - 100 - 350, height / 2);
+  const glowRadius = 350.0;
+  final glowPaint = Paint()
+    ..shader = ui.Gradient.radial(
+      glowCenter,
+      glowRadius,
+      [const Color(0x662BA8C9), const Color(0x002BA8C9)],
+      [0.0, 0.65],
+    )
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20);
+  canvas.drawCircle(glowCenter, glowRadius, glowPaint);
+
+  // Top mark: tide-gradient curve + "kai" wordmark.
+  const markHeight = 22.0;
+  const curveW = 40.0;
+  const curveH = 8.0;
+  const markGap = 14.0;
+  const markY = paddingY + (markHeight - curveH) / 2;
+
+  final curvePaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 3
+    ..strokeCap = StrokeCap.round
+    ..shader = KaiTide.gradient.createShader(
+      const Rect.fromLTWH(paddingX, markY, curveW, curveH),
+    );
+  final curvePath = Path()
+    ..moveTo(2, 4)
+    ..quadraticBezierTo(10, 0, 20, 4)
+    // Reflected control for T 38,3: 2*(20,4) - (10,0) = (30,8).
+    ..quadraticBezierTo(30, 8, 38, 3);
+  canvas.save();
+  canvas.translate(paddingX, markY);
+  canvas.drawPath(curvePath, curvePaint);
+  canvas.restore();
+
+  final wordmarkParagraph = _buildParagraph(
+    text: 'kai',
+    color: const Color(0xFFFFFFFF),
+    fontSize: markHeight,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.02 * markHeight,
+  );
+  canvas.drawParagraph(
+    wordmarkParagraph,
+    const Offset(paddingX + curveW + markGap, paddingY),
+  );
+
+  // Title block laid out with CSS flex "space-between" logic:
+  // available content height = 630 - 2*56 = 518.
+  // content = mark(22) + title(2*67.2) + footer(16) = 172.4.
+  // two gaps = (518 - 172.4)/2 = 172.8.
+  const titleFontSize = 64.0;
+  const titleLineHeight = titleFontSize * 1.05;
+  const titleTop = paddingY + markHeight + 172.8;
+
+  final line1 = _buildParagraph(
+    text: 'Тихая система,',
+    color: const Color(0xFFFFFFFF),
+    fontSize: titleFontSize,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.03 * titleFontSize,
+    height: 1.05,
+  );
+  canvas.drawParagraph(line1, const Offset(paddingX, titleTop));
+
+  // Second line: "с " (white) + "моментами прилива." (gradient italic).
+  const line2Top = titleTop + titleLineHeight;
+  const prefix = 'с ';
+
+  // Measure prefix width to place the gradient italic fragment.
+  final prefixMeasure = _buildParagraph(
+    text: prefix,
+    color: const Color(0x00FFFFFF),
+    fontSize: titleFontSize,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.03 * titleFontSize,
+    height: 1.05,
+  );
+  final prefixWidth = prefixMeasure.maxIntrinsicWidth;
+
+  final prefixParagraph = _buildParagraph(
+    text: prefix,
+    color: const Color(0xFFFFFFFF),
+    fontSize: titleFontSize,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.03 * titleFontSize,
+    height: 1.05,
+  );
+  canvas.drawParagraph(prefixParagraph, const Offset(paddingX, line2Top));
+
+  // Gradient italic text — shader matches the fragment's bounding box.
+  const italicText = 'моментами прилива.';
+  final italicMeasure = _buildParagraph(
+    text: italicText,
+    color: const Color(0x00FFFFFF),
+    fontSize: titleFontSize,
+    fontWeight: FontWeight.w500,
+    fontStyle: FontStyle.italic,
+    letterSpacing: -0.03 * titleFontSize,
+    height: 1.05,
+  );
+  final italicWidth = italicMeasure.maxIntrinsicWidth;
+  final gradientRect = Rect.fromLTWH(
+    paddingX + prefixWidth,
+    line2Top,
+    italicWidth,
+    titleLineHeight,
+  );
+  final gradientPaint = Paint()
+    ..shader = KaiTide.gradient.createShader(gradientRect);
+  final italicParagraph = _buildParagraph(
+    text: italicText,
+    fontSize: titleFontSize,
+    fontWeight: FontWeight.w500,
+    fontStyle: FontStyle.italic,
+    letterSpacing: -0.03 * titleFontSize,
+    height: 1.05,
+    foreground: gradientPaint,
+  );
+  canvas.drawParagraph(
+    italicParagraph,
+    Offset(paddingX + prefixWidth, line2Top),
+  );
+
+  // Footer.
+  const footerFontSize = 16.0;
+  const footerTop = height - paddingY - footerFontSize;
+  final leftFooter = _buildParagraph(
+    text: 'kai.wize.ai',
+    color: const Color(0x99FFFFFF),
+    fontSize: footerFontSize,
+    fontWeight: FontWeight.w400,
+  );
+  canvas.drawParagraph(leftFooter, const Offset(paddingX, footerTop));
+
+  final rightFooter = _buildParagraph(
+    text: 'путешествия · компаньон · AI',
+    color: const Color(0x99FFFFFF),
+    fontSize: footerFontSize,
+    fontWeight: FontWeight.w400,
+  );
+  canvas.drawParagraph(
+    rightFooter,
+    Offset(width - paddingX - rightFooter.maxIntrinsicWidth, footerTop),
+  );
+
+  final picture = recorder.endRecording();
+  final image = await picture.toImage(width, height);
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  picture.dispose();
+  image.dispose();
+  if (byteData == null) {
+    throw StateError('toByteData returned null for OG card');
+  }
+  return byteData.buffer.asUint8List();
+}
+
+ui.Paragraph _buildParagraph({
+  required String text,
+  Color? color,
+  required double fontSize,
+  FontWeight fontWeight = FontWeight.w400,
+  FontStyle? fontStyle,
+  double? letterSpacing,
+  double? height,
+  Paint? foreground,
+}) {
+  final builder = ui.ParagraphBuilder(ui.ParagraphStyle(
+    fontSize: fontSize,
+    height: height,
+  ));
+  final style = ui.TextStyle(
+    color: foreground == null ? color : null,
+    foreground: foreground,
+    fontFamily: 'Manrope',
+    fontWeight: fontWeight,
+    fontStyle: fontStyle,
+    fontSize: fontSize,
+    letterSpacing: letterSpacing,
+    height: height,
+  );
+  builder.pushStyle(style);
+  builder.addText(text);
+  final paragraph = builder.build();
+  paragraph.layout(const ui.ParagraphConstraints(width: double.infinity));
+  return paragraph;
 }

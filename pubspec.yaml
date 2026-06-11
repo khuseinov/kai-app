@@ -62,6 +62,8 @@ dev_dependencies:
   hive_test: ^1.0.1
   # Brand asset pipeline — see brand/BRAND_README.md.
   flutter_launcher_icons: ^0.14.1
+  # Web PWA icon resizing (pure Dart, no ImageMagick).
+  image: ^4.8.0
   flutter_native_splash: ^2.4.0
 
 # Launcher-icons config — feeds platform AppIcon sets from brand/icon-1024.png.
@@ -72,23 +74,23 @@ flutter_launcher_icons:
   image_path: "brand/icon-1024.png"
   # Strip alpha — App Store requires opaque iOS icons.
   remove_alpha_ios: true
+  # iOS 18+ dark/tinted variants. flutter_launcher_icons >=0.14.1 generates these
+  # automatically and writes the matching `appearances` entries in Contents.json.
+  image_path_ios_dark_transparent: "brand/icon-1024-dark.png"
+  image_path_ios_tinted_grayscale: "brand/icon-1024-mono.png"
+  desaturate_tinted_to_grayscale_ios: true
   # Android adaptive icon (Android 8+). Background = bg token light (#FAFAF9).
   # Foreground is the same primary icon; Android masks corners automatically.
   adaptive_icon_background: "#FAFAF9"
   adaptive_icon_foreground: "brand/icon-1024.png"
 
-# Native-splash config — generates platform launch screens from the brand
-# splash glyph. The static native splash is visible while the Flutter engine
-# loads; as soon as the engine is ready the animated Flutter SplashScreen takes
-# over for a seamless transition.
-# Run: `dart run flutter_native_splash:create`
 # Native-splash config.
 #
 # Design decision: the brand animation lives only in the Flutter SplashScreen.
-# iOS and Android pre-12 therefore use a solid-color native launch screen so
-# there is no duplicate logo or size/position jump during the OS-to-Flutter
-# handoff. Web is handled manually in web/index.html (solid theme background).
-# Android 12+ uses the OS splash API, which is configured separately below.
+# iOS, Android pre-12 and Web therefore use a solid-color native launch screen
+# so there is no duplicate logo or size/position jump during the OS-to-Flutter
+# handoff. Android 12+ uses the OS splash API, which requires an icon and is
+# configured separately below.
 # Run: `dart run flutter_native_splash:create`
 flutter_native_splash:
   color: "#FAFAF9"
@@ -96,7 +98,7 @@ flutter_native_splash:
   # No general `image`: iOS and Android pre-12 use a solid-color native launch
   # screen. The brand animation lives exclusively in the Flutter SplashScreen,
   # so there is no duplicate logo or position jump during the OS-to-Flutter
-  # handoff. Web is handled manually in web/index.html.
+  # handoff. Web is handled manually in web/index.html (solid theme background).
   # Android 12+ keeps the OS splash icon because the API requires one.
   ios: true
   android: true
@@ -113,6 +115,7 @@ flutter:
   assets:
     - .env
     - assets/icons/
+    - brand/og-default.png
   fonts:
     # Variable font — same TTF declared per weight so requests like
     # FontWeight.w600 pick the true 600 axis instead of OS synthetic bold.

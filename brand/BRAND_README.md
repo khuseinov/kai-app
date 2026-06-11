@@ -15,6 +15,9 @@ assets are produced from these via `tool/generate_brand_pngs.dart`.
 | `icon-dark.svg` | 1024×1024 | iOS tinted dark mode + dark splash anchor. Slate gradient bg + tide-gradient curve. |
 | `icon-mono.svg` | 1024×1024 | Single-colour stencil — watch faces, accessibility tinting, mono print. |
 | `splash-glyph.svg` | 1024×1024 (with built-in rounded corners) | Splash screen glyph image. Used by `flutter_native_splash`. |
+| `og-default.png` | 1200×630 | OG card for social sharing. Generated from `brand.html § 02.2`. Also copied to `web/og-default.png`. |
+| `favicon-32.png` | 32×32 | Web favicon with brand glyph. |
+| `favicon-16.png` | 16×16 | Tiny web favicon — gradient square, curve invisible at this size. |
 | `BRAND_README.md` | — | This file. |
 
 Square masters carry **no rounded corners** — iOS / Android apply their own platform mask (iOS round-rect 22% radius, Android adaptive). `splash-glyph.svg` is the exception: it bakes in a corner radius (`r=320` on the 1024 master = canon 22%) because it ships as a self-contained tile, not an icon.
@@ -54,6 +57,26 @@ brand/icon-1024.png
 brand/icon-1024-dark.png
 brand/icon-1024-mono.png
 brand/splash-glyph-1024.png
+brand/og-default.png
+web/og-default.png
+```
+
+Then run the web icon generator:
+
+```sh
+dart run tool/generate_web_icons.dart
+```
+
+This produces:
+
+```
+web/favicon.png
+web/icons/Icon-192.png
+web/icons/Icon-512.png
+web/icons/Icon-maskable-192.png
+web/icons/Icon-maskable-512.png
+brand/favicon-32.png
+brand/favicon-16.png
 ```
 
 Then run the platform asset generators:
@@ -62,6 +85,12 @@ Then run the platform asset generators:
 dart run flutter_launcher_icons
 dart run flutter_native_splash:create
 ```
+
+> **Note:** `flutter_native_splash:create` regenerates iOS and web launch
+> surfaces. The design decision is to keep native launch screens as solid theme
+> colors only; the brand glyph animates exclusively inside the Flutter
+> `SplashScreen`. Do not re-add a native brand glyph — that would reintroduce
+> the duplicate-logo / position-jump problem fixed in `5a4352a`.
 
 These overwrite the platform-specific assets:
 
@@ -90,8 +119,4 @@ Configs for both tools live in `pubspec.yaml` under their named keys.
 
 ## Out of scope
 
-- **OG card** (`brand/og-default.png`, 1200×630) — marketing asset, only needed
-  when a landing page or share-link previews are added. Mark TODO when that
-  work begins.
-- **Favicon** (`brand/favicon-32.png`, `brand/favicon-16.png`) — web-only, not
-  required for the mobile app.
+Nothing currently.

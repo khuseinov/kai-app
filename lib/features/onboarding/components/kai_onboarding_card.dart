@@ -111,25 +111,10 @@ class _WelcomeStep extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Brand glyph: 64×64 rounded square — a square brand surface, so it
-        // uses the corner gradient (135°, stop-2 @ 55%), NOT the 115° tide
-        // curve gradient.
+        // Canonical brand glyph: 64×64 rounded square with corner gradient.
         // HTML: `.ob .glyph { width:64px; height:64px; border-radius:20px;
         //   background: var(--tide-gradient-corner); }`
-        Container(
-          width: 64,
-          height: 64,
-          decoration: const BoxDecoration(
-            gradient: KaiTide.gradientCorner,
-            borderRadius: BorderRadius.all(Radius.circular(20)),
-          ),
-          child: Center(
-            child: CustomPaint(
-              size: const Size(36, 14),
-              painter: _WavePainter(),
-            ),
-          ),
-        ),
+        const KaiLogo(size: 64),
         const SizedBox(height: 20),
         // Title — 22px/600, ink1, center.
         Text(
@@ -147,36 +132,6 @@ class _WelcomeStep extends StatelessWidget {
       ],
     );
   }
-}
-
-/// Paints a white sinusoidal wave — the Kai brand glyph inside the gradient
-/// square. Matches the HTML `<path d="M 2 8 Q 9 2, 18 8 T 34 5" .../>`.
-class _WavePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..strokeWidth = 2.5
-      // canon: white wave on gradient background — no token equivalent for
-      // literal white-on-gradient; use Colors.white per HTML spec.
-      ..color = Colors.white;
-
-    final sx = size.width / 36.0;
-    final sy = size.height / 14.0;
-
-    final path = Path()
-      ..moveTo(2 * sx, 8 * sy)
-      ..quadraticBezierTo(9 * sx, 2 * sy, 18 * sx, 8 * sy)
-      // Reflected Q: control (9,2) reflected across (18,8) → (27,14)
-      ..quadraticBezierTo(27 * sx, 14 * sy, 34 * sx, 5 * sy);
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter old) => false;
 }
 
 // ─── Step 1: Tide ─────────────────────────────────────────────────────────────
