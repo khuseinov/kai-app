@@ -53,7 +53,7 @@ void main() {
       expect(state.pulseController.isAnimating, isTrue);
 
       // Text fade completes.
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 600));
       expect(state.fadeController.isCompleted, isTrue);
     });
 
@@ -83,15 +83,15 @@ void main() {
         matchesGoldenFile('goldens/splash_t0.png'),
       );
 
-      // t=300ms: text fade-in complete; logo still near rest.
-      await tester.pump(const Duration(milliseconds: 300));
+      // t=600ms: text fade-in complete; logo still near rest.
+      await tester.pump(const Duration(milliseconds: 600));
       await expectLater(
         find.byType(SplashScreen),
-        matchesGoldenFile('goldens/splash_t300.png'),
+        matchesGoldenFile('goldens/splash_t600.png'),
       );
 
       // t=1200ms: mid-point of the 2400ms pulse loop -> logo scaled up.
-      await tester.pump(const Duration(milliseconds: 900));
+      await tester.pump(const Duration(milliseconds: 600));
       await expectLater(
         find.byType(SplashScreen),
         matchesGoldenFile('goldens/splash_t1200.png'),

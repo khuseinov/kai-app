@@ -10,7 +10,7 @@ import '../../design_system/tokens/kai_tokens.dart';
 /// - 64×64 gradient glyph (r = 20) with a looping 2.4s ease-in-out pulse;
 /// - "kai" wordmark at 26px/700;
 /// - tagline "ваш компаньон путешественника" at 12.5px/400;
-/// - wordmark + tagline fade in once after the glyph is visible;
+/// - wordmark + tagline fade in over 600 ms once the glyph is visible;
 /// - centered on the themed background (`colors.bg`).
 ///
 /// Honors `MediaQuery.disableAnimations` — reduced-motion users see a static
@@ -57,11 +57,11 @@ class SplashScreenState extends State<SplashScreen>
 
     _fadeController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 600),
     );
     _textOpacity = CurvedAnimation(
       parent: _fadeController,
-      curve: Curves.easeOut,
+      curve: Curves.easeInOut,
     );
   }
 
@@ -107,7 +107,7 @@ class SplashScreenState extends State<SplashScreen>
               ),
               child: logo,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             AnimatedBuilder(
               animation: _textOpacity,
               builder: (context, child) => Opacity(
@@ -118,7 +118,7 @@ class SplashScreenState extends State<SplashScreen>
                 child: Column(
                   children: [
                     Text('kai', style: KaiType.wordmark(color: c.ink1)),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
                     Text(
                       'ваш компаньон путешественника',
                       style: KaiType.tagline(color: c.ink3),
