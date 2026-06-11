@@ -116,6 +116,32 @@ class KaiType {
         color: color,
       );
 
+  /// 26/700 — splash wordmark "kai".
+  ///
+  /// Canon from `new-design/brand.html` § 02.2: 26px/700, ls -0.025em.
+  static TextStyle wordmark({required Color color}) => TextStyle(
+        fontFamily: 'Manrope',
+        fontSize: 26,
+        fontWeight: FontWeight.w700,
+        height: 1.0,
+        letterSpacing: -0.65,
+        fontFeatures: _manropeFeatures,
+        color: color,
+      );
+
+  /// 12.5/400 — splash tagline.
+  ///
+  /// Canon from `new-design/brand.html` § 02.2.
+  static TextStyle tagline({required Color color}) => TextStyle(
+        fontFamily: 'Manrope',
+        fontSize: 12.5,
+        fontWeight: FontWeight.w400,
+        height: 1.4,
+        letterSpacing: 0,
+        fontFeatures: _manropeFeatures,
+        color: color,
+      );
+
   /// 12/400 — monospace.
   static TextStyle mono({required Color color}) => TextStyle(
         fontFamily: 'JetBrainsMono',

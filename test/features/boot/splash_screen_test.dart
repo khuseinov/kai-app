@@ -1,120 +1,108 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/core/providers/root.dart';
-import 'package:kai_app/design_system/theme/kai_theme.dart';
-import 'package:kai_app/design_system/tokens/kai_tokens.dart';
+import 'package:kai_app/design_system/atoms/atoms.dart';
 import 'package:kai_app/features/boot/splash_screen.dart';
 
-Future<void> _pump(
-  WidgetTester tester, {
-  ThemeMode mode = ThemeMode.light,
-}) async {
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: <Override>[
-        themeModeProvider.overrideWith((ref) => mode),
-      ],
-      child: const MaterialApp(
-        home: KaiTheme(child: SplashScreen()),
-      ),
+import '../../test_helpers.dart';
+
+/// Fixed iPhone-style viewport for golden screenshots.
+Widget _frame(Widget child) {
+  return Center(
+    child: SizedBox(
+      width: 390,
+      height: 844,
+      child: child,
     ),
   );
-  await tester.pump();
 }
 
 void main() {
   group('SplashScreen', () {
-    testWidgets('renders wordmark + default tag', (tester) async {
-      await _pump(tester);
+    testWidgets('renders logo, wordmark and tagline', (tester) async {
+      await tester.pumpWidget(buildTestWidget(const SplashScreen()));
+
+      expect(find.byType(KaiLogo), findsOneWidget);
       expect(find.text('kai'), findsOneWidget);
       expect(find.text('ваш компаньон путешественника'), findsOneWidget);
     });
 
-    testWidgets('custom tag overrides default', (tester) async {
+    testWidgets('adapts to dark mode', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
-            home: KaiTheme(
-              child: SplashScreen(tag: 'your travel companion'),
-            ),
-          ),
+        buildTestWidget(
+          const SplashScreen(),
+          themeMode: ThemeMode.dark,
         ),
       );
-      await tester.pump();
-      expect(find.text('your travel companion'), findsOneWidget);
-      expect(find.text('ваш компаньон путешественника'), findsNothing);
+
+      expect(find.byType(KaiLogo), findsOneWidget);
+      expect(find.text('kai'), findsOneWidget);
     });
 
-    testWidgets('background uses bg token', (tester) async {
-      await _pump(tester);
-      final box = tester.widget<ColoredBox>(
-        find
-            .descendant(
-              of: find.byType(SplashScreen),
-              matching: find.byType(ColoredBox),
-            )
-            .first,
-      );
-      expect(box.color, KaiTokens.light.colors.bg);
+    testWidgets('loops glyph pulse and fades in text', (tester) async {
+      await tester.pumpWidget(buildTestWidget(const SplashScreen()));
+
+      final state = tester.state<SplashScreenState>(find.byType(SplashScreen));
+      expect(state.pulseController.isAnimating, isTrue);
+      expect(state.pulseController.status, AnimationStatus.forward);
+      expect(state.fadeController.isAnimating, isTrue);
+      expect(state.fadeController.status, AnimationStatus.forward);
+
+      // Advance to the end of one pulse cycle; the controller should still be
+      // animating because it loops.
+      await tester.pump(const Duration(milliseconds: 2400));
+      expect(state.pulseController.isAnimating, isTrue);
+
+      // Text fade completes.
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(state.fadeController.isCompleted, isTrue);
     });
 
-    testWidgets('glyph uses gradientCorner', (tester) async {
-      await _pump(tester);
-      // Find the 64×64 Container with the gradient decoration.
-      final containers = tester.widgetList<Container>(
-        find.descendant(
-          of: find.byType(SplashScreen),
-          matching: find.byType(Container),
-        ),
-      );
-      final glyph = containers.firstWhere(
-        (c) {
-          final dec = c.decoration;
-          return dec is BoxDecoration && dec.gradient != null;
-        },
-      );
-      final dec = glyph.decoration! as BoxDecoration;
-      expect(dec.gradient, isA<LinearGradient>());
-      final gradient = dec.gradient! as LinearGradient;
-      // Canon: 135° corner-to-corner, stop-2 @ 0.55
-      expect(gradient.stops, [0.0, 0.55, 1.0]);
-      expect(gradient.colors, [
-        const Color(0xFF1B4FB0),
-        const Color(0xFF2BA8C9),
-        const Color(0xFFF4B589),
-      ]);
-      // Radius 20
-      final radius = dec.borderRadius! as BorderRadius;
-      expect(radius.topLeft, const Radius.circular(20));
-    });
-
-    testWidgets('glyph-pulse animation runs', (tester) async {
-      await _pump(tester);
-      // After 1.2s (half-period) scale should differ from initial 1.0.
-      final initialScale = tester
-          .widget<ScaleTransition>(find.byType(ScaleTransition))
-          .scale
-          .value;
-      expect(initialScale, 1.0);
-      await tester.pump(const Duration(milliseconds: 1200));
-      final midScale = tester
-          .widget<ScaleTransition>(find.byType(ScaleTransition))
-          .scale
-          .value;
-      // Curves.easeInOut at t=0.5 returns 0.5; tween 1.0→1.06 at 0.5 = 1.03
-      expect(midScale, greaterThan(1.0));
-      expect(midScale, lessThanOrEqualTo(1.06));
-    });
-
-    testWidgets('wordmark uses Manrope 700/26 with -0.025em letter-spacing',
+    testWidgets('keeps controllers idle when animations are disabled',
         (tester) async {
-      await _pump(tester);
-      final wordmark = tester.widget<Text>(find.text('kai'));
-      expect(wordmark.style?.fontFamily, 'Manrope');
-      expect(wordmark.style?.fontSize, 26);
-      expect(wordmark.style?.fontWeight, FontWeight.w700);
-      expect(wordmark.style?.letterSpacing, -0.025 * 26);
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: buildTestWidget(const SplashScreen()),
+        ),
+      );
+
+      final state = tester.state<SplashScreenState>(find.byType(SplashScreen));
+      expect(state.pulseController.isAnimating, isFalse);
+      expect(state.fadeController.isAnimating, isFalse);
+      expect(state.fadeController.value, 0.0);
+    });
+
+    testWidgets('golden frames show pulse loop and fade-in', (tester) async {
+      await tester.pumpWidget(
+        buildTestWidget(_frame(const SplashScreen())),
+      );
+
+      // t=0: logo at rest, text fully transparent.
+      await expectLater(
+        find.byType(SplashScreen),
+        matchesGoldenFile('goldens/splash_t0.png'),
+      );
+
+      // t=300ms: text fade-in complete; logo still near rest.
+      await tester.pump(const Duration(milliseconds: 300));
+      await expectLater(
+        find.byType(SplashScreen),
+        matchesGoldenFile('goldens/splash_t300.png'),
+      );
+
+      // t=1200ms: mid-point of the 2400ms pulse loop -> logo scaled up.
+      await tester.pump(const Duration(milliseconds: 900));
+      await expectLater(
+        find.byType(SplashScreen),
+        matchesGoldenFile('goldens/splash_t1200.png'),
+      );
+
+      // t=2400ms: end of one pulse loop -> logo back at rest, still animating.
+      await tester.pump(const Duration(milliseconds: 1200));
+      await expectLater(
+        find.byType(SplashScreen),
+        matchesGoldenFile('goldens/splash_t2400.png'),
+      );
     });
   });
 }

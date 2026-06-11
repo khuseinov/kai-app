@@ -4,12 +4,12 @@ import '../tokens/kai_tokens.dart';
 
 /// Renders the canonical brand curve inside a given size.
 ///
-/// Under the hood, this uses a scaled CustomPainter wrapping the official path:
-/// `M 2 8 Q 9 2, 18 8 T 34 5` (viewBox width=36, height=14).
+/// Splash-glyph canon from `brand.html` / `brand/splash-glyph.svg`:
+/// viewBox 36×18, path `M 2 11 Q 9 3, 18 11 T 34 7`, stroke-width 2.5.
 class KaiBrandCurve extends StatelessWidget {
   const KaiBrandCurve({
     this.width = 36,
-    this.height = 14,
+    this.height = 18,
     this.color = Colors.white,
     this.strokeWidth = 2.5,
     super.key,
@@ -42,10 +42,10 @@ class KaiLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Keep proportions matching canon:
-    // For size 64: curve is 36×14, radius is 20.
+    // Keep proportions matching canon (brand.html splash glyph):
+    // For size 64: curve viewBox is 36×18, radius is 20.
     final curveW = size * (36.0 / 64.0);
-    final curveH = size * (14.0 / 64.0);
+    final curveH = size * (18.0 / 64.0);
     final radius = size * (20.0 / 64.0);
 
     return Container(
@@ -83,13 +83,13 @@ class _KaiBrandCurvePainter extends CustomPainter {
       ..color = color;
 
     final sx = size.width / 36.0;
-    final sy = size.height / 14.0;
+    final sy = size.height / 18.0;
 
     final path = Path()
-      ..moveTo(2.0 * sx, 8.0 * sy)
-      ..quadraticBezierTo(9.0 * sx, 2.0 * sy, 18.0 * sx, 8.0 * sy)
-      // Reflected Q: control (9,2) reflected across (18,8) → (27,14)
-      ..quadraticBezierTo(27.0 * sx, 14.0 * sy, 34.0 * sx, 5.0 * sy);
+      ..moveTo(2.0 * sx, 11.0 * sy)
+      ..quadraticBezierTo(9.0 * sx, 3.0 * sy, 18.0 * sx, 11.0 * sy)
+      // Reflected Q: control (9,3) reflected across (18,11) → (27,19)
+      ..quadraticBezierTo(27.0 * sx, 19.0 * sy, 34.0 * sx, 7.0 * sy);
 
     canvas.drawPath(path, paint);
   }

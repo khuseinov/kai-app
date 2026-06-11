@@ -77,21 +77,24 @@ flutter_launcher_icons:
   adaptive_icon_background: "#FAFAF9"
   adaptive_icon_foreground: "brand/icon-1024.png"
 
-# Native-splash config — generates LaunchScreen.storyboard + launch_background.xml.
+# Native-splash config — generates platform launch screens from the brand
+# splash glyph. The static native splash is visible while the Flutter engine
+# loads; as soon as the engine is ready the animated Flutter SplashScreen takes
+# over for a seamless transition.
 # Run: `dart run flutter_native_splash:create`
 flutter_native_splash:
   color: "#FAFAF9"
   color_dark: "#0E0E11"
-  image: "brand/splash-glyph-1024.png"
-  image_dark: "brand/splash-glyph-1024.png"
+  image: brand/splash-glyph-1024.png
+  image_dark: brand/splash-glyph-1024.png
   ios: true
   android: true
-  # Android 12+ adaptive splash — same glyph + bg colours.
+  # Android 12+ adaptive splash — solid color only; the OS window splash does
+  # not support a central image in the same way. The Flutter SplashScreen owns
+  # the animated brand mark.
   android_12:
     color: "#FAFAF9"
     color_dark: "#0E0E11"
-    image: "brand/splash-glyph-1024.png"
-    image_dark: "brand/splash-glyph-1024.png"
 
 flutter:
   uses-material-design: true
