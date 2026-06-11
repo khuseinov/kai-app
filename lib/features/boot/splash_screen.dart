@@ -7,7 +7,7 @@ import '../../design_system/tokens/kai_tokens.dart';
 /// Canonical cold-start splash screen.
 ///
 /// Reproduces `new-design/brand.html` § 02.2:
-/// - 64×64 gradient glyph (r = 20) with a looping 2.4s ease-in-out pulse;
+/// - 64×64 gradient glyph (r = 20) with a looping 3.0s ease-in-out-sine pulse;
 /// - "kai" wordmark at 26px/700;
 /// - tagline "ваш компаньон путешественника" at 12.5px/400;
 /// - wordmark + tagline fade in over 600 ms once the glyph is visible;
@@ -40,17 +40,17 @@ class SplashScreenState extends State<SplashScreen>
     super.initState();
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2400),
+      duration: const Duration(milliseconds: 3000),
     );
     _scale = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween(begin: 1.0, end: 1.06)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween(begin: 1.0, end: 1.04)
+            .chain(CurveTween(curve: Curves.easeInOutSine)),
         weight: 50,
       ),
       TweenSequenceItem(
-        tween: Tween(begin: 1.06, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween(begin: 1.04, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeInOutSine)),
         weight: 50,
       ),
     ]).animate(_pulseController);
@@ -91,7 +91,6 @@ class SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
-    const logo = KaiLogo(size: 64);
 
     return SizedBox.expand(
       child: ColoredBox(
@@ -99,21 +98,13 @@ class SplashScreenState extends State<SplashScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedBuilder(
-              animation: _scale,
-              builder: (context, child) => Transform.scale(
-                scale: _scale.value,
-                child: child,
-              ),
-              child: logo,
+            ScaleTransition(
+              scale: _scale,
+              child: const KaiLogo(size: 64),
             ),
             const SizedBox(height: 14),
-            AnimatedBuilder(
-              animation: _textOpacity,
-              builder: (context, child) => Opacity(
-                opacity: _textOpacity.value,
-                child: child,
-              ),
+            FadeTransition(
+              opacity: _textOpacity,
               child: SelectionContainer.disabled(
                 child: Column(
                   children: [

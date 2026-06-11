@@ -49,7 +49,7 @@ void main() {
 
       // Advance to the end of one pulse cycle; the controller should still be
       // animating because it loops.
-      await tester.pump(const Duration(milliseconds: 2400));
+      await tester.pump(const Duration(milliseconds: 3000));
       expect(state.pulseController.isAnimating, isTrue);
 
       // Text fade completes.
@@ -90,18 +90,18 @@ void main() {
         matchesGoldenFile('goldens/splash_t600.png'),
       );
 
-      // t=1200ms: mid-point of the 2400ms pulse loop -> logo scaled up.
-      await tester.pump(const Duration(milliseconds: 600));
+      // t=1500ms: mid-point of the 3000ms pulse loop -> logo scaled up.
+      await tester.pump(const Duration(milliseconds: 900));
       await expectLater(
         find.byType(SplashScreen),
-        matchesGoldenFile('goldens/splash_t1200.png'),
+        matchesGoldenFile('goldens/splash_t1500.png'),
       );
 
-      // t=2400ms: end of one pulse loop -> logo back at rest, still animating.
-      await tester.pump(const Duration(milliseconds: 1200));
+      // t=3000ms: end of one pulse loop -> logo back at rest, still animating.
+      await tester.pump(const Duration(milliseconds: 1500));
       await expectLater(
         find.byType(SplashScreen),
-        matchesGoldenFile('goldens/splash_t2400.png'),
+        matchesGoldenFile('goldens/splash_t3000.png'),
       );
     });
   });

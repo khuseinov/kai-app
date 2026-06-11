@@ -7,15 +7,15 @@ import '../../design_system/theme/kai_theme.dart';
 import 'splash_screen.dart';
 
 /// Default minimum time the splash screen should remain visible on a cold start.
-const _kDefaultMinSplashVisibleMs = 1200;
+const _kDefaultMinSplashVisibleMs = 1500;
 
 /// App entry point — runs [bootstrap] in the background and mounts the real
 /// [KaiApp] as soon as the provider container is ready.
 ///
 /// While bootstrap is in flight the canonical [SplashScreen] is shown. Once
 /// [bootstrap] completes we enforce a minimum visible duration so the splash
-/// animation (one full 1.2s glyph pulse + text fade-in) is always seen, then
-/// cross-fade to the real app.
+/// animation (half of the 3.0s glyph pulse + text fade-in) is always seen,
+/// then cross-fade to the real app.
 ///
 /// If [bootstrap] throws, a minimal error surface is shown; this is a fast-fail.
 /// We do not retry because the only known failure (corrupted Hive) is not
