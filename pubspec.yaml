@@ -82,18 +82,29 @@ flutter_launcher_icons:
 # loads; as soon as the engine is ready the animated Flutter SplashScreen takes
 # over for a seamless transition.
 # Run: `dart run flutter_native_splash:create`
+# Native-splash config.
+#
+# Design decision: the brand animation lives only in the Flutter SplashScreen.
+# iOS and Android pre-12 therefore use a solid-color native launch screen so
+# there is no duplicate logo or size/position jump during the OS-to-Flutter
+# handoff. Web is handled manually in web/index.html (solid theme background).
+# Android 12+ uses the OS splash API, which is configured separately below.
+# Run: `dart run flutter_native_splash:create`
 flutter_native_splash:
   color: "#FAFAF9"
   color_dark: "#0E0E11"
-  image: brand/splash-glyph-1024.png
-  image_dark: brand/splash-glyph-1024.png
+  # No general `image`: iOS and Android pre-12 use a solid-color native launch
+  # screen. The brand animation lives exclusively in the Flutter SplashScreen,
+  # so there is no duplicate logo or position jump during the OS-to-Flutter
+  # handoff. Web is handled manually in web/index.html.
+  # Android 12+ keeps the OS splash icon because the API requires one.
   ios: true
   android: true
-  # Android 12+ adaptive splash — solid color only; the OS window splash does
-  # not support a central image in the same way. The Flutter SplashScreen owns
-  # the animated brand mark.
+  web: false
   android_12:
+    image: brand/splash-glyph-1024.png
     color: "#FAFAF9"
+    image_dark: brand/splash-glyph-1024.png
     color_dark: "#0E0E11"
 
 flutter:

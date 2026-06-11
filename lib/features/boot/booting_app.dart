@@ -119,7 +119,7 @@ class _BootingAppState extends State<BootingApp> {
             switchInCurve: Curves.easeOut,
             switchOutCurve: Curves.easeIn,
             child: _container == null
-                ? const SplashScreen(key: ValueKey('splash'))
+                ? const _SplashShell(key: ValueKey('splash'))
                 : UncontrolledProviderScope(
                     container: _container!,
                     child: const KaiApp(key: ValueKey('app')),
@@ -127,6 +127,21 @@ class _BootingAppState extends State<BootingApp> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Wraps the canonical splash in a [Scaffold] so the text widgets get a
+/// [Material] ancestor. Without this, MaterialApp's debug fallback paints a
+/// yellow underline under any text that lacks a Material/Scaffold parent.
+class _SplashShell extends StatelessWidget {
+  const _SplashShell({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: KaiTheme.of(context).colors.bg,
+      body: const SplashScreen(),
     );
   }
 }
