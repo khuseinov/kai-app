@@ -299,7 +299,7 @@ class _VoiceScreenState extends State<VoiceScreen>
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
-              child: KaiIcon(
+              child: const KaiIcon(
                 KaiIconName.close,
                 size: 14,
                 color: Colors.white,
@@ -309,10 +309,10 @@ class _VoiceScreenState extends State<VoiceScreen>
         ),
         // Top instruction hints (only when not in transcript)
         if (_state == _VoiceState.idle) ...[
-          Positioned(
+          const Positioned(
             top: 12,
             left: 54,
-            child: const Text(
+            child: Text(
               'нажмите, чтобы говорить',
               style: TextStyle(
                 fontFamily: 'JetBrainsMono',

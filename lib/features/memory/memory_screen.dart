@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/providers/root.dart';
 import '../../core/storage/entities/memory_fact.dart';
 import '../../design_system/atoms/atoms.dart';
-import '../../design_system/molecules/molecules.dart';
 import '../../design_system/primitives/primitives.dart';
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
@@ -75,7 +74,7 @@ class _MemoryScreenState extends ConsumerState<MemoryScreen> {
         return AlertDialog(
           backgroundColor: c.surface,
           surfaceTintColor: Colors.transparent,
-          shape: RoundedRectangleBorder(borderRadius: KaiRadius.br3),
+          shape: const RoundedRectangleBorder(borderRadius: KaiRadius.br3),
           title: Text(
             l10n.memoryEditFactTitle,
             style: TextStyle(
@@ -482,8 +481,8 @@ class _FactItemRow extends StatelessWidget {
 
     // Source texts parsing to match styling of memory.html
     // ".src .из" has c.accent color if it says "из", otherwise default c.ink3
-    final bool isFromChat = fact.sourceText.startsWith('из');
-    final String labelSourceText = isFromChat
+    final isFromChat = fact.sourceText.startsWith('из');
+    final labelSourceText = isFromChat
         ? fact.sourceText.substring(2).trim()
         : fact.sourceText;
 

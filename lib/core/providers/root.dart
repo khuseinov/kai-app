@@ -19,8 +19,6 @@ import '../repositories/memory_repository.dart';
 import '../repositories/mock_memory_repository.dart';
 import '../repositories/real_memory_repository.dart';
 import '../storage/entities/memory_fact.dart';
-import '../storage/entities/settings.dart';
-import '../storage/hive_setup.dart';
 import '../telemetry/telemetry_service.dart';
 
 /// Env-loaded configuration. Populated by [bootstrap] via flutter_dotenv.

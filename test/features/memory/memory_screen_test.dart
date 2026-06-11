@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/core/repositories/mock_memory_repository.dart';
-import 'package:kai_app/core/storage/entities/memory_fact.dart';
 import 'package:kai_app/design_system/atoms/kai_toggle.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/features/memory/memory_screen.dart';
