@@ -4,18 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app.dart';
 import '../../bootstrap.dart';
 import '../../design_system/theme/kai_theme.dart';
+import 'splash_config.dart';
 import 'splash_screen.dart';
-
-/// Default minimum time the splash screen should remain visible on a cold start.
-const _kDefaultMinSplashVisibleMs = 1500;
 
 /// App entry point — runs [bootstrap] in the background and mounts the real
 /// [KaiApp] as soon as the provider container is ready.
 ///
 /// While bootstrap is in flight the canonical [SplashScreen] is shown. Once
 /// [bootstrap] completes we enforce a minimum visible duration so the splash
-/// animation (half of the 3.0s glyph pulse + text fade-in) is always seen,
-/// then cross-fade to the real app.
+/// animation (living tide curve draw + text fade-in) is always seen, then
+/// cross-fade to the real app.
 ///
 /// If [bootstrap] throws, a minimal error surface is shown; this is a fast-fail.
 /// We do not retry because the only known failure (corrupted Hive) is not
@@ -23,8 +21,7 @@ const _kDefaultMinSplashVisibleMs = 1500;
 class BootingApp extends StatefulWidget {
   const BootingApp({
     this.bootstrap,
-    this.minSplashVisibleDuration =
-        const Duration(milliseconds: _kDefaultMinSplashVisibleMs),
+    this.minSplashVisibleDuration = kSplashMinVisibleDuration,
     super.key,
   });
 
@@ -54,7 +51,7 @@ class _BootingAppState extends State<BootingApp> {
     try {
       final container = await (widget.bootstrap ?? bootstrap)();
 
-      // Enforce the minimum splash-visible duration so the brand pulse is
+      // Enforce the minimum splash-visible duration so the brand animation is
       // never skipped, even on a fast device.
       final elapsed = DateTime.now().difference(start);
       final remaining = widget.minSplashVisibleDuration - elapsed;
@@ -114,16 +111,24 @@ class _BootingAppState extends State<BootingApp> {
           );
         },
         home: KaiTheme(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 480),
-            switchInCurve: Curves.easeInOut,
-            switchOutCurve: Curves.easeInOut,
-            child: _container == null
-                ? const _SplashShell(key: ValueKey('splash'))
-                : UncontrolledProviderScope(
-                    container: _container!,
-                    child: const KaiApp(key: ValueKey('app')),
-                  ),
+          child: Builder(
+            builder: (context) {
+              final bg = KaiTheme.of(context).colors.bg;
+              return Container(
+                color: bg,
+                child: AnimatedSwitcher(
+                  duration: kSplashCrossFadeDuration,
+                  switchInCurve: Curves.easeInOut,
+                  switchOutCurve: Curves.easeInOut,
+                  child: _container == null
+                      ? const _SplashShell(key: ValueKey('splash'))
+                      : UncontrolledProviderScope(
+                          container: _container!,
+                          child: const KaiApp(key: ValueKey('app')),
+                        ),
+                ),
+              );
+            },
           ),
         ),
       ),

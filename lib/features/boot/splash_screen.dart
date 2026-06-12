@@ -1,20 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../design_system/atoms/atoms.dart';
 import '../../design_system/theme/kai_theme.dart';
 import '../../design_system/tokens/kai_tokens.dart';
+import 'splash_config.dart';
 
 /// Canonical cold-start splash screen.
 ///
-/// Reproduces `new-design/brand.html` § 02.2:
-/// - 64×64 gradient glyph (r = 20) with a looping 3.0s ease-in-out-sine pulse;
-/// - "kai" wordmark at 26px/700;
-/// - tagline "ваш компаньон путешественника" at 12.5px/400;
-/// - wordmark + tagline fade in over 600 ms once the glyph is visible;
+/// Reproduces `new-design/brand.html` § 02.2 with the "Living Tide" concept:
+/// - 64–80 dp gradient glyph (r = 20) with the brand curve drawing itself;
+/// - the curve animates from empty to full over [kSplashDrawDuration];
+/// - "kai" wordmark and tagline fade in once the curve is drawn;
 /// - centered on the themed background (`colors.bg`).
 ///
-/// Honors `MediaQuery.disableAnimations` — reduced-motion users see a static
-/// splash.
+/// Honors `MediaQuery.disableAnimations` — reduced-motion users see a static,
+/// fully-drawn splash.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -24,13 +27,16 @@ class SplashScreen extends StatefulWidget {
 
 class SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  late final AnimationController _pulseController;
+  late final AnimationController _drawController;
   late final AnimationController _fadeController;
-  late final Animation<double> _scale;
+  late final Animation<double> _curveProgress;
   late final Animation<double> _textOpacity;
 
+  bool _hapticFired = false;
+  Timer? _textFadeTimer;
+
   /// Exposed for widget tests.
-  AnimationController get pulseController => _pulseController;
+  AnimationController get drawController => _drawController;
 
   /// Exposed for widget tests.
   AnimationController get fadeController => _fadeController;
@@ -38,31 +44,40 @@ class SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    _pulseController = AnimationController(
+    _drawController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3000),
+      duration: kSplashDrawDuration,
     );
-    _scale = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween(begin: 1.0, end: 1.04)
-            .chain(CurveTween(curve: Curves.easeInOutSine)),
-        weight: 50,
-      ),
-      TweenSequenceItem(
-        tween: Tween(begin: 1.04, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeInOutSine)),
-        weight: 50,
-      ),
-    ]).animate(_pulseController);
+    _curveProgress = CurvedAnimation(
+      parent: _drawController,
+      curve: Curves.easeInOutSine,
+    );
 
     _fadeController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: kSplashTextFadeDuration,
     );
     _textOpacity = CurvedAnimation(
       parent: _fadeController,
       curve: Curves.easeInOut,
     );
+
+    _curveProgress.addListener(_onCurveProgressChanged);
+  }
+
+  void _onCurveProgressChanged() {
+    if (_hapticFired) return;
+    if (_curveProgress.value >= 0.75) {
+      _hapticFired = true;
+      _fireHaptic();
+    }
+  }
+
+  void _fireHaptic() {
+    final disabled = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (disabled) return;
+    // Only fire on physical devices; HapticFeedback is a no-op on simulators.
+    HapticFeedback.lightImpact();
   }
 
   @override
@@ -70,20 +85,36 @@ class SplashScreenState extends State<SplashScreen>
     super.didChangeDependencies();
     final disabled = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     if (!disabled) {
-      if (_pulseController.status == AnimationStatus.dismissed &&
-          !_pulseController.isAnimating) {
-        _pulseController.repeat();
+      if (_drawController.status == AnimationStatus.dismissed &&
+          !_drawController.isAnimating) {
+        _drawController.forward();
       }
       if (_fadeController.status == AnimationStatus.dismissed &&
           !_fadeController.isAnimating) {
-        _fadeController.forward();
+        // Start text fade slightly before the curve finishes for overlap.
+        _textFadeTimer = Timer(
+          const Duration(milliseconds: 800),
+          () {
+            if (mounted &&
+                _fadeController.status == AnimationStatus.dismissed &&
+                !_fadeController.isAnimating) {
+              _fadeController.forward();
+            }
+          },
+        );
       }
+    } else {
+      // Reduced motion: show everything immediately.
+      _drawController.value = 1.0;
+      _fadeController.value = 1.0;
     }
   }
 
   @override
   void dispose() {
-    _pulseController.dispose();
+    _curveProgress.removeListener(_onCurveProgressChanged);
+    _textFadeTimer?.cancel();
+    _drawController.dispose();
     _fadeController.dispose();
     super.dispose();
   }
@@ -91,6 +122,8 @@ class SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final logoSize = resolveSplashLogoSize(screenWidth);
 
     return SizedBox.expand(
       child: ColoredBox(
@@ -98,21 +131,33 @@ class SplashScreenState extends State<SplashScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ScaleTransition(
-              scale: _scale,
-              child: const KaiLogo(size: 64),
+            AnimatedBuilder(
+              animation: _curveProgress,
+              builder: (context, child) => KaiLogo(
+                size: logoSize,
+                curveProgress: _curveProgress.value,
+              ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: kSplashLogoToWordmarkGap),
             FadeTransition(
               opacity: _textOpacity,
               child: SelectionContainer.disabled(
                 child: Column(
                   children: [
-                    Text('kai', style: KaiType.wordmark(color: c.ink1)),
-                    const SizedBox(height: 14),
+                    Text(
+                      'kai',
+                      style: KaiType.wordmark(
+                        color: c.ink1,
+                        fontSize: kSplashWordmarkSize,
+                      ),
+                    ),
+                    const SizedBox(height: kSplashWordmarkToTaglineGap),
                     Text(
                       'ваш компаньон путешественника',
-                      style: KaiType.tagline(color: c.ink3),
+                      style: KaiType.tagline(
+                        color: c.ink3,
+                        fontSize: kSplashTaglineSize,
+                      ),
                     ),
                   ],
                 ),

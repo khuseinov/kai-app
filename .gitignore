@@ -16,6 +16,9 @@ new-design/*.png
 !ios/Runner/Assets.xcassets/**/*.png
 !android/app/src/main/res/**/*.png
 
+# Golden-file test assets are committed artifacts
+!test/features/boot/goldens/*.png
+
 # Flutter
 .dart_tool/
 .flutter-plugins

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/design_system/atoms/atoms.dart';
+import 'package:kai_app/features/boot/splash_config.dart';
 import 'package:kai_app/features/boot/splash_screen.dart';
 
 import '../../test_helpers.dart';
@@ -38,22 +39,22 @@ void main() {
       expect(find.text('kai'), findsOneWidget);
     });
 
-    testWidgets('loops glyph pulse and fades in text', (tester) async {
+    testWidgets('draws brand curve and fades in text', (tester) async {
       await tester.pumpWidget(buildTestWidget(const SplashScreen()));
 
       final state = tester.state<SplashScreenState>(find.byType(SplashScreen));
-      expect(state.pulseController.isAnimating, isTrue);
-      expect(state.pulseController.status, AnimationStatus.forward);
-      expect(state.fadeController.isAnimating, isTrue);
-      expect(state.fadeController.status, AnimationStatus.forward);
+      expect(state.drawController.isAnimating, isTrue);
 
-      // Advance to the end of one pulse cycle; the controller should still be
-      // animating because it loops.
-      await tester.pump(const Duration(milliseconds: 3000));
-      expect(state.pulseController.isAnimating, isTrue);
+      // Text fade starts after an 800 ms overlap delay.
+      await tester.pump(const Duration(milliseconds: 800));
+      expect(state.fadeController.isAnimating, isTrue);
+
+      // Advance past the end of both animations.
+      await tester.pump(kSplashDrawDuration);
+      expect(state.drawController.isCompleted, isTrue);
 
       // Text fade completes.
-      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pump(kSplashTextFadeDuration);
       expect(state.fadeController.isCompleted, isTrue);
     });
 
@@ -67,41 +68,42 @@ void main() {
       );
 
       final state = tester.state<SplashScreenState>(find.byType(SplashScreen));
-      expect(state.pulseController.isAnimating, isFalse);
+      expect(state.drawController.isAnimating, isFalse);
       expect(state.fadeController.isAnimating, isFalse);
-      expect(state.fadeController.value, 0.0);
+      expect(state.drawController.value, 1.0);
+      expect(state.fadeController.value, 1.0);
     });
 
-    testWidgets('golden frames show pulse loop and fade-in', (tester) async {
+    testWidgets('golden frames show curve draw and fade-in', (tester) async {
       await tester.pumpWidget(
         buildTestWidget(_frame(const SplashScreen())),
       );
 
-      // t=0: logo at rest, text fully transparent.
+      // t=0: curve empty, text fully transparent.
       await expectLater(
         find.byType(SplashScreen),
         matchesGoldenFile('goldens/splash_t0.png'),
       );
 
-      // t=600ms: text fade-in complete; logo still near rest.
-      await tester.pump(const Duration(milliseconds: 600));
+      // t=700ms: curve roughly half-drawn; text still fading in.
+      await tester.pump(const Duration(milliseconds: 700));
       await expectLater(
         find.byType(SplashScreen),
-        matchesGoldenFile('goldens/splash_t600.png'),
+        matchesGoldenFile('goldens/splash_t700.png'),
       );
 
-      // t=1500ms: mid-point of the 3000ms pulse loop -> logo scaled up.
-      await tester.pump(const Duration(milliseconds: 900));
+      // t=1400ms: curve fully drawn; text fade well under way.
+      await tester.pump(const Duration(milliseconds: 700));
       await expectLater(
         find.byType(SplashScreen),
-        matchesGoldenFile('goldens/splash_t1500.png'),
+        matchesGoldenFile('goldens/splash_t1400.png'),
       );
 
-      // t=3000ms: end of one pulse loop -> logo back at rest, still animating.
-      await tester.pump(const Duration(milliseconds: 1500));
+      // t=2200ms: text fade complete, static final frame.
+      await tester.pump(const Duration(milliseconds: 800));
       await expectLater(
         find.byType(SplashScreen),
-        matchesGoldenFile('goldens/splash_t3000.png'),
+        matchesGoldenFile('goldens/splash_t2200.png'),
       );
     });
   });
