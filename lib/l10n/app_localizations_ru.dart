@@ -157,7 +157,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onboardingWelcomeBody =>
-      'Бронирую, планирую и сопровождаю путешествия.\nЧестно и в твоих интересах.';
+      'Мир слишком большой, чтобы разбираться в нём одному.\nKai помогает исследовать, планировать и принимать решения.';
 
   @override
   String get onboardingTideTitle => 'Линия вверху — это Kai.';

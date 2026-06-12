@@ -155,7 +155,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingWelcomeBody =>
-      'I book, plan, and travel with you.\nHonestly, in your interest.';
+      'The world is too big to figure out alone.\nKai helps you explore, plan, and make decisions.';
 
   @override
   String get onboardingTideTitle => 'The line above is Kai.';

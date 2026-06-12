@@ -377,7 +377,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeBody.
   ///
   /// In en, this message translates to:
-  /// **'I book, plan, and travel with you.\nHonestly, in your interest.'**
+  /// **'The world is too big to figure out alone.\nKai helps you explore, plan, and make decisions.'**
   String get onboardingWelcomeBody;
 
   /// No description provided for @onboardingTideTitle.
