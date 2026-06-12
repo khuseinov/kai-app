@@ -150,6 +150,30 @@ class KaiType {
         color: color,
       );
 
+  /// 40/700 — splash wordmark "kai".
+  ///
+  /// Large, bold treatment for the cold-start splash screen.
+  static TextStyle splashWordmark({required Color color}) => TextStyle(
+        fontFamily: 'Manrope',
+        fontSize: 40,
+        fontWeight: FontWeight.w700,
+        height: 1.0,
+        letterSpacing: 40 * -0.025,
+        fontFeatures: _manropeFeatures,
+        color: color,
+      );
+
+  /// 14/500 — splash secondary label (e.g. "by Wize").
+  static TextStyle splashSecondary({required Color color}) => TextStyle(
+        fontFamily: 'Manrope',
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        height: 1.0,
+        letterSpacing: 14 * 0.04,
+        fontFeatures: _manropeFeatures,
+        color: color,
+      );
+
   /// 12/400 — monospace.
   static TextStyle mono({required Color color}) => TextStyle(
         fontFamily: 'JetBrainsMono',

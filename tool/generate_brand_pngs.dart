@@ -21,6 +21,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 enum _Variant { primary, dark, mono, splashGlyph, ogCard }
@@ -46,7 +47,9 @@ void main() {
         final bytes = variant == _Variant.ogCard
             ? await _renderOgCard()
             : await _renderTile(variant, _size);
-        await File(target).writeAsBytes(bytes);
+        final finalBytes =
+            variant == _Variant.dark ? _removeAlpha(bytes) : bytes;
+        await File(target).writeAsBytes(finalBytes);
         if (variant == _Variant.ogCard) {
           await File('web/og-default.png').writeAsBytes(bytes);
         }
@@ -346,6 +349,35 @@ Future<Uint8List> _renderOgCard() async {
     throw StateError('toByteData returned null for OG card');
   }
   return byteData.buffer.asUint8List();
+}
+
+/// Flatten the dark icon so iOS 18 dark-mode icons get an opaque background.
+/// The rendered tile already fills the canvas with a dark gradient, but
+/// `ui.ImageByteFormat.png` keeps an alpha channel. This helper composites
+/// any remaining alpha against #0E0E11 and exports a true 24-bit RGB PNG.
+Uint8List _removeAlpha(Uint8List pngBytes) {
+  final decoded = img.decodePng(pngBytes);
+  if (decoded == null) {
+    throw StateError('Could not decode PNG for alpha removal');
+  }
+  final background = img.ColorRgba8(14, 14, 17, 255);
+  final flattened = img.Image(
+    width: decoded.width,
+    height: decoded.height,
+    numChannels: 3,
+  );
+  for (var y = 0; y < decoded.height; y++) {
+    for (var x = 0; x < decoded.width; x++) {
+      final src = decoded.getPixel(x, y);
+      final alpha = src.a / 255.0;
+      final r = (src.r * alpha + background.r * (1 - alpha)).round();
+      final g = (src.g * alpha + background.g * (1 - alpha)).round();
+      final b = (src.b * alpha + background.b * (1 - alpha)).round();
+      flattened.setPixelRgba(x, y, r, g, b, 255);
+    }
+  }
+  final encoded = img.encodePng(flattened, level: 9);
+  return Uint8List.fromList(encoded);
 }
 
 ui.Paragraph _buildParagraph({

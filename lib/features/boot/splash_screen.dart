@@ -10,11 +10,9 @@ import 'splash_config.dart';
 
 /// Canonical cold-start splash screen.
 ///
-/// Reproduces `new-design/brand.html` § 02.2 with the "Living Tide" concept:
-/// - 64–80 dp gradient glyph (r = 20) with the brand curve drawing itself;
-/// - the curve animates from empty to full over [kSplashDrawDuration];
-/// - "kai" wordmark and tagline fade in once the curve is drawn;
-/// - centered on the themed background (`colors.bg`).
+/// Brand-forward, minimal layout: the Kai glyph draws itself via the "Living
+/// Tide" animation, then the wordmark and "by Wize" attribution fade in.
+/// Centered on the themed background (`colors.bg`).
 ///
 /// Honors `MediaQuery.disableAnimations` — reduced-motion users see a static,
 /// fully-drawn splash.
@@ -146,18 +144,12 @@ class SplashScreenState extends State<SplashScreen>
                   children: [
                     Text(
                       'kai',
-                      style: KaiType.wordmark(
-                        color: c.ink1,
-                        fontSize: kSplashWordmarkSize,
-                      ),
+                      style: KaiType.splashWordmark(color: c.ink1),
                     ),
-                    const SizedBox(height: kSplashWordmarkToTaglineGap),
+                    const SizedBox(height: kSplashWordmarkToSecondaryGap),
                     Text(
-                      'ваш компаньон путешественника',
-                      style: KaiType.tagline(
-                        color: c.ink3,
-                        fontSize: kSplashTaglineSize,
-                      ),
+                      'by Wize',
+                      style: KaiType.splashSecondary(color: c.ink3),
                     ),
                   ],
                 ),

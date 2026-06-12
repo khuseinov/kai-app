@@ -19,12 +19,12 @@ Widget _frame(Widget child) {
 
 void main() {
   group('SplashScreen', () {
-    testWidgets('renders logo, wordmark and tagline', (tester) async {
+    testWidgets('renders logo, wordmark and by Wize label', (tester) async {
       await tester.pumpWidget(buildTestWidget(const SplashScreen()));
 
       expect(find.byType(KaiLogo), findsOneWidget);
       expect(find.text('kai'), findsOneWidget);
-      expect(find.text('ваш компаньон путешественника'), findsOneWidget);
+      expect(find.text('by Wize'), findsOneWidget);
     });
 
     testWidgets('adapts to dark mode', (tester) async {
