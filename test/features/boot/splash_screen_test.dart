@@ -19,12 +19,13 @@ Widget _frame(Widget child) {
 
 void main() {
   group('SplashScreen', () {
-    testWidgets('renders logo, wordmark and by Wize label', (tester) async {
+    testWidgets('renders logo and bottom by Wize signature', (tester) async {
       await tester.pumpWidget(buildTestWidget(const SplashScreen()));
 
       expect(find.byType(KaiLogo), findsOneWidget);
-      expect(find.text('kai'), findsOneWidget);
       expect(find.text('by Wize'), findsOneWidget);
+      // The logo already carries the name; no separate "kai" wordmark.
+      expect(find.text('kai'), findsNothing);
     });
 
     testWidgets('adapts to dark mode', (tester) async {
@@ -36,7 +37,7 @@ void main() {
       );
 
       expect(find.byType(KaiLogo), findsOneWidget);
-      expect(find.text('kai'), findsOneWidget);
+      expect(find.text('by Wize'), findsOneWidget);
     });
 
     testWidgets('draws brand curve and fades in text', (tester) async {

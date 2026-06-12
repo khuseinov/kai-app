@@ -10,9 +10,10 @@ import 'splash_config.dart';
 
 /// Canonical cold-start splash screen.
 ///
-/// Brand-forward, minimal layout: the Kai glyph draws itself via the "Living
-/// Tide" animation, then the wordmark and "by Wize" attribution fade in.
-/// Centered on the themed background (`colors.bg`).
+/// "Bottom signature" layout: the Kai glyph draws itself via the Living Tide
+/// animation in the centre of the screen, while the "by Wize" attribution
+/// fades in near the bottom. No separate "kai" wordmark — the logo mark
+/// already carries the name.
 ///
 /// Honors `MediaQuery.disableAnimations` — reduced-motion users see a static,
 /// fully-drawn splash.
@@ -28,10 +29,10 @@ class SplashScreenState extends State<SplashScreen>
   late final AnimationController _drawController;
   late final AnimationController _fadeController;
   late final Animation<double> _curveProgress;
-  late final Animation<double> _textOpacity;
+  late final Animation<double> _signatureOpacity;
 
   bool _hapticFired = false;
-  Timer? _textFadeTimer;
+  Timer? _signatureFadeTimer;
 
   /// Exposed for widget tests.
   AnimationController get drawController => _drawController;
@@ -55,7 +56,7 @@ class SplashScreenState extends State<SplashScreen>
       vsync: this,
       duration: kSplashTextFadeDuration,
     );
-    _textOpacity = CurvedAnimation(
+    _signatureOpacity = CurvedAnimation(
       parent: _fadeController,
       curve: Curves.easeInOut,
     );
@@ -89,8 +90,8 @@ class SplashScreenState extends State<SplashScreen>
       }
       if (_fadeController.status == AnimationStatus.dismissed &&
           !_fadeController.isAnimating) {
-        // Start text fade slightly before the curve finishes for overlap.
-        _textFadeTimer = Timer(
+        // Start signature fade slightly before the curve finishes for overlap.
+        _signatureFadeTimer = Timer(
           const Duration(milliseconds: 800),
           () {
             if (mounted &&
@@ -111,7 +112,7 @@ class SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _curveProgress.removeListener(_onCurveProgressChanged);
-    _textFadeTimer?.cancel();
+    _signatureFadeTimer?.cancel();
     _drawController.dispose();
     _fadeController.dispose();
     super.dispose();
@@ -127,8 +128,8 @@ class SplashScreenState extends State<SplashScreen>
       child: ColoredBox(
         color: c.bg,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Spacer(),
             AnimatedBuilder(
               animation: _curveProgress,
               builder: (context, child) => KaiLogo(
@@ -136,22 +137,18 @@ class SplashScreenState extends State<SplashScreen>
                 curveProgress: _curveProgress.value,
               ),
             ),
-            const SizedBox(height: kSplashLogoToWordmarkGap),
+            const Spacer(),
             FadeTransition(
-              opacity: _textOpacity,
+              opacity: _signatureOpacity,
               child: SelectionContainer.disabled(
-                child: Column(
-                  children: [
-                    Text(
-                      'kai',
-                      style: KaiType.splashWordmark(color: c.ink1),
-                    ),
-                    const SizedBox(height: kSplashWordmarkToSecondaryGap),
-                    Text(
-                      'by Wize',
-                      style: KaiType.splashSecondary(color: c.ink3),
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: kSplashSignatureBottomPadding,
+                  ),
+                  child: Text(
+                    'by Wize',
+                    style: KaiType.splashSignature(color: c.ink3),
+                  ),
                 ),
               ),
             ),
