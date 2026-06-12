@@ -30,10 +30,12 @@ GoRouter _makeTestRouter() {
   );
 }
 
-Widget _buildOnboardingTest() {
+Widget _buildOnboardingTest() => _buildOnboardingTestWithMode(ThemeMode.light);
+
+Widget _buildOnboardingTestWithMode(ThemeMode mode) {
   return ProviderScope(
     overrides: [
-      themeModeProvider.overrideWith((ref) => ThemeMode.light),
+      themeModeProvider.overrideWith((ref) => mode),
     ],
     child: MaterialApp.router(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -80,6 +82,15 @@ void main() {
     await tester.pump();
 
     // Step 0 (Welcome) shows the new design title.
+    expect(find.text('Познакомьтесь с Kai.'), findsOneWidget);
+  });
+
+  testWidgets('renders step 0 in dark mode', (tester) async {
+    await tester.pumpWidget(
+      _buildOnboardingTestWithMode(ThemeMode.dark),
+    );
+    await tester.pump();
+
     expect(find.text('Познакомьтесь с Kai.'), findsOneWidget);
   });
 

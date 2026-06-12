@@ -60,8 +60,8 @@ void main() {
 
     // ── Canon button variant per step ────────────────────────────────────────
     //
-    // Welcome screen (step 0) shows a primary tide-gradient button at rest (neutralAtRest: false).
-    // Steps 1–3 show solid secondary ink buttons (KaiButton.ink).
+    // All steps use a large tide button that rests as solid ink-1
+    // (neutralAtRest: true) and reveals the tide gradient on press/hover.
     //
 
     testWidgets('step 0 CTA is a neutral-at-rest tide button',
@@ -73,7 +73,7 @@ void main() {
 
       final button = tester.widget<KaiButton>(buttonFinder);
       expect(button.neutralAtRest, isTrue);
-      expect(button.size, KaiButtonSize.md);
+      expect(button.size, KaiButtonSize.lg);
 
       final containers = tester.widgetList<Container>(find.descendant(
         of: buttonFinder,
@@ -98,7 +98,7 @@ void main() {
       expect(buttonFinder, findsOneWidget);
       final button = tester.widget<KaiButton>(buttonFinder);
       expect(button.neutralAtRest, isTrue);
-      expect(button.size, KaiButtonSize.md);
+      expect(button.size, KaiButtonSize.lg);
       final containers = tester.widgetList<Container>(find.descendant(
         of: buttonFinder,
         matching: find.byType(Container),
@@ -124,7 +124,7 @@ void main() {
       expect(buttonFinder, findsOneWidget);
       final button = tester.widget<KaiButton>(buttonFinder);
       expect(button.neutralAtRest, isTrue);
-      expect(button.size, KaiButtonSize.md);
+      expect(button.size, KaiButtonSize.lg);
       final containers = tester.widgetList<Container>(find.descendant(
         of: buttonFinder,
         matching: find.byType(Container),
@@ -152,7 +152,7 @@ void main() {
       expect(buttonFinder, findsOneWidget);
       final button = tester.widget<KaiButton>(buttonFinder);
       expect(button.neutralAtRest, isTrue);
-      expect(button.size, KaiButtonSize.md);
+      expect(button.size, KaiButtonSize.lg);
       final containers = tester.widgetList<Container>(find.descendant(
         of: buttonFinder,
         matching: find.byType(Container),

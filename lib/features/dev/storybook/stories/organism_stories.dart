@@ -4,6 +4,7 @@ import '../../../../design_system/atoms/atoms.dart';
 import '../../../nav/components/kai_nav_panel.dart';
 import '../../../nav/components/nav_models.dart';
 import '../../../onboarding/components/kai_onboarding_card.dart';
+import '../../../onboarding/components/kai_onboarding_scale.dart';
 import '../../../room/components/kai_chat_list.dart';
 import '../../../room/components/kai_edge_state_block.dart';
 import '../../../../design_system/theme/kai_theme.dart';
@@ -414,18 +415,22 @@ class _KaiOnboardingCardStoryState extends State<_KaiOnboardingCardStory> {
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
+    final scaleLarge = onboardingScaleForSize(const Size(520, 780));
+
     return StoryPage(
       title: 'KaiOnboardingCard',
       layer: 'ORGANISM',
       blurb:
           'Four-step onboarding card (welcome/tide/gestures/context). '
-          'Step 0 CTA uses tide gradient; steps 1–3 use solid ink-1 button.',
+          'Type, rows, CTA and dots are scaled via onboardingScale() so the '
+          'screen feels generous on large phones and tablets. '
+          'CTA is KaiButtonSize.lg; use the theme toggle to preview dark mode.',
       sections: [
         StorySection('Interactive (steps 0–3)', [
           StoryCell(
-            'step picker',
+            'phone frame',
             SizedBox(
-              width: 360,
+              width: 390,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -444,7 +449,8 @@ class _KaiOnboardingCardStoryState extends State<_KaiOnboardingCardStory> {
                   ),
                   const SizedBox(height: KaiSpace.s3),
                   SizedBox(
-                    height: 480,
+                    width: 390,
+                    height: 780,
                     child: ClipRRect(
                       borderRadius: KaiRadius.br3,
                       child: ColoredBox(
@@ -459,13 +465,32 @@ class _KaiOnboardingCardStoryState extends State<_KaiOnboardingCardStory> {
               ),
             ),
           ),
+          StoryCell(
+            'large-screen preview',
+            SizedBox(
+              width: 520,
+              height: 780,
+              child: ClipRRect(
+                borderRadius: KaiRadius.br3,
+                child: ColoredBox(
+                  color: c.bg,
+                  child: KaiOnboardingCard(
+                    stepIndex: _step,
+                    scale: scaleLarge,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ]),
       ],
       usage: 'KaiOnboardingCard(\n'
           '  stepIndex: 0,\n'
+          '  scale: onboardingScale(context),\n'
           ')',
       props: const [
         PropDoc('stepIndex', 'int', 'required', '0–3'),
+        PropDoc('scale', 'double?', 'null', 'Visual scale; defaults to onboardingScale(context)'),
       ],
     );
   }

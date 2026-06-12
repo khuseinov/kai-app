@@ -13,6 +13,14 @@
   .top .mark { font-weight: 700; font-size: 18px; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 10px; }
   .top .meta { display: flex; gap: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
 
+  .theme-toggle {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+    color: var(--ink-2); background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: 8px 14px; cursor: pointer;
+  }
+  .theme-toggle:hover { border-color: var(--line-strong); color: var(--ink-1); }
+
   .hero { padding-bottom: 48px; border-bottom: 1px solid var(--line); margin-bottom: 56px; }
   .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 22px; display: inline-flex; align-items: center; gap: 8px; }
   .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--ink-3); }
@@ -27,41 +35,41 @@
   .frame-card .desc { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; padding: 0 22px; text-align: center; }
 
   .phone {
-    width: 240px; height: 480px;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 32px;
+    width: 300px; height: 600px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 36px;
     position: relative; overflow: hidden;
     display: flex; flex-direction: column;
   }
-  .phone .island { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 76px; height: 22px; background: var(--ink-1); border-radius: 999px; z-index: 10; }
-  .phone .home { position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%); width: 76px; height: 3px; border-radius: 999px; background: var(--ink-3); opacity: 0.3; z-index: 10; }
-  .phone .tide-bar { position: absolute; top: 40px; left: 16px; width: calc(100% - 32px); height: 14px; z-index: 2; }
+  .phone .island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 84px; height: 24px; background: var(--ink-1); border-radius: 999px; z-index: 10; }
+  .phone .home { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 84px; height: 4px; border-radius: 999px; background: var(--ink-3); opacity: 0.3; z-index: 10; }
+  .phone .tide-bar { position: absolute; top: 48px; left: 20px; width: calc(100% - 40px); height: 16px; z-index: 2; }
 
   .ob {
-    padding: 60px 22px 20px;
-    flex: 1; display: flex; flex-direction: column; gap: 12px;
+    padding: 72px 26px 24px;
+    flex: 1; display: flex; flex-direction: column; gap: 14px;
     align-items: center;
     position: relative;
   }
   .ob .glyph {
-    width: 64px; height: 64px;
-    border-radius: 20px;
+    width: 80px; height: 80px;
+    border-radius: 24px;
     background: var(--tide-gradient-corner);
     display: flex; align-items: center; justify-content: center;
   }
-  .ob h2 { font: 600 22px var(--font-sans); color: var(--ink-1); letter-spacing: -0.02em; text-align: center; line-height: 1.2; }
-  .ob p { font: 400 13px var(--font-sans); color: var(--ink-2); line-height: 1.5; text-align: center; }
+  .ob h2 { font: 600 28px var(--font-sans); color: var(--ink-1); letter-spacing: -0.02em; text-align: center; line-height: 1.15; }
+  .ob p { font: 400 16px var(--font-sans); color: var(--ink-2); line-height: 1.55; text-align: center; }
 
   /* Bottom area — dots + button in normal flow at bottom */
-  .ob-bottom { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; padding-bottom: 10px; }
-  .ob-dots { display: flex; gap: 6px; }
-  .ob-dots .d { width: 6px; height: 6px; border-radius: 50%; background: var(--line); }
-  .ob-dots .d.active { background: var(--accent); width: 16px; border-radius: 999px; }
+  .ob-bottom { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; padding-bottom: 12px; }
+  .ob-dots { display: flex; gap: 8px; }
+  .ob-dots .d { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+  .ob-dots .d.active { background: var(--accent); width: 20px; border-radius: 999px; }
 
   .ob-btn {
     width: 100%;
     background: var(--ink-1); color: var(--surface);
-    border: 0; border-radius: 12px; padding: 12px;
-    font: 600 13px var(--font-sans); letter-spacing: -0.005em;
+    border: 0; border-radius: 14px; padding: 16px;
+    font: 600 15px var(--font-sans); letter-spacing: -0.005em;
   }
   /* Welcome screen primary CTA uses tide-gradient (it's the one primary action) */
   .frame-card:first-child .ob-btn {
@@ -69,38 +77,38 @@
   }
 
   /* Frame-specific */
-  .ob-tide-row { display: flex; flex-direction: column; gap: 10px; width: 100%; padding: 0 8px; margin-top: 8px; }
+  .ob-tide-row { display: flex; flex-direction: column; gap: 12px; width: 100%; padding: 0 8px; margin-top: 8px; }
   .ob-tide-row .tide-state {
-    display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: center;
-    padding: 8px 12px; background: var(--surface-2); border-radius: 10px;
+    display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: center;
+    padding: 12px 14px; background: var(--surface-2); border-radius: 12px;
   }
-  .ob-tide-row .tide-state .demo { height: 8px; width: 40px; }
+  .ob-tide-row .tide-state .demo { height: 8px; width: 44px; }
   .ob-tide-row .tide-state .demo svg { width: 100%; height: 100%; }
-  .ob-tide-row .tide-state .lbl { font: 500 11px var(--font-sans); color: var(--ink-1); letter-spacing: -0.005em; }
-  .ob-tide-row .tide-state .des { font: 400 9.5px var(--font-mono); color: var(--ink-3); }
+  .ob-tide-row .tide-state .lbl { font: 500 14px var(--font-sans); color: var(--ink-1); letter-spacing: -0.005em; }
+  .ob-tide-row .tide-state .des { font: 400 12px var(--font-mono); color: var(--ink-3); }
 
   /* Gesture cards */
-  .ob-gestures { display: flex; flex-direction: column; gap: 8px; width: 100%; padding: 0 8px; }
+  .ob-gestures { display: flex; flex-direction: column; gap: 12px; width: 100%; padding: 0 8px; }
   .ob-gestures .gest {
-    display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: center;
-    padding: 10px 12px; background: var(--surface-2); border-radius: 10px;
+    display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: center;
+    padding: 12px 14px; background: var(--surface-2); border-radius: 12px;
   }
-  .ob-gestures .gest .ic { width: 36px; height: 36px; border-radius: 9px; background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--ink-1); }
-  .ob-gestures .gest .body .t { font: 500 11px var(--font-sans); color: var(--ink-1); letter-spacing: -0.005em; }
-  .ob-gestures .gest .body .s { font: 400 9.5px var(--font-mono); color: var(--ink-3); margin-top: 1px; }
+  .ob-gestures .gest .ic { width: 44px; height: 44px; border-radius: 10px; background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--ink-1); }
+  .ob-gestures .gest .body .t { font: 500 14px var(--font-sans); color: var(--ink-1); letter-spacing: -0.005em; }
+  .ob-gestures .gest .body .s { font: 400 12px var(--font-mono); color: var(--ink-3); margin-top: 1px; }
 
   /* Personalize chips */
-  .ob-form { display: flex; flex-direction: column; gap: 10px; width: 100%; padding: 0 8px; }
-  .ob-form .label { font: 500 10px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 4px; }
+  .ob-form { display: flex; flex-direction: column; gap: 12px; width: 100%; padding: 0 8px; }
+  .ob-form .label { font: 500 11px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 4px; }
   .ob-form .input {
-    background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px;
-    padding: 10px 12px; display: flex; align-items: center; gap: 8px;
-    font: 400 12px var(--font-sans); color: var(--ink-1);
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px;
+    padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+    font: 400 14px var(--font-sans); color: var(--ink-1);
   }
-  .ob-form .input .flag { width: 14px; height: 14px; border-radius: 3px; background: linear-gradient(0deg,#D62718 50%, #FFFFFF 50%); }
-  .ob-form .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .ob-form .input .flag { width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(0deg,#D62718 50%, #FFFFFF 50%); }
+  .ob-form .chips { display: flex; gap: 8px; flex-wrap: wrap; }
   .ob-form .chip {
-    padding: 6px 10px; border-radius: 999px; font: 500 11px var(--font-sans);
+    padding: 7px 12px; border-radius: 999px; font: 500 13px var(--font-sans);
     color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); letter-spacing: -0.005em;
   }
   .ob-form .chip.active { color: var(--accent); background: var(--accent-wash); border-color: var(--accent-line); }
@@ -189,6 +197,7 @@
       <span style="color:var(--ink-1)">·</span>
       <span>4 экрана</span>
     </div>
+    <button class="theme-toggle" id="theme-toggle" type="button">Светлая / тёмная</button>
   </div>
 
   <header class="hero">
@@ -232,7 +241,7 @@
             <animate attributeName="stroke-dashoffset" from="0" to="-32" dur="1.4s" repeatCount="indefinite"/>
           </path>
         </svg>
-        <div class="ob" style="padding-top:80px;">
+        <div class="ob" style="padding-top:96px;">
           <h2>Линия вверху —<br>это Kai.</h2>
           <p>Тихая в ожидании. Живая когда Kai что-то делает — слушает, думает, отвечает, обучается.</p>
           <div class="ob-tide-row">
@@ -257,7 +266,7 @@
       <div class="phone">
         <div class="island"></div>
         <svg class="tide-bar" viewBox="0 0 208 14" preserveAspectRatio="none"><path stroke="url(#g-tide)" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.4" d="M 2 8 Q 26 3, 52 8 T 104 8 T 208 6"/></svg>
-        <div class="ob" style="padding-top:80px;">
+        <div class="ob" style="padding-top:96px;">
           <h2>Три жеста.</h2>
           <p>Всё остальное скрыто, пока не понадобится.</p>
           <div class="ob-gestures">
@@ -282,7 +291,7 @@
       <div class="phone">
         <div class="island"></div>
         <svg class="tide-bar" viewBox="0 0 208 14" preserveAspectRatio="none"><path stroke="url(#g-tide)" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.4" d="M 2 8 Q 26 3, 52 8 T 104 8 T 208 6"/></svg>
-        <div class="ob" style="padding-top:60px;">
+        <div class="ob" style="padding-top:96px;">
           <h2>Два факта.<br>Затем начнём.</h2>
           <p>Используется в каждом ответе о визе, маршруте и цене. Можно редактировать позже.</p>
           <div class="ob-form">
@@ -315,5 +324,19 @@
   </div>
 
 </div>
+
+<script>
+  const toggle = document.getElementById('theme-toggle');
+  const root = document.documentElement;
+  toggle.addEventListener('click', () => {
+    const current = root.getAttribute('data-theme');
+    if (current === 'dark') {
+      root.removeAttribute('data-theme');
+    } else {
+      root.setAttribute('data-theme', 'dark');
+    }
+  });
+</script>
+
 </body>
 </html>

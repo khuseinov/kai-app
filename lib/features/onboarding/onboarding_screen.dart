@@ -8,6 +8,7 @@ import '../../design_system/tokens/kai_tokens.dart';
 import '../../design_system/atoms/atoms.dart';
 import '../../l10n/app_localizations.dart';
 import 'components/kai_onboarding_card.dart';
+import 'components/kai_onboarding_scale.dart';
 import 'components/kai_step_indicator.dart';
 
 /// 4-step onboarding flow matching `new-design/onboarding.html`.
@@ -104,7 +105,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return KaiButton.tide(
       onPressed: callback,
       label: label,
-      size: KaiButtonSize.md,
+      size: KaiButtonSize.lg,
       neutralAtRest: true,
       fullWidth: true,
     );
@@ -114,71 +115,83 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final colors = KaiTheme.of(context).colors;
     final topInset = MediaQuery.of(context).padding.top;
+    final scale = onboardingScale(context);
 
     return Scaffold(
       backgroundColor: colors.surface,
-      body: Stack(
-        children: [
-          // ── Content: full-screen transition PageView + static footer ──────
-          SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: PageView(
-                    controller: _pageController,
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: const [
-                      KaiOnboardingCard(stepIndex: 0),
-                      KaiOnboardingCard(stepIndex: 1),
-                      KaiOnboardingCard(stepIndex: 2),
-                      KaiOnboardingCard(stepIndex: 3),
-                    ],
-                  ),
-                ),
-                // Fixed Footer: step dots + CTA button in stationary flow
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(22, 12, 22, 20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Center(
-                        child: KaiStepIndicator(
-                          count: 4,
-                          active: _currentPage,
-                        ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Stack(
+            children: [
+              // ── Content: full-screen transition PageView + static footer ──────
+              SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: PageView(
+                        controller: _pageController,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
+                          KaiOnboardingCard(stepIndex: 0, scale: scale),
+                          KaiOnboardingCard(stepIndex: 1, scale: scale),
+                          KaiOnboardingCard(stepIndex: 2, scale: scale),
+                          KaiOnboardingCard(stepIndex: 3, scale: scale),
+                        ],
                       ),
-                      const SizedBox(height: 12),
-                      _buildFixedCTA(context),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // ── Tide curve overlay: absolute, top = safe-area + 4px ──────────
-          // Matches CLAUDE.md § Layout: tide curve 4px below safe area,
-          // height: 16px per design canon.
-          // Step 0 (welcome): hidden — no tide overlay in onboarding.html canon.
-          // Steps 1–3: shown; step 1 uses KaiTide.responding (live stream).
-          Positioned(
-            top: topInset + 4,
-            left: 16,
-            right: 16,
-            height: 16,
-            child: IgnorePointer(
-              child: AnimatedOpacity(
-                opacity: _currentPage > 0 ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 300),
-                child: KaiTideCurve(
-                  state: _tideForStep(_currentPage),
-                  height: 16,
+                    ),
+                    // Fixed Footer: step dots + CTA button in stationary flow
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        24 * scale,
+                        16 * scale,
+                        24 * scale,
+                        28 * scale,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Center(
+                            child: KaiStepIndicator(
+                              count: 4,
+                              active: _currentPage,
+                              scale: scale,
+                            ),
+                          ),
+                          SizedBox(height: 16 * scale),
+                          _buildFixedCTA(context),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
+
+              // ── Tide curve overlay: absolute, top = safe-area + 4px ──────────
+              // Matches CLAUDE.md § Layout: tide curve 4px below safe area,
+              // height: 16px per design canon.
+              // Step 0 (welcome): hidden — no tide overlay in onboarding.html canon.
+              // Steps 1–3: shown; step 1 uses KaiTide.responding (live stream).
+              Positioned(
+                top: topInset + 4,
+                left: 16 * scale,
+                right: 16 * scale,
+                height: 16 * scale,
+                child: IgnorePointer(
+                  child: AnimatedOpacity(
+                    opacity: _currentPage > 0 ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: KaiTideCurve(
+                      state: _tideForStep(_currentPage),
+                      height: 16 * scale,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

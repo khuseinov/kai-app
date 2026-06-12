@@ -14,26 +14,21 @@ void main() {
           const KaiStepIndicator(count: 4, active: 1),
         ),
       );
-      // Settle so AnimatedContainer reaches its target state.
       await tester.pumpAndSettle();
 
-      // There should be 4 AnimatedContainers (the dots).
       final dots = tester
           .widgetList<AnimatedContainer>(find.byType(AnimatedContainer))
           .toList();
       expect(dots, hasLength(4));
 
-      // AnimatedContainer exposes its BoxConstraints via RenderBox.
-      // Each dot is wrapped in a margin so we check the widget property directly:
-      // AnimatedContainer.constraints reflects the width we passed.
-      // dot 0: inactive → width 6
-      expect(dots[0].constraints?.maxWidth, closeTo(6.0, 0.5));
-      // dot 1: active → width 16
-      expect(dots[1].constraints?.maxWidth, closeTo(16.0, 0.5));
-      // dot 2: inactive → width 6
-      expect(dots[2].constraints?.maxWidth, closeTo(6.0, 0.5));
-      // dot 3: inactive → width 6
-      expect(dots[3].constraints?.maxWidth, closeTo(6.0, 0.5));
+      // dot 0: inactive → width 8
+      expect(dots[0].constraints?.maxWidth, closeTo(8.0, 0.5));
+      // dot 1: active → width 20
+      expect(dots[1].constraints?.maxWidth, closeTo(20.0, 0.5));
+      // dot 2: inactive → width 8
+      expect(dots[2].constraints?.maxWidth, closeTo(8.0, 0.5));
+      // dot 3: inactive → width 8
+      expect(dots[3].constraints?.maxWidth, closeTo(8.0, 0.5));
     });
 
     testWidgets('active dot has accent color, others have ink4',
@@ -56,11 +51,9 @@ void main() {
         return deco is BoxDecoration ? deco : null;
       }
 
-      // dot 1 should have accent color
       final activeDeco = getDeco(dots[1]);
       expect(activeDeco?.color, c.accent);
 
-      // dots 0, 2, 3 should have ink4 color
       for (final i in [0, 2, 3]) {
         final deco = getDeco(dots[i]);
         expect(deco?.color, c.ink4);
@@ -76,7 +69,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Rebuild with active=2
       await tester.pumpWidget(
         buildTestWidget(
           const KaiStepIndicator(count: 4, active: 2),
@@ -86,7 +78,7 @@ void main() {
       expect(find.byType(KaiStepIndicator), findsOneWidget);
     });
 
-    testWidgets('all heights are 6 logical pixels',
+    testWidgets('all heights are 8 logical pixels',
         (WidgetTester tester) async {
       await tester.pumpWidget(
         buildTestWidget(
@@ -100,7 +92,27 @@ void main() {
           .toList();
 
       for (final dot in dots) {
-        expect(dot.constraints?.maxHeight, closeTo(6.0, 0.5));
+        expect(dot.constraints?.maxHeight, closeTo(8.0, 0.5));
+      }
+    });
+
+    testWidgets('scale=1.25 multiplies dot sizes',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        buildTestWidget(
+          const KaiStepIndicator(count: 4, active: 1, scale: 1.25),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final dots = tester
+          .widgetList<AnimatedContainer>(find.byType(AnimatedContainer))
+          .toList();
+
+      expect(dots[0].constraints?.maxWidth, closeTo(10.0, 0.5));
+      expect(dots[1].constraints?.maxWidth, closeTo(25.0, 0.5));
+      for (final dot in dots) {
+        expect(dot.constraints?.maxHeight, closeTo(10.0, 0.5));
       }
     });
   });

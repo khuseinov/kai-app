@@ -749,19 +749,21 @@ final List<Story> atomStories = [
     canonSelector: '.step-dots',
     description:
         'Animated step-progress dots. Active dot = elongated accent pill '
-        '(16×6px, brPill); inactive = small circle (6×6px, ink4). '
-        'AnimatedContainer transitions width+colour as active changes.',
+        '(20×8px, brPill); inactive = small circle (8×8px, ink4). '
+        'AnimatedContainer transitions width+colour as active changes. '
+        'Optional scale factor keeps dots legible on tablets.',
     variants: const ['active=0', 'active=1', 'active=2', 'active=3'],
     props: const [
       PropDoc('count', 'int', 'required', 'Total number of steps'),
       PropDoc('active', 'int', 'required', 'Index of the active step (0-based)'),
+      PropDoc('scale', 'double', '1.0', 'Visual scale factor for dots and gaps'),
     ],
     build: (_) => const StoryPage(
       title: 'KaiStepIndicator',
       layer: 'ATOM',
       blurb: 'Step-progress dots for multi-step flows (onboarding etc.). '
-          'Active dot animates to an elongated accent pill; inactive dots are '
-          'small ink4 circles. Respects reduce-motion preference.',
+          'Active dot animates to an elongated 20×8 px accent pill; inactive dots are '
+          '8×8 px ink4 circles. Respects reduce-motion preference and supports scale.',
       sections: [
         StorySection('Static positions', [
           StoryCell('active=0', KaiStepIndicator(count: 4, active: 0)),
@@ -769,14 +771,18 @@ final List<Story> atomStories = [
           StoryCell('active=2', KaiStepIndicator(count: 4, active: 2)),
           StoryCell('active=3', KaiStepIndicator(count: 4, active: 3)),
         ]),
+        StorySection('Scaled', [
+          StoryCell('scale=1.25', KaiStepIndicator(count: 4, active: 1, scale: 1.25)),
+        ]),
         StorySection('Interactive', [
           StoryCell('prev/next', _StepperDemo()),
         ]),
       ],
-      usage: 'KaiStepIndicator(count: 4, active: stepIndex)',
+      usage: 'KaiStepIndicator(count: 4, active: stepIndex, scale: 1.05)',
       props: [
         PropDoc('count', 'int', 'required', 'Total number of steps'),
         PropDoc('active', 'int', 'required', 'Index of the active step (0-based)'),
+        PropDoc('scale', 'double', '1.0', 'Visual scale factor for dots and gaps'),
       ],
     ),
   ),
