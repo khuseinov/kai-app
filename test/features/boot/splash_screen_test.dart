@@ -19,13 +19,16 @@ Widget _frame(Widget child) {
 
 void main() {
   group('SplashScreen', () {
-    testWidgets('renders logo and bottom by Wize signature', (tester) async {
+    testWidgets('renders logo, wordmark and tagline lockup', (tester) async {
       await tester.pumpWidget(buildTestWidget(const SplashScreen()));
 
       expect(find.byType(KaiLogo), findsOneWidget);
-      expect(find.text('by Wize'), findsOneWidget);
-      // The logo already carries the name; no separate "kai" wordmark.
-      expect(find.text('kai'), findsNothing);
+      expect(find.text('kai'), findsOneWidget);
+      expect(
+        find.text('ваш компаньон путешественника'),
+        findsOneWidget,
+      );
+      expect(find.text('by Wize'), findsNothing);
     });
 
     testWidgets('adapts to dark mode', (tester) async {
@@ -37,29 +40,25 @@ void main() {
       );
 
       expect(find.byType(KaiLogo), findsOneWidget);
-      expect(find.text('by Wize'), findsOneWidget);
+      expect(find.text('kai'), findsOneWidget);
+      expect(
+        find.text('ваш компаньон путешественника'),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('draws brand curve and fades in text', (tester) async {
+    testWidgets('plays a single scale pulse and stops', (tester) async {
       await tester.pumpWidget(buildTestWidget(const SplashScreen()));
 
       final state = tester.state<SplashScreenState>(find.byType(SplashScreen));
-      expect(state.drawController.isAnimating, isTrue);
+      expect(state.pulseController.isAnimating, isTrue);
 
-      // Text fade starts after an 800 ms overlap delay.
-      await tester.pump(const Duration(milliseconds: 800));
-      expect(state.fadeController.isAnimating, isTrue);
-
-      // Advance past the end of both animations.
-      await tester.pump(kSplashDrawDuration);
-      expect(state.drawController.isCompleted, isTrue);
-
-      // Text fade completes.
-      await tester.pump(kSplashTextFadeDuration);
-      expect(state.fadeController.isCompleted, isTrue);
+      await tester.pump(kSplashPulseDuration + const Duration(milliseconds: 16));
+      expect(state.pulseController.isCompleted, isTrue);
+      expect(state.pulseController.value, 1.0);
     });
 
-    testWidgets('keeps controllers idle when animations are disabled',
+    testWidgets('keeps pulse controller idle when animations are disabled',
         (tester) async {
       await tester.pumpWidget(
         MediaQuery(
@@ -69,42 +68,41 @@ void main() {
       );
 
       final state = tester.state<SplashScreenState>(find.byType(SplashScreen));
-      expect(state.drawController.isAnimating, isFalse);
-      expect(state.fadeController.isAnimating, isFalse);
-      expect(state.drawController.value, 1.0);
-      expect(state.fadeController.value, 1.0);
+      expect(state.pulseController.isAnimating, isFalse);
+      expect(state.pulseController.value, 1.0);
     });
 
-    testWidgets('golden frames show curve draw and fade-in', (tester) async {
+    testWidgets('golden frames show scale pulse and static lockup',
+        (tester) async {
       await tester.pumpWidget(
         buildTestWidget(_frame(const SplashScreen())),
       );
 
-      // t=0: curve empty, text fully transparent.
+      // t=0: scale at start.
       await expectLater(
         find.byType(SplashScreen),
         matchesGoldenFile('goldens/splash_t0.png'),
       );
 
-      // t=700ms: curve roughly half-drawn; text still fading in.
-      await tester.pump(const Duration(milliseconds: 700));
-      await expectLater(
-        find.byType(SplashScreen),
-        matchesGoldenFile('goldens/splash_t700.png'),
-      );
-
-      // t=1400ms: curve fully drawn; text fade well under way.
-      await tester.pump(const Duration(milliseconds: 700));
-      await expectLater(
-        find.byType(SplashScreen),
-        matchesGoldenFile('goldens/splash_t1400.png'),
-      );
-
-      // t=2200ms: text fade complete, static final frame.
+      // t=800ms: mid-pulse.
       await tester.pump(const Duration(milliseconds: 800));
       await expectLater(
         find.byType(SplashScreen),
-        matchesGoldenFile('goldens/splash_t2200.png'),
+        matchesGoldenFile('goldens/splash_t800.png'),
+      );
+
+      // t=1200ms: peak scale (~1.06).
+      await tester.pump(const Duration(milliseconds: 400));
+      await expectLater(
+        find.byType(SplashScreen),
+        matchesGoldenFile('goldens/splash_t1200.png'),
+      );
+
+      // t=2400ms: pulse complete, static final frame.
+      await tester.pump(const Duration(milliseconds: 1200));
+      await expectLater(
+        find.byType(SplashScreen),
+        matchesGoldenFile('goldens/splash_t2400.png'),
       );
     });
   });

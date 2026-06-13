@@ -1,7 +1,4 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../design_system/atoms/atoms.dart';
 import '../../design_system/theme/kai_theme.dart';
@@ -10,10 +7,8 @@ import 'splash_config.dart';
 
 /// Canonical cold-start splash screen.
 ///
-/// "Bottom signature" layout: the Kai glyph draws itself via the Living Tide
-/// animation in the centre of the screen, while the "by Wize" attribution
-/// fades in near the bottom. No separate "kai" wordmark — the logo mark
-/// already carries the name.
+/// Centered lockup on a solid background: the Kai glyph pulses once, the
+/// "kai" wordmark sits below it, and the tagline sits below that.
 ///
 /// Honors `MediaQuery.disableAnimations` — reduced-motion users see a static,
 /// fully-drawn splash.
@@ -25,104 +20,55 @@ class SplashScreen extends StatefulWidget {
 }
 
 class SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
-  late final AnimationController _drawController;
-  late final AnimationController _fadeController;
-  late final Animation<double> _curveProgress;
-  late final Animation<double> _signatureOpacity;
-
-  bool _hapticFired = false;
-  Timer? _signatureFadeTimer;
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseAnimation;
 
   /// Exposed for widget tests.
-  AnimationController get drawController => _drawController;
-
-  /// Exposed for widget tests.
-  AnimationController get fadeController => _fadeController;
+  AnimationController get pulseController => _pulseController;
 
   @override
   void initState() {
     super.initState();
-    _drawController = AnimationController(
+    _pulseController = AnimationController(
       vsync: this,
-      duration: kSplashDrawDuration,
+      duration: kSplashPulseDuration,
     );
-    _curveProgress = CurvedAnimation(
-      parent: _drawController,
-      curve: Curves.easeInOutSine,
-    );
-
-    _fadeController = AnimationController(
-      vsync: this,
-      duration: kSplashTextFadeDuration,
-    );
-    _signatureOpacity = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    );
-
-    _curveProgress.addListener(_onCurveProgressChanged);
-  }
-
-  void _onCurveProgressChanged() {
-    if (_hapticFired) return;
-    if (_curveProgress.value >= 0.75) {
-      _hapticFired = true;
-      _fireHaptic();
-    }
-  }
-
-  void _fireHaptic() {
-    final disabled = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    if (disabled) return;
-    // Only fire on physical devices; HapticFeedback is a no-op on simulators.
-    HapticFeedback.lightImpact();
+    _pulseAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.0, end: 1.06)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 0.5,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.06, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 0.5,
+      ),
+    ]).animate(_pulseController);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final disabled = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    if (!disabled) {
-      if (_drawController.status == AnimationStatus.dismissed &&
-          !_drawController.isAnimating) {
-        _drawController.forward();
-      }
-      if (_fadeController.status == AnimationStatus.dismissed &&
-          !_fadeController.isAnimating) {
-        // Start signature fade slightly before the curve finishes for overlap.
-        _signatureFadeTimer = Timer(
-          const Duration(milliseconds: 800),
-          () {
-            if (mounted &&
-                _fadeController.status == AnimationStatus.dismissed &&
-                !_fadeController.isAnimating) {
-              _fadeController.forward();
-            }
-          },
-        );
-      }
-    } else {
-      // Reduced motion: show everything immediately.
-      _drawController.value = 1.0;
-      _fadeController.value = 1.0;
+    if (disabled) {
+      _pulseController.value = 1.0;
+    } else if (_pulseController.status == AnimationStatus.dismissed &&
+        !_pulseController.isAnimating) {
+      _pulseController.forward();
     }
   }
 
   @override
   void dispose() {
-    _curveProgress.removeListener(_onCurveProgressChanged);
-    _signatureFadeTimer?.cancel();
-    _drawController.dispose();
-    _fadeController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final logoSize = resolveSplashLogoSize(screenWidth);
 
     return SizedBox.expand(
       child: ColoredBox(
@@ -130,28 +76,18 @@ class SplashScreenState extends State<SplashScreen>
         child: Column(
           children: [
             const Spacer(),
-            AnimatedBuilder(
-              animation: _curveProgress,
-              builder: (context, child) => KaiLogo(
-                size: logoSize,
-                curveProgress: _curveProgress.value,
-              ),
+            ScaleTransition(
+              scale: _pulseAnimation,
+              child: const KaiLogo(size: kSplashLogoSize),
+            ),
+            const SizedBox(height: 16),
+            Text('kai', style: KaiType.wordmark(color: c.ink1)),
+            const SizedBox(height: 4),
+            Text(
+              'ваш компаньон путешественника',
+              style: KaiType.tagline(color: c.ink3),
             ),
             const Spacer(),
-            FadeTransition(
-              opacity: _signatureOpacity,
-              child: SelectionContainer.disabled(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    bottom: kSplashSignatureBottomPadding,
-                  ),
-                  child: Text(
-                    'by Wize',
-                    style: KaiType.splashSignature(color: c.ink3),
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
       ),
