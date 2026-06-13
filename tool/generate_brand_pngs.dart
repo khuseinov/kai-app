@@ -8,12 +8,13 @@
 //   flutter test tool/generate_brand_pngs.dart
 //
 // Outputs:
-//   brand/icon-1024.png        (primary — tide-gradient corner + white curve)
-//   brand/icon-1024-dark.png   (dark slate + tide-gradient curve)
-//   brand/icon-1024-mono.png   (#111114 + white curve)
-//   brand/splash-glyph-1024.png (rounded glyph with built-in radius 22%)
-//   brand/og-default.png        (1200×630 OG card)
-//   web/og-default.png          (copy for web OpenGraph meta tags)
+//   brand/icon-1024.png              (primary — tide-gradient corner + white curve)
+//   brand/icon-1024-dark.png         (dark slate + tide-gradient curve)
+//   brand/icon-1024-mono.png         (#111114 + white curve)
+//   brand/icon-1024-mono-tinted.png  (transparent + white curve — iOS 18 tinted)
+//   brand/splash-glyph-1024.png      (rounded glyph with built-in radius 22%)
+//   brand/og-default.png             (1200×630 OG card)
+//   web/og-default.png               (copy for web OpenGraph meta tags)
 
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -24,7 +25,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
-enum _Variant { primary, dark, mono, splashGlyph, ogCard }
+enum _Variant { primary, dark, mono, monoTinted, splashGlyph, ogCard }
 
 const int _size = 1024;
 
@@ -32,6 +33,7 @@ final _assets = <(_Variant, String)>[
   (_Variant.primary, 'brand/icon-1024.png'),
   (_Variant.dark, 'brand/icon-1024-dark.png'),
   (_Variant.mono, 'brand/icon-1024-mono.png'),
+  (_Variant.monoTinted, 'brand/icon-1024-mono-tinted.png'),
   (_Variant.splashGlyph, 'brand/splash-glyph-1024.png'),
   (_Variant.ogCard, 'brand/og-default.png'),
 ];
@@ -71,7 +73,8 @@ Future<void> _loadBrandFont() async {
     throw StateError('Brand font not found at assets/fonts/Manrope.ttf');
   }
   final bytes = await file.readAsBytes();
-  final byteData = bytes.buffer.asByteData(bytes.offsetInBytes, bytes.lengthInBytes);
+  final byteData =
+      bytes.buffer.asByteData(bytes.offsetInBytes, bytes.lengthInBytes);
   final loader = FontLoader('Manrope')..addFont(Future.value(byteData));
   await loader.load();
 }
@@ -99,18 +102,23 @@ Future<Uint8List> _renderTile(_Variant variant, int size) async {
     case _Variant.primary:
     case _Variant.splashGlyph:
       bgPaint.shader = KaiTide.gradientCorner.createShader(fullRect);
+      canvas.drawRect(fullRect, bgPaint);
     case _Variant.dark:
       bgPaint.shader = const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [Color(0xFF0E0E11), Color(0xFF1E1E23)],
       ).createShader(fullRect);
+      canvas.drawRect(fullRect, bgPaint);
     case _Variant.mono:
       bgPaint.color = const Color(0xFF111114);
+      canvas.drawRect(fullRect, bgPaint);
+    case _Variant.monoTinted:
+      // Transparent background — iOS 18 tinted mode applies its own colour.
+      break;
     case _Variant.ogCard:
       throw UnsupportedError('Use _renderOgCard() for the OG card variant');
   }
-  canvas.drawRect(fullRect, bgPaint);
 
   // Curve.
   _drawCurve(canvas, s, variant, fullRect);
@@ -133,6 +141,7 @@ void _drawCurve(Canvas canvas, double s, _Variant variant, Rect fullRect) {
     ..strokeCap = StrokeCap.round;
 
   // Dark variant: curve renders with tide-gradient shader instead of white.
+  // Mono + tinted variants: white curve (tinted mode lets iOS recolour it).
   if (variant == _Variant.dark) {
     paint.shader = KaiTide.gradientCorner.createShader(fullRect);
   } else {
