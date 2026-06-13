@@ -1,5 +1,6 @@
 # Claude Code worktrees and logs
 .claude/worktrees/
+.worktrees/
 flutter_*.log
 
 # Playwright / QA screenshots (generated during design review sessions)
