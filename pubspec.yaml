@@ -95,12 +95,15 @@ flutter_launcher_icons:
 flutter_native_splash:
   color: "#FAFAF9"
   color_dark: "#0E0E11"
-  # No general `image`: iOS and Android pre-12 use a solid-color native launch
-  # screen. The brand animation lives exclusively in the Flutter SplashScreen,
-  # so there is no duplicate logo or position jump during the OS-to-Flutter
-  # handoff. Web is handled manually in web/index.html (solid theme background).
+  # No general `image`: Android pre-12 uses a solid-color native launch screen.
+  # The brand animation lives exclusively in the Flutter SplashScreen, so there
+  # is no duplicate logo or position jump during the OS-to-Flutter handoff.
+  # Web is handled manually in web/index.html (solid theme background).
   # Android 12+ keeps the OS splash icon because the API requires one.
-  ios: true
+  # iOS is disabled here because the solid-color launch screen is maintained
+  # manually in ios/Runner/Base.lproj/LaunchScreen.storyboard; enabling the
+  # generator would re-add the LaunchImage placeholder imageView and asset set.
+  ios: false
   android: true
   web: false
   android_12:
