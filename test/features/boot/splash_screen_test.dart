@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/design_system/atoms/atoms.dart';
 import 'package:kai_app/features/boot/splash_config.dart';
@@ -18,6 +21,13 @@ Widget _frame(Widget child) {
 }
 
 void main() {
+  setUpAll(() async {
+    final fontData = File('assets/fonts/Manrope.ttf').readAsBytesSync();
+    final loader = FontLoader('Manrope')
+      ..addFont(Future.value(ByteData.view(fontData.buffer)));
+    await loader.load();
+  });
+
   group('SplashScreen', () {
     testWidgets('renders logo, wordmark and tagline lockup', (tester) async {
       await tester.pumpWidget(buildTestWidget(const SplashScreen()));
