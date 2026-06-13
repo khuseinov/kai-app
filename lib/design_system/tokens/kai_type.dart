@@ -150,17 +150,6 @@ class KaiType {
         color: color,
       );
 
-  /// 18/600 — bottom signature label on the splash screen (e.g. "by Wize").
-  static TextStyle splashSignature({required Color color}) => TextStyle(
-        fontFamily: 'Manrope',
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        height: 1.0,
-        letterSpacing: 18 * 0.04,
-        fontFeatures: _manropeFeatures,
-        color: color,
-      );
-
   /// 12/400 — monospace.
   static TextStyle mono({required Color color}) => TextStyle(
         fontFamily: 'JetBrainsMono',

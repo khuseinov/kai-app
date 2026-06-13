@@ -49,8 +49,13 @@ void main() {
         final bytes = variant == _Variant.ogCard
             ? await _renderOgCard()
             : await _renderTile(variant, _size);
-        final finalBytes =
-            variant == _Variant.dark ? _removeAlpha(bytes) : bytes;
+        // Flatten opaque icon variants to 24-bit RGB so store icons have no
+        // alpha channel. Keep the iOS 18 tinted stencil transparent.
+        final finalBytes = (variant == _Variant.primary ||
+                variant == _Variant.dark ||
+                variant == _Variant.mono)
+            ? _flattenAlpha(bytes)
+            : bytes;
         await File(target).writeAsBytes(finalBytes);
         if (variant == _Variant.ogCard) {
           await File('web/og-default.png').writeAsBytes(bytes);
@@ -360,11 +365,13 @@ Future<Uint8List> _renderOgCard() async {
   return byteData.buffer.asUint8List();
 }
 
-/// Flatten the dark icon so iOS 18 dark-mode icons get an opaque background.
-/// The rendered tile already fills the canvas with a dark gradient, but
-/// `ui.ImageByteFormat.png` keeps an alpha channel. This helper composites
-/// any remaining alpha against #0E0E11 and exports a true 24-bit RGB PNG.
-Uint8List _removeAlpha(Uint8List pngBytes) {
+/// Strip the alpha channel from an already-opaque icon tile.
+///
+/// `ui.ImageByteFormat.png` always emits RGBA, but App Store icons must be
+/// opaque RGB. This helper drops the alpha channel and exports a true 24-bit
+/// RGB PNG. It assumes the tile already fully covers the canvas (true for
+/// primary, dark and mono variants).
+Uint8List _flattenAlpha(Uint8List pngBytes) {
   final decoded = img.decodePng(pngBytes);
   if (decoded == null) {
     throw StateError('Could not decode PNG for alpha removal');

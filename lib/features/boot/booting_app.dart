@@ -12,8 +12,7 @@ import 'splash_screen.dart';
 ///
 /// While bootstrap is in flight the canonical [SplashScreen] is shown. Once
 /// [bootstrap] completes we enforce a minimum visible duration so the splash
-/// animation (living tide curve draw + text fade-in) is always seen, then
-/// cross-fade to the real app.
+/// lockup pulse is always seen, then cross-fade to the real app.
 ///
 /// If [bootstrap] throws, a minimal error surface is shown; this is a fast-fail.
 /// We do not retry because the only known failure (corrupted Hive) is not
@@ -51,7 +50,7 @@ class _BootingAppState extends State<BootingApp> {
     try {
       final container = await (widget.bootstrap ?? bootstrap)();
 
-      // Enforce the minimum splash-visible duration so the brand animation is
+      // Enforce the minimum splash-visible duration so the lockup pulse is
       // never skipped, even on a fast device.
       final elapsed = DateTime.now().difference(start);
       final remaining = widget.minSplashVisibleDuration - elapsed;

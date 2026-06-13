@@ -57,7 +57,7 @@ Android adaptive icons use a single foreground layer, not separate fg/bg PNGs. `
 
 - Source master: `brand/icon-mono-tinted.svg` (transparent background, white curve stencil).
 - Generated PNG: `brand/icon-1024-mono-tinted.png` is produced by `tool/generate_brand_pngs.dart`.
-- **Not yet wired:** `pubspec.yaml` currently still points `image_path_ios_tinted_grayscale` to `brand/icon-1024-mono.png`. Switching it to `brand/icon-1024-mono-tinted.png` and regenerating platform assets is planned for the next phase.
+- Wired in `pubspec.yaml` as `image_path_ios_tinted_grayscale: "brand/icon-1024-mono-tinted.png"`. `remove_alpha_ios: false` keeps the transparent stencil so iOS can tint the curve.
 
 ---
 

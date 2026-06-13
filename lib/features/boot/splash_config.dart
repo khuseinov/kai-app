@@ -4,7 +4,10 @@
 library;
 
 /// Minimum time the splash should remain visible on a cold start.
-const Duration kSplashMinVisibleDuration = Duration(milliseconds: 800);
+///
+/// Kept equal to the pulse duration so the single scale pulse always completes
+/// before the app cross-fades in, even on a fast cold start.
+const Duration kSplashMinVisibleDuration = Duration(milliseconds: 2400);
 
 /// Duration of the logo glyph scale pulse animation.
 const Duration kSplashPulseDuration = Duration(milliseconds: 2400);
