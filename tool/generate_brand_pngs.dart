@@ -145,10 +145,20 @@ void _drawCurve(Canvas canvas, double s, _Variant variant, Rect fullRect) {
     ..style = PaintingStyle.stroke
     ..strokeCap = StrokeCap.round;
 
-  // Dark variant: curve renders with tide-gradient shader instead of white.
+  // Dark variant: horizontal tide gradient across the curve bounding box,
+  // matching the SVG gradient in brand.html.
   // Mono + tinted variants: white curve (tinted mode lets iOS recolour it).
   if (variant == _Variant.dark) {
-    paint.shader = KaiTide.gradientCorner.createShader(fullRect);
+    paint.shader = const LinearGradient(
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+      colors: [
+        Color(0xFF1B4FB0),
+        Color(0xFF2BA8C9),
+        Color(0xFFF4B589),
+      ],
+      stops: [0.0, 0.5, 1.0],
+    ).createShader(const Rect.fromLTWH(0, 0, 60, 16));
   } else {
     paint.color = const Color(0xFFFFFFFF);
   }
@@ -170,14 +180,21 @@ void _drawCurve(Canvas canvas, double s, _Variant variant, Rect fullRect) {
       ..quadraticBezierTo(27, 19, 34, 7);
     canvas.drawPath(path, paint);
   } else {
-    // Icon canon: inset 22% top, 16% l/r, 24% bottom; curve viewBox 60×16
-    // placed at xMidYMid meet inside the inner box.
-    // On 1024: inner box = 696×553 at (164, 225). With 60:16 aspect (3.75:1)
-    // the curve renders at 696×186, vertically centered: y = 225 + (553-186)/2 = 408.
-    canvas.translate(s * 164 / 1024, s * 408 / 1024);
-    final scale = s * 696 / 1024 / 60;
-    canvas.scale(scale);
-    paint.strokeWidth = 3;
+    // Icon canon: the HTML/CSS source stretches the 60×16 curve viewBox to
+    // fill the inner box defined by `inset: 22% 16% 24%`. We reproduce that
+    // anisotropic scaling exactly so the curve weight matches the design.
+    final curveBox = Rect.fromLTRB(
+      s * 0.16,
+      s * 0.22,
+      s * (1 - 0.16),
+      s * (1 - 0.24),
+    );
+    canvas.translate(curveBox.left, curveBox.top);
+    canvas.scale(curveBox.width / 60, curveBox.height / 16);
+    // Render slightly heavier than the 3px SVG spec to compensate for the
+    // bilinear downscaling that happens when the 1024 master is displayed
+    // at real icon sizes (≈60–180 px).
+    paint.strokeWidth = 4;
     // Canon path M 2 10 Q 14 2, 28 10 T 56 6
     final path = Path()
       ..moveTo(2, 10)
