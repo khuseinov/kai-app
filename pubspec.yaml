@@ -72,12 +72,12 @@ flutter_launcher_icons:
   android: "ic_launcher"
   ios: true
   image_path: "brand/icon-1024.png"
-  # Strip alpha — App Store requires opaque iOS icons.
-  remove_alpha_ios: true
+  # Keep alpha for the transparent tinted stencil; primary/dark icons are opaque.
+  remove_alpha_ios: false
   # iOS 18+ dark/tinted variants. flutter_launcher_icons >=0.14.1 generates these
   # automatically and writes the matching `appearances` entries in Contents.json.
   image_path_ios_dark_transparent: "brand/icon-1024-dark.png"
-  image_path_ios_tinted_grayscale: "brand/icon-1024-mono.png"
+  image_path_ios_tinted_grayscale: "brand/icon-1024-mono-tinted.png"
   desaturate_tinted_to_grayscale_ios: true
   # Android adaptive icon (Android 8+). Background = bg token light (#FAFAF9).
   # Foreground is the same primary icon; Android masks corners automatically.
