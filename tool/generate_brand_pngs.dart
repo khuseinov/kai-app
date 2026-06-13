@@ -8,12 +8,13 @@
 //   flutter test tool/generate_brand_pngs.dart
 //
 // Outputs:
-//   brand/icon-1024.png        (primary — tide-gradient corner + white curve)
-//   brand/icon-1024-dark.png   (dark slate + tide-gradient curve)
-//   brand/icon-1024-mono.png   (#111114 + white curve)
-//   brand/splash-glyph-1024.png (rounded glyph with built-in radius 22%)
-//   brand/og-default.png        (1200×630 OG card)
-//   web/og-default.png          (copy for web OpenGraph meta tags)
+//   brand/icon-1024.png              (primary — tide-gradient corner + white curve)
+//   brand/icon-1024-dark.png         (dark slate + tide-gradient curve)
+//   brand/icon-1024-mono.png         (#111114 + white curve)
+//   brand/icon-1024-mono-tinted.png  (transparent + white curve — iOS 18 tinted)
+//   brand/splash-glyph-1024.png      (rounded glyph with built-in radius 22%)
+//   brand/og-default.png             (1200×630 OG card)
+//   web/og-default.png               (copy for web OpenGraph meta tags)
 
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -24,7 +25,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
-enum _Variant { primary, dark, mono, splashGlyph, ogCard }
+enum _Variant { primary, dark, mono, monoTinted, splashGlyph, ogCard }
 
 const int _size = 1024;
 
@@ -32,6 +33,7 @@ final _assets = <(_Variant, String)>[
   (_Variant.primary, 'brand/icon-1024.png'),
   (_Variant.dark, 'brand/icon-1024-dark.png'),
   (_Variant.mono, 'brand/icon-1024-mono.png'),
+  (_Variant.monoTinted, 'brand/icon-1024-mono-tinted.png'),
   (_Variant.splashGlyph, 'brand/splash-glyph-1024.png'),
   (_Variant.ogCard, 'brand/og-default.png'),
 ];
@@ -47,8 +49,13 @@ void main() {
         final bytes = variant == _Variant.ogCard
             ? await _renderOgCard()
             : await _renderTile(variant, _size);
-        final finalBytes =
-            variant == _Variant.dark ? _removeAlpha(bytes) : bytes;
+        // Flatten opaque icon variants to 24-bit RGB so store icons have no
+        // alpha channel. Keep the iOS 18 tinted stencil transparent.
+        final finalBytes = (variant == _Variant.primary ||
+                variant == _Variant.dark ||
+                variant == _Variant.mono)
+            ? _flattenAlpha(bytes)
+            : bytes;
         await File(target).writeAsBytes(finalBytes);
         if (variant == _Variant.ogCard) {
           await File('web/og-default.png').writeAsBytes(bytes);
@@ -71,7 +78,8 @@ Future<void> _loadBrandFont() async {
     throw StateError('Brand font not found at assets/fonts/Manrope.ttf');
   }
   final bytes = await file.readAsBytes();
-  final byteData = bytes.buffer.asByteData(bytes.offsetInBytes, bytes.lengthInBytes);
+  final byteData =
+      bytes.buffer.asByteData(bytes.offsetInBytes, bytes.lengthInBytes);
   final loader = FontLoader('Manrope')..addFont(Future.value(byteData));
   await loader.load();
 }
@@ -99,18 +107,23 @@ Future<Uint8List> _renderTile(_Variant variant, int size) async {
     case _Variant.primary:
     case _Variant.splashGlyph:
       bgPaint.shader = KaiTide.gradientCorner.createShader(fullRect);
+      canvas.drawRect(fullRect, bgPaint);
     case _Variant.dark:
       bgPaint.shader = const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [Color(0xFF0E0E11), Color(0xFF1E1E23)],
       ).createShader(fullRect);
+      canvas.drawRect(fullRect, bgPaint);
     case _Variant.mono:
       bgPaint.color = const Color(0xFF111114);
+      canvas.drawRect(fullRect, bgPaint);
+    case _Variant.monoTinted:
+      // Transparent background — iOS 18 tinted mode applies its own colour.
+      break;
     case _Variant.ogCard:
       throw UnsupportedError('Use _renderOgCard() for the OG card variant');
   }
-  canvas.drawRect(fullRect, bgPaint);
 
   // Curve.
   _drawCurve(canvas, s, variant, fullRect);
@@ -132,9 +145,20 @@ void _drawCurve(Canvas canvas, double s, _Variant variant, Rect fullRect) {
     ..style = PaintingStyle.stroke
     ..strokeCap = StrokeCap.round;
 
-  // Dark variant: curve renders with tide-gradient shader instead of white.
+  // Dark variant: horizontal tide gradient across the curve bounding box,
+  // matching the SVG gradient in brand.html.
+  // Mono + tinted variants: white curve (tinted mode lets iOS recolour it).
   if (variant == _Variant.dark) {
-    paint.shader = KaiTide.gradientCorner.createShader(fullRect);
+    paint.shader = const LinearGradient(
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+      colors: [
+        Color(0xFF1B4FB0),
+        Color(0xFF2BA8C9),
+        Color(0xFFF4B589),
+      ],
+      stops: [0.0, 0.5, 1.0],
+    ).createShader(const Rect.fromLTWH(0, 0, 60, 16));
   } else {
     paint.color = const Color(0xFFFFFFFF);
   }
@@ -156,14 +180,21 @@ void _drawCurve(Canvas canvas, double s, _Variant variant, Rect fullRect) {
       ..quadraticBezierTo(27, 19, 34, 7);
     canvas.drawPath(path, paint);
   } else {
-    // Icon canon: inset 22% top, 16% l/r, 24% bottom; curve viewBox 60×16
-    // placed at xMidYMid meet inside the inner box.
-    // On 1024: inner box = 696×553 at (164, 225). With 60:16 aspect (3.75:1)
-    // the curve renders at 696×186, vertically centered: y = 225 + (553-186)/2 = 408.
-    canvas.translate(s * 164 / 1024, s * 408 / 1024);
-    final scale = s * 696 / 1024 / 60;
-    canvas.scale(scale);
-    paint.strokeWidth = 3;
+    // Icon canon: the HTML/CSS source stretches the 60×16 curve viewBox to
+    // fill the inner box defined by `inset: 22% 16% 24%`. We reproduce that
+    // anisotropic scaling exactly so the curve weight matches the design.
+    final curveBox = Rect.fromLTRB(
+      s * 0.16,
+      s * 0.22,
+      s * (1 - 0.16),
+      s * (1 - 0.24),
+    );
+    canvas.translate(curveBox.left, curveBox.top);
+    canvas.scale(curveBox.width / 60, curveBox.height / 16);
+    // Render slightly heavier than the 3px SVG spec to compensate for the
+    // bilinear downscaling that happens when the 1024 master is displayed
+    // at real icon sizes (≈60–180 px).
+    paint.strokeWidth = 4;
     // Canon path M 2 10 Q 14 2, 28 10 T 56 6
     final path = Path()
       ..moveTo(2, 10)
@@ -351,11 +382,13 @@ Future<Uint8List> _renderOgCard() async {
   return byteData.buffer.asUint8List();
 }
 
-/// Flatten the dark icon so iOS 18 dark-mode icons get an opaque background.
-/// The rendered tile already fills the canvas with a dark gradient, but
-/// `ui.ImageByteFormat.png` keeps an alpha channel. This helper composites
-/// any remaining alpha against #0E0E11 and exports a true 24-bit RGB PNG.
-Uint8List _removeAlpha(Uint8List pngBytes) {
+/// Strip the alpha channel from an already-opaque icon tile.
+///
+/// `ui.ImageByteFormat.png` always emits RGBA, but App Store icons must be
+/// opaque RGB. This helper drops the alpha channel and exports a true 24-bit
+/// RGB PNG. It assumes the tile already fully covers the canvas (true for
+/// primary, dark and mono variants).
+Uint8List _flattenAlpha(Uint8List pngBytes) {
   final decoded = img.decodePng(pngBytes);
   if (decoded == null) {
     throw StateError('Could not decode PNG for alpha removal');

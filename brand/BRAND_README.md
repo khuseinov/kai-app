@@ -14,6 +14,7 @@ assets are produced from these via `tool/generate_brand_pngs.dart`.
 | `icon-primary.svg` | 1024×1024 | Primary app icon — tide-gradient corner (135°) + white curve. iOS / Android default. |
 | `icon-dark.svg` | 1024×1024 | iOS tinted dark mode + dark splash anchor. Slate gradient bg + tide-gradient curve. |
 | `icon-mono.svg` | 1024×1024 | Single-colour stencil — watch faces, accessibility tinting, mono print. |
+| `icon-mono-tinted.svg` | 1024×1024 | iOS 18 tinted mode stencil — transparent background + white curve. |
 | `splash-glyph.svg` | 1024×1024 (with built-in rounded corners) | Splash screen glyph image. Used by `flutter_native_splash`. |
 | `og-default.png` | 1200×630 | OG card for social sharing. Generated from `brand.html § 02.2`. Also copied to `web/og-default.png`. |
 | `favicon-32.png` | 32×32 | Web favicon with brand glyph. |
@@ -37,6 +38,29 @@ All bright stops are locked: `#1B4FB0 → #2BA8C9 → #F4B589`. No recolours, no
 
 ---
 
+## Platform-specific notes
+
+### Favicon 16×16
+
+`brand/favicon-16.png` and `web/favicon-16.png` are rendered as a pure gradient square (`KaiTide.gradientCorner`: 135° `#1B4FB0 → #2BA8C9 55% → #F4B589`). The brand curve is intentionally omitted — it is illegible at 16×16.
+
+### Android adaptive icon
+
+Android adaptive icons use a single foreground layer, not separate fg/bg PNGs. `pubspec.yaml` configures `flutter_launcher_icons` with:
+
+- `adaptive_icon_background: "#FAFAF9"`
+- `adaptive_icon_foreground: "brand/icon-1024.png"`
+
+`brand/icon-1024.png` already contains the gradient corner + white curve with the recommended 16% inset, so Android masks it directly. There are no `icon-adaptive-fg.png` / `icon-adaptive-bg.png` masters.
+
+### iOS 18 tinted mode
+
+- Source master: `brand/icon-mono-tinted.svg` (transparent background, white curve stencil).
+- Generated PNG: `brand/icon-1024-mono-tinted.png` is produced by `tool/generate_brand_pngs.dart`.
+- Wired in `pubspec.yaml` as `image_path_ios_tinted_grayscale: "brand/icon-1024-mono-tinted.png"`. `remove_alpha_ios: false` keeps the transparent stencil so iOS can tint the curve.
+
+---
+
 ## Regenerating PNGs
 
 The Dart-side splash screen (`lib/features/boot/splash_screen.dart`) renders entirely from `KaiTide.gradientCorner` at runtime — it does not require any PNG. The PNGs are only needed for:
@@ -56,6 +80,7 @@ This produces:
 brand/icon-1024.png
 brand/icon-1024-dark.png
 brand/icon-1024-mono.png
+brand/icon-1024-mono-tinted.png
 brand/splash-glyph-1024.png
 brand/og-default.png
 web/og-default.png
@@ -71,6 +96,7 @@ This produces:
 
 ```
 web/favicon.png
+web/favicon-16.png
 web/icons/Icon-192.png
 web/icons/Icon-512.png
 web/icons/Icon-maskable-192.png
@@ -105,7 +131,7 @@ Configs for both tools live in `pubspec.yaml` under their named keys.
 
 ## Editing the masters
 
-- Keep all four masters at 1024×1024 (3 icons + splash glyph).
+- Keep all five masters at 1024×1024 (4 icon variants + splash glyph).
 - Curve uses path `M 2 10 Q 14 2, 28 10 T 56 6` in a 60×16 viewBox for icons,
   and `M 2 11 Q 9 3, 18 11 T 34 7` in a 36×18 viewBox for the splash glyph.
   Both paths come from `new-design/brand.html`. **Do not redraw the curve** —
