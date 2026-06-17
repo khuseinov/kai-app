@@ -79,11 +79,6 @@ class SplashScreenState extends State<SplashScreen>
             ),
             const SizedBox(height: 16),
             Text('kai', style: KaiType.wordmark(color: c.ink1)),
-            const SizedBox(height: 4),
-            Text(
-              'ваш компаньон путешественника',
-              style: KaiType.tagline(color: c.ink3),
-            ),
             const Spacer(),
             Padding(
               padding: const EdgeInsets.only(bottom: 24),
