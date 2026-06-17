@@ -16,4 +16,4 @@ const Duration kSplashPulseDuration = Duration(milliseconds: 2400);
 const Duration kSplashCrossFadeDuration = Duration(milliseconds: 480);
 
 /// Logo glyph size on the splash screen.
-const double kSplashLogoSize = 112;
+const double kSplashLogoSize = 70;

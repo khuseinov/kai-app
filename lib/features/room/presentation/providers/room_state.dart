@@ -376,4 +376,22 @@ class RoomNotifier extends Notifier<RoomStateData> {
     }
     state = state.copyWith(isStreaming: false, tideState: KaiTide.idle);
   }
+
+  void addMockAttachment(String fileName) {
+    final uid = const Uuid().v4();
+    final updatedMessages = [
+      ...state.messages,
+      {
+        'id': uid,
+        'role': 'system',
+        'content': '📎 Прикреплен файл: $fileName',
+        'status': 'ok',
+      },
+    ];
+    state = state.copyWith(
+      messages: updatedMessages,
+      currentFrame: updatedMessages.isEmpty ? RoomFrame.empty : RoomFrame.live,
+    );
+    _resetInactivityTimer();
+  }
 }

@@ -212,34 +212,8 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
                         ),
                       ),
                     ),
-                    // More/dots button
-                    GestureDetector(
-                      onTap: () {},
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: c.surface2,
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: KaiIcon(
-                          KaiIconName.menu,
-                          size: 14,
-                          color: c.ink1,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
-              ),
-            ),
-            // Tide curve muted wave
-            const SizedBox(
-              height: 14,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 18),
-                child: KaiTideCurve(state: KaiTide.muted),
               ),
             ),
             // Scrollable facts body

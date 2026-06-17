@@ -6,7 +6,6 @@ import 'package:kai_app/design_system/atoms/atoms.dart';
 import 'package:kai_app/design_system/molecules/molecules.dart';
 import 'package:kai_app/design_system/primitives/primitives.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
-import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 /// Settings screen. Canon: `new-design/settings.html`.
 ///
@@ -59,14 +58,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         child: Column(
           children: [
             _SettingsTopBar(),
-            // Tide curve — idle state, 4 px below appbar top.
-            const SizedBox(
-              height: 14,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 18),
-                child: KaiTideCurve(state: KaiTide.idle),
-              ),
-            ),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(14, 16, 14, 24),

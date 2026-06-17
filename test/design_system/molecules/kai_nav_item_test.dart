@@ -49,7 +49,7 @@ void main() {
     testWidgets('active=false renders without error', (tester) async {
       await tester.pumpWidget(
         buildTestWidget(
-          const KaiNavItem(label: 'Настройки', active: false),
+          const KaiNavItem(label: 'Настройки'),
         ),
       );
       await tester.pump();

@@ -62,6 +62,7 @@ class KaiKaiBubble extends StatefulWidget {
     this.sources = const [],
     this.streaming = false,
     this.hideWho = false,
+    this.statusSuffix,
     this.onThumbUp,
     this.onThumbDown,
     super.key,
@@ -82,6 +83,9 @@ class KaiKaiBubble extends StatefulWidget {
   /// Canon: `animation: cursor 1s steps(1) infinite; 50% { opacity: 0 }`.
   final bool streaming;
 
+  /// Suffix next to "KAI" (e.g. "думаю" or "ищу информацию о рейсах").
+  final String? statusSuffix;
+
   /// When `true`, hides the `.who` row entirely.
   final bool hideWho;
 
@@ -100,26 +104,35 @@ class KaiKaiBubble extends StatefulWidget {
 // ---------------------------------------------------------------------------
 
 class _KaiKaiBubbleState extends State<KaiKaiBubble>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   // Caret blink: AnimationController driving 0↔1 every 500ms (1s full cycle).
   AnimationController? _caretController;
+  AnimationController? _tideBarController;
 
   @override
   void initState() {
     super.initState();
     if (widget.streaming) {
       _startCaret();
+      _startTideBar();
     }
   }
 
   @override
   void didUpdateWidget(KaiKaiBubble oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.streaming && _caretController == null) {
-      _startCaret();
-    } else if (!widget.streaming && _caretController != null) {
-      _caretController!.dispose();
-      _caretController = null;
+    if (widget.streaming) {
+      if (_caretController == null) _startCaret();
+      if (_tideBarController == null) _startTideBar();
+    } else {
+      if (_caretController != null) {
+        _caretController!.dispose();
+        _caretController = null;
+      }
+      if (_tideBarController != null) {
+        _tideBarController!.dispose();
+        _tideBarController = null;
+      }
     }
   }
 
@@ -130,9 +143,17 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
     )..repeat(reverse: true);
   }
 
+  void _startTideBar() {
+    _tideBarController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600), // canon: 1.6s
+    )..repeat(reverse: true);
+  }
+
   @override
   void dispose() {
     _caretController?.dispose();
+    _tideBarController?.dispose();
     super.dispose();
   }
 
@@ -157,10 +178,29 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Canon: .who::before — 16×4 tide-gradient pill
-              const KaiGradientBar(),
-              // canon: .kai-b .who { gap: 6px } — verified spec-viewer 2026-05-29
-              // (was 8px, room.html shows 6px)
+              if (widget.streaming && _tideBarController != null)
+                AnimatedBuilder(
+                  animation: _tideBarController!,
+                  builder: (context, _) {
+                    final width = Tween<double>(begin: 10, end: 22).animate(
+                      CurvedAnimation(
+                        parent: _tideBarController!,
+                        curve: Curves.easeInOut,
+                      ),
+                    ).value;
+                    return Container(
+                      width: width,
+                      height: 3,
+                      decoration: const BoxDecoration(
+                        gradient: KaiTide.gradient,
+                        borderRadius: KaiRadius.brPill,
+                      ),
+                    );
+                  },
+                )
+              else
+                // Canon: .who::before — 16×4 tide-gradient pill
+                const KaiGradientBar(),
               const SizedBox(width: 6), // canon: gap 6px
               Text(
                 'KAI',
@@ -170,16 +210,29 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
                   letterSpacing: 9 * 0.08, // canon: 0.08em
                 ),
               ),
+              if (widget.streaming && widget.statusSuffix != null) ...[
+                const SizedBox(width: 6),
+                Text(
+                  '· ${widget.statusSuffix}',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 9,
+                    fontWeight: FontWeight.w400,
+                    fontStyle: FontStyle.italic,
+                    color: c.ink4,
+                  ),
+                ),
+              ],
             ],
           ),
 
           // Gap between .who and .txt — canon: .kai-b flex gap 5px
           // — verified spec-viewer 2026-05-29 (was 6px)
-          const SizedBox(height: 5), // canon: gap 5px
+          if (widget.text.isNotEmpty) const SizedBox(height: 5), // canon: gap 5px
         ],
 
         // ── .txt — body with inline citation parsing ────────────────────────
-        _buildBodyText(c),
+        if (widget.text.isNotEmpty) _buildBodyText(c),
 
         // ── meta-row (sources label + optional react) ───────────────────────
         if (hasMetaRow) ...[
@@ -220,17 +273,21 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
       spans.add(
         WidgetSpan(
           child: AnimatedBuilder(
+            key: const ValueKey('kai_bubble_caret'),
             animation: _caretController!,
             builder: (context, _) {
-              // steps(1) at 50% → opacity toggles at the midpoint
-              final visible = _caretController!.value < 0.5;
+              // ponytail: smooth breathing gradient caret to replace harsh blinking block
+              final opacity = _caretController!.value;
               return Opacity(
-                opacity: visible ? 1.0 : 0.0,
+                opacity: opacity,
                 child: Container(
-                  width: 7, // canon: 7px
-                  height: 14, // canon: 14px
-                  margin: const EdgeInsets.only(left: 2), // canon: margin-left 2px
-                  color: KaiTheme.of(context).colors.ink1,
+                  width: 2.5,
+                  height: 15,
+                  margin: const EdgeInsets.only(left: 3),
+                  decoration: BoxDecoration(
+                    gradient: KaiTide.gradient,
+                    borderRadius: BorderRadius.circular(1.2),
+                  ),
                 ),
               );
             },

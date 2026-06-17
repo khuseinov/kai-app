@@ -22,7 +22,6 @@ class SplashScreen extends StatefulWidget {
 class SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulseController;
-  late final Animation<double> _pulseAnimation;
 
   /// Exposed for widget tests.
   AnimationController get pulseController => _pulseController;
@@ -34,18 +33,6 @@ class SplashScreenState extends State<SplashScreen>
       vsync: this,
       duration: kSplashPulseDuration,
     );
-    _pulseAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1, end: 1.06)
-            .chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 0.5,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.06, end: 1)
-            .chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 0.5,
-      ),
-    ]).animate(_pulseController);
   }
 
   @override
@@ -76,9 +63,19 @@ class SplashScreenState extends State<SplashScreen>
         child: Column(
           children: [
             const Spacer(),
-            ScaleTransition(
-              scale: _pulseAnimation,
-              child: const KaiLogo(size: kSplashLogoSize),
+            AnimatedBuilder(
+              animation: _pulseController,
+              builder: (context, child) {
+                // ponytail: animate inner curve drawing (wave appearance)
+                final curveVal = CurvedAnimation(
+                  parent: _pulseController,
+                  curve: Curves.easeInOut,
+                ).value;
+                return KaiLogo(
+                  size: kSplashLogoSize,
+                  curveProgress: curveVal,
+                );
+              },
             ),
             const SizedBox(height: 16),
             Text('kai', style: KaiType.wordmark(color: c.ink1)),
@@ -88,6 +85,16 @@ class SplashScreenState extends State<SplashScreen>
               style: KaiType.tagline(color: c.ink3),
             ),
             const Spacer(),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Text(
+                'by Wize',
+                style: KaiType.mono(color: c.ink3).copyWith(
+                  fontSize: 12,
+                  letterSpacing: 12 * 0.08,
+                ),
+              ),
+            ),
           ],
         ),
       ),

@@ -4,16 +4,16 @@ import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 /// Renders the canonical brand curve inside a given size.
 ///
-/// Splash-glyph canon from `brand.html` / `brand/splash-glyph.svg`:
-/// viewBox 36×18, path `M 2 11 Q 9 3, 18 11 T 34 7`, stroke-width 2.5.
+/// Brand curve canon from `brand.html` / app icon:
+/// viewBox 60×16, path `M 2 10 Q 14 2, 28 10 T 56 6`, stroke-width 3.
 ///
 /// [progress] controls stroke-draw animation: 0 = empty, 1 = full curve.
 class KaiBrandCurve extends StatelessWidget {
   const KaiBrandCurve({
-    this.width = 36,
-    this.height = 18,
+    this.width = 60,
+    this.height = 16,
     this.color = Colors.white,
-    this.strokeWidth = 2.5,
+    this.strokeWidth = 3.0,
     this.progress = 1.0,
     super.key,
   });
@@ -57,11 +57,13 @@ class KaiLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Keep proportions matching canon (brand.html splash glyph):
-    // For size 64: curve viewBox is 36×18, radius is 20.
-    final curveW = size * (36.0 / 64.0);
-    final curveH = size * (18.0 / 64.0);
-    final radius = size * (20.0 / 64.0);
+    // ponytail: follow iOS-standard 22% radius and proportions from brand.html
+    // App Icon. Curve area matches CSS inset: 22% 16% 24% → 68% width, 54% height.
+    // stroke-width 3 is in viewBox units — the painter applies non-uniform
+    // canvas.scale to replicate SVG preserveAspectRatio="none" (fat wave).
+    final curveW = size * 0.68;
+    final curveH = size * 0.54;
+    final radius = size * 0.22;
 
     return Container(
       width: size,
@@ -91,37 +93,46 @@ class _KaiBrandCurvePainter extends CustomPainter {
   final double strokeWidth;
   final double progress;
 
-  Path _curvePath(Size size) {
-    final sx = size.width / 36.0;
-    final sy = size.height / 18.0;
+  // ponytail: viewBox 60×16, same as brand.html app-icon SVG
+  static const double _vbW = 60;
+  static const double _vbH = 16;
 
+  /// Build path in original viewBox coordinates (60×16).
+  Path _curvePath() {
     return Path()
-      ..moveTo(2.0 * sx, 11.0 * sy)
-      ..quadraticBezierTo(9.0 * sx, 3.0 * sy, 18.0 * sx, 11.0 * sy)
-      // Reflected Q: control (9,3) reflected across (18,11) → (27,19)
-      ..quadraticBezierTo(27.0 * sx, 19.0 * sy, 34.0 * sx, 7.0 * sy);
+      ..moveTo(2, 10)
+      ..quadraticBezierTo(14, 2, 28, 10)
+      // T 56 6 → reflected control = (2*28-14, 2*10-2) = (42, 18)
+      ..quadraticBezierTo(42, 18, 56, 6);
   }
 
   @override
   void paint(Canvas canvas, Size size) {
-    final path = _curvePath(size);
-    final metrics = path.computeMetrics();
-    final metricsIterator = metrics.iterator;
-    if (!metricsIterator.moveNext()) {
-      // Fallback: draw the full path if metrics are unavailable.
-      final paint = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round
-        ..strokeWidth = strokeWidth
-        ..color = color;
-      canvas.drawPath(path, paint);
-      return;
-    }
-    final metric = metricsIterator.current;
+    // ponytail: replicate SVG preserveAspectRatio="none" — non-uniform scale
+    // so the stroke gets stretched vertically, producing the fat wave from
+    // brand.html app icon. strokeWidth is in viewBox units (default 3).
+    final sx = size.width / _vbW;
+    final sy = size.height / _vbH;
 
-    final drawLength = metric.length * progress.clamp(0.0, 1.0);
-    final drawnPath = metric.extractPath(0, drawLength);
+    canvas.save();
+    canvas.scale(sx, sy);
+
+    final fullPath = _curvePath();
+
+    Path drawPath;
+    if (progress >= 1.0) {
+      drawPath = fullPath;
+    } else {
+      final metrics = fullPath.computeMetrics();
+      final metricsIterator = metrics.iterator;
+      if (!metricsIterator.moveNext()) {
+        drawPath = fullPath;
+      } else {
+        final metric = metricsIterator.current;
+        final drawLength = metric.length * progress.clamp(0.0, 1.0);
+        drawPath = metric.extractPath(0, drawLength);
+      }
+    }
 
     final paint = Paint()
       ..style = PaintingStyle.stroke
@@ -130,7 +141,8 @@ class _KaiBrandCurvePainter extends CustomPainter {
       ..strokeWidth = strokeWidth
       ..color = color;
 
-    canvas.drawPath(drawnPath, paint);
+    canvas.drawPath(drawPath, paint);
+    canvas.restore();
   }
 
   @override

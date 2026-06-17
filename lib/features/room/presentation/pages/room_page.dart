@@ -16,6 +16,7 @@ import 'package:kai_app/features/room/presentation/widgets/kai_edge_state_block.
 import 'package:kai_app/features/room/presentation/widgets/kai_send_button.dart';
 import 'package:kai_app/features/room/presentation/widgets/sheets/kai_action_sheet.dart';
 import 'package:kai_app/l10n/app_localizations.dart';
+import 'package:uuid/uuid.dart';
 
 /// Top-level conversation screen.
 ///
@@ -227,16 +228,36 @@ class _RoomPageState extends ConsumerState<RoomPage> {
                   onAddTap: () {
                     showKaiActionSheet(
                       context,
+                      title: 'Добавить в поездку',
                       items: [
                         KaiActionItem(
-                          icon: KaiIconName.plus,
-                          title: 'Новое путешествие',
-                          onTap: () {},
+                          icon: KaiIconName.folder,
+                          title: 'Прикрепить файл (Билет)',
+                          meta: 'PDF',
+                          onTap: () {
+                            ref
+                                .read(roomNotifierProvider.notifier)
+                                .addMockAttachment('Авиабилет.pdf');
+                          },
                         ),
                         KaiActionItem(
                           icon: KaiIconName.folder,
-                          title: 'Мои поездки',
-                          onTap: () {},
+                          title: 'Прикрепить бронь отеля',
+                          meta: 'DOCX',
+                          onTap: () {
+                            ref
+                                .read(roomNotifierProvider.notifier)
+                                .addMockAttachment('Бронь_отеля.docx');
+                          },
+                        ),
+                        KaiActionItem(
+                          icon: KaiIconName.plus,
+                          title: 'Новое путешествие',
+                          onTap: () {
+                            ref
+                                .read(roomNotifierProvider.notifier)
+                                .switchSession(const Uuid().v4());
+                          },
                         ),
                         KaiActionItem(
                           icon: KaiIconName.settings,
@@ -265,14 +286,14 @@ class _RoomPageState extends ConsumerState<RoomPage> {
         Positioned(
           left: 0,
           top: 0,
-          bottom: 0,
+          bottom: 100, // Reserve bottom 100px for compose island inputs to prevent touch interception
           width: 60,
           child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
+            behavior: HitTestBehavior.translucent,
             onHorizontalDragStart: _onHorizontalDragStart,
             onHorizontalDragUpdate: _onHorizontalDragUpdate,
             onHorizontalDragEnd: _onHorizontalDragEnd,
-            child: Container(color: Colors.transparent),
+            child: const SizedBox.expand(),
           ),
         ),
       ],
