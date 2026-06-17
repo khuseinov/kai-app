@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../tokens/kai_motion.dart';
-import '../tokens/kai_radius.dart';
-import '../tokens/kai_tide.dart';
+import 'package:kai_app/design_system/tokens/kai_motion.dart';
+import 'package:kai_app/design_system/tokens/kai_radius.dart';
+import 'package:kai_app/design_system/tokens/kai_tide.dart';
 
 /// Primitive tide-gradient rounded pill.
 ///
@@ -79,7 +79,7 @@ class _KaiGradientBarState extends State<KaiGradientBar>
     )..repeat(reverse: true);
 
     if (_wantStreaming) {
-      _opacity = Tween<double>(begin: 0.6, end: 1.0).animate(
+      _opacity = Tween<double>(begin: 0.6, end: 1).animate(
         CurvedAnimation(
           parent: _controller!,
           curve: KaiMotion.ambientCurve,

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kai_app/design_system/primitives/kai_icon.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
-import 'package:kai_app/features/room/components/kai_send_button.dart';
-import 'package:kai_app/design_system/primitives/kai_icon.dart';
+import 'package:kai_app/features/room/presentation/widgets/kai_send_button.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -72,7 +72,7 @@ void main() {
           return deco is BoxDecoration && deco.gradient != null;
         });
         expect(found, isTrue,
-            reason: 'ready state must use tide gradient');
+            reason: 'ready state must use tide gradient',);
       });
 
       testWidgets('has boxShadow (KaiShadow.button)', (tester) async {
@@ -92,7 +92,7 @@ void main() {
               deco.boxShadow!.isNotEmpty;
         });
         expect(found, isTrue,
-            reason: 'ready state must carry KaiShadow.button');
+            reason: 'ready state must carry KaiShadow.button',);
       });
 
       testWidgets('has Semantics(button: true, enabled: true)', (tester) async {
@@ -106,7 +106,7 @@ void main() {
         final allSemantics =
             tester.widgetList<Semantics>(find.byType(Semantics)).toList();
         final found = allSemantics.any((s) =>
-            s.properties.button == true && s.properties.enabled == true);
+            (s.properties.button ?? false) && (s.properties.enabled ?? false),);
         expect(found, isTrue);
       });
 
@@ -165,7 +165,7 @@ void main() {
         );
         await tester.tap(find.byType(KaiSendButton), warnIfMissed: false);
         expect(tapped, 0,
-            reason: 'disabled state must not fire even if onPressed non-null');
+            reason: 'disabled state must not fire even if onPressed non-null',);
       });
 
       testWidgets('has ink4 color fill (no gradient)', (tester) async {
@@ -185,7 +185,7 @@ void main() {
               deco.color == KaiColors.light.ink4;
         });
         expect(found, isTrue,
-            reason: 'disabled state must use ink4 fill without gradient');
+            reason: 'disabled state must use ink4 fill without gradient',);
       });
 
       testWidgets('wrapped in Opacity(0.5)', (tester) async {
@@ -200,7 +200,7 @@ void main() {
             tester.widgetList<Opacity>(find.byType(Opacity)).toList();
         final found = opacities.any((o) => o.opacity == 0.5);
         expect(found, isTrue,
-            reason: 'disabled state must have Opacity(0.5)');
+            reason: 'disabled state must have Opacity(0.5)',);
       });
 
       testWidgets('has Semantics(enabled: false)', (tester) async {
@@ -215,7 +215,7 @@ void main() {
             tester.widgetList<Semantics>(find.byType(Semantics)).toList();
         final found = allSemantics.any((s) => s.properties.enabled == false);
         expect(found, isTrue,
-            reason: 'disabled state must expose Semantics(enabled: false)');
+            reason: 'disabled state must expose Semantics(enabled: false)',);
       });
     });
 
@@ -351,7 +351,7 @@ void main() {
         );
         final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
         expect(icon.name, KaiIconName.arrowUp,
-            reason: 'ready must show arrowUp');
+            reason: 'ready must show arrowUp',);
       });
 
       testWidgets('sending shows arrowUp icon', (tester) async {
@@ -364,7 +364,7 @@ void main() {
         );
         final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
         expect(icon.name, KaiIconName.arrowUp,
-            reason: 'sending must show arrowUp');
+            reason: 'sending must show arrowUp',);
       });
 
       testWidgets('streaming shows stop icon', (tester) async {
@@ -377,7 +377,7 @@ void main() {
         );
         final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
         expect(icon.name, KaiIconName.stop,
-            reason: 'streaming must show stop (rounded square)');
+            reason: 'streaming must show stop (rounded square)',);
       });
 
       testWidgets('disabled shows arrowUp icon', (tester) async {
@@ -390,7 +390,7 @@ void main() {
         );
         final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
         expect(icon.name, KaiIconName.arrowUp,
-            reason: 'disabled must show arrowUp (not stop)');
+            reason: 'disabled must show arrowUp (not stop)',);
       });
     });
 

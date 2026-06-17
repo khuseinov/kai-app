@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kai_app/app.dart';
 import 'package:kai_app/core/routing/router.dart';
-import 'package:kai_app/features/boot/booting_app.dart';
-import 'package:kai_app/features/boot/splash_screen.dart';
+import 'package:kai_app/features/boot/presentation/pages/booting_app.dart';
+import 'package:kai_app/features/boot/presentation/pages/splash_screen.dart';
 
 void main() {
   group('BootingApp', () {

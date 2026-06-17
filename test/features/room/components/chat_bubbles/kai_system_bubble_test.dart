@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/design_system/tokens/kai_colors.dart';
-import 'package:kai_app/features/room/components/chat_bubbles/kai_system_bubble.dart';
 import 'package:kai_app/design_system/primitives/kai_icon.dart';
+import 'package:kai_app/design_system/tokens/kai_colors.dart';
+import 'package:kai_app/features/room/presentation/widgets/chat_bubbles/kai_system_bubble.dart';
 
 import '../../../../test_helpers.dart';
 
@@ -54,7 +54,6 @@ void main() {
         buildTestWidget(
           const KaiSystemBubble(
             'Neutral',
-            tone: KaiSystemTone.neutral,
           ),
         ),
       );
@@ -68,7 +67,6 @@ void main() {
         buildTestWidget(
           const KaiSystemBubble(
             'Neutral text',
-            tone: KaiSystemTone.neutral,
           ),
         ),
       );
@@ -186,7 +184,7 @@ void main() {
         return br == BorderRadius.circular(12);
       });
       expect(has12, isTrue,
-          reason: 'system bubble border-radius must be 12px (KaiRadius.r12)');
+          reason: 'system bubble border-radius must be 12px (KaiRadius.r12)',);
     });
 
     // -------------------------------------------------------------------------
@@ -221,7 +219,7 @@ void _expectContainerWithColor(WidgetTester tester, Color expected) {
     return deco is BoxDecoration && deco.color == expected;
   });
   expect(found, isTrue,
-      reason: 'expected a Container with color $expected');
+      reason: 'expected a Container with color $expected',);
 }
 
 void _expectRichTextWithColor(WidgetTester tester, Color expected) {
@@ -229,7 +227,7 @@ void _expectRichTextWithColor(WidgetTester tester, Color expected) {
       tester.widgetList<RichText>(find.byType(RichText)).toList();
   final found = richTexts.any((rt) => _spanHasColor(rt.text, expected));
   expect(found, isTrue,
-      reason: 'expected a RichText span with color $expected');
+      reason: 'expected a RichText span with color $expected',);
 }
 
 bool _spanHasColor(InlineSpan span, Color color) {
@@ -246,7 +244,7 @@ bool _spanHasColor(InlineSpan span, Color color) {
 
 bool _spanContainsText(InlineSpan span, String text) {
   if (span is TextSpan) {
-    if (span.text?.contains(text) == true) return true;
+    if (span.text?.contains(text) ?? false) return true;
     if (span.children != null) {
       for (final child in span.children!) {
         if (_spanContainsText(child, text)) return true;

@@ -11,11 +11,11 @@ void main() {
       layer: 'ATOM',
       blurb: 'Primary action button.',
       sections: [
-        StorySection('Variants', [StoryCell('tide', Text('btn'))])
+        StorySection('Variants', [StoryCell('tide', Text('btn'))]),
       ],
       usage: 'KaiButton.tide(label: ..., onPressed: ...)',
       props: [PropDoc('label', 'String', 'required', 'Button text')],
-    )));
+    ),),);
     expect(find.text('KaiButton'), findsOneWidget);
     expect(find.text('Primary action button.'), findsOneWidget);
     expect(find.text('tide'), findsOneWidget); // cell caption

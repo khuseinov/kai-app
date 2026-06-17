@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/core/network/sse_parser.dart';
-import 'package:kai_app/core/repositories/chat_repository.dart';
+import 'package:kai_app/features/room/domain/repositories/chat_repository.dart';
 
 Stream<List<int>> _toStream(String raw) => Stream.value(utf8.encode(raw));
 

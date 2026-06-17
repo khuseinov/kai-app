@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/features/nav/components/nav_models.dart'
-    show SessionPreview, TripInfo;
 import 'package:kai_app/design_system/atoms/kai_badge.dart';
 import 'package:kai_app/design_system/atoms/kai_button.dart';
-import 'package:kai_app/features/nav/components/kai_nav_item.dart';
 import 'package:kai_app/design_system/primitives/kai_icon.dart';
-import 'package:kai_app/features/nav/components/kai_nav_panel.dart';
-import 'package:kai_app/features/nav/session_groups.dart';
+import 'package:kai_app/features/nav/data/models/nav_models.dart'
+    show SessionPreview, TripInfo;
+import 'package:kai_app/features/nav/presentation/widgets/kai_nav_item.dart';
+import 'package:kai_app/features/nav/presentation/widgets/kai_nav_panel.dart';
+import 'package:kai_app/features/nav/presentation/widgets/session_groups.dart';
 
 import '../../../test_helpers.dart';
 
@@ -153,7 +153,7 @@ void main() {
         }),
       );
       expect(circleContainers.isEmpty, isTrue,
-          reason: 'No close-circle button should exist after Cycle 4 removal');
+          reason: 'No close-circle button should exist after Cycle 4 removal',);
       expect(closeIcons, isEmpty);
     });
 
@@ -231,7 +231,7 @@ void main() {
       // "now" lands two calendar days back, so it buckets as thisWeek not
       // yesterday. Inject a fixed `now` and build the fixture one calendar day
       // before it.
-      final now = DateTime(2026, 6, 15, 12, 0);
+      final now = DateTime(2026, 6, 15, 12);
       final yesterday = now.subtract(const Duration(days: 1));
       final sessions = [
         SessionPreview(

@@ -161,7 +161,7 @@ void main() {
       );
 
       expect(hasDangerColor, isTrue,
-          reason: 'danger row title must use negative (coral) color');
+          reason: 'danger row title must use negative (coral) color',);
     });
 
     // -------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../theme/kai_theme.dart';
-import '../tokens/kai_tokens.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 /// Internal style selector — each KaiText factory binds one.
 enum _KaiTextStyle { hero, display, h1, h2, h3, lead, body, small, micro, mono }

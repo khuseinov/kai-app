@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-
-import '../theme/kai_theme.dart';
-import '../tokens/kai_tokens.dart';
-import '../primitives/primitives.dart';
+import 'package:kai_app/design_system/primitives/primitives.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 // ---------------------------------------------------------------------------
 // Size enum
@@ -188,7 +187,7 @@ class _KaiIconButtonState extends State<KaiIconButton> {
     // 6px padding on all sides (KaiSpace.s1 (4) + 2 = 6).
     const padding = EdgeInsets.all(KaiSpace.s1 + 2);
 
-    Widget core = AnimatedScale(
+    final Widget core = AnimatedScale(
       scale: _pressed && enabled ? 0.97 : 1.0,
       duration: KaiMotion.micro,
       curve: KaiMotion.standardCurve,

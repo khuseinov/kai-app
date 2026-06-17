@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'design_system/theme/kai_theme.dart';
-import 'design_system/theme/kai_theme_ext.dart';
-import 'features/dev/storybook/storybook_screen.dart';
-import 'l10n/app_localizations.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/theme/kai_theme_ext.dart';
+import 'package:kai_app/features/dev/storybook/storybook_screen.dart';
+import 'package:kai_app/l10n/app_localizations.dart';
 
 /// Standalone entry point for the Flutter Storybook.
 ///
@@ -26,7 +26,7 @@ void main() async {
           final mediaQuery = MediaQuery.of(context);
           return MediaQuery(
             data: mediaQuery.copyWith(
-              textScaler: mediaQuery.textScaler.clamp(minScaleFactor: 1.0),
+              textScaler: mediaQuery.textScaler.clamp(minScaleFactor: 1),
             ),
             child: KaiTheme(child: child ?? const SizedBox.shrink()),
           );

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kai_app/design_system/atoms/kai_tide_curve.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
-import 'package:kai_app/design_system/atoms/kai_tide_curve.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -106,7 +106,7 @@ void main() {
         (tester) async {
       final errors = <FlutterErrorDetails>[];
       final prior = FlutterError.onError;
-      FlutterError.onError = (details) => errors.add(details);
+      FlutterError.onError = errors.add;
       try {
         await _pump(tester, const KaiTideCurve(state: KaiTide.success));
         for (var i = 0; i < 3; i++) {
@@ -115,7 +115,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
         expect(errors, isEmpty,
             reason: 'expected no FlutterErrors across the 3 success '
-                'ephemeral cycles, but got: $errors');
+                'ephemeral cycles, but got: $errors',);
         expect(find.byType(KaiTideCurve), findsOneWidget);
       } finally {
         FlutterError.onError = prior;

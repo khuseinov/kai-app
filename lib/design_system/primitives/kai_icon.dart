@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../theme/kai_theme.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
 
 /// Named SVG asset registry. Each enum value maps to a kebab-case file under
 /// `assets/icons/<assetName>.svg`.

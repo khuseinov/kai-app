@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/design_system/theme/kai_theme.dart';
-import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 import 'package:kai_app/design_system/atoms/kai_icon_button.dart';
 import 'package:kai_app/design_system/primitives/kai_icon.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -66,11 +66,11 @@ void main() {
             tester.widgetList<Opacity>(find.byType(Opacity)).toList();
         final found = opacities.any((o) => o.opacity == 0.5);
         expect(found, isTrue,
-            reason: 'disabled surface icon-button must have Opacity(0.5)');
+            reason: 'disabled surface icon-button must have Opacity(0.5)',);
       });
 
       testWidgets('null onPressed — tap does not fire', (tester) async {
-        var tapped = 0;
+        const tapped = 0;
         await _pump(
           tester,
           const KaiIconButton.surface(
@@ -109,9 +109,9 @@ void main() {
         );
         final allSemantics =
             tester.widgetList<Semantics>(find.byType(Semantics)).toList();
-        final found = allSemantics.any((s) => s.properties.button == true);
+        final found = allSemantics.any((s) => s.properties.button ?? false);
         expect(found, isTrue,
-            reason: 'KaiIconButton must expose Semantics(button: true)');
+            reason: 'KaiIconButton must expose Semantics(button: true)',);
       });
 
       testWidgets('AnimatedScale starts at 1.0 when not pressed', (tester) async {
@@ -193,11 +193,11 @@ void main() {
             tester.widgetList<Opacity>(find.byType(Opacity)).toList();
         final found = opacities.any((o) => o.opacity == 0.5);
         expect(found, isTrue,
-            reason: 'disabled transparent icon-button must have Opacity(0.5)');
+            reason: 'disabled transparent icon-button must have Opacity(0.5)',);
       });
 
       testWidgets('null onPressed — tap does not fire', (tester) async {
-        var tapped = 0;
+        const tapped = 0;
         await _pump(
           tester,
           const KaiIconButton.transparent(
@@ -229,7 +229,7 @@ void main() {
         });
         // It's OK if there is no such container — transparent just means no fill.
         expect(hasOpaqueContainer, isFalse,
-            reason: 'transparent variant must not have an opaque fill');
+            reason: 'transparent variant must not have an opaque fill',);
       });
 
       testWidgets('has Semantics(button: true)', (tester) async {
@@ -242,7 +242,7 @@ void main() {
         );
         final allSemantics =
             tester.widgetList<Semantics>(find.byType(Semantics)).toList();
-        final found = allSemantics.any((s) => s.properties.button == true);
+        final found = allSemantics.any((s) => s.properties.button ?? false);
         expect(found, isTrue);
       });
     });
@@ -284,11 +284,11 @@ void main() {
             tester.widgetList<Opacity>(find.byType(Opacity)).toList();
         final found = opacities.any((o) => o.opacity == 0.5);
         expect(found, isTrue,
-            reason: 'disabled bare icon-button must have Opacity(0.5)');
+            reason: 'disabled bare icon-button must have Opacity(0.5)',);
       });
 
       testWidgets('null onPressed — tap does not fire', (tester) async {
-        var tapped = 0;
+        const tapped = 0;
         await _pump(
           tester,
           const KaiIconButton.bare(
@@ -324,7 +324,7 @@ void main() {
         );
         final allSemantics =
             tester.widgetList<Semantics>(find.byType(Semantics)).toList();
-        final found = allSemantics.any((s) => s.properties.button == true);
+        final found = allSemantics.any((s) => s.properties.button ?? false);
         expect(found, isTrue);
       });
     });
@@ -344,7 +344,7 @@ void main() {
         );
         final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
         expect(icon.color, KaiColors.light.accent,
-            reason: 'active toggle icon must be accent');
+            reason: 'active toggle icon must be accent',);
       });
 
       testWidgets('active state — background uses accentWash', (tester) async {
@@ -364,7 +364,7 @@ void main() {
               deco.color == KaiColors.light.accentWash;
         });
         expect(found, isTrue,
-            reason: 'active toggle must have accentWash pill background');
+            reason: 'active toggle must have accentWash pill background',);
       });
 
       testWidgets('inactive state — icon uses ink3 color', (tester) async {
@@ -378,7 +378,7 @@ void main() {
         );
         final icon = tester.widget<KaiIcon>(find.byType(KaiIcon));
         expect(icon.color, KaiColors.light.ink3,
-            reason: 'inactive toggle icon must be ink3');
+            reason: 'inactive toggle icon must be ink3',);
       });
 
       testWidgets('inactive state — no opaque background decoration', (tester) async {
@@ -400,7 +400,7 @@ void main() {
               deco.gradient == null;
         });
         expect(hasOpaqueFill, isFalse,
-            reason: 'inactive toggle must have no opaque fill');
+            reason: 'inactive toggle must have no opaque fill',);
       });
 
       testWidgets('tap fires onPressed', (tester) async {
@@ -430,11 +430,11 @@ void main() {
             tester.widgetList<Opacity>(find.byType(Opacity)).toList();
         final found = opacities.any((o) => o.opacity == 0.5);
         expect(found, isTrue,
-            reason: 'disabled toggle must have Opacity(0.5)');
+            reason: 'disabled toggle must have Opacity(0.5)',);
       });
 
       testWidgets('null onPressed — tap does not fire', (tester) async {
-        var tapped = 0;
+        const tapped = 0;
         await _pump(
           tester,
           const KaiIconButton.toggle(

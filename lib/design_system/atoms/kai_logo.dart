@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../tokens/kai_tokens.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 /// Renders the canonical brand curve inside a given size.
 ///

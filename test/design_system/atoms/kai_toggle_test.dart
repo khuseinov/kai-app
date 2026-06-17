@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 import 'package:kai_app/design_system/atoms/kai_toggle.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 import '../../test_helpers.dart';
 
@@ -26,7 +26,7 @@ void main() {
               deco.color == KaiColors.light.accent;
         });
         expect(found, isTrue,
-            reason: 'track must use accent color when value=true');
+            reason: 'track must use accent color when value=true',);
       });
 
       testWidgets('thumb aligns to centerRight when value=true', (tester) async {
@@ -41,7 +41,7 @@ void main() {
         final found =
             aligned.any((a) => a.alignment == Alignment.centerRight);
         expect(found, isTrue,
-            reason: 'thumb must align right when value=true');
+            reason: 'thumb must align right when value=true',);
       });
     });
 
@@ -64,7 +64,7 @@ void main() {
               deco.color == KaiColors.light.surface3;
         });
         expect(found, isTrue,
-            reason: 'track must use surface3 color when value=false');
+            reason: 'track must use surface3 color when value=false',);
       });
 
       testWidgets('thumb aligns to centerLeft when value=false', (tester) async {
@@ -79,7 +79,7 @@ void main() {
         final found =
             aligned.any((a) => a.alignment == Alignment.centerLeft);
         expect(found, isTrue,
-            reason: 'thumb must align left when value=false');
+            reason: 'thumb must align left when value=false',);
       });
     });
 
@@ -97,7 +97,7 @@ void main() {
         await tester.pump();
         await tester.tap(find.byType(KaiToggle));
         expect(received, [true],
-            reason: 'onChanged must fire with !value on tap');
+            reason: 'onChanged must fire with !value on tap',);
       });
 
       testWidgets('tapping when value=true fires onChanged with false', (tester) async {
@@ -135,7 +135,7 @@ void main() {
             tester.widgetList<Opacity>(find.byType(Opacity)).toList();
         final found = opacities.any((o) => o.opacity == 0.5);
         expect(found, isTrue,
-            reason: 'disabled toggle must have Opacity(0.5)');
+            reason: 'disabled toggle must have Opacity(0.5)',);
       });
     });
 
@@ -152,9 +152,9 @@ void main() {
         await tester.pump();
         final all =
             tester.widgetList<Semantics>(find.byType(Semantics)).toList();
-        final found = all.any((s) => s.properties.toggled == true);
+        final found = all.any((s) => s.properties.toggled ?? false);
         expect(found, isTrue,
-            reason: 'Semantics must expose toggled=true when value=true');
+            reason: 'Semantics must expose toggled=true when value=true',);
       });
 
       testWidgets('exposes toggled=false when value=false', (tester) async {
@@ -168,7 +168,7 @@ void main() {
             tester.widgetList<Semantics>(find.byType(Semantics)).toList();
         final found = all.any((s) => s.properties.toggled == false);
         expect(found, isTrue,
-            reason: 'Semantics must expose toggled=false when value=false');
+            reason: 'Semantics must expose toggled=false when value=false',);
       });
     });
 
@@ -194,7 +194,7 @@ void main() {
               deco.boxShadow!.any((s) => s.color == const Color(0x2E000000));
         });
         expect(found, isTrue,
-            reason: 'thumb must carry KaiShadow.thumb (neutral black shadow)');
+            reason: 'thumb must carry KaiShadow.thumb (neutral black shadow)',);
       });
     });
   });

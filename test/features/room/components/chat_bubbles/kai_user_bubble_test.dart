@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/features/room/components/chat_bubbles/kai_user_bubble.dart';
+import 'package:kai_app/features/room/presentation/widgets/chat_bubbles/kai_user_bubble.dart';
 
 import '../../../../test_helpers.dart';
 

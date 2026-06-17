@@ -1,12 +1,11 @@
 // Foundations stories (colors/type/spacing/motion/tide) — C1-T5.
 
 import 'package:flutter/material.dart';
-
-import '../story_registry.dart';
-import '../story_page.dart';
-import '../../../../design_system/theme/kai_theme.dart';
-import '../../../../design_system/tokens/kai_tokens.dart';
-import '../../../../design_system/atoms/atoms.dart';
+import 'package:kai_app/design_system/atoms/atoms.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
+import 'package:kai_app/features/dev/storybook/story_page.dart';
+import 'package:kai_app/features/dev/storybook/story_registry.dart';
 
 // ─── private helpers ─────────────────────────────────────────────────────────
 
@@ -49,7 +48,7 @@ class _MotionDemoState extends State<_MotionDemo>
     _ctrl = AnimationController(vsync: this, duration: widget.duration)
       ..repeat(reverse: true);
     _scale = CurvedAnimation(parent: _ctrl, curve: widget.curve)
-        .drive(Tween<double>(begin: 0.5, end: 1.0));
+        .drive(Tween<double>(begin: 0.5, end: 1));
   }
 
   @override

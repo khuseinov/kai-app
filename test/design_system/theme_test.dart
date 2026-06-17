@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
+import '../test_helpers.dart';
 
 class _Probe extends StatelessWidget {
   const _Probe({required this.onBuild});
@@ -22,7 +23,7 @@ Future<KaiTokens> _pump(WidgetTester tester, ThemeMode mode) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        themeModeProvider.overrideWith((ref) => mode),
+        themeModeProvider.overrideWith(() => MockThemeModeNotifier(mode)),
       ],
       child: MaterialApp(
         home: KaiTheme(

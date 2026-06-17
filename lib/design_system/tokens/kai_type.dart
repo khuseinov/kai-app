@@ -127,7 +127,7 @@ class KaiType {
         fontFamily: 'Manrope',
         fontSize: fontSize,
         fontWeight: FontWeight.w700,
-        height: 1.0,
+        height: 1,
         letterSpacing: fontSize * -0.025,
         fontFeatures: _manropeFeatures,
         color: color,

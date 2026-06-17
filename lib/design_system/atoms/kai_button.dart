@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-
-import '../theme/kai_theme.dart';
-import '../tokens/kai_tokens.dart';
-import '../primitives/primitives.dart';
+import 'package:kai_app/design_system/primitives/primitives.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 // ---------------------------------------------------------------------------
 // Enums
@@ -378,7 +377,7 @@ class _KaiButtonState extends State<KaiButton>
         : MainAxisSize.min;
 
     // Content (label ± icon).
-    Widget content = Row(
+    final Widget content = Row(
       mainAxisSize: rowSize,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

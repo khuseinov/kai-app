@@ -3,8 +3,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
-import '../theme/kai_theme.dart';
-import '../tokens/kai_tokens.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 /// Resolved per-frame paint values for the tide curve.
 class _TideFrame {
@@ -157,13 +157,13 @@ class _KaiTideCurveState extends State<KaiTideCurve>
         _controller = AnimationController(
           vsync: this,
           duration: Duration(milliseconds: s.durationMs ?? 3000),
-        )..repeat(reverse: false);
+        )..repeat();
         return;
       case KaiTideAnimation.stream:
         _controller = AnimationController(
           vsync: this,
           duration: Duration(milliseconds: s.durationMs ?? 1400),
-        )..repeat(reverse: false);
+        )..repeat();
         return;
       case KaiTideAnimation.flash:
         _ephemeralCyclesRemaining = 3;
@@ -291,9 +291,9 @@ _TideFrame _frameNone(KaiTideState s, KaiTokens tokens) => _TideFrame(
 _TideFrame _frameBreathe(KaiTideState s, double t, KaiTokens tokens) {
   final eased = KaiMotion.ambientCurve.transform(t);
   final sw = _lerp(s.breatheStrokeFrom ?? s.strokePx,
-      s.breatheStrokeTo ?? s.strokePx, eased);
+      s.breatheStrokeTo ?? s.strokePx, eased,);
   final op = _lerp(s.breatheOpacityFrom ?? s.opacity,
-      s.breatheOpacityTo ?? s.opacity, eased);
+      s.breatheOpacityTo ?? s.opacity, eased,);
   return _TideFrame(
     strokeWidth: sw,
     opacity: op,
@@ -322,7 +322,7 @@ _TideFrame _frameBob(KaiTideState s, double t, KaiTokens tokens) {
 /// thinking — dashed flow R→L (3000ms linear).
 _TideFrame _frameFlow(KaiTideState s, double t, KaiTokens tokens) {
   return _TideFrame(
-    strokeWidth: 2.0,
+    strokeWidth: 2,
     opacity: 0.85,
     useGradient: true,
     solidColor: tokens.colors.ink4,
@@ -336,7 +336,7 @@ _TideFrame _frameFlow(KaiTideState s, double t, KaiTokens tokens) {
 _TideFrame _frameStream(KaiTideState s, double t, KaiTokens tokens) {
   return _TideFrame(
     strokeWidth: 2.5,
-    opacity: 1.0,
+    opacity: 1,
     useGradient: true,
     solidColor: tokens.colors.ink4,
     dashPattern: const [12, 4],
@@ -356,7 +356,7 @@ _TideFrame _frameFlash(KaiTideState s, double t, KaiTokens tokens) {
   if (t < 0.25) {
     final u = Curves.easeOut.transform(t / 0.25);
     sw = _lerp(1.5, 3.2, u);
-    op = _lerp(0.3, 1.0, u);
+    op = _lerp(0.3, 1, u);
   } else if (t < 0.65) {
     // hold segment 0.25–0.65: both values steady at peak
     final u = Curves.easeOut.transform((t - 0.25) / 0.40);
@@ -364,8 +364,8 @@ _TideFrame _frameFlash(KaiTideState s, double t, KaiTokens tokens) {
     op = 1.0;
   } else {
     final u = Curves.easeOut.transform((t - 0.65) / 0.35);
-    sw = _lerp(2.5, 2.0, u);
-    op = _lerp(1.0, 0.85, u);
+    sw = _lerp(2.5, 2, u);
+    op = _lerp(1, 0.85, u);
   }
   return _TideFrame(
     strokeWidth: sw,
@@ -393,7 +393,7 @@ _TideFrame _frameWobble(KaiTideState s, double t, KaiTokens tokens) {
     }
   }
   return _TideFrame(
-    strokeWidth: 2.0,
+    strokeWidth: 2,
     opacity: 0.95,
     useGradient: false,
     solidColor: tokens.colors.negative,
@@ -409,11 +409,11 @@ _TideFrame _framePop(KaiTideState s, double t, KaiTokens tokens) {
   double op;
   if (t < 0.5) {
     final u = t / 0.5;
-    sw = _lerp(1.8, 4.0, u);
-    op = _lerp(0.6, 1.0, u);
+    sw = _lerp(1.8, 4, u);
+    op = _lerp(0.6, 1, u);
   } else {
     final u = (t - 0.5) / 0.5;
-    sw = _lerp(4.0, 2.0, u);
+    sw = _lerp(4, 2, u);
     op = 1.0;
   }
   return _TideFrame(

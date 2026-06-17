@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import '../../../design_system/atoms/kai_text.dart';
-import '../../../design_system/theme/kai_theme.dart';
-import '../../../design_system/tokens/kai_tokens.dart';
+import 'package:kai_app/design_system/atoms/kai_text.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 /// One documented prop row (mirrored in the inspector).
 class PropDoc {
   const PropDoc(this.name, this.type, this.defaultValue, this.description);
-  final String name, type, defaultValue, description;
+  final String name;
+  final String type;
+  final String defaultValue;
+  final String description;
 }
 
 /// A single labelled demo cell — the component variant in a bordered card.
@@ -26,16 +29,15 @@ class StorySection {
 /// Structured story page: header + sections of labelled cells + usage + props.
 class StoryPage extends StatelessWidget {
   const StoryPage({
-    super.key,
-    required this.title,
-    required this.layer,
-    required this.blurb,
-    required this.sections,
+    required this.title, required this.layer, required this.blurb, required this.sections, super.key,
     this.usage = '',
     this.props = const [],
   });
 
-  final String title, layer, blurb, usage;
+  final String title;
+  final String layer;
+  final String blurb;
+  final String usage;
   final List<StorySection> sections;
   final List<PropDoc> props;
 
@@ -49,7 +51,7 @@ class StoryPage extends StatelessWidget {
           Flexible(child: KaiText.h2(title)),
           const SizedBox(width: KaiSpace.s3),
           _LayerChip(layer),
-        ]),
+        ],),
         const SizedBox(height: KaiSpace.s2),
         KaiText.body(blurb, color: c.ink2),
         const SizedBox(height: KaiSpace.s6),
@@ -90,9 +92,9 @@ class _LayerChip extends StatelessWidget {
       decoration: BoxDecoration(
           color: c.surface2,
           borderRadius: KaiRadius.brPill,
-          border: Border.all(color: c.line)),
+          border: Border.all(color: c.line),),
       child: Text(label,
-          style: KaiType.mono(color: c.ink3).copyWith(fontSize: 9)),
+          style: KaiType.mono(color: c.ink3).copyWith(fontSize: 9),),
     );
   }
 }
@@ -117,13 +119,13 @@ class _Cell extends StatelessWidget {
       decoration: BoxDecoration(
           color: c.surface,
           borderRadius: KaiRadius.br3,
-          border: Border.all(color: c.line)),
+          border: Border.all(color: c.line),),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         cell.child,
         const SizedBox(height: KaiSpace.s3),
         Text(cell.label,
-            style: KaiType.mono(color: c.ink3).copyWith(fontSize: 10)),
-      ]),
+            style: KaiType.mono(color: c.ink3).copyWith(fontSize: 10),),
+      ],),
     );
   }
 }
@@ -140,9 +142,9 @@ class _CodeBox extends StatelessWidget {
       decoration: BoxDecoration(
           color: c.surface2,
           borderRadius: KaiRadius.br2,
-          border: Border.all(color: c.line)),
+          border: Border.all(color: c.line),),
       child: Text(code,
-          style: KaiType.mono(color: c.ink2).copyWith(fontSize: 11, height: 1.5)),
+          style: KaiType.mono(color: c.ink2).copyWith(fontSize: 11, height: 1.5),),
     );
   }
 }
@@ -164,19 +166,19 @@ class _PropsTable extends StatelessWidget {
                   width: 110,
                   child: Text(p.name,
                       style:
-                          KaiType.mono(color: c.ink1).copyWith(fontSize: 11))),
+                          KaiType.mono(color: c.ink1).copyWith(fontSize: 11),),),
               SizedBox(
                   width: 90,
                   child: Text(p.type,
                       style: KaiType.mono(color: c.accent)
-                          .copyWith(fontSize: 11))),
+                          .copyWith(fontSize: 11),),),
               SizedBox(
                   width: 70,
                   child: Text(p.defaultValue,
                       style: KaiType.mono(color: c.ink3)
-                          .copyWith(fontSize: 11))),
+                          .copyWith(fontSize: 11),),),
               Expanded(child: KaiText.small(p.description, color: c.ink2)),
-            ]),
+            ],),
           ),
       ],
     );

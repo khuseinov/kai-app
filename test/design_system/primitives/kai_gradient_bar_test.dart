@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/design_system/primitives/kai_gradient_bar.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child) async {
   await tester.pumpWidget(
@@ -39,7 +39,7 @@ void main() {
 
     testWidgets('pulse=false stays a simple widget without throwing',
         (tester) async {
-      await _pump(tester, const KaiGradientBar(pulse: false));
+      await _pump(tester, const KaiGradientBar());
       expect(tester.takeException(), isNull);
       expect(find.byType(KaiGradientBar), findsOneWidget);
     });
@@ -123,7 +123,7 @@ void main() {
         matching: find.byType(Opacity),
       );
       expect(opacityInsideBar, findsNothing,
-          reason: 'static path should not inject an Opacity widget');
+          reason: 'static path should not inject an Opacity widget',);
     });
 
     testWidgets('streaming=true wraps bar in Opacity animation',
@@ -136,7 +136,7 @@ void main() {
         matching: find.byType(Opacity),
       );
       expect(opacityInsideBar, findsWidgets,
-          reason: 'streaming path must use Opacity animation');
+          reason: 'streaming path must use Opacity animation',);
     });
   });
 }

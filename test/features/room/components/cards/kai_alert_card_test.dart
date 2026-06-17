@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/design_system/atoms/kai_button.dart';
-import 'package:kai_app/features/room/components/cards/kai_alert_card.dart';
+import 'package:kai_app/features/room/presentation/widgets/cards/kai_alert_card.dart';
 
 import '../../../../test_helpers.dart';
 
@@ -239,7 +239,7 @@ void main() {
         KaiAlertType.warning,
         KaiAlertType.positive,
         KaiAlertType.neutral,
-      ]));
+      ]),);
     });
 
     // -------------------------------------------------------------------------
@@ -266,7 +266,7 @@ void main() {
       });
 
       expect(hasRounded, isTrue,
-          reason: 'alert card outer container must have rounded border radius');
+          reason: 'alert card outer container must have rounded border radius',);
     });
 
     testWidgets('outer container has a border', (tester) async {
@@ -288,7 +288,7 @@ void main() {
       });
 
       expect(hasBorder, isTrue,
-          reason: 'alert card must have a border');
+          reason: 'alert card must have a border',);
     });
 
     // -------------------------------------------------------------------------

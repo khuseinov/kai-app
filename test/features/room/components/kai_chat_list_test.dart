@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/design_system/atoms/kai_button.dart';
-import 'package:kai_app/features/room/components/chat_bubbles/kai_kai_bubble.dart';
-import 'package:kai_app/features/room/components/chat_bubbles/kai_user_bubble.dart';
-import 'package:kai_app/features/room/components/kai_chat_list.dart';
+import 'package:kai_app/features/room/presentation/widgets/chat_bubbles/kai_kai_bubble.dart';
+import 'package:kai_app/features/room/presentation/widgets/chat_bubbles/kai_user_bubble.dart';
+import 'package:kai_app/features/room/presentation/widgets/kai_chat_list.dart';
 
 import '../../../test_helpers.dart';
 
@@ -124,7 +124,7 @@ void main() {
             tester.widgetList<Opacity>(find.byType(Opacity)).toList();
         final hasDimOpacity = opacityWidgets.any((o) => o.opacity == 0.25);
         expect(hasDimOpacity, isTrue,
-            reason: 'panel frame must have Opacity(0.25)');
+            reason: 'panel frame must have Opacity(0.25)',);
       });
 
       testWidgets('wraps content in IgnorePointer',
@@ -212,7 +212,7 @@ void main() {
       testWidgets('renders error body text', (WidgetTester tester) async {
         await _pump(tester, const KaiChatList(frame: RoomFrame.error));
         expect(find.textContaining('Возможно, проблема со связью'),
-            findsOneWidget);
+            findsOneWidget,);
       });
 
       testWidgets('renders retry hint', (WidgetTester tester) async {

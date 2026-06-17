@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kai_app/design_system/atoms/kai_badge.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
-import 'package:kai_app/design_system/atoms/kai_badge.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child) async {
   await tester.pumpWidget(
@@ -137,7 +137,7 @@ void main() {
       testWidgets('explicit color overrides tone', (tester) async {
         const customColor = Color(0xFFAB1234);
         await _pump(tester,
-            const KaiBadge.dot(tone: KaiBadgeTone.warning, color: customColor));
+            const KaiBadge.dot(tone: KaiBadgeTone.warning, color: customColor),);
         final containers =
             tester.widgetList<Container>(find.byType(Container)).toList();
         final found = containers.any((c) {
@@ -174,7 +174,7 @@ void main() {
               deco.shape == BoxShape.circle;
         });
         expect(found, isTrue,
-            reason: 'tide dot must use KaiTide.gradientCorner gradient');
+            reason: 'tide dot must use KaiTide.gradientCorner gradient',);
       });
 
       testWidgets('outer ring is 12px', (tester) async {
@@ -258,7 +258,7 @@ void main() {
         );
         final w = tester.getSize(find.byType(KaiBadge)).width;
         expect(w, lessThan(40),
-            reason: 'count badge must hug (~16px), not fill parent width');
+            reason: 'count badge must hug (~16px), not fill parent width',);
         expect(w, greaterThanOrEqualTo(16));
       });
     });

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:kai_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'core/providers/root.dart';
-import 'core/routing/router.dart';
-import 'design_system/theme/kai_theme.dart';
-import 'design_system/theme/kai_theme_ext.dart';
+import 'package:kai_app/core/providers/root.dart';
+import 'package:kai_app/core/routing/router.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/theme/kai_theme_ext.dart';
+import 'package:kai_app/l10n/app_localizations.dart';
 
 class KaiApp extends ConsumerWidget {
   const KaiApp({super.key});
@@ -31,7 +30,7 @@ class KaiApp extends ConsumerWidget {
         return MediaQuery(
           data: mediaQuery.copyWith(
             textScaler: mediaQuery.textScaler.clamp(
-              minScaleFactor: 1.0,
+              minScaleFactor: 1,
             ),
           ),
           child: KaiTheme(child: child ?? const SizedBox.shrink()),

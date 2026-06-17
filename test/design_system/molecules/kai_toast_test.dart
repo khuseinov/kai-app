@@ -198,7 +198,6 @@ void main() {
           const KaiToast(
             type: KaiToastType.memory,
             label: 'Запомнено',
-            showCountdown: false,
           ),
         ),
       );
@@ -273,7 +272,7 @@ void main() {
         return br.topLeft.x == 999;
       });
       expect(hasPill, isTrue,
-          reason: 'toast pill must use KaiRadius.brPill (999)');
+          reason: 'toast pill must use KaiRadius.brPill (999)',);
     });
 
     // -------------------------------------------------------------------------
@@ -391,7 +390,7 @@ void main() {
         return d is BoxDecoration && d.color == const Color(0xFF111114);
       });
       expect(hasNearBlack, isTrue,
-          reason: 'toast pill bg must be #111114 (not #F5F5F2 — white-on-white)');
+          reason: 'toast pill bg must be #111114 (not #F5F5F2 — white-on-white)',);
     });
 
     // -------------------------------------------------------------------------
@@ -434,7 +433,7 @@ void main() {
             d.gradient == KaiTide.gradientCorner;
       });
       expect(hasGlyph, isTrue,
-          reason: 'rich toast must show a 24px tide-gradient glyph');
+          reason: 'rich toast must show a 24px tide-gradient glyph',);
     });
 
     testWidgets('rich without action shows no action text', (tester) async {

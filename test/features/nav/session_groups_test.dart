@@ -1,14 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/features/nav/components/nav_models.dart'
+import 'package:kai_app/features/nav/data/models/nav_models.dart'
     show SessionPreview;
-import 'package:kai_app/features/nav/session_groups.dart';
+import 'package:kai_app/features/nav/presentation/widgets/session_groups.dart';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /// Reference "now" used across all tests: 2026-05-28 12:00:00.
 ///
 /// Using a fixed reference keeps every bucket boundary deterministic.
-final _now = DateTime(2026, 5, 28, 12, 0, 0);
+final _now = DateTime(2026, 5, 28, 12);
 
 /// Builds a [SessionPreview] with a [createdAt] offset relative to [_now].
 SessionPreview _session(
@@ -55,7 +55,7 @@ void main() {
 
     test('session created at midnight today (boundary) falls into today', () {
       // Exactly midnight of the reference day
-      final midnight = DateTime(2026, 5, 28, 0, 0, 0);
+      final midnight = DateTime(2026, 5, 28);
       final sessions = [
         SessionPreview(
           id: 's3',
@@ -112,7 +112,7 @@ void main() {
     });
 
     test('session at midnight yesterday (boundary) falls into yesterday', () {
-      final midnightYesterday = DateTime(2026, 5, 27, 0, 0, 0);
+      final midnightYesterday = DateTime(2026, 5, 27);
       final sessions = [
         SessionPreview(
           id: 's7',
@@ -170,7 +170,7 @@ void main() {
     });
 
     test('session 7 days ago at midnight falls into thisWeek', () {
-      final sevenDaysAgoMidnight = DateTime(2026, 5, 21, 0, 0, 0);
+      final sevenDaysAgoMidnight = DateTime(2026, 5, 21);
       final sessions = [
         SessionPreview(
           id: 's12',
@@ -277,7 +277,7 @@ void main() {
       final result = groupSessionsByDate(sessions, now: _now);
 
       expect(result.first.sessions.map((s) => s.id).toList(),
-          ['first', 'second', 'third']);
+          ['first', 'second', 'third'],);
     });
 
     // ── now defaults to DateTime.now() ───────────────────────────────────────
@@ -313,7 +313,7 @@ void main() {
     // ── Boundary between thisWeek and older: exactly 8 days ago ─────────────
 
     test('session at exactly today − 8 days falls into older', () {
-      final eightDaysAgoMidnight = DateTime(2026, 5, 20, 0, 0, 0);
+      final eightDaysAgoMidnight = DateTime(2026, 5, 20);
       final sessions = [
         SessionPreview(
           id: 's-8d',

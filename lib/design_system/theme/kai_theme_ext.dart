@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../tokens/kai_tokens.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 /// Material `ThemeExtension` carrying [KaiColorTokens] for the active theme,
 /// so any Material widget can read Kai tokens via

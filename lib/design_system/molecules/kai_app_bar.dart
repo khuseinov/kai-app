@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../atoms/atoms.dart';
-import '../primitives/primitives.dart';
-import '../theme/kai_theme.dart';
-import '../tokens/kai_tokens.dart';
+import 'package:kai_app/design_system/atoms/atoms.dart';
+import 'package:kai_app/design_system/primitives/primitives.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 /// v3 canonical app bar for secondary screens.
 ///

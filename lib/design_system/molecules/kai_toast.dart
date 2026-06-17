@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-
-import '../tokens/kai_tokens.dart';
-import '../atoms/atoms.dart';
-import '../primitives/primitives.dart';
+import 'package:kai_app/design_system/atoms/atoms.dart';
+import 'package:kai_app/design_system/molecules/kai_toast_controller.dart' show KaiToastController;
+import 'package:kai_app/design_system/molecules/molecules.dart' show KaiToastController;
+import 'package:kai_app/design_system/primitives/primitives.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 // ─── KaiToastType ─────────────────────────────────────────────────────────────
 
@@ -200,7 +201,6 @@ class _ToastPill extends StatelessWidget {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Icon / marker — 11×11 bounding box
           SizedBox(
@@ -286,7 +286,6 @@ class _RichToastPill extends StatelessWidget {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // canon: .glyph — 24px round Kai mark (tide gradient)
           Container(

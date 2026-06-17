@@ -1,10 +1,8 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:logger/logger.dart';
-
-import 'core/storage/hive_setup.dart';
-
-final _bootstrapLogger = Logger();
+import 'package:kai_app/core/logger/app_logger.dart';
+import 'package:kai_app/core/providers/root.dart' show EnvConfig;
+import 'package:kai_app/core/storage/hive_setup.dart';
 
 /// One-shot init: load .env, prepare Hive, build the root ProviderContainer.
 ///
@@ -26,7 +24,7 @@ Future<ProviderContainer> bootstrap() async {
   try {
     await HiveSetup.init();
   } catch (e, st) {
-    _bootstrapLogger.e('HiveSetup.init failed', error: e, stackTrace: st);
+    AppLogger.e('HiveSetup.init failed', e, st);
     rethrow; // crash fast — corrupted persistence is unrecoverable here
   }
   return ProviderContainer();

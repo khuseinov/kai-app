@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'features/boot/booting_app.dart';
+import 'package:kai_app/features/boot/presentation/pages/booting_app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

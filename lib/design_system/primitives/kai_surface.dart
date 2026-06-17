@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/kai_theme.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
 
 /// Primitive themed container — the building block for cards, wells, and
 /// sheet bodies in v3.
@@ -21,9 +21,7 @@ import '../theme/kai_theme.dart';
 /// are always the `line` token when enabled; overriding that would break canon.
 class KaiSurface extends StatelessWidget {
   const KaiSurface({
-    super.key,
-    required this.child,
-    required this.color,
+    required this.child, required this.color, super.key,
     this.radius,
     this.border = false,
     this.shadow,

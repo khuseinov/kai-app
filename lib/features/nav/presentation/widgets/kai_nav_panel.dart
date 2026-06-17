@@ -1,0 +1,670 @@
+import 'package:flutter/material.dart';
+
+import 'package:kai_app/design_system/atoms/atoms.dart';
+import 'package:kai_app/design_system/primitives/kai_icon.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
+import 'package:kai_app/features/nav/data/models/nav_models.dart';
+import 'package:kai_app/features/nav/presentation/widgets/kai_nav_item.dart';
+import 'package:kai_app/features/nav/presentation/widgets/session_groups.dart';
+
+// ─── Strings struct ───────────────────────────────────────────────────────────
+
+/// Display strings passed to [KaiNavPanel] by the caller.
+///
+/// # l10n strategy
+/// The organism accepts a [KaiNavStrings] struct instead of importing
+/// `AppLocalizations` directly.  This keeps the organism l10n-agnostic (no
+/// package dependency on the generated ARB output) and makes the API
+/// unit-testable without a full localisation setup.
+///
+/// The W4 screen migration creates this struct from its `AppLocalizations`
+/// instance — a near-zero-effort translation at the call site.
+///
+/// Bucket labels are provided via [bucketLabel], a function keyed on
+/// [SessionBucket], so callers can supply any language or format without
+/// changing the organism.
+class KaiNavStrings {
+  const KaiNavStrings({
+    required this.title,
+    required this.newChat,
+    required this.search,
+    required this.tripsLabel,
+    required this.appsLabel,
+    required this.memoryLabel,
+    required this.settingsLabel,
+    required this.accountAnonymous,
+    required this.accountFreePlan,
+    required this.noChats,
+    required this.bucketLabel,
+  });
+
+  /// Panel header title — typically "Kai".
+  final String title;
+
+  /// Label for the new-chat primary button.
+  final String newChat;
+
+  /// Placeholder for the search box.
+  final String search;
+
+  /// Section header label for the trips list.
+  final String tripsLabel;
+
+  /// Section header label for the apps section.
+  final String appsLabel;
+
+  /// Row label for the Memory app.
+  final String memoryLabel;
+
+  /// Row label for the Settings app.
+  final String settingsLabel;
+
+  /// Account name shown when no real account name is available.
+  final String accountAnonymous;
+
+  /// Account plan shown when no plan is available.
+  final String accountFreePlan;
+
+  /// Shown when there are no chat sessions.
+  final String noChats;
+
+  /// Maps a [SessionBucket] to its section-header display string.
+  ///
+  /// The organism calls this with each non-empty bucket to get the label.
+  final String Function(SessionBucket) bucketLabel;
+
+  /// Russian-language defaults — used in tests and the dev showcase.
+  static KaiNavStrings get russian => KaiNavStrings(
+        title: 'Kai',
+        newChat: 'Новый чат',
+        search: 'Поиск',
+        tripsLabel: 'ПОЕЗДКИ',
+        appsLabel: 'ПРИЛОЖЕНИЯ',
+        memoryLabel: 'Память',
+        settingsLabel: 'Настройки',
+        accountAnonymous: 'Anonymous',
+        accountFreePlan: 'Free',
+        noChats: 'Нет чатов',
+        bucketLabel: (b) => switch (b) {
+          SessionBucket.today => 'СЕГОДНЯ',
+          SessionBucket.yesterday => 'ВЧЕРА',
+          SessionBucket.thisWeek => 'ПОСЛЕДНИЕ 7 ДНЕЙ',
+          SessionBucket.older => 'РАНЕЕ',
+        },
+      );
+}
+
+// ─── KaiNavPanel ──────────────────────────────────────────────────────────────
+
+/// v3 full-screen side-panel organism.
+///
+/// Layout (top → bottom):
+/// - New-chat button: `KaiButton.ink(fullWidth: true)` — canon ink1 br12
+///   (first visible content; there is no top-bar close button or title)
+/// - Search box: decorative surface-2 container (r9 / mono 11)
+/// - [Expanded ListView]:
+///   - Pinned trip card (optional)
+///   - Trips section: header + [KaiNavItem] folder rows
+///   - Date-grouped sessions (from [groupSessionsByDate]): header + [KaiNavItem] rows
+///   - Empty-sessions placeholder (when no sessions AND no trips)
+///   - Apps section: Memory (with optional [KaiBadge.dot()]) + Settings
+/// - Account anchor (tide-gradient avatar + initial + name + plan + chev)
+///
+/// # Dismissal
+/// The panel is dismissed by swiping left (`onHorizontalDragEnd` velocity
+/// < −200 px/s calls [onClose]). There is intentionally no visible close
+/// button — Zero-UI principle: controls are gesture-invoked, not permanent
+/// chrome.
+///
+/// # l10n
+/// All display strings come from the [strings] parameter — see [KaiNavStrings].
+///
+/// # Strangler-fig note (W3)
+/// This organism is NEW (v3 parallel build).  The v2 [NavPanel] is untouched.
+/// W4 migrates the screen to use this organism by constructing [KaiNavStrings]
+/// from `AppLocalizations`.
+class KaiNavPanel extends StatefulWidget {
+  const KaiNavPanel({
+    required this.strings,
+    this.onClose,
+    this.onNewChat,
+    this.pinnedTrip,
+    this.trips = const [],
+    this.sessions = const [],
+    this.activeSessionId,
+    this.onSessionTap,
+    this.onTripTap,
+    this.accountInitial = 'A',
+    this.accountName,
+    this.accountPlan,
+    this.onAccountTap,
+    this.onMemoryTap,
+    this.onSettingsTap,
+    this.hasUnseenMemory = false,
+    this.now,
+    super.key,
+  });
+
+  /// All localised/display strings. See [KaiNavStrings].
+  final KaiNavStrings strings;
+
+  /// Fires when the panel requests dismissal (close button or swipe-left).
+  final VoidCallback? onClose;
+
+  /// Fires when the user taps the "new chat" button.
+  final VoidCallback? onNewChat;
+
+  /// Optional pinned trip shown directly below the search box.
+  final TripInfo? pinnedTrip;
+
+  /// Trip folders shown in the trips section.
+  final List<TripInfo> trips;
+
+  /// Chat sessions — grouped by date internally via [groupSessionsByDate].
+  final List<SessionPreview> sessions;
+
+  /// ID of the currently active session (highlighted in the list).
+  final String? activeSessionId;
+
+  final ValueChanged<String>? onSessionTap;
+  final ValueChanged<String>? onTripTap;
+
+  /// Single character for the account avatar (first letter of user's name).
+  final String accountInitial;
+
+  final String? accountName;
+  final String? accountPlan;
+  final VoidCallback? onAccountTap;
+
+  /// Fires when the user taps the Memory row.
+  final VoidCallback? onMemoryTap;
+
+  /// Fires when the user taps the Settings row.
+  final VoidCallback? onSettingsTap;
+
+  /// When true, renders a [KaiBadge.dot()] trailing on the Memory row.
+  final bool hasUnseenMemory;
+
+  /// Reference time for session date-bucketing. Defaults to [DateTime.now()]
+  /// in production; tests inject a fixed value for deterministic buckets.
+  final DateTime? now;
+
+  @override
+  State<KaiNavPanel> createState() => _KaiNavPanelState();
+}
+
+class _KaiNavPanelState extends State<KaiNavPanel> {
+  double _dragDeltaX = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = KaiTheme.of(context);
+
+    // Bucket the sessions with the pure presenter (R3 fix).
+    final dateGroups = groupSessionsByDate(widget.sessions, now: widget.now);
+
+    return GestureDetector(
+      onHorizontalDragStart: (details) {
+        _dragDeltaX = 0;
+      },
+      onHorizontalDragUpdate: (details) {
+        _dragDeltaX += details.delta.dx;
+      },
+      onHorizontalDragEnd: (details) {
+        final velocity = details.primaryVelocity ?? 0;
+        if (velocity < -200 || _dragDeltaX < -100) {
+          widget.onClose?.call();
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: tokens.colors.surface,
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+                child: KaiButton.ink(
+                  onPressed: widget.onNewChat,
+                  label: widget.strings.newChat,
+                  icon: KaiIconName.plus,
+                  fullWidth: true,
+                ),
+              ),
+              _NavSearchBox(
+                placeholder: widget.strings.search,
+                tokens: tokens,
+              ),
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    // ── Pinned trip card ──
+                    if (widget.pinnedTrip != null)
+                      _NavPinnedTripCard(
+                        title: widget.pinnedTrip!.title,
+                        subtitle: widget.pinnedTrip!.subtitle,
+                        initial: widget.pinnedTrip!.initial,
+                        onTap: widget.onTripTap == null
+                            ? null
+                            : () => widget.onTripTap!(widget.pinnedTrip!.id),
+                        tokens: tokens,
+                      ),
+
+                    // ── Trips section ──
+                    if (widget.trips.isNotEmpty) ...[
+                      _NavSectionLabel(
+                        label: widget.strings.tripsLabel,
+                        count: widget.trips.length,
+                      ),
+                      for (final t in widget.trips)
+                        KaiNavItem(
+                          label: t.title,
+                          icon: KaiIconName.folder,
+                          trailing: t.chatCount > 0
+                              ? _CountBadge(count: t.chatCount, tokens: tokens)
+                              : null,
+                          onTap: widget.onTripTap == null
+                              ? null
+                              : () => widget.onTripTap!(t.id),
+                        ),
+                    ],
+
+                    // ── Date-grouped sessions ──
+                    if (dateGroups.isNotEmpty)
+                      for (final group in dateGroups) ...[
+                        _NavSectionLabel(
+                          label: widget.strings.bucketLabel(group.bucket),
+                          count: group.sessions.length,
+                        ),
+                        for (final s in group.sessions)
+                          KaiNavItem(
+                            label: s.title,
+                            trailing: Text(
+                              s.timeLabel,
+                              style: TextStyle(
+                                fontFamily: 'JetBrainsMono',
+                                fontSize: 8.5, // canon: mono 8.5 ink3
+                                color: tokens.colors.ink3,
+                              ),
+                            ),
+                            active: s.id == widget.activeSessionId,
+                            onTap: widget.onSessionTap == null
+                                ? null
+                                : () => widget.onSessionTap!(s.id),
+                          ),
+                      ]
+                    else if (widget.trips.isEmpty && widget.pinnedTrip == null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 24,
+                        ),
+                        child: Center(
+                          child: Text(
+                            widget.strings.noChats,
+                            style: TextStyle(
+                              fontFamily: 'Manrope',
+                              fontSize: 11, // canon: 11px ink4
+                              color: tokens.colors.ink4,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    // ── Memory and Settings (Apps header removed in AFTER design) ──
+                    const SizedBox(height: 14),
+                    KaiNavItem(
+                      label: widget.strings.memoryLabel,
+                      icon: KaiIconName.memory,
+                      trailing:
+                          widget.hasUnseenMemory ? const KaiBadge.dot() : null,
+                      onTap: widget.onMemoryTap,
+                    ),
+                    KaiNavItem(
+                      label: widget.strings.settingsLabel,
+                      icon: KaiIconName.settings,
+                      onTap: widget.onSettingsTap,
+                    ),
+                  ],
+                ),
+              ),
+              _NavAccountAnchor(
+                tokens: tokens,
+                initial: widget.accountInitial,
+                name: widget.accountName ?? widget.strings.accountAnonymous,
+                plan: widget.accountPlan ?? widget.strings.accountFreePlan,
+                onTap: widget.onAccountTap,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Search box ───────────────────────────────────────────────────────────────
+
+/// Decorative (read-only) search box.
+///
+/// The search interaction is not implemented in the v2 API or the v3 orbit yet.
+/// This mirrors v2's `_SearchBox` — a surface-2 container with a search icon
+/// and placeholder text.  When search becomes interactive, replace this with
+/// `KaiInput.line(controller: ..., placeholder: ...)`.
+class _NavSearchBox extends StatelessWidget {
+  const _NavSearchBox({
+    required this.placeholder,
+    required this.tokens,
+  });
+
+  final String placeholder;
+  final KaiTokens tokens;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 12, // canon: 12px
+          vertical: 9, // canon: 9px
+        ),
+        decoration: BoxDecoration(
+          color: tokens.colors.surface2,
+          borderRadius: BorderRadius.circular(10), // canon: r10
+        ),
+        child: Row(
+          children: [
+            KaiIcon(
+              KaiIconName.search,
+              size: 14, // canon: 14px
+              color: tokens.colors.ink3,
+            ),
+            const SizedBox(width: 7), // canon: 7px gap
+            Text(
+              placeholder,
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 11, // canon: 11px ink3
+                color: tokens.colors.ink3,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Section label ────────────────────────────────────────────────────────────
+
+class _NavSectionLabel extends StatelessWidget {
+  const _NavSectionLabel({required this.label, this.count});
+
+  final String label;
+  final int? count;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = KaiTheme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontFamily: 'JetBrainsMono',
+              fontSize: 8.5, // canon: 8.5px ls 0.1em ink3
+              color: tokens.colors.ink3,
+              letterSpacing: 0.1 * 8.5,
+            ),
+          ),
+          if (count != null)
+            Text(
+              count.toString(),
+              style: TextStyle(
+                fontFamily: 'JetBrainsMono',
+                fontSize: 8.5,
+                color: tokens.colors.ink4,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Pinned trip card ─────────────────────────────────────────────────────────
+
+class _NavPinnedTripCard extends StatelessWidget {
+  const _NavPinnedTripCard({
+    required this.title,
+    required this.subtitle,
+    required this.initial,
+    required this.tokens,
+    this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final String initial;
+  final KaiTokens tokens;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 0, 14, 4),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12, // canon: 12px
+            vertical: 11, // canon: 11px
+          ),
+          decoration: BoxDecoration(
+            // canon: subtle tide tint — rgba(43,168,201,0.06) → rgba(244,181,137,0.04)
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color.fromRGBO(43, 168, 201, 0.06),
+                Color.fromRGBO(244, 181, 137, 0.04),
+              ],
+            ),
+            border: Border.all(color: tokens.colors.accentLine),
+            borderRadius: BorderRadius.circular(10), // canon: r10
+          ),
+          child: Row(
+            children: [
+              // Tide-gradient glyph 24×24 r7 with destination initial
+              Container(
+                width: 24, // canon: 24×24
+                height: 24,
+                decoration: BoxDecoration(
+                  gradient: KaiTide.gradient,
+                  borderRadius: BorderRadius.circular(7), // canon: r7
+                ),
+                child: Center(
+                  child: Text(
+                    initial.isNotEmpty ? initial[0] : 'A',
+                    style: const TextStyle(
+                      fontFamily: 'Manrope',
+                      color: Colors.white,
+                      fontSize: 9, // canon: 9px w700
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 9), // canon: 9px gap
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 11, // canon: 11px w600 ink1
+                        fontWeight: FontWeight.w600,
+                        color: tokens.colors.ink1,
+                        letterSpacing: -0.005 * 11,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontFamily: 'JetBrainsMono',
+                        fontSize: 9, // canon: 9px ink3
+                        color: tokens.colors.ink3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Count badge ──────────────────────────────────────────────────────────────
+
+/// Compact trip-chat-count badge — surface-2 pill with mono 8.5 ink3 text.
+///
+/// This is intentionally NOT [KaiBadge.count] (which uses the accent color and
+/// is sized for notification counts).  The trip folder count uses a neutral
+/// surface-2 pill — identical to v2's `_FolderRow` count badge.
+class _CountBadge extends StatelessWidget {
+  const _CountBadge({required this.count, required this.tokens});
+
+  final int count;
+  final KaiTokens tokens;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 5, // canon: 5px
+        vertical: 1, // canon: 1px
+      ),
+      decoration: BoxDecoration(
+        color: tokens.colors.surface2,
+        borderRadius: BorderRadius.circular(999), // pill
+      ),
+      child: Text(
+        count.toString(),
+        style: TextStyle(
+          fontFamily: 'JetBrainsMono',
+          fontSize: 8.5,
+          color: tokens.colors.ink3,
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Account anchor ───────────────────────────────────────────────────────────
+
+class _NavAccountAnchor extends StatelessWidget {
+  const _NavAccountAnchor({
+    required this.tokens,
+    required this.initial,
+    required this.name,
+    required this.plan,
+    this.onTap,
+  });
+
+  final KaiTokens tokens;
+  final String initial;
+  final String name;
+  final String plan;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: tokens.colors.line), // canon: 1px line
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14, // canon: 14px
+          vertical: 11, // canon: 11px
+        ),
+        child: Row(
+          children: [
+            // Tide-gradient avatar circle 24×24 with initial
+            Container(
+              width: 24, // canon: 24×24
+              height: 24,
+              decoration: const BoxDecoration(
+                gradient: KaiTide.gradient,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  initial.isNotEmpty ? initial[0] : 'A',
+                  style: const TextStyle(
+                    fontFamily: 'Manrope',
+                    color: Colors.white,
+                    fontSize: 9, // canon: 9px w700
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8), // canon: 8px
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 11, // canon: 11px w500 ink1
+                      fontWeight: FontWeight.w500,
+                      color: tokens.colors.ink1,
+                      letterSpacing: -0.005 * 11,
+                    ),
+                  ),
+                  Text(
+                    plan.toUpperCase(),
+                    style: TextStyle(
+                      fontFamily: 'JetBrainsMono',
+                      fontSize: 8.5, // canon: 8.5px ink3 ls 0.06em
+                      color: tokens.colors.ink3,
+                      letterSpacing: 0.06 * 8.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            KaiIcon(
+              KaiIconName.chev,
+              size: 11, // canon: 11px ink3
+              color: tokens.colors.ink3,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

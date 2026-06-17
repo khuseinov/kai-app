@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 import 'package:kai_app/design_system/atoms/kai_chip.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 import '../../test_helpers.dart';
 
@@ -40,7 +40,7 @@ void main() {
           (t) => t.style?.color == KaiColors.light.ink3,
         );
         expect(found, isTrue,
-            reason: 'neutral chip text must use ink3');
+            reason: 'neutral chip text must use ink3',);
       });
 
       testWidgets('neutral tone — background is transparent', (tester) async {
@@ -57,7 +57,7 @@ void main() {
               (deco.color == null || deco.color == Colors.transparent);
         });
         expect(found, isTrue,
-            reason: 'neutral chip must have no background color');
+            reason: 'neutral chip must have no background color',);
       });
 
       testWidgets('neutral tone — border uses line color', (tester) async {
@@ -75,13 +75,13 @@ void main() {
           return border.top.color == KaiColors.light.line;
         });
         expect(found, isTrue,
-            reason: 'neutral chip must have a border using line color');
+            reason: 'neutral chip must have a border using line color',);
       });
 
       testWidgets('done tone — text color is positive', (tester) async {
         await tester.pumpWidget(
           buildTestWidget(
-              const KaiChip.status('done', tone: KaiChipTone.done)),
+              const KaiChip.status('done', tone: KaiChipTone.done),),
         );
         await tester.pump();
         final texts = tester.widgetList<Text>(find.byType(Text)).toList();
@@ -89,13 +89,13 @@ void main() {
           (t) => t.style?.color == KaiColors.light.positive,
         );
         expect(found, isTrue,
-            reason: 'done chip text must use positive color');
+            reason: 'done chip text must use positive color',);
       });
 
       testWidgets('done tone — bg is positiveWash', (tester) async {
         await tester.pumpWidget(
           buildTestWidget(
-              const KaiChip.status('done', tone: KaiChipTone.done)),
+              const KaiChip.status('done', tone: KaiChipTone.done),),
         );
         await tester.pump();
         final containers =
@@ -106,13 +106,13 @@ void main() {
               deco.color == KaiColors.light.positiveWash;
         });
         expect(found, isTrue,
-            reason: 'done chip must use positiveWash background');
+            reason: 'done chip must use positiveWash background',);
       });
 
       testWidgets('active tone — text color is accent', (tester) async {
         await tester.pumpWidget(
           buildTestWidget(
-              const KaiChip.status('live', tone: KaiChipTone.active)),
+              const KaiChip.status('live', tone: KaiChipTone.active),),
         );
         await tester.pump();
         final texts = tester.widgetList<Text>(find.byType(Text)).toList();
@@ -120,13 +120,13 @@ void main() {
           (t) => t.style?.color == KaiColors.light.accent,
         );
         expect(found, isTrue,
-            reason: 'active chip text must use accent color');
+            reason: 'active chip text must use accent color',);
       });
 
       testWidgets('active tone — bg is accentWash', (tester) async {
         await tester.pumpWidget(
           buildTestWidget(
-              const KaiChip.status('live', tone: KaiChipTone.active)),
+              const KaiChip.status('live', tone: KaiChipTone.active),),
         );
         await tester.pump();
         final containers =
@@ -137,7 +137,7 @@ void main() {
               deco.color == KaiColors.light.accentWash;
         });
         expect(found, isTrue,
-            reason: 'active chip must use accentWash background');
+            reason: 'active chip must use accentWash background',);
       });
 
       testWidgets('uses pill border radius', (tester) async {
@@ -153,7 +153,7 @@ void main() {
               deco.borderRadius == KaiRadius.brPill;
         });
         expect(found, isTrue,
-            reason: 'status chip must use pill border radius');
+            reason: 'status chip must use pill border radius',);
       });
 
       testWidgets('not tappable — no GestureDetector', (tester) async {
@@ -184,7 +184,7 @@ void main() {
               deco.color == KaiColors.light.surface;
         });
         expect(found, isTrue,
-            reason: 'selected choice chip must use surface background');
+            reason: 'selected choice chip must use surface background',);
       });
 
       testWidgets('selected — text color is ink1', (tester) async {
@@ -199,7 +199,7 @@ void main() {
           (t) => t.style?.color == KaiColors.light.ink1,
         );
         expect(found, isTrue,
-            reason: 'selected choice chip text must use ink1');
+            reason: 'selected choice chip text must use ink1',);
       });
 
       testWidgets('unselected — bg is transparent', (tester) async {
@@ -218,7 +218,7 @@ void main() {
               (deco.color == null || deco.color == Colors.transparent);
         });
         expect(found, isTrue,
-            reason: 'unselected choice chip must have transparent background');
+            reason: 'unselected choice chip must have transparent background',);
       });
 
       testWidgets('unselected — text color is ink3', (tester) async {
@@ -233,7 +233,7 @@ void main() {
           (t) => t.style?.color == KaiColors.light.ink3,
         );
         expect(found, isTrue,
-            reason: 'unselected choice chip text must use ink3');
+            reason: 'unselected choice chip text must use ink3',);
       });
 
       testWidgets('uses pill border radius', (tester) async {
@@ -251,7 +251,7 @@ void main() {
               deco.borderRadius == KaiRadius.brPill;
         });
         expect(found, isTrue,
-            reason: 'choice chip must use pill border radius');
+            reason: 'choice chip must use pill border radius',);
       });
 
       testWidgets('onTap fires when tapped', (tester) async {
@@ -260,13 +260,13 @@ void main() {
           buildTestWidget(
             KaiChip.choice('Tap', selected: false, onTap: () {
               tapped = true;
-            }),
+            },),
           ),
         );
         await tester.pump();
         await tester.tap(find.byType(KaiChip));
         expect(tapped, isTrue,
-            reason: 'onTap must fire when choice chip is tapped');
+            reason: 'onTap must fire when choice chip is tapped',);
       });
 
       testWidgets('onTap null — widget still renders without error', (tester) async {

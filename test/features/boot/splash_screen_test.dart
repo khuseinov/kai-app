@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/design_system/atoms/atoms.dart';
-import 'package:kai_app/features/boot/splash_config.dart';
-import 'package:kai_app/features/boot/splash_screen.dart';
+import 'package:kai_app/features/boot/presentation/widgets/splash_config.dart';
+import 'package:kai_app/features/boot/presentation/pages/splash_screen.dart';
 
 import '../../test_helpers.dart';
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/providers/root.dart';
-import '../../design_system/theme/kai_theme.dart';
-import '../../design_system/tokens/kai_tokens.dart';
+import 'package:kai_app/core/providers/root.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 /// Phase 1 visual demo of all tokens + theme-mode toggle.
 class ThemeShowcaseScreen extends ConsumerWidget {
@@ -26,7 +26,7 @@ class ThemeShowcaseScreen extends ConsumerWidget {
             tooltip: 'Cycle theme mode (current: ${mode.name})',
             icon: Icon(_iconForMode(mode), color: c.ink1),
             onPressed: () {
-              ref.read(themeModeProvider.notifier).state = _nextMode(mode);
+              ref.read(themeModeProvider.notifier).setThemeMode(_nextMode(mode));
             },
           ),
         ],

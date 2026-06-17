@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/design_system/atoms/kai_button.dart';
 import 'package:kai_app/design_system/atoms/kai_tide_curve.dart';
-import 'package:kai_app/features/room/components/cards/kai_care_block.dart';
-import 'package:kai_app/features/room/components/kai_edge_state_block.dart';
+import 'package:kai_app/features/room/presentation/widgets/cards/kai_care_block.dart';
+import 'package:kai_app/features/room/presentation/widgets/kai_edge_state_block.dart';
 
 import '../../../test_helpers.dart';
 
@@ -204,14 +204,14 @@ void main() {
         final containers = tester.widgetList<Container>(find.descendant(
           of: find.byType(KaiButton),
           matching: find.byType(Container),
-        ));
+        ),);
         final hasGradient = containers.any((c) {
           final deco = c.decoration;
           return deco is BoxDecoration && deco.gradient != null;
         });
         expect(hasGradient, isFalse,
             reason:
-                'Rate-limit CTA must be ghost(accent) — no tide gradient');
+                'Rate-limit CTA must be ghost(accent) — no tide gradient',);
         // The label must still be visible.
         expect(find.text('Посмотреть планы'), findsOneWidget);
       });

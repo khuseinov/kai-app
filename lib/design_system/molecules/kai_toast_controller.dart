@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'kai_toast.dart';
+import 'package:kai_app/design_system/molecules/kai_toast.dart';
 
 /// Overlay + timer presenter for [KaiToast].
 ///
@@ -93,8 +93,6 @@ class KaiToastController {
                   label: label,
                   actionLabel: actionLabel,
                   onAction: wrappedAction,
-                  // Controller owns the countdown, not the widget.
-                  showCountdown: false,
                 ),
               ),
             ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:kai_app/design_system/molecules/kai_settings_row.dart' show KaiSettingsRow;
+import 'package:kai_app/design_system/molecules/molecules.dart' show KaiSettingsRow;
 
-import '../theme/kai_theme.dart';
-import '../tokens/kai_tokens.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 /// v3 settings group container with optional section label + danger variant.
 ///

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/core/providers/root.dart';
-import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/design_system/atoms/kai_sheet_shell.dart';
-import 'package:kai_app/features/room/components/sheets/kai_message_detail_sheet.dart';
 import 'package:kai_app/design_system/primitives/kai_icon.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/features/room/presentation/widgets/sheets/kai_message_detail_sheet.dart';
 import 'package:kai_app/l10n/app_localizations.dart';
 
 import '../../../../test_helpers.dart';
@@ -15,7 +15,7 @@ import '../../../../test_helpers.dart';
 Widget _buildModalTestWidget(Widget child) {
   return ProviderScope(
     overrides: <Override>[
-      themeModeProvider.overrideWith((ref) => ThemeMode.light),
+      themeModeProvider.overrideWith(() => _MockThemeModeNotifier(ThemeMode.light)),
     ],
     child: KaiTheme(
       child: Builder(
@@ -344,7 +344,7 @@ void main() {
       await tester.pump();
 
       expect(tapped, isTrue,
-          reason: 'onTap must fire directly — widget must not require Navigator');
+          reason: 'onTap must fire directly — widget must not require Navigator',);
     });
 
     testWidgets('tapping fires correct callback when multiple actions',
@@ -480,7 +480,7 @@ void main() {
       expect(KaiSourceFreshness.values, containsAll([
         KaiSourceFreshness.fresh,
         KaiSourceFreshness.stale,
-      ]));
+      ]),);
     });
 
     test('KaiDetailActionStyle has normal/primary/danger values', () {
@@ -488,7 +488,7 @@ void main() {
         KaiDetailActionStyle.normal,
         KaiDetailActionStyle.primary,
         KaiDetailActionStyle.danger,
-      ]));
+      ]),);
     });
   });
 
@@ -566,4 +566,11 @@ void main() {
       expect(find.text('Действие'), findsNothing);
     });
   });
+}
+
+class _MockThemeModeNotifier extends ThemeModeNotifier {
+  _MockThemeModeNotifier(this._initialMode);
+  final ThemeMode _initialMode;
+  @override
+  ThemeMode build() => _initialMode;
 }

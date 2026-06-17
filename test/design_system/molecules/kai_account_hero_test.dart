@@ -77,7 +77,6 @@ void main() {
             name: 'Рустам',
             email: 'rustam@example.com',
             initial: 'Р',
-            variant: KaiAccountHeroVariant.full,
           ),
         ),
       );
@@ -93,7 +92,6 @@ void main() {
             email: 'rustam@example.com',
             initial: 'Р',
             planLabel: 'pro',
-            variant: KaiAccountHeroVariant.full,
           ),
         ),
       );

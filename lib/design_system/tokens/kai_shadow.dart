@@ -1,4 +1,6 @@
 import 'package:flutter/painting.dart';
+import 'package:kai_app/design_system/atoms/atoms.dart' show KaiButton;
+import 'package:kai_app/design_system/atoms/kai_button.dart' show KaiButton;
 
 /// Shadow tokens — soft depth cues keyed to the tide palette.
 ///
@@ -28,7 +30,6 @@ class KaiShadow {
     BoxShadow(
       color: Color(0x622BA8C9),
       blurRadius: 16,
-      offset: Offset(0, 0),
     ),
   ];
 

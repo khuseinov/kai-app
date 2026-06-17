@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/features/room/components/cards/kai_care_block.dart';
+import 'package:kai_app/features/room/presentation/widgets/cards/kai_care_block.dart';
 
 import '../../../../test_helpers.dart';
 
@@ -223,7 +223,7 @@ void main() {
       });
 
       expect(hasNegativeBorder, isTrue,
-          reason: 'CareBlock must have a left BorderSide in negative (coral) color');
+          reason: 'CareBlock must have a left BorderSide in negative (coral) color',);
     });
 
     testWidgets('left border is flush (r0/10/10/0 corners)', (tester) async {
@@ -254,7 +254,7 @@ void main() {
       });
 
       expect(hasFlushCorners, isTrue,
-          reason: 'CareBlock must have flush left corners (r0) and rounded right corners');
+          reason: 'CareBlock must have flush left corners (r0) and rounded right corners',);
     });
 
     // -------------------------------------------------------------------------

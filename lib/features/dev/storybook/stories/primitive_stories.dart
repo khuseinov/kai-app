@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../../design_system/atoms/atoms.dart';
-import '../../../../design_system/primitives/primitives.dart';
-import '../../../../design_system/theme/kai_theme.dart';
-import '../../../../design_system/tokens/kai_tokens.dart';
-import '../story_page.dart';
-import '../story_registry.dart';
+import 'package:kai_app/design_system/atoms/atoms.dart';
+import 'package:kai_app/design_system/primitives/primitives.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
+import 'package:kai_app/features/dev/storybook/story_page.dart';
+import 'package:kai_app/features/dev/storybook/story_registry.dart';
 
 final List<Story> primitiveStories = [
   Story(
@@ -37,7 +37,7 @@ final List<Story> primitiveStories = [
         ),
         const StorySection('Sizes', [
           StoryCell('12', KaiIcon(KaiIconName.send, size: 12)),
-          StoryCell('18 (default)', KaiIcon(KaiIconName.send, size: 18)),
+          StoryCell('18 (default)', KaiIcon(KaiIconName.send)),
           StoryCell('24', KaiIcon(KaiIconName.send, size: 24)),
           StoryCell('32', KaiIcon(KaiIconName.send, size: 32)),
         ]),
@@ -76,11 +76,11 @@ final List<Story> primitiveStories = [
       sections: [
         StorySection('Variants', [
           StoryCell('surface + border + br4', _SurfaceDemo(
-            colorKey: 'surface', radiusKey: 'br4', border: true)),
+            colorKey: 'surface', radiusKey: 'br4', border: true,),),
           StoryCell('surface2 + shadow + br3', _SurfaceDemo(
-            colorKey: 'surface2', radiusKey: 'br3', shadow: KaiShadow.button)),
+            colorKey: 'surface2', radiusKey: 'br3', shadow: KaiShadow.button,),),
           StoryCell('surface3 + border + br2', _SurfaceDemo(
-            colorKey: 'surface3', radiusKey: 'br2', border: true)),
+            colorKey: 'surface3', radiusKey: 'br2', border: true,),),
         ]),
         StorySection('With content', [
           StoryCell('surface2 card', _SurfaceContentDemo()),
@@ -135,7 +135,7 @@ final List<Story> primitiveStories = [
         ]),
         StorySection('Custom sizes', [
           StoryCell('32×6', KaiGradientBar(width: 32, height: 6)),
-          StoryCell('64×4', KaiGradientBar(width: 64, height: 4)),
+          StoryCell('64×4', KaiGradientBar(width: 64)),
         ]),
       ],
       usage: 'KaiGradientBar()                      // who glyph\n'

@@ -44,17 +44,13 @@ class ErrorInterceptor extends Interceptor {
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
         failure = NetworkFailure.timeout;
-        break;
       case DioExceptionType.connectionError:
         failure = NetworkFailure.offline;
-        break;
       case DioExceptionType.cancel:
         failure = NetworkFailure.cancelled;
-        break;
       case DioExceptionType.badCertificate:
       case DioExceptionType.unknown:
         failure = NetworkFailure.unknown;
-        break;
       case DioExceptionType.badResponse:
         if (status != null && status >= 500) {
           failure = NetworkFailure.serverError;
@@ -63,7 +59,6 @@ class ErrorInterceptor extends Interceptor {
         } else {
           failure = NetworkFailure.unknown;
         }
-        break;
     }
 
     final wrapped = DioException(

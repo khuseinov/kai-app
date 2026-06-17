@@ -1,26 +1,22 @@
 import 'package:flutter/material.dart';
-
-import '../../../../design_system/atoms/atoms.dart';
-import '../../../room/components/kai_compose_island.dart';
-import '../../../room/components/kai_send_button.dart';
-import '../../../room/components/chat_bubbles/kai_user_bubble.dart';
-import '../../../room/components/chat_bubbles/kai_kai_bubble.dart';
-import '../../../room/components/chat_bubbles/kai_system_bubble.dart';
-import '../../../room/components/cards/kai_alert_card.dart';
-import '../../../room/components/cards/kai_care_block.dart';
-import '../../../room/components/cards/kai_source_card.dart';
-import '../../../room/components/sheets/kai_action_sheet.dart';
-import '../../../room/components/sheets/kai_message_detail_sheet.dart';
-import '../../../voice/components/kai_transcript_view.dart';
-import '../../../trip_detail/components/kai_fork_card.dart';
-import '../../../trip_detail/components/kai_fork_chip.dart';
-import '../../../trip_detail/components/kai_fork_price_delta.dart';
-import '../../../nav/components/kai_nav_item.dart';
-import '../../../../design_system/molecules/molecules.dart';
-import '../../../../design_system/primitives/primitives.dart';
-import '../../../../design_system/theme/kai_theme.dart';
-import '../story_page.dart';
-import '../story_registry.dart';
+import 'package:kai_app/design_system/atoms/atoms.dart';
+import 'package:kai_app/design_system/molecules/molecules.dart';
+import 'package:kai_app/design_system/primitives/primitives.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/features/dev/storybook/story_page.dart';
+import 'package:kai_app/features/dev/storybook/story_registry.dart';
+import 'package:kai_app/features/nav/presentation/widgets/kai_nav_item.dart';
+import 'package:kai_app/features/room/presentation/widgets/cards/kai_alert_card.dart';
+import 'package:kai_app/features/room/presentation/widgets/cards/kai_care_block.dart';
+import 'package:kai_app/features/room/presentation/widgets/cards/kai_source_card.dart';
+import 'package:kai_app/features/room/presentation/widgets/chat_bubbles/kai_kai_bubble.dart';
+import 'package:kai_app/features/room/presentation/widgets/chat_bubbles/kai_system_bubble.dart';
+import 'package:kai_app/features/room/presentation/widgets/chat_bubbles/kai_user_bubble.dart';
+import 'package:kai_app/features/room/presentation/widgets/kai_compose_island.dart';
+import 'package:kai_app/features/room/presentation/widgets/kai_send_button.dart';
+import 'package:kai_app/features/room/presentation/widgets/sheets/kai_action_sheet.dart';
+import 'package:kai_app/features/room/presentation/widgets/sheets/kai_message_detail_sheet.dart';
+import 'package:kai_app/features/voice/presentation/widgets/kai_transcript_view.dart';
 
 final List<Story> moleculeStories = [
   Story(
@@ -100,7 +96,6 @@ final List<Story> moleculeStories = [
               width: 300,
               child: KaiSystemBubble(
                 'Kai обновил воспоминание о ваших планах на поездку.',
-                tone: KaiSystemTone.neutral,
               ),
             ),
           ),
@@ -244,7 +239,7 @@ final List<Story> moleculeStories = [
                     'Поговори с кем-то, кто поможет.',
                 resources: [
                   KaiCareResource(
-                      label: 'Телефон доверия', number: '8-800-2000-122'),
+                      label: 'Телефон доверия', number: '8-800-2000-122',),
                   KaiCareResource(label: 'Кризисный чат', number: '112'),
                 ],
                 closing: 'Ты в порядке — просто дыши.',
@@ -461,7 +456,7 @@ final List<Story> moleculeStories = [
     variants: const ['minimal', 'with pickIndex', 'custom headerLabel'],
     props: const [
       PropDoc('columns', 'List<KaiForkColumn>', 'required', 'Min 2 columns'),
-      PropDoc('pickIndex', 'int?', 'null', 'Index of Kai\'s pick column'),
+      PropDoc('pickIndex', 'int?', 'null', "Index of Kai's pick column"),
       PropDoc('headerLabel', 'String?', 'null', 'Override default "N варианта"'),
     ],
     build: (_) => const _KaiForkCardStory(),
@@ -479,7 +474,7 @@ final List<Story> moleculeStories = [
     variants: const ['you event', 'kai event', 'mixed'],
     props: const [
       PropDoc('events', 'List<KaiTranscriptEvent>', 'required',
-          'Ordered transcript events'),
+          'Ordered transcript events',),
     ],
     build: (_) => const _KaiTranscriptViewStory(),
   ),
@@ -1344,8 +1339,8 @@ class _KaiForkCardStory extends StatelessWidget {
                   KaiForkColumn(
                     name: 'Япония',
                     glyph: 'JP',
-                    price: '\$2,100',
-                    priceDelta: '+\$500',
+                    price: r'$2,100',
+                    priceDelta: r'+$500',
                     priceDirection: KaiPriceDirection.up,
                     rows: [
                       KaiForkRow(
@@ -1366,8 +1361,8 @@ class _KaiForkCardStory extends StatelessWidget {
                   KaiForkColumn(
                     name: 'Корея',
                     glyph: 'KR',
-                    price: '\$1,600',
-                    priceDelta: '−\$500',
+                    price: r'$1,600',
+                    priceDelta: r'−$500',
                     priceDirection: KaiPriceDirection.down,
                     rows: [
                       KaiForkRow(
@@ -1389,7 +1384,7 @@ class _KaiForkCardStory extends StatelessWidget {
                 pickIndex: 1,
                 headerLabel: 'сравниваем · 2 варианта',
                 freshLabel: '✓ сегодня',
-                winnerSummary: 'Корея — лучший выбор для \$2k.',
+                winnerSummary: r'Корея — лучший выбор для $2k.',
               ),
             ),
           ),
@@ -1404,7 +1399,7 @@ class _KaiForkCardStory extends StatelessWidget {
                   KaiForkColumn(
                     name: 'Япония',
                     glyph: 'JP',
-                    price: '\$2,100',
+                    price: r'$2,100',
                     rows: [
                       KaiForkRow(
                         label: 'виза',
@@ -1417,7 +1412,7 @@ class _KaiForkCardStory extends StatelessWidget {
                   KaiForkColumn(
                     name: 'Вьетнам',
                     glyph: 'VN',
-                    price: '\$1,200',
+                    price: r'$1,200',
                     rows: [
                       KaiForkRow(
                         label: 'виза',
@@ -1548,25 +1543,25 @@ class _KaiTranscriptViewStory extends StatelessWidget {
       usage: 'KaiTranscriptView(\n'
           '  events: [\n'
           '    KaiTranscriptEvent(\n'
-          '      who: \'you\',\n'
-          '      text: \'Найди рейс…\',\n'
-          '      timestamp: \'9:41\',\n'
+          "      who: 'you',\n"
+          "      text: 'Найди рейс…',\n"
+          "      timestamp: '9:41',\n"
           '    ),\n'
           '    KaiTranscriptEvent(\n'
-          '      who: \'kai\',\n'
-          '      text: \'Ищу варианты…\',\n'
-          '      timestamp: \'9:41\',\n'
+          "      who: 'kai',\n"
+          "      text: 'Ищу варианты…',\n"
+          "      timestamp: '9:41',\n"
           '    ),\n'
           '  ],\n'
           ')',
       props: const [
         PropDoc('events', 'List<KaiTranscriptEvent>', 'required',
-            'Ordered transcript events'),
+            'Ordered transcript events',),
         PropDoc('who', 'String', 'required',
-            'Speaker: "you" | "kai". Kai events show tide glyph.'),
+            'Speaker: "you" | "kai". Kai events show tide glyph.',),
         PropDoc('text', 'String', 'required', 'Speech text for this event'),
         PropDoc('timestamp', 'String', 'required',
-            'Human-readable time label (e.g. "9:41")'),
+            'Human-readable time label (e.g. "9:41")',),
       ],
     );
   }

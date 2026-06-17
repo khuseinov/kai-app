@@ -150,8 +150,6 @@ void _drawCurve(Canvas canvas, double s, _Variant variant, Rect fullRect) {
   // Mono + tinted variants: white curve (tinted mode lets iOS recolour it).
   if (variant == _Variant.dark) {
     paint.shader = const LinearGradient(
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
       colors: [
         Color(0xFF1B4FB0),
         Color(0xFF2BA8C9),
@@ -356,7 +354,6 @@ Future<Uint8List> _renderOgCard() async {
     text: 'kai.wize.ai',
     color: const Color(0x99FFFFFF),
     fontSize: footerFontSize,
-    fontWeight: FontWeight.w400,
   );
   canvas.drawParagraph(leftFooter, const Offset(paddingX, footerTop));
 
@@ -364,7 +361,6 @@ Future<Uint8List> _renderOgCard() async {
     text: 'путешествия · компаньон · AI',
     color: const Color(0x99FFFFFF),
     fontSize: footerFontSize,
-    fontWeight: FontWeight.w400,
   );
   canvas.drawParagraph(
     rightFooter,
@@ -397,7 +393,6 @@ Uint8List _flattenAlpha(Uint8List pngBytes) {
   final flattened = img.Image(
     width: decoded.width,
     height: decoded.height,
-    numChannels: 3,
   );
   for (var y = 0; y < decoded.height; y++) {
     for (var x = 0; x < decoded.width; x++) {
@@ -415,8 +410,7 @@ Uint8List _flattenAlpha(Uint8List pngBytes) {
 
 ui.Paragraph _buildParagraph({
   required String text,
-  Color? color,
-  required double fontSize,
+  required double fontSize, Color? color,
   FontWeight fontWeight = FontWeight.w400,
   FontStyle? fontStyle,
   double? letterSpacing,
@@ -426,7 +420,7 @@ ui.Paragraph _buildParagraph({
   final builder = ui.ParagraphBuilder(ui.ParagraphStyle(
     fontSize: fontSize,
     height: height,
-  ));
+  ),);
   final style = ui.TextStyle(
     color: foreground == null ? color : null,
     foreground: foreground,

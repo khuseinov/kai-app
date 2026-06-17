@@ -3,14 +3,14 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../design_system/atoms/atoms.dart';
-import '../../../../design_system/theme/kai_theme.dart';
-import '../../../../design_system/tokens/kai_tokens.dart';
+import 'package:kai_app/design_system/atoms/atoms.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 // ── Shared section header ─────────────────────────────────────────────────────
 
 class SpecSection extends StatelessWidget {
-  const SpecSection({super.key, required this.title, required this.child});
+  const SpecSection({required this.title, required this.child, super.key});
 
   final String title;
   final Widget child;
@@ -114,7 +114,7 @@ class MemoryCanonPreview extends StatelessWidget {
           // Fact item demo
           Container(
             padding: const EdgeInsets.symmetric(
-                horizontal: 11, vertical: 9),
+                horizontal: 11, vertical: 9,),
             decoration: BoxDecoration(
               color: c.surface2,
               borderRadius: KaiRadius.br8,
@@ -125,7 +125,7 @@ class MemoryCanonPreview extends StatelessWidget {
               children: [
                 KaiText.small(
                     'Предпочитает прямые рейсы без пересадок',
-                    color: c.ink1),
+                    color: c.ink1,),
                 const SizedBox(height: 2),
                 KaiText.micro('из chat · 2 дня назад', color: c.ink3),
               ],
@@ -139,7 +139,7 @@ class MemoryCanonPreview extends StatelessWidget {
           // Forget row demo
           Container(
             padding: const EdgeInsets.symmetric(
-                horizontal: 12, vertical: 11),
+                horizontal: 12, vertical: 11,),
             decoration: BoxDecoration(
               color: c.negativeWash,
               borderRadius: KaiRadius.br8,

@@ -140,7 +140,7 @@ class KaiTide {
 
   static const KaiTideState listening = KaiTideState(
     name: 'listening',
-    strokePx: 2.0,
+    strokePx: 2,
     opacity: 0.8,
     animation: KaiTideAnimation.bob,
     durationMs: 2200,
@@ -148,7 +148,7 @@ class KaiTide {
 
   static const KaiTideState thinking = KaiTideState(
     name: 'thinking',
-    strokePx: 2.0,
+    strokePx: 2,
     opacity: 0.85,
     animation: KaiTideAnimation.flow,
     durationMs: 3000,
@@ -158,7 +158,7 @@ class KaiTide {
   static const KaiTideState responding = KaiTideState(
     name: 'responding',
     strokePx: 2.5,
-    opacity: 1.0,
+    opacity: 1,
     animation: KaiTideAnimation.stream,
     durationMs: 1400,
     dashPattern: [12, 4],
@@ -167,7 +167,7 @@ class KaiTide {
   static const KaiTideState success = KaiTideState(
     name: 'success',
     strokePx: 2.5,
-    opacity: 1.0,
+    opacity: 1,
     animation: KaiTideAnimation.flash,
     durationMs: 1200,
     ephemeral: true,
@@ -175,7 +175,7 @@ class KaiTide {
 
   static const KaiTideState error = KaiTideState(
     name: 'error',
-    strokePx: 2.0,
+    strokePx: 2,
     opacity: 0.95,
     animation: KaiTideAnimation.wobble,
     // Canon: design-tokens.json § tide-states.error.animation-duration-ms = 600.
@@ -187,8 +187,8 @@ class KaiTide {
 
   static const KaiTideState memory = KaiTideState(
     name: 'memory',
-    strokePx: 2.0,
-    opacity: 1.0,
+    strokePx: 2,
+    opacity: 1,
     animation: KaiTideAnimation.pop,
     durationMs: 900,
     ephemeral: true,
@@ -196,7 +196,7 @@ class KaiTide {
 
   static const KaiTideState sleep = KaiTideState(
     name: 'sleep',
-    strokePx: 1.0,
+    strokePx: 1,
     opacity: 0.2,
     animation: KaiTideAnimation.breathe,
     durationMs: 7000,

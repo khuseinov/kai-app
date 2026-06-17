@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/features/room/components/cards/kai_source_card.dart';
+import 'package:kai_app/features/room/presentation/widgets/cards/kai_source_card.dart';
 
 import '../../../../test_helpers.dart';
 
@@ -187,7 +187,7 @@ void main() {
         return deco is BoxDecoration && deco.color != null;
       });
       expect(hasFill, isTrue,
-          reason: 'source card must have a background fill');
+          reason: 'source card must have a background fill',);
     });
 
     testWidgets('outer container has r10 border radius', (tester) async {
@@ -209,7 +209,7 @@ void main() {
         return br.topLeft == const Radius.circular(10);
       });
       expect(hasR10, isTrue,
-          reason: 'source card must use r10 border radius (KaiRadius.br2)');
+          reason: 'source card must use r10 border radius (KaiRadius.br2)',);
     });
 
     // -----------------------------------------------------------------------

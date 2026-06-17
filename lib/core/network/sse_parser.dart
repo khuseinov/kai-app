@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import '../repositories/chat_repository.dart';
+import 'package:kai_app/features/room/domain/repositories/chat_repository.dart';
 
 /// Parses a raw SSE byte stream into typed [ChatEvent]s.
 ///

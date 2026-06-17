@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/core/providers/root.dart';
-import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/design_system/atoms/kai_sheet_shell.dart';
-import 'package:kai_app/features/room/components/sheets/kai_action_sheet.dart';
 import 'package:kai_app/design_system/primitives/kai_icon.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/features/room/presentation/widgets/sheets/kai_action_sheet.dart';
 import 'package:kai_app/l10n/app_localizations.dart';
 
 import '../../../../test_helpers.dart';
@@ -15,7 +15,7 @@ import '../../../../test_helpers.dart';
 Widget _buildModalTestWidget(Widget child) {
   return ProviderScope(
     overrides: <Override>[
-      themeModeProvider.overrideWith((ref) => ThemeMode.light),
+      themeModeProvider.overrideWith(() => MockThemeModeNotifier(ThemeMode.light)),
     ],
     child: KaiTheme(
       child: Builder(
@@ -196,7 +196,7 @@ void main() {
 
       expect(tapped, isTrue,
           reason:
-              'onTap must fire directly — widget must not require Navigator');
+              'onTap must fire directly — widget must not require Navigator',);
     });
 
     testWidgets('tapping danger row fires its onTap callback', (tester) async {

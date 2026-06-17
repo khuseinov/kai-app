@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
-import 'package:kai_app/core/storage/entities/message.dart';
-import 'package:kai_app/core/storage/entities/session.dart';
-import 'package:kai_app/core/storage/entities/settings.dart';
+import 'package:kai_app/features/room/data/models/message.dart';
+import 'package:kai_app/features/room/data/models/session.dart';
+import 'package:kai_app/features/settings/data/models/settings.dart';
 
 void main() {
   setUp(() async {
@@ -75,7 +75,7 @@ void main() {
         role: MessageRole.kai,
         status: MessageStatus.streaming,
         content: 'Привет.',
-        createdAt: DateTime.utc(2026, 5, 27, 10, 0),
+        createdAt: DateTime.utc(2026, 5, 27, 10),
       );
 
       await box.put(m.id, m);

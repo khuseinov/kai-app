@@ -1,9 +1,9 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
-import 'entities/memory_fact.dart';
-import 'entities/message.dart';
-import 'entities/session.dart';
-import 'entities/settings.dart';
+import 'package:kai_app/features/memory/data/models/memory_fact.dart';
+import 'package:kai_app/features/room/data/models/message.dart';
+import 'package:kai_app/features/room/data/models/session.dart';
+import 'package:kai_app/features/settings/data/models/settings.dart';
 
 /// One-shot Hive bootstrap. Idempotent across hot restarts.
 ///

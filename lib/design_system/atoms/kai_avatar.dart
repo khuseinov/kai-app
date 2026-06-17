@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../primitives/primitives.dart';
-import '../tokens/kai_tokens.dart';
+import 'package:kai_app/design_system/primitives/primitives.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 /// Canonical diameter values for [KaiAvatar] named constructors.
 ///

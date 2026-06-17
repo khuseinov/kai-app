@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../theme/kai_theme.dart';
-import '../tokens/kai_tokens.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 /// Size variants for [KaiChip].
 ///
@@ -167,7 +167,7 @@ class KaiChip extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: bgColor,
-        border: Border.all(color: borderColor, width: 1),
+        border: Border.all(color: borderColor),
         borderRadius: KaiRadius.brPill,
       ),
       child: Text(

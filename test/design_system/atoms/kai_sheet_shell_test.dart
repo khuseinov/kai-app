@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 import 'package:kai_app/design_system/atoms/kai_sheet_shell.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 import '../../test_helpers.dart';
 
@@ -100,7 +100,7 @@ void main() {
         return br == const BorderRadius.all(Radius.circular(999));
       });
       expect(hasPillRadius, isTrue,
-          reason: 'drag pill must have BorderRadius.all(Radius.circular(999))');
+          reason: 'drag pill must have BorderRadius.all(Radius.circular(999))',);
     });
 
     testWidgets('drag pill is 36 wide and 4 tall', (tester) async {

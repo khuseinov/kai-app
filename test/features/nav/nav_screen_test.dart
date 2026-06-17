@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/core/providers/session_provider.dart';
-import 'package:kai_app/core/repositories/session_repository.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
-import 'package:kai_app/features/nav/components/nav_models.dart';
-import 'package:kai_app/features/nav/nav_screen.dart';
+import 'package:kai_app/features/auth/domain/repositories/session_repository.dart';
+import 'package:kai_app/features/nav/data/models/nav_models.dart';
+import 'package:kai_app/features/nav/presentation/pages/nav_page.dart';
 import 'package:kai_app/l10n/app_localizations.dart';
+
+import '../../test_helpers.dart';
 
 // ─── Test helpers ─────────────────────────────────────────────────────────────
 
@@ -28,7 +30,7 @@ Future<void> _pumpNavScreen(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        themeModeProvider.overrideWith((ref) => ThemeMode.light),
+        themeModeProvider.overrideWith(() => MockThemeModeNotifier(ThemeMode.light)),
         // Override sessionListProvider to return our test list synchronously.
         sessionListProvider.overrideWith(
           (ref) async => sessionList
@@ -115,14 +117,14 @@ void main() {
 
     testWidgets('tapping new-chat button pops navigation', (tester) async {
       // Push NavScreen on top of a dummy page so we can verify pop.
-      var popped = false;
+      const popped = false;
       await tester.binding.setSurfaceSize(const Size(390, 844));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            themeModeProvider.overrideWith((ref) => ThemeMode.light),
+            themeModeProvider.overrideWith(() => MockThemeModeNotifier(ThemeMode.light)),
             sessionListProvider.overrideWith((ref) async => []),
           ],
           child: MaterialApp(
@@ -187,7 +189,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            themeModeProvider.overrideWith((ref) => ThemeMode.light),
+            themeModeProvider.overrideWith(() => MockThemeModeNotifier(ThemeMode.light)),
             sessionListProvider.overrideWith(
               (ref) async => [
                 ChatSession(

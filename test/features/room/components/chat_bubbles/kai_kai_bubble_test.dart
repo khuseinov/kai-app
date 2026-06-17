@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/design_system/atoms/kai_icon_button.dart';
-import 'package:kai_app/features/room/components/chat_bubbles/kai_kai_bubble.dart';
 import 'package:kai_app/design_system/primitives/kai_gradient_bar.dart';
 import 'package:kai_app/design_system/primitives/kai_icon.dart';
+import 'package:kai_app/features/room/presentation/widgets/chat_bubbles/kai_kai_bubble.dart';
 
 import '../../../../test_helpers.dart';
 
@@ -69,7 +69,7 @@ void main() {
         }
       }
       expect(foundCitation, isTrue,
-          reason: 'citation [1] must appear inside a RichText');
+          reason: 'citation [1] must appear inside a RichText',);
     });
 
     testWidgets('citation [1] span has accent color', (tester) async {
@@ -90,7 +90,7 @@ void main() {
       }
 
       expect(citationColor, isNotNull,
-          reason: 'citation span must have an explicit color');
+          reason: 'citation span must have an explicit color',);
       // The accent token in light theme is Color(0xFF2C5BE5) — but we don't
       // want to hard-code that here. Just verify it's NOT the default ink1
       // colour, which would mean the citation wasn't specially styled.
@@ -119,7 +119,7 @@ void main() {
         citationCount += _countCitationSpans(rt.text);
       }
       expect(citationCount, greaterThanOrEqualTo(2),
-          reason: 'both [1] and [2] must be separate citation spans');
+          reason: 'both [1] and [2] must be separate citation spans',);
     });
 
     // -------------------------------------------------------------------------
@@ -168,13 +168,13 @@ void main() {
 
       // The caret is driven by AnimatedBuilder (one per streaming bubble)
       expect(find.byType(AnimatedBuilder), findsWidgets,
-          reason: 'streaming mode must include AnimatedBuilder for the caret');
+          reason: 'streaming mode must include AnimatedBuilder for the caret',);
     });
 
     testWidgets('streaming: false renders body text without caret', (tester) async {
       await tester.pumpWidget(
         buildTestWidget(
-          const KaiKaiBubble(text: 'Not streaming', streaming: false),
+          const KaiKaiBubble(text: 'Not streaming'),
         ),
       );
       await tester.pump();
@@ -204,7 +204,7 @@ void main() {
           .widgetList<KaiIconButton>(find.byType(KaiIconButton))
           .toList();
       expect(iconButtons.length, 2,
-          reason: 'both thumb buttons must render when callbacks provided');
+          reason: 'both thumb buttons must render when callbacks provided',);
     });
 
     testWidgets('only thumbUp button appears when only onThumbUp provided',

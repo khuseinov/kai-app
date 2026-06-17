@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kai_app/design_system/atoms/kai_divider.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
-import 'package:kai_app/design_system/atoms/kai_divider.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child) async {
   await tester.pumpWidget(
@@ -25,21 +25,20 @@ void main() {
         tester,
         const KaiDivider(),
       );
-      final container = tester.widget<Container>(
-        find.byType(Container).first,
-      );
-      expect(container.constraints?.maxHeight, 1.0);
+      final sizeBox = tester.widgetList<SizedBox>(find.byType(SizedBox))
+          .firstWhere((s) => s.height == 1.0);
+      expect(sizeBox.height, 1.0);
     });
 
     testWidgets('horizontal: uses line color from theme', (tester) async {
       await _pump(tester, const KaiDivider());
-      final containers =
-          tester.widgetList<Container>(find.byType(Container)).toList();
-      final found = containers.any((c) {
-        final deco = c.decoration;
-        return deco is BoxDecoration && deco.color == KaiColors.light.line;
-      });
-      expect(found, isTrue, reason: 'Horizontal divider must use theme line color');
+      final coloredBox = tester.widget<ColoredBox>(
+        find.descendant(
+          of: find.byType(KaiDivider),
+          matching: find.byType(ColoredBox),
+        ),
+      );
+      expect(coloredBox.color, KaiColors.light.line);
     });
 
     testWidgets('horizontal: color override is applied', (tester) async {
@@ -48,13 +47,13 @@ void main() {
         tester,
         const KaiDivider(color: testColor),
       );
-      final containers =
-          tester.widgetList<Container>(find.byType(Container)).toList();
-      final found = containers.any((c) {
-        final deco = c.decoration;
-        return deco is BoxDecoration && deco.color == testColor;
-      });
-      expect(found, isTrue, reason: 'Color override must be applied');
+      final coloredBox = tester.widget<ColoredBox>(
+        find.descendant(
+          of: find.byType(KaiDivider),
+          matching: find.byType(ColoredBox),
+        ),
+      );
+      expect(coloredBox.color, testColor);
     });
 
     testWidgets('vertical: width is 1px', (tester) async {
@@ -65,10 +64,9 @@ void main() {
           child: KaiDivider.vertical(),
         ),
       );
-      final container = tester.widget<Container>(
-        find.byType(Container).first,
-      );
-      expect(container.constraints?.maxWidth, 1.0);
+      final sizeBox = tester.widgetList<SizedBox>(find.byType(SizedBox))
+          .firstWhere((s) => s.width == 1.0);
+      expect(sizeBox.width, 1.0);
     });
 
     testWidgets('vertical: uses line color from theme', (tester) async {
@@ -79,13 +77,13 @@ void main() {
           child: KaiDivider.vertical(),
         ),
       );
-      final containers =
-          tester.widgetList<Container>(find.byType(Container)).toList();
-      final found = containers.any((c) {
-        final deco = c.decoration;
-        return deco is BoxDecoration && deco.color == KaiColors.light.line;
-      });
-      expect(found, isTrue, reason: 'Vertical divider must use theme line color');
+      final coloredBox = tester.widget<ColoredBox>(
+        find.descendant(
+          of: find.byType(KaiDivider),
+          matching: find.byType(ColoredBox),
+        ),
+      );
+      expect(coloredBox.color, KaiColors.light.line);
     });
   });
 }

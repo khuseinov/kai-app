@@ -129,7 +129,7 @@ void main() {
       });
 
       expect(hasExpected, isTrue,
-          reason: 'track must use KaiRadius.br8 (8px) borderRadius');
+          reason: 'track must use KaiRadius.br8 (8px) borderRadius',);
     });
 
     // -------------------------------------------------------------------------

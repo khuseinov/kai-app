@@ -48,7 +48,7 @@ void main() {
         type: KaiToastType.neutral,
         label: 'Готово',
         duration: Duration(milliseconds: 200),
-      )));
+      ),),);
       await tester.pump();
 
       // Before tap — no toast.
@@ -75,7 +75,7 @@ void main() {
         type: KaiToastType.neutral,
         label: 'Авто',
         duration: dur,
-      )));
+      ),),);
       await tester.pump();
 
       await tester.tap(find.text('show'));
@@ -86,7 +86,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
 
       expect(find.byType(KaiToast), findsNothing,
-          reason: 'toast must auto-dismiss after duration');
+          reason: 'toast must auto-dismiss after duration',);
     });
 
     // -------------------------------------------------------------------------
@@ -99,7 +99,7 @@ void main() {
       await tester.pumpWidget(_withOverlay(Builder(builder: (ctx) {
         capturedContext = ctx;
         return const SizedBox();
-      })));
+      },),),);
       await tester.pump();
 
       KaiToastController.show(
@@ -121,11 +121,11 @@ void main() {
 
       // Only the second toast should exist.
       expect(find.text('Первый'), findsNothing,
-          reason: 'first toast must be replaced');
+          reason: 'first toast must be replaced',);
       expect(find.text('Второй'), findsOneWidget,
-          reason: 'second toast must be visible');
+          reason: 'second toast must be visible',);
       expect(find.byType(KaiToast), findsOneWidget,
-          reason: 'only one toast at a time');
+          reason: 'only one toast at a time',);
 
       // Cancel pending timer so the test framework is satisfied.
       KaiToastController.dismiss();
@@ -142,7 +142,7 @@ void main() {
       await tester.pumpWidget(_withOverlay(Builder(builder: (ctx) {
         capturedContext = ctx;
         return const SizedBox();
-      })));
+      },),),);
       await tester.pump();
 
       KaiToastController.show(
@@ -158,7 +158,7 @@ void main() {
       await tester.pump();
 
       expect(find.byType(KaiToast), findsNothing,
-          reason: 'dismiss() must remove the overlay entry');
+          reason: 'dismiss() must remove the overlay entry',);
     });
 
     // -------------------------------------------------------------------------
@@ -170,7 +170,7 @@ void main() {
       await tester.pump();
 
       // Must not throw.
-      expect(() => KaiToastController.dismiss(), returnsNormally);
+      expect(KaiToastController.dismiss, returnsNormally);
     });
 
     // -------------------------------------------------------------------------
@@ -183,7 +183,7 @@ void main() {
       await tester.pumpWidget(_withOverlay(Builder(builder: (ctx) {
         capturedContext = ctx;
         return const SizedBox();
-      })));
+      },),),);
       await tester.pump();
 
       KaiToastController.show(
@@ -215,7 +215,7 @@ void main() {
       await tester.pumpWidget(_withOverlay(Builder(builder: (ctx) {
         capturedContext = ctx;
         return const SizedBox();
-      })));
+      },),),);
       await tester.pump();
 
       KaiToastController.show(
@@ -230,7 +230,7 @@ void main() {
       // Pump a long time — should still be there.
       await tester.pump(const Duration(seconds: 30));
       expect(find.byType(KaiToast), findsOneWidget,
-          reason: 'duration zero = persistent, no auto-dismiss');
+          reason: 'duration zero = persistent, no auto-dismiss',);
     });
   });
 }

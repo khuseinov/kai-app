@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/design_system/atoms/kai_button.dart';
-import 'package:kai_app/features/onboarding/components/kai_step_indicator.dart';
 import 'package:kai_app/design_system/atoms/kai_tide_curve.dart';
-import 'package:kai_app/features/onboarding/components/kai_onboarding_card.dart';
-import 'package:kai_app/features/onboarding/onboarding_screen.dart';
+import 'package:kai_app/features/onboarding/presentation/pages/onboarding_page.dart';
+import 'package:kai_app/features/onboarding/presentation/widgets/kai_onboarding_card.dart';
+import 'package:kai_app/features/onboarding/presentation/widgets/kai_step_indicator.dart';
 
 import '../../../test_helpers.dart';
 
@@ -66,7 +66,7 @@ void main() {
 
     testWidgets('step 0 CTA is a neutral-at-rest tide button',
         (WidgetTester tester) async {
-      await _pump(tester, const OnboardingScreen());
+      await _pump(tester, const OnboardingPage());
 
       final buttonFinder = find.byType(KaiButton);
       expect(buttonFinder, findsOneWidget);
@@ -78,18 +78,18 @@ void main() {
       final containers = tester.widgetList<Container>(find.descendant(
         of: buttonFinder,
         matching: find.byType(Container),
-      ));
+      ),);
       final hasGradientOnKaiButton = containers.any((c) {
         final deco = c.decoration;
         return deco is BoxDecoration && deco.gradient != null;
       });
       expect(hasGradientOnKaiButton, isFalse,
-          reason: 'Step 0 CTA at rest must not have a gradient when neutralAtRest is true');
+          reason: 'Step 0 CTA at rest must not have a gradient when neutralAtRest is true',);
     });
 
     testWidgets('step 1 CTA is a neutral-at-rest tide button',
         (WidgetTester tester) async {
-      await _pump(tester, const OnboardingScreen());
+      await _pump(tester, const OnboardingPage());
       // Advance to step 1
       await tester.tap(find.text('Продолжить'));
       await _pumpTransition(tester);
@@ -102,18 +102,18 @@ void main() {
       final containers = tester.widgetList<Container>(find.descendant(
         of: buttonFinder,
         matching: find.byType(Container),
-      ));
+      ),);
       final hasGradient = containers.any((c) {
         final deco = c.decoration;
         return deco is BoxDecoration && deco.gradient != null;
       });
       expect(hasGradient, isFalse,
-          reason: 'Step 1 CTA at rest must not have a gradient when neutralAtRest is true');
+          reason: 'Step 1 CTA at rest must not have a gradient when neutralAtRest is true',);
     });
 
     testWidgets('step 2 CTA is a neutral-at-rest tide button',
         (WidgetTester tester) async {
-      await _pump(tester, const OnboardingScreen());
+      await _pump(tester, const OnboardingPage());
       // Advance to step 1, then step 2
       await tester.tap(find.text('Продолжить'));
       await _pumpTransition(tester);
@@ -128,18 +128,18 @@ void main() {
       final containers = tester.widgetList<Container>(find.descendant(
         of: buttonFinder,
         matching: find.byType(Container),
-      ));
+      ),);
       final hasGradient = containers.any((c) {
         final deco = c.decoration;
         return deco is BoxDecoration && deco.gradient != null;
       });
       expect(hasGradient, isFalse,
-          reason: 'Step 2 CTA at rest must not have a gradient when neutralAtRest is true');
+          reason: 'Step 2 CTA at rest must not have a gradient when neutralAtRest is true',);
     });
 
     testWidgets('step 3 CTA is a neutral-at-rest tide button',
         (WidgetTester tester) async {
-      await _pump(tester, const OnboardingScreen());
+      await _pump(tester, const OnboardingPage());
       // Advance to step 3
       await tester.tap(find.text('Продолжить'));
       await _pumpTransition(tester);
@@ -156,20 +156,20 @@ void main() {
       final containers = tester.widgetList<Container>(find.descendant(
         of: buttonFinder,
         matching: find.byType(Container),
-      ));
+      ),);
       final hasGradient = containers.any((c) {
         final deco = c.decoration;
         return deco is BoxDecoration && deco.gradient != null;
       });
       expect(hasGradient, isFalse,
-          reason: 'Step 3 CTA at rest must not have a gradient when neutralAtRest is true');
+          reason: 'Step 3 CTA at rest must not have a gradient when neutralAtRest is true',);
     });
 
     // ── Callback wiring ──────────────────────────────────────────────────────
 
     testWidgets('Onboarding Screen transition flow works',
         (WidgetTester tester) async {
-      await _pump(tester, const OnboardingScreen());
+      await _pump(tester, const OnboardingPage());
 
       // Welcome page (step 0)
       expect(find.text('Познакомьтесь с Kai.'), findsOneWidget);

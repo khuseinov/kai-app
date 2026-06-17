@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
-
-import '../../../../design_system/atoms/atoms.dart';
-import '../../../nav/components/kai_nav_panel.dart';
-import '../../../nav/components/nav_models.dart';
-import '../../../onboarding/components/kai_onboarding_card.dart';
-import '../../../onboarding/components/kai_onboarding_scale.dart';
-import '../../../room/components/kai_chat_list.dart';
-import '../../../room/components/kai_edge_state_block.dart';
-import '../../../../design_system/theme/kai_theme.dart';
-import '../../../../design_system/tokens/kai_tokens.dart';
-import '../story_page.dart';
-import '../story_registry.dart';
-import '../../../voice/voice_screen.dart';
-import '../../../memory/memory_screen.dart';
+import 'package:kai_app/design_system/atoms/atoms.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
+import 'package:kai_app/features/dev/storybook/story_page.dart';
+import 'package:kai_app/features/dev/storybook/story_registry.dart';
+import 'package:kai_app/features/memory/presentation/pages/memory_page.dart';
+import 'package:kai_app/features/nav/data/models/nav_models.dart';
+import 'package:kai_app/features/nav/presentation/widgets/kai_nav_panel.dart';
+import 'package:kai_app/features/onboarding/presentation/widgets/kai_onboarding_card.dart';
+import 'package:kai_app/features/onboarding/presentation/widgets/kai_onboarding_scale.dart';
+import 'package:kai_app/features/room/presentation/widgets/kai_chat_list.dart';
+import 'package:kai_app/features/room/presentation/widgets/kai_edge_state_block.dart';
+import 'package:kai_app/features/voice/presentation/pages/voice_page.dart';
 
 final List<Story> organismStories = [
   Story(
@@ -76,20 +75,20 @@ final List<Story> organismStories = [
 
   Story(
     layer: StoryLayer.organisms,
-    name: 'MemoryScreen',
-    importPath: 'package:kai_app/features/memory/memory_screen.dart',
+    name: 'MemoryPage',
+    importPath: 'package:kai_app/features/memory/presentation/pages/memory_page.dart',
     canonFile: 'new-design/memory.html',
     canonSelector: '.memory',
     description:
         'Memory management screen — facts grouped by category, searchable. '
         'Forget (danger) rows, memory hero card, toggle per-category.',
     variants: const ['interactive screen demo'],
-    build: (_) => const _MemoryScreenStoryPage(),
+    build: (_) => const _MemoryPageStoryPage(),
   ),
   Story(
     layer: StoryLayer.organisms,
-    name: 'Voice Screen',
-    importPath: 'package:kai_app/features/voice/voice_screen.dart',
+    name: 'VoicePage',
+    importPath: 'package:kai_app/features/voice/presentation/pages/voice_page.dart',
     canonFile: 'new-design/voice.html',
     canonSelector: '.voice',
     description:
@@ -97,7 +96,7 @@ final List<Story> organismStories = [
         'recording (listening), speaking (karaoke response), and '
         'timeline dialog history (transcript). Tap/swipe-driven transitions.',
     variants: const ['interactive screen demo'],
-    build: (_) => const _VoiceScreenStoryPage(),
+    build: (_) => const _VoicePageStoryPage(),
   ),
 ];
 
@@ -223,13 +222,13 @@ class _KaiChatListStoryState extends State<_KaiChatListStory> {
           ')',
       props: const [
         PropDoc('frame', 'RoomFrame', 'required',
-            'empty/live/panel/compose/streaming/error'),
+            'empty/live/panel/compose/streaming/error',),
         PropDoc('messages', 'List<Map<String,dynamic>>', '[]',
-            'Chat messages — role: user/kai/system/alert/care'),
+            'Chat messages — role: user/kai/system/alert/care',),
         PropDoc('partialContent', 'String?', 'null',
-            'Streaming partial text for the live Kai bubble'),
+            'Streaming partial text for the live Kai bubble',),
         PropDoc('onRetry', 'VoidCallback?', 'null',
-            'Retry handler shown in error frame'),
+            'Retry handler shown in error frame',),
       ],
     );
   }
@@ -327,7 +326,7 @@ class _KaiNavPanelStory extends StatelessWidget {
         PropDoc('strings', 'KaiNavStrings', 'required', 'Localised labels'),
         PropDoc('trips', 'List<TripInfo>', '[]', 'Trip folder list'),
         PropDoc('sessions', 'List<SessionPreview>', '[]',
-            'Session list (date-bucketed internally)'),
+            'Session list (date-bucketed internally)',),
         PropDoc('activeSessionId', 'String?', 'null', 'Highlighted session'),
         PropDoc('pinnedTrip', 'TripInfo?', 'null', 'Pinned trip at top'),
       ],
@@ -392,7 +391,7 @@ class _KaiEdgeStateBlockStory extends StatelessWidget {
           ')',
       props: const [
         PropDoc('surface', 'KaiEdgeSurface', 'required',
-            'offline / error / rateLimit / crisis'),
+            'offline / error / rateLimit / crisis',),
         PropDoc('onRetry', 'VoidCallback?', 'null', 'Retry CTA (offline/error)'),
         PropDoc('onPlans', 'VoidCallback?', 'null', 'Upgrade CTA (rateLimit)'),
         PropDoc('countdown', 'Duration?', 'null', 'Cooldown timer (rateLimit)'),
@@ -502,13 +501,13 @@ class _KaiOnboardingCardStoryState extends State<_KaiOnboardingCardStory> {
 // layers. Memory remains here as a screen-level placeholder — no single
 // component covers the full memory screen yet.
 
-class _MemoryScreenStoryPage extends StatelessWidget {
-  const _MemoryScreenStoryPage();
+class _MemoryPageStoryPage extends StatelessWidget {
+  const _MemoryPageStoryPage();
 
   @override
   Widget build(BuildContext context) {
     return const StoryPage(
-      title: 'Memory Screen',
+      title: 'Memory Page',
       layer: 'ORGANISM',
       blurb:
           'Fully interactive screen demo of the Memory management screen. '
@@ -523,24 +522,24 @@ class _MemoryScreenStoryPage extends StatelessWidget {
               height: 568,
               child: ClipRRect(
                 borderRadius: BorderRadius.all(Radius.circular(32)),
-                child: MemoryScreen(),
+                child: MemoryPage(),
               ),
             ),
           ),
         ]),
       ],
-      usage: 'MemoryScreen()',
+      usage: 'MemoryPage()',
     );
   }
 }
 
-class _VoiceScreenStoryPage extends StatelessWidget {
-  const _VoiceScreenStoryPage();
+class _VoicePageStoryPage extends StatelessWidget {
+  const _VoicePageStoryPage();
 
   @override
   Widget build(BuildContext context) {
     return const StoryPage(
-      title: 'Voice Screen',
+      title: 'Voice Page',
       layer: 'ORGANISM',
       blurb:
           'Fully interactive screen demo of the Voice mode. Includes '
@@ -554,13 +553,13 @@ class _VoiceScreenStoryPage extends StatelessWidget {
               height: 568,
               child: ClipRRect(
                 borderRadius: BorderRadius.all(Radius.circular(32)),
-                child: VoiceScreen(),
+                child: VoicePage(),
               ),
             ),
           ),
         ]),
       ],
-      usage: 'VoiceScreen()',
+      usage: 'VoicePage()',
     );
   }
 }

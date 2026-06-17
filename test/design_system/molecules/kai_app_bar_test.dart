@@ -5,6 +5,7 @@ import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/design_system/molecules/kai_app_bar.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/l10n/app_localizations.dart';
+import '../../test_helpers.dart';
 
 // ---------------------------------------------------------------------------
 // Helper — wraps KaiAppBar inside a real Navigator + KaiTheme.
@@ -18,7 +19,7 @@ Widget _withNav({
 }) {
   return ProviderScope(
     overrides: [
-      themeModeProvider.overrideWith((ref) => ThemeMode.light),
+      themeModeProvider.overrideWith(() => MockThemeModeNotifier(ThemeMode.light)),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,

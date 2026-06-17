@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 import 'package:kai_app/design_system/atoms/kai_avatar.dart';
 import 'package:kai_app/design_system/primitives/kai_gradient_bar.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 import '../../test_helpers.dart';
 
@@ -37,7 +37,7 @@ void main() {
         await tester.pump();
         expect(_hasGradientCircle(tester, null), isTrue,
             reason:
-                'KaiAvatar must render a circle filled with KaiTide.gradientCorner');
+                'KaiAvatar must render a circle filled with KaiTide.gradientCorner',);
       });
 
       testWidgets('default size is 40px', (tester) async {
@@ -46,7 +46,7 @@ void main() {
         );
         await tester.pump();
         expect(_hasGradientCircle(tester, 40), isTrue,
-            reason: 'default KaiAvatar must be 40x40px');
+            reason: 'default KaiAvatar must be 40x40px',);
       });
 
       testWidgets('custom size is applied', (tester) async {
@@ -55,7 +55,7 @@ void main() {
         );
         await tester.pump();
         expect(_hasGradientCircle(tester, 64), isTrue,
-            reason: 'KaiAvatar must respect the size parameter');
+            reason: 'KaiAvatar must respect the size parameter',);
       });
     });
 
@@ -91,7 +91,7 @@ void main() {
           (t) => t.style?.color == const Color(0xFFFFFFFF),
         );
         expect(found, isTrue,
-            reason: 'initial letter must be white on gradient fill');
+            reason: 'initial letter must be white on gradient fill',);
       });
 
       testWidgets('no Text widget when initial is null', (tester) async {
@@ -121,7 +121,7 @@ void main() {
         );
         await tester.pump();
         expect(_hasGradientCircle(tester, 28), isTrue,
-            reason: 'KaiAvatarSize.sm must produce a 28px circle');
+            reason: 'KaiAvatarSize.sm must produce a 28px circle',);
       });
 
       testWidgets('md is 40px (default)', (tester) async {
@@ -130,7 +130,7 @@ void main() {
         );
         await tester.pump();
         expect(_hasGradientCircle(tester, 40), isTrue,
-            reason: 'KaiAvatarSize.md must produce a 40px circle');
+            reason: 'KaiAvatarSize.md must produce a 40px circle',);
       });
 
       testWidgets('lg is 56px', (tester) async {
@@ -139,7 +139,7 @@ void main() {
         );
         await tester.pump();
         expect(_hasGradientCircle(tester, 56), isTrue,
-            reason: 'KaiAvatarSize.lg must produce a 56px circle');
+            reason: 'KaiAvatarSize.lg must produce a 56px circle',);
       });
     });
 
@@ -183,7 +183,7 @@ void main() {
         );
         await tester.pump();
         expect(_hasGradientCircle(tester, null), isTrue,
-            reason: 'KaiAvatar.kai must render a gradientCorner circle');
+            reason: 'KaiAvatar.kai must render a gradientCorner circle',);
       });
 
       testWidgets('renders KaiGradientBar mark', (tester) async {
@@ -192,7 +192,7 @@ void main() {
         );
         await tester.pump();
         expect(find.byType(KaiGradientBar), findsOneWidget,
-            reason: 'KaiAvatar.kai must include the gradient bar mark');
+            reason: 'KaiAvatar.kai must include the gradient bar mark',);
       });
     });
 
@@ -230,7 +230,7 @@ void main() {
         // Static path — no _BreathingWrapper in the subtree.
         expect(find.byWidgetPredicate(
           (w) => w.runtimeType.toString() == '_BreathingWrapper',
-        ), findsNothing);
+        ), findsNothing,);
       });
     });
   });

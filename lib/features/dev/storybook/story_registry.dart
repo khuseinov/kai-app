@@ -1,10 +1,10 @@
 import 'package:flutter/widgets.dart';
-import 'story_page.dart' show PropDoc;
-import 'stories/foundations_stories.dart';
-import 'stories/primitive_stories.dart';
-import 'stories/atom_stories.dart';
-import 'stories/molecule_stories.dart';
-import 'stories/organism_stories.dart';
+import 'package:kai_app/features/dev/storybook/stories/atom_stories.dart';
+import 'package:kai_app/features/dev/storybook/stories/foundations_stories.dart';
+import 'package:kai_app/features/dev/storybook/stories/molecule_stories.dart';
+import 'package:kai_app/features/dev/storybook/stories/organism_stories.dart';
+import 'package:kai_app/features/dev/storybook/stories/primitive_stories.dart';
+import 'package:kai_app/features/dev/storybook/story_page.dart' show PropDoc;
 
 export 'story_page.dart' show PropDoc;
 
@@ -26,7 +26,11 @@ class Story {
   });
 
   final StoryLayer layer;
-  final String name, importPath, canonFile, canonSelector, description;
+  final String name;
+  final String importPath;
+  final String canonFile;
+  final String canonSelector;
+  final String description;
   final List<String> variants;
   final List<PropDoc> props;
   final WidgetBuilder build;

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-
-import '../theme/kai_theme.dart';
-import '../tokens/kai_tokens.dart';
-import '../primitives/kai_icon.dart';
+import 'package:kai_app/design_system/atoms/atoms.dart' show KaiToggle;
+import 'package:kai_app/design_system/atoms/kai_toggle.dart' show KaiToggle;
+import 'package:kai_app/design_system/molecules/molecules.dart' show KaiSegmentedControl, KaiSettingsGroup;
+import 'package:kai_app/design_system/primitives/kai_icon.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 /// A single row in a settings list.
 ///
@@ -67,7 +69,6 @@ class KaiSettingsRow extends StatelessWidget {
     final content = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SizedBox(
             width: 16,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../theme/kai_theme.dart';
-import '../tokens/kai_tokens.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 /// v3 pill switch — atomic. Canon: `new-design/settings.html § .toggle`.
 ///
@@ -44,7 +44,7 @@ class KaiToggle extends StatelessWidget {
     final c = KaiTheme.of(context).colors;
     final enabled = onChanged != null;
 
-    Widget track = AnimatedContainer(
+    final Widget track = AnimatedContainer(
       duration: KaiMotion.standard,
       curve: KaiMotion.standardCurve,
       width: _trackWidth,

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-
-import '../theme/kai_theme.dart';
-import '../tokens/kai_tokens.dart';
-import '../atoms/kai_avatar.dart';
+import 'package:kai_app/design_system/atoms/kai_avatar.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 // ---------------------------------------------------------------------------
 // Variant enum

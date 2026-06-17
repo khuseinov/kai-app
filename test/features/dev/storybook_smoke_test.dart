@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
-import 'package:kai_app/features/dev/storybook/storybook_screen.dart';
 import 'package:kai_app/features/dev/storybook/story_registry.dart';
+import 'package:kai_app/features/dev/storybook/storybook_screen.dart';
 import 'package:kai_app/l10n/app_localizations.dart';
+
+import '../../test_helpers.dart';
 
 /// Smoke tests for the adaptive Storybook shell (C1-Task-4 3-pane rebuild).
 ///
@@ -18,7 +20,7 @@ import 'package:kai_app/l10n/app_localizations.dart';
 Widget _wrap(Widget screen) {
   return ProviderScope(
     overrides: [
-      themeModeProvider.overrideWith((ref) => ThemeMode.light),
+      themeModeProvider.overrideWith(() => MockThemeModeNotifier(ThemeMode.light)),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,

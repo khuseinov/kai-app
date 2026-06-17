@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../../design_system/atoms/atoms.dart';
-import '../../../onboarding/components/kai_step_indicator.dart';
-import '../../../trip_detail/components/kai_budget_bar.dart';
-import '../../../trip_detail/components/kai_fork_chip.dart';
-import '../../../trip_detail/components/kai_fork_price_delta.dart';
-import '../../../trip_detail/components/kai_fork_score_dots.dart';
-import '../../../voice/components/kai_karaoke_text.dart';
-import '../../../room/components/kai_send_button.dart';
-import '../../../../design_system/primitives/primitives.dart';
-import '../../../../design_system/tokens/kai_tokens.dart';
-import '../story_page.dart';
-import '../story_registry.dart';
+import 'package:kai_app/design_system/atoms/atoms.dart';
+import 'package:kai_app/design_system/primitives/primitives.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
+import 'package:kai_app/features/dev/storybook/story_page.dart';
+import 'package:kai_app/features/dev/storybook/story_registry.dart';
+import 'package:kai_app/features/onboarding/presentation/widgets/kai_step_indicator.dart';
+import 'package:kai_app/features/room/presentation/widgets/kai_send_button.dart';
+import 'package:kai_app/features/voice/presentation/widgets/kai_karaoke_text.dart';
 
 final List<Story> atomStories = [
   Story(
@@ -98,38 +93,37 @@ final List<Story> atomStories = [
           StoryCell('ink', KaiButton.ink(label: 'New chat', onPressed: () {})),
           StoryCell('ghost', KaiButton.ghost(label: 'Retry', onPressed: () {})),
           StoryCell('text·accent', KaiButton.text(
-            label: 'Open', onPressed: () {}, tone: KaiButtonTone.accent)),
+            label: 'Open', onPressed: () {}, tone: KaiButtonTone.accent,),),
         ]),
         StorySection('Sizes', [
           StoryCell('sm', KaiButton.ink(
-            label: 'sm', onPressed: () {}, size: KaiButtonSize.sm)),
+            label: 'sm', onPressed: () {}, size: KaiButtonSize.sm,),),
           StoryCell('md', KaiButton.ink(
-            label: 'md', onPressed: () {}, size: KaiButtonSize.md)),
+            label: 'md', onPressed: () {},),),
           StoryCell('lg', KaiButton.ink(
-            label: 'lg', onPressed: () {}, size: KaiButtonSize.lg)),
+            label: 'lg', onPressed: () {}, size: KaiButtonSize.lg,),),
         ]),
         StorySection('Ghost tones', [
           StoryCell('neutral', KaiButton.ghost(label: 'Neutral', onPressed: () {})),
           StoryCell('warning', KaiButton.ghost(
-            label: 'Warning', onPressed: () {}, tone: KaiButtonTone.warning)),
+            label: 'Warning', onPressed: () {}, tone: KaiButtonTone.warning,),),
           StoryCell('negative', KaiButton.ghost(
-            label: 'Negative', onPressed: () {}, tone: KaiButtonTone.negative)),
+            label: 'Negative', onPressed: () {}, tone: KaiButtonTone.negative,),),
           StoryCell('pill', KaiButton.ghost(
-            label: 'Pill ghost', onPressed: () {}, pill: true)),
+            label: 'Pill ghost', onPressed: () {}, pill: true,),),
         ]),
         StorySection('States', [
           const StoryCell('disabled', KaiButton.tide(label: 'Send', onPressed: null)),
           StoryCell('glow', KaiButton.tide(
             label: 'Upgrade', onPressed: () {},
-            emphasis: KaiButtonEmphasis.glow)),
+            emphasis: KaiButtonEmphasis.glow,),),
         ]),
         StorySection('Tide animation', [
           StoryCell('A · onInteraction (default)', KaiButton.tide(
-            label: 'Hover me', onPressed: () {},
-            tideAnim: KaiTideAnim.onInteraction)),
+            label: 'Hover me', onPressed: () {},),),
           StoryCell('B · onState (busy contexts)', KaiButton.tide(
             label: 'Sending', onPressed: () {},
-            tideAnim: KaiTideAnim.onState, busy: true)),
+            tideAnim: KaiTideAnim.onState, busy: true,),),
         ]),
       ],
       usage: "KaiButton.tide(label: 'Send', onPressed: _send,\n"
@@ -172,34 +166,34 @@ final List<Story> atomStories = [
       sections: [
         StorySection('Variants', [
           StoryCell('surface', KaiIconButton.surface(
-            onPressed: () {}, icon: KaiIconName.mic)),
+            onPressed: () {}, icon: KaiIconName.mic,),),
           StoryCell('transparent', KaiIconButton.transparent(
-            onPressed: () {}, icon: KaiIconName.mic)),
+            onPressed: () {}, icon: KaiIconName.mic,),),
           StoryCell('bare', KaiIconButton.bare(
-            onPressed: () {}, icon: KaiIconName.close)),
+            onPressed: () {}, icon: KaiIconName.close,),),
           StoryCell('toggle active', KaiIconButton.toggle(
-            active: true, onPressed: () {}, icon: KaiIconName.mic)),
+            active: true, onPressed: () {}, icon: KaiIconName.mic,),),
           StoryCell('toggle inactive', KaiIconButton.toggle(
-            active: false, onPressed: () {}, icon: KaiIconName.mic)),
+            active: false, onPressed: () {}, icon: KaiIconName.mic,),),
         ]),
         StorySection('Sizes', [
           StoryCell('sm (16px)', KaiIconButton.surface(
             onPressed: () {}, icon: KaiIconName.plus,
-            iconSize: KaiIconButtonSize.sm)),
+            iconSize: KaiIconButtonSize.sm,),),
           StoryCell('md (18px, default)', KaiIconButton.surface(
-            onPressed: () {}, icon: KaiIconName.plus)),
+            onPressed: () {}, icon: KaiIconName.plus,),),
         ]),
         const StorySection('States', [
           StoryCell('disabled', KaiIconButton.bare(
-            onPressed: null, icon: KaiIconName.lock)),
+            onPressed: null, icon: KaiIconName.lock,),),
         ]),
         StorySection('Icons sampling', [
           StoryCell('settings', KaiIconButton.bare(
-            onPressed: () {}, icon: KaiIconName.settings)),
+            onPressed: () {}, icon: KaiIconName.settings,),),
           StoryCell('search', KaiIconButton.surface(
-            onPressed: () {}, icon: KaiIconName.search)),
+            onPressed: () {}, icon: KaiIconName.search,),),
           StoryCell('plus', KaiIconButton.surface(
-            onPressed: () {}, icon: KaiIconName.plus)),
+            onPressed: () {}, icon: KaiIconName.plus,),),
         ]),
       ],
       usage: 'KaiIconButton.surface(onPressed: _attach, icon: KaiIconName.plus)\n'
@@ -240,21 +234,21 @@ final List<Story> atomStories = [
       sections: [
         StorySection('States', [
           StoryCell('ready', KaiSendButton(
-            state: KaiSendState.ready, onPressed: () {})),
+            state: KaiSendState.ready, onPressed: () {},),),
           StoryCell('sending', KaiSendButton(
-            state: KaiSendState.sending, onPressed: () {})),
+            state: KaiSendState.sending, onPressed: () {},),),
           StoryCell('streaming (stop)', KaiSendButton(
-            state: KaiSendState.streaming, onPressed: () {})),
+            state: KaiSendState.streaming, onPressed: () {},),),
           const StoryCell('disabled', KaiSendButton(
-            state: KaiSendState.disabled, onPressed: null)),
+            state: KaiSendState.disabled, onPressed: null,),),
         ]),
         const StorySection('Sizes', [
           StoryCell('sm (24)', KaiSendButton(
-            state: KaiSendState.ready, onPressed: null, size: 24, iconSize: 10)),
+            state: KaiSendState.ready, onPressed: null, size: 24, iconSize: 10,),),
           StoryCell('default (30)', KaiSendButton(
-            state: KaiSendState.ready, onPressed: null)),
+            state: KaiSendState.ready, onPressed: null,),),
           StoryCell('lg (40)', KaiSendButton(
-            state: KaiSendState.ready, onPressed: null, size: 40, iconSize: 16)),
+            state: KaiSendState.ready, onPressed: null, size: 40, iconSize: 16,),),
         ]),
         const StorySection('Interactive', [
           StoryCell('tap to cycle', _SendButtonCycler()),
@@ -301,7 +295,7 @@ final List<Story> atomStories = [
         StorySection('Variants', [
           StoryCell('line · standalone', _InputLineDemo()),
           StoryCell('pill · compose-island field',
-              _InputPillComposeDemo()),
+              _InputPillComposeDemo(),),
         ]),
         StorySection('States', [
           StoryCell('disabled', _InputDisabledDemo()),
@@ -527,7 +521,7 @@ final List<Story> atomStories = [
     canonFile: 'new-design/tide-states.html',
     canonSelector: '.tide-curve',
     description:
-        'Kai\'s living tide curve — the brand mark. Eight states (idle, '
+        "Kai's living tide curve — the brand mark. Eight states (idle, "
         'listening, thinking, responding, success, error, memory, sleep), '
         'each with distinct stroke, opacity, and animation behaviour.',
     variants: const [
@@ -549,7 +543,7 @@ final List<Story> atomStories = [
           KaiTide.all.map((s) => StoryCell(
             s.name,
             SizedBox(width: 120, height: 28, child: KaiTideCurve(state: s, demoLoop: true)),
-          )).toList(),
+          ),).toList(),
         ),
         const StorySection('Interactive', [
           StoryCell('tap to cycle', _TideCurveCycler()),
@@ -717,7 +711,7 @@ final List<Story> atomStories = [
         '(positive/green) — inverse of a stock ticker.',
     variants: const ['up (costlier)', 'down (cheaper)'],
     props: const [
-      PropDoc('label', 'String', 'required', 'Delta text, e.g. "+\$500"'),
+      PropDoc('label', 'String', 'required', r'Delta text, e.g. "+$500"'),
       PropDoc('direction', 'KaiPriceDirection', 'required', 'up / down'),
     ],
     build: (_) => const StoryPage(
@@ -728,13 +722,13 @@ final List<Story> atomStories = [
       sections: [
         StorySection('Direction', [
           StoryCell('up · costlier',
-              KaiForkPriceDelta('+\$500', direction: KaiPriceDirection.up)),
+              KaiForkPriceDelta(r'+$500', direction: KaiPriceDirection.up),),
           StoryCell('down · cheaper',
-              KaiForkPriceDelta('−\$500', direction: KaiPriceDirection.down)),
+              KaiForkPriceDelta(r'−$500', direction: KaiPriceDirection.down),),
         ]),
       ],
       usage: "KaiForkPriceDelta('+\$500', direction: KaiPriceDirection.up)\n"
-          "KaiForkPriceDelta('−\$500', direction: KaiPriceDirection.down)",
+          r"KaiForkPriceDelta('−$500', direction: KaiPriceDirection.down)",
       props: [
         PropDoc('label', 'String', 'required', 'Delta text'),
         PropDoc('direction', 'KaiPriceDirection', 'required', 'up / down'),
@@ -845,7 +839,7 @@ final List<Story> atomStories = [
     props: const [
       PropDoc('words', 'List<String>', 'required', 'All words in the sentence'),
       PropDoc(
-          'currentIndex', 'int', 'required', 'Index of word now being spoken'),
+          'currentIndex', 'int', 'required', 'Index of word now being spoken',),
     ],
     build: (_) => const _KaiKaraokeTextStory(),
   ),
@@ -864,10 +858,10 @@ final List<Story> atomStories = [
     variants: const ['4 segments + legend', '2 segments no legend', 'partial fill'],
     props: const [
       PropDoc('segments', 'List<KaiBudgetSegment>', 'required',
-          'Proportional coloured segments — fractions should sum ≤ 1.0'),
+          'Proportional coloured segments — fractions should sum ≤ 1.0',),
       PropDoc('height', 'double', '8', 'Track height in logical pixels'),
       PropDoc('showLegend', 'bool', 'false',
-          'When true, renders a legend row with colour swatch + label below the track'),
+          'When true, renders a legend row with colour swatch + label below the track',),
     ],
     build: (_) => const _KaiBudgetBarStory(),
   ),
@@ -1155,7 +1149,7 @@ class _KaiKaraokeTextStory extends StatelessWidget {
       props: const [
         PropDoc('words', 'List<String>', 'required', 'All words in the sentence'),
         PropDoc(
-            'currentIndex', 'int', 'required', 'Index of word now being spoken'),
+            'currentIndex', 'int', 'required', 'Index of word now being spoken',),
       ],
     );
   }
@@ -1265,10 +1259,10 @@ class _KaiBudgetBarStory extends StatelessWidget {
           ')',
       props: [
         PropDoc('segments', 'List<KaiBudgetSegment>', 'required',
-            'Proportional coloured segments — fractions should sum ≤ 1.0'),
+            'Proportional coloured segments — fractions should sum ≤ 1.0',),
         PropDoc('height', 'double', '8', 'Track height in logical pixels'),
         PropDoc('showLegend', 'bool', 'false',
-            'When true renders a legend row with swatch + label below the track'),
+            'When true renders a legend row with swatch + label below the track',),
       ],
     );
   }

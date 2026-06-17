@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/features/room/components/kai_send_button.dart';
-import 'package:kai_app/features/room/components/kai_compose_island.dart';
 import 'package:kai_app/design_system/primitives/primitives.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
+import 'package:kai_app/features/room/presentation/widgets/kai_compose_island.dart';
+import 'package:kai_app/features/room/presentation/widgets/kai_send_button.dart';
 
 import '../../../test_helpers.dart';
 
@@ -25,7 +25,7 @@ void main() {
       addTearDown(c.dispose);
       await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
         controller: c, onSend: () {}, onMicTap: () {}, onVoiceTap: () {},
-      )));
+      ),),);
       expect(find.byKey(_micKey), findsOneWidget);
       expect(find.byType(KaiSendButton), findsNothing);
     });
@@ -35,7 +35,7 @@ void main() {
       addTearDown(c.dispose);
       await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
         controller: c, onSend: () {}, onMicTap: () {}, onVoiceTap: () {},
-      )));
+      ),),);
       await tester.enterText(find.byType(TextField), 'рейс в Токио');
       // Settle the mic→send AnimatedSwitcher (outgoing child removed a frame
       // after the transition completes).
@@ -50,7 +50,7 @@ void main() {
       addTearDown(c.dispose);
       await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
         controller: c, onSend: () {},
-      )));
+      ),),);
       expect(find.byKey(_micKey), findsNothing);
       expect(
         tester.widget<KaiSendButton>(find.byType(KaiSendButton)).state,
@@ -65,7 +65,7 @@ void main() {
       addTearDown(c.dispose);
       await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
         controller: c, onSend: () {},
-      )));
+      ),),);
       expect(find.byKey(_voiceKey), findsNothing);
       expect(find.byKey(_addKey), findsNothing);
       expect(_hasIcon(tester, KaiIconName.waveform), isFalse);
@@ -77,7 +77,7 @@ void main() {
       addTearDown(c.dispose);
       await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
         controller: c, onSend: () {}, onAddTap: () {}, onVoiceTap: () {}, onMicTap: () {},
-      )));
+      ),),);
       expect(find.byKey(_voiceKey), findsOneWidget);
       expect(find.byKey(_addKey), findsOneWidget);
       expect(_hasIcon(tester, KaiIconName.waveform), isTrue);
@@ -86,11 +86,12 @@ void main() {
     testWidgets('onVoiceTap + onAddTap fire on tap', (tester) async {
       final c = TextEditingController();
       addTearDown(c.dispose);
-      var voice = false, add = false;
+      var voice = false;
+      var add = false;
       await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
         controller: c, onSend: () {},
         onAddTap: () => add = true, onVoiceTap: () => voice = true, onMicTap: () {},
-      )));
+      ),),);
       await tester.tap(find.byKey(_voiceKey));
       await tester.tap(find.byKey(_addKey));
       expect(voice, isTrue);
@@ -107,13 +108,13 @@ void main() {
       await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
         controller: c, onSend: () {}, onStop: () => stopped = true,
         sendState: KaiSendState.streaming,
-      )));
+      ),),);
       expect(find.byType(TextField), findsNothing);
       expect(find.text('Kai отвечает…'), findsOneWidget);
       final stopBtn = find.byType(KaiSendButton);
       expect(stopBtn, findsOneWidget);
       expect(
-        tester.widget<KaiSendButton>(stopBtn).state, KaiSendState.streaming);
+        tester.widget<KaiSendButton>(stopBtn).state, KaiSendState.streaming,);
       await tester.tap(stopBtn);
       expect(stopped, isTrue);
     });
@@ -125,7 +126,7 @@ void main() {
       addTearDown(c.dispose);
       await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
         controller: c, onSend: () {}, offline: true,
-      )));
+      ),),);
       expect(find.text('оффлайн — отправлю, когда вернётся сеть'), findsOneWidget);
       expect(_hasIcon(tester, KaiIconName.info), isFalse);
       // hint dot uses warning, never negative
@@ -133,8 +134,8 @@ void main() {
       final colors = KaiTheme.of(ctx).colors;
       final dot = tester.widgetList<Container>(find.byType(Container)).firstWhere(
         (w) => (w.decoration is BoxDecoration) &&
-            (w.decoration as BoxDecoration).color == colors.warning,
-        orElse: () => Container(),
+            (w.decoration! as BoxDecoration).color == colors.warning,
+        orElse: Container.new,
       );
       expect((dot.decoration as BoxDecoration?)?.color, colors.warning);
       expect((dot.decoration as BoxDecoration?)?.color == colors.negative, isFalse);
@@ -147,7 +148,7 @@ void main() {
       var queued = false;
       await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
         controller: c, onSend: () {}, offline: true, onQueue: () => queued = true,
-      )));
+      ),),);
       expect(find.byKey(_queueKey), findsOneWidget);
       expect(_hasIcon(tester, KaiIconName.clock), isTrue);
       await tester.tap(find.byKey(_queueKey));
@@ -162,7 +163,7 @@ void main() {
       var sent = false;
       await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
         controller: c, onSend: () => sent = true,
-      )));
+      ),),);
       await tester.tap(find.byType(KaiSendButton));
       expect(sent, isTrue);
     });
@@ -173,7 +174,7 @@ void main() {
       var sent = false;
       await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
         controller: c, onSend: () => sent = true,
-      )));
+      ),),);
       await tester.tap(find.byType(KaiSendButton), warnIfMissed: false);
       expect(sent, isFalse);
     });
@@ -185,12 +186,12 @@ void main() {
       addTearDown(c.dispose);
       await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
         controller: c, onSend: () {},
-      )));
+      ),),);
       final hasPill = tester.widgetList<Container>(find.byType(Container)).any((w) {
         final d = w.decoration;
         return d is BoxDecoration &&
             d.borderRadius is BorderRadius &&
-            (d.borderRadius as BorderRadius).topLeft ==
+            (d.borderRadius! as BorderRadius).topLeft ==
                 const Radius.circular(KaiRadius.pill);
       });
       expect(hasPill, isTrue);
@@ -201,7 +202,7 @@ void main() {
       addTearDown(c.dispose);
       await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
         controller: c, onSend: () {}, placeholder: 'Type here…',
-      )));
+      ),),);
       expect(find.text('Type here…'), findsOneWidget);
     });
 
@@ -210,7 +211,7 @@ void main() {
       addTearDown(c.dispose);
       await tester.pumpWidget(buildTestWidget(KaiComposeIsland(
         controller: c, onSend: () {}, onMicTap: () {}, dictating: true,
-      )));
+      ),),);
       expect(find.text('Слушаю вас...'), findsOneWidget);
       expect(find.byType(TextField), findsNothing);
       expect(find.byKey(_micKey), findsOneWidget);

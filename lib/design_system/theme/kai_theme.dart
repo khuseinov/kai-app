@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/providers/root.dart';
-import '../tokens/kai_tokens.dart';
+import 'package:kai_app/core/providers/root.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 /// Resolves Brightness from ThemeMode + system brightness.
 Brightness _resolveBrightness(ThemeMode mode, Brightness systemBrightness) {
@@ -21,7 +21,7 @@ Brightness _resolveBrightness(ThemeMode mode, Brightness systemBrightness) {
 /// Subscribe via `KaiTheme.of(context).colors.bg` (etc).
 /// Mounted high in the tree, above MaterialApp. Reads themeMode from Riverpod.
 class KaiTheme extends ConsumerWidget {
-  const KaiTheme({super.key, required this.child});
+  const KaiTheme({required this.child, super.key});
 
   final Widget child;
 

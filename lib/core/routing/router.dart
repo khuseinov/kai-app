@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kai_app/core/storage/hive_setup.dart';
+import 'package:kai_app/core/utils/url_launcher.dart';
+import 'package:kai_app/design_system/atoms/atoms.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
+import 'package:kai_app/features/dev/storybook/storybook_screen.dart';
+import 'package:kai_app/features/dev/theme_showcase_screen.dart';
+import 'package:kai_app/features/memory/presentation/pages/memory_page.dart';
+import 'package:kai_app/features/onboarding/presentation/pages/onboarding_page.dart';
+import 'package:kai_app/features/room/presentation/pages/room_page.dart';
+import 'package:kai_app/features/settings/data/models/settings.dart';
+import 'package:kai_app/features/settings/presentation/pages/settings_page.dart';
+import 'package:kai_app/features/voice/presentation/pages/voice_page.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../design_system/theme/kai_theme.dart';
-import '../../design_system/tokens/kai_tokens.dart';
-import '../../design_system/atoms/atoms.dart';
-import '../../features/dev/storybook/storybook_screen.dart';
-import '../../features/dev/theme_showcase_screen.dart';
-import '../../features/onboarding/onboarding_screen.dart';
-import '../../features/room/room_screen.dart';
-import '../../features/settings/settings_screen.dart';
-import '../../features/memory/memory_screen.dart';
-import '../storage/entities/settings.dart';
-import '../storage/hive_setup.dart';
-import '../../features/voice/voice_screen.dart';
-import '../utils/url_launcher.dart';
+part 'router.g.dart';
 
-final routerProvider = Provider<GoRouter>((ref) {
+@Riverpod(keepAlive: true)
+GoRouter router(RouterRef ref) {
   return GoRouter(
     initialLocation: '/',
     routes: <RouteBase>[
@@ -30,28 +32,28 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/onboarding',
-        builder: (context, state) => const OnboardingScreen(),
+        builder: (context, state) => const OnboardingPage(),
       ),
       GoRoute(
         path: '/room',
-        builder: (context, state) => const RoomScreen(),
+        builder: (context, state) => const RoomPage(),
       ),
       GoRoute(
         path: '/room/:tripId',
         builder: (context, state) =>
-            RoomScreen(tripId: state.pathParameters['tripId']),
+            RoomPage(tripId: state.pathParameters['tripId']),
       ),
       GoRoute(
         path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
+        builder: (context, state) => const SettingsPage(),
       ),
       GoRoute(
         path: '/memory',
-        builder: (context, state) => const MemoryScreen(),
+        builder: (context, state) => const MemoryPage(),
       ),
       GoRoute(
         path: '/voice',
-        builder: (context, state) => const VoiceScreen(),
+        builder: (context, state) => const VoicePage(),
       ),
       GoRoute(
         path: '/_dev',
@@ -67,7 +69,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
-});
+}
 
 class _DevHubScreen extends StatelessWidget {
   const _DevHubScreen();

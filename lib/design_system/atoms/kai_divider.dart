@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/kai_theme.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
 
 /// v3 hairline divider atom.
 ///
@@ -29,17 +29,9 @@ class KaiDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lineColor = color ?? KaiTheme.of(context).colors.line;
-    final decoration = BoxDecoration(color: lineColor);
-
     if (_vertical) {
-      return Container(
-        constraints: const BoxConstraints.expand(width: 1),
-        decoration: decoration,
-      );
+      return SizedBox(width: 1, child: ColoredBox(color: lineColor));
     }
-    return Container(
-      constraints: const BoxConstraints.expand(height: 1),
-      decoration: decoration,
-    );
+    return SizedBox(height: 1, child: ColoredBox(color: lineColor));
   }
 }

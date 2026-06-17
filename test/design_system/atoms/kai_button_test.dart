@@ -1,12 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/core/providers/root.dart';
-import 'package:kai_app/design_system/theme/kai_theme.dart';
-import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 import 'package:kai_app/design_system/atoms/kai_button.dart';
 import 'package:kai_app/design_system/primitives/kai_icon.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
+
+import '../../test_helpers.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -20,7 +22,7 @@ Future<void> _pump(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        themeModeProvider.overrideWith((ref) => themeMode),
+        themeModeProvider.overrideWith(() => MockThemeModeNotifier(themeMode)),
       ],
       child: MaterialApp(
         home: KaiTheme(
@@ -78,7 +80,7 @@ void main() {
       });
 
       testWidgets('disabled — tap does not fire', (tester) async {
-        var tapped = 0;
+        const tapped = 0;
         await _pump(
           tester,
           const KaiButton.tide(onPressed: null, label: 'Nope'),
@@ -269,7 +271,7 @@ void main() {
         final hasMaxRow =
             rows.any((r) => r.mainAxisSize == MainAxisSize.max);
         expect(hasMaxRow, isTrue,
-            reason: 'fullWidth must use Row with mainAxisSize.max');
+            reason: 'fullWidth must use Row with mainAxisSize.max',);
       });
 
       testWidgets('renders KaiIcon when icon provided', (tester) async {
@@ -291,7 +293,6 @@ void main() {
         await _pump(
           tester,
           KaiButton.ink(onPressed: () {}, label: 'X'),
-          themeMode: ThemeMode.light,
         );
         final labelColor =
             tester.widget<Text>(find.text('X')).style?.color;
@@ -384,7 +385,6 @@ void main() {
           KaiButton.ghost(
             onPressed: () {},
             label: 'N',
-            tone: KaiButtonTone.neutral,
           ),
         );
         final containers =
@@ -418,7 +418,7 @@ void main() {
           return border.top.color == KaiColors.light.warning;
         });
         expect(found, isTrue,
-            reason: 'ghost.warning must use warning color on border');
+            reason: 'ghost.warning must use warning color on border',);
       });
 
       testWidgets('tone.negative uses negative-colored border', (tester) async {
@@ -440,7 +440,7 @@ void main() {
           return border.top.color == KaiColors.light.negative;
         });
         expect(found, isTrue,
-            reason: 'ghost.negative must use negative color on border');
+            reason: 'ghost.negative must use negative color on border',);
       });
 
       testWidgets('pill: true uses brPill radius', (tester) async {
@@ -541,7 +541,7 @@ void main() {
           return hasColor || hasGradient || hasBorder;
         });
         expect(hasOpaqueContainer, isFalse,
-            reason: 'text button must have no fill, no border, no gradient');
+            reason: 'text button must have no fill, no border, no gradient',);
       });
 
       testWidgets('tone.neutral text uses ink1 color', (tester) async {
@@ -550,15 +550,14 @@ void main() {
           KaiButton.text(
             onPressed: () {},
             label: 'Neutral',
-            tone: KaiButtonTone.neutral,
           ),
         );
         // Check that a Text widget with ink1 color is present.
         final texts = tester.widgetList<Text>(find.byType(Text)).toList();
         final found = texts.any((t) =>
-            t.style?.color == KaiColors.light.ink1);
+            t.style?.color == KaiColors.light.ink1,);
         expect(found, isTrue,
-            reason: 'text.neutral must use ink1 color');
+            reason: 'text.neutral must use ink1 color',);
       });
 
       testWidgets('tone.accent text uses accent color', (tester) async {
@@ -572,9 +571,9 @@ void main() {
         );
         final texts = tester.widgetList<Text>(find.byType(Text)).toList();
         final found = texts.any((t) =>
-            t.style?.color == KaiColors.light.accent);
+            t.style?.color == KaiColors.light.accent,);
         expect(found, isTrue,
-            reason: 'text.accent must use accent color');
+            reason: 'text.accent must use accent color',);
       });
 
       testWidgets('tone.negative text uses negative color', (tester) async {
@@ -588,9 +587,9 @@ void main() {
         );
         final texts = tester.widgetList<Text>(find.byType(Text)).toList();
         final found = texts.any((t) =>
-            t.style?.color == KaiColors.light.negative);
+            t.style?.color == KaiColors.light.negative,);
         expect(found, isTrue,
-            reason: 'text.negative must use negative color');
+            reason: 'text.negative must use negative color',);
       });
 
       testWidgets('renders KaiIcon when icon provided', (tester) async {
@@ -620,9 +619,9 @@ void main() {
         final allSemantics =
             tester.widgetList<Semantics>(find.byType(Semantics)).toList();
         final found = allSemantics.any((s) =>
-            s.properties.button == true && s.properties.enabled == true);
+            (s.properties.button ?? false) && (s.properties.enabled ?? false),);
         expect(found, isTrue,
-            reason: 'KaiButton must expose Semantics(button:true, enabled:true)');
+            reason: 'KaiButton must expose Semantics(button:true, enabled:true)',);
       });
 
       testWidgets('has Semantics widget with enabled=false when disabled',
@@ -636,7 +635,7 @@ void main() {
         final found = allSemantics.any((s) => s.properties.enabled == false);
         expect(found, isTrue,
             reason:
-                'KaiButton must expose Semantics(enabled:false) when onPressed is null');
+                'KaiButton must expose Semantics(enabled:false) when onPressed is null',);
       });
     });
 
@@ -836,7 +835,7 @@ void main() {
         });
         expect(hasGradient, isTrue,
             reason:
-                'tide static path must still have a gradient container');
+                'tide static path must still have a gradient container',);
       });
 
       testWidgets('non-tide variants do not run gradient animation',
@@ -872,12 +871,11 @@ void main() {
           KaiButton.tide(
             onPressed: () {},
             label: 'Flow',
-            tideAnim: KaiTideAnim.onInteraction,
           ),
         );
         await tester.pump();
         expect(readIsFlowing(tester), isFalse,
-            reason: 'onInteraction: flow must be off at rest (no hover/press)');
+            reason: 'onInteraction: flow must be off at rest (no hover/press)',);
       });
 
       testWidgets('onState + busy:true → isFlowing == true', (tester) async {
@@ -892,7 +890,7 @@ void main() {
         );
         await tester.pump();
         expect(readIsFlowing(tester), isTrue,
-            reason: 'onState: flow must be on when busy=true');
+            reason: 'onState: flow must be on when busy=true',);
       });
 
       testWidgets('onState + busy:false → isFlowing == false', (tester) async {
@@ -908,7 +906,7 @@ void main() {
         );
         await tester.pump();
         expect(readIsFlowing(tester), isFalse,
-            reason: 'onState: flow must be off when busy=false');
+            reason: 'onState: flow must be off when busy=false',);
       });
 
       testWidgets('none + busy:true → isFlowing == false', (tester) async {
@@ -923,7 +921,7 @@ void main() {
         );
         await tester.pump();
         expect(readIsFlowing(tester), isFalse,
-            reason: 'none: flow must always be off regardless of busy');
+            reason: 'none: flow must always be off regardless of busy',);
       });
 
       testWidgets('tide renders correctly with all tideAnim modes',
@@ -939,7 +937,7 @@ void main() {
           );
           await tester.pump();
           expect(find.byType(KaiButton), findsOneWidget,
-              reason: 'KaiButton.tide must render for tideAnim=$mode');
+              reason: 'KaiButton.tide must render for tideAnim=$mode',);
         }
       });
 
@@ -970,7 +968,7 @@ void main() {
                 deco.boxShadow == null;
           });
           expect(found, isTrue,
-              reason: 'Must render solid ink1 background with no gradient/shadow');
+              reason: 'Must render solid ink1 background with no gradient/shadow',);
         });
 
         testWidgets(
@@ -997,7 +995,7 @@ void main() {
                 deco.boxShadow == null;
           });
           expect(found, isTrue,
-              reason: 'Glow neutral button must use br2 radius and no gradient/shadow');
+              reason: 'Glow neutral button must use br2 radius and no gradient/shadow',);
         });
 
         testWidgets('when pressed -> switches to tide gradient and shadow',
@@ -1017,7 +1015,7 @@ void main() {
           expect(
             containers.any((c) =>
                 c.decoration is BoxDecoration &&
-                (c.decoration as BoxDecoration).color == KaiColors.light.ink1),
+                (c.decoration! as BoxDecoration).color == KaiColors.light.ink1,),
             isTrue,
           );
 
@@ -1035,7 +1033,7 @@ void main() {
             return deco is BoxDecoration && deco.gradient != null;
           });
           expect(hasGradient, isTrue,
-              reason: 'Must switch to gradient when pressed');
+              reason: 'Must switch to gradient when pressed',);
 
           // Finish gesture
           await gesture.up();
@@ -1065,7 +1063,7 @@ void main() {
                 deco.boxShadow!.isNotEmpty;
           });
           expect(hasGradient, isTrue,
-              reason: 'Must show static tide gradient and shadow when busy');
+              reason: 'Must show static tide gradient and shadow when busy',);
         });
 
         testWidgets('when hovered -> switches to tide gradient',
@@ -1093,7 +1091,7 @@ void main() {
             return deco is BoxDecoration && deco.gradient != null;
           });
           expect(hasGradient, isTrue,
-              reason: 'Must switch to gradient when hovered');
+              reason: 'Must switch to gradient when hovered',);
 
           await gesture.removePointer();
         });

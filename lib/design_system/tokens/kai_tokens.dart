@@ -1,4 +1,4 @@
-import 'kai_colors.dart';
+import 'package:kai_app/design_system/tokens/kai_colors.dart';
 
 export 'kai_colors.dart';
 export 'kai_motion.dart';

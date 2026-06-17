@@ -102,7 +102,7 @@ void main() {
       });
 
       expect(has12, isTrue,
-          reason: 'group container must use KaiRadius.br12 (12px) borderRadius');
+          reason: 'group container must use KaiRadius.br12 (12px) borderRadius',);
     });
 
     // -------------------------------------------------------------------------
@@ -154,7 +154,7 @@ void main() {
       });
 
       expect(hasBorder, isTrue,
-          reason: 'danger group must have a border decoration');
+          reason: 'danger group must have a border decoration',);
     });
 
     // -------------------------------------------------------------------------

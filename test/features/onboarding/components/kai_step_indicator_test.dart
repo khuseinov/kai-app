@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kai_app/features/onboarding/components/kai_step_indicator.dart';
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
+import 'package:kai_app/features/onboarding/presentation/widgets/kai_step_indicator.dart';
 
 import '../../../test_helpers.dart';
 

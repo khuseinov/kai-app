@@ -21,15 +21,15 @@ import 'package:image/image.dart' as img;
 const _source = 'brand/icon-1024.png';
 
 final _outputs = <_Output>[
-  const _Output(path: 'web/favicon.png', size: 32, maskable: false),
+  const _Output(path: 'web/favicon.png', size: 32),
   const _Output(path: 'web/favicon-16.png', size: 16, gradientSquare: true),
-  const _Output(path: 'web/icons/Icon-192.png', size: 192, maskable: false),
-  const _Output(path: 'web/icons/Icon-512.png', size: 512, maskable: false),
+  const _Output(path: 'web/icons/Icon-192.png', size: 192),
+  const _Output(path: 'web/icons/Icon-512.png', size: 512),
   const _Output(
-      path: 'web/icons/Icon-maskable-192.png', size: 192, maskable: true),
+      path: 'web/icons/Icon-maskable-192.png', size: 192, maskable: true,),
   const _Output(
-      path: 'web/icons/Icon-maskable-512.png', size: 512, maskable: true),
-  const _Output(path: 'brand/favicon-32.png', size: 32, maskable: false),
+      path: 'web/icons/Icon-maskable-512.png', size: 512, maskable: true,),
+  const _Output(path: 'brand/favicon-32.png', size: 32),
   const _Output(path: 'brand/favicon-16.png', size: 16, gradientSquare: true),
 ];
 
@@ -83,10 +83,6 @@ void main() {
 }
 
 class _Output {
-  final String path;
-  final int size;
-  final bool maskable;
-  final bool gradientSquare;
 
   const _Output({
     required this.path,
@@ -94,6 +90,10 @@ class _Output {
     this.maskable = false,
     this.gradientSquare = false,
   });
+  final String path;
+  final int size;
+  final bool maskable;
+  final bool gradientSquare;
 }
 
 // Canonical KaiTide.gradientCorner stops for the 16×16 favicon:
@@ -102,7 +102,7 @@ img.Image _renderGradientSquare(int size) {
   final stop1 = img.ColorRgba8(0x1B, 0x4F, 0xB0, 0xFF);
   final stop2 = img.ColorRgba8(0x2B, 0xA8, 0xC9, 0xFF);
   final stop3 = img.ColorRgba8(0xF4, 0xB5, 0x89, 0xFF);
-  const stops = <double>[0.0, 0.55, 1.0];
+  const stops = <double>[0, 0.55, 1];
 
   final image = img.Image(width: size, height: size);
   final max = 2 * (size - 1);

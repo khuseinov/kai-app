@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/design_system/atoms/kai_badge.dart';
-import 'package:kai_app/features/nav/components/kai_nav_item.dart';
 import 'package:kai_app/design_system/primitives/kai_icon.dart';
+import 'package:kai_app/features/nav/presentation/widgets/kai_nav_item.dart';
 
 import '../../test_helpers.dart';
 
@@ -87,7 +87,7 @@ void main() {
       });
 
       expect(hasAccentWash, isTrue,
-          reason: 'active nav item must have accent-wash background');
+          reason: 'active nav item must have accent-wash background',);
     });
 
     // -------------------------------------------------------------------------

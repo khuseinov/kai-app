@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/providers/root.dart';
-import '../../../design_system/atoms/atoms.dart';
-import '../../../design_system/molecules/kai_segmented_control.dart';
-import '../../../design_system/theme/kai_theme.dart';
-import '../../../design_system/tokens/kai_tokens.dart';
-import 'story_registry.dart';
+import 'package:kai_app/core/providers/root.dart';
+import 'package:kai_app/design_system/atoms/atoms.dart';
+import 'package:kai_app/design_system/molecules/kai_segmented_control.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
+import 'package:kai_app/features/dev/storybook/story_registry.dart';
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 
@@ -164,8 +164,8 @@ class _StorybookScreenState extends ConsumerState<StorybookScreen> {
             options: const ['Light', 'Dark', 'System'],
             selectedIndex: _themeModeIndex(themeMode),
             onSelected: (i) =>
-                ref.read(themeModeProvider.notifier).state =
-                    _indexToThemeMode(i),
+                ref.read(themeModeProvider.notifier).setThemeMode(
+                    _indexToThemeMode(i),),
           ),
         );
 
@@ -301,7 +301,7 @@ class _StorybookSidebar extends StatelessWidget {
     items.add(
       const Padding(
         padding: EdgeInsets.fromLTRB(
-            KaiSpace.s4, KaiSpace.s5, KaiSpace.s4, KaiSpace.s4),
+            KaiSpace.s4, KaiSpace.s5, KaiSpace.s4, KaiSpace.s4,),
         child: KaiText.h3('Storybook'),
       ),
     );
@@ -312,7 +312,7 @@ class _StorybookSidebar extends StatelessWidget {
     items.add(
       Padding(
         padding: const EdgeInsets.fromLTRB(
-            KaiSpace.s3, KaiSpace.s2, KaiSpace.s3, KaiSpace.s3),
+            KaiSpace.s3, KaiSpace.s2, KaiSpace.s3, KaiSpace.s3,),
         child: TextField(
           onChanged: onQueryChanged,
           style: KaiType.small(color: c.ink1),
@@ -325,7 +325,7 @@ class _StorybookSidebar extends StatelessWidget {
                 const BoxConstraints(minWidth: 36, minHeight: 36),
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(
-                horizontal: KaiSpace.s3, vertical: KaiSpace.s2),
+                horizontal: KaiSpace.s3, vertical: KaiSpace.s2,),
             filled: true,
             fillColor: c.surface2,
             border: OutlineInputBorder(
@@ -353,7 +353,7 @@ class _StorybookSidebar extends StatelessWidget {
       items.add(
         Padding(
           padding: const EdgeInsets.fromLTRB(
-              KaiSpace.s4, KaiSpace.s4, KaiSpace.s4, KaiSpace.s2),
+              KaiSpace.s4, KaiSpace.s4, KaiSpace.s4, KaiSpace.s2,),
           child: Text(_layerLabel(layer), style: KaiType.micro(color: c.ink3)),
         ),
       );
@@ -518,7 +518,7 @@ class _StoryPropsPanel extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(
-                  horizontal: KaiSpace.s3, vertical: KaiSpace.s2),
+                  horizontal: KaiSpace.s3, vertical: KaiSpace.s2,),
               decoration: BoxDecoration(
                 color: c.warningWash,
                 borderRadius: KaiRadius.br2,
@@ -595,7 +595,7 @@ class _StoryPropsPanel extends StatelessWidget {
             _PropSection(
               label: 'DESCRIPTION',
               child: Text(
-                  story.description, style: KaiType.small(color: c.ink2)),
+                  story.description, style: KaiType.small(color: c.ink2),),
             ),
           ],
 
@@ -610,7 +610,7 @@ class _StoryPropsPanel extends StatelessWidget {
                 children: story.variants.map((v) {
                   return Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: KaiSpace.s2, vertical: 3),
+                        horizontal: KaiSpace.s2, vertical: 3,),
                     decoration: BoxDecoration(
                       color: c.surface2,
                       borderRadius: KaiRadius.br1,
