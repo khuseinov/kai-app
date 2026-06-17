@@ -77,15 +77,13 @@ class SplashScreenState extends State<SplashScreen>
                 );
               },
             ),
-            const SizedBox(height: 16),
-            Text('kai', style: KaiType.wordmark(color: c.ink1)),
             const Spacer(),
             Padding(
               padding: const EdgeInsets.only(bottom: 24),
               child: Text(
                 'by Wize',
                 style: KaiType.mono(color: c.ink3).copyWith(
-                  fontSize: 12,
+                  fontSize: 16,
                   letterSpacing: 12 * 0.08,
                 ),
               ),

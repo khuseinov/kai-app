@@ -103,7 +103,7 @@ class _OnboardingMetrics {
   double get logoSize => 80 * s;
 
   double get titleSize => 28 * s;
-  double get bodySize => 16 * s;
+  double get bodySize => 15 * s;
   double get labelSize => 14 * s;
   double get descSize => 12 * s;
   double get microSize => 11 * s;
@@ -200,7 +200,7 @@ class _WelcomeStep extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        KaiLogo(size: m.logoSize),
+        // KaiLogo(size: m.logoSize),
         SizedBox(height: 20 * m.s),
         Text(
           l10n.onboardingWelcomeTitle,

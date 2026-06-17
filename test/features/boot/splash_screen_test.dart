@@ -29,15 +29,10 @@ void main() {
   });
 
   group('SplashScreen', () {
-    testWidgets('renders logo, wordmark and tagline lockup', (tester) async {
+    testWidgets('renders logo and by Wize lockup', (tester) async {
       await tester.pumpWidget(buildTestWidget(const SplashScreen()));
 
       expect(find.byType(KaiLogo), findsOneWidget);
-      expect(find.text('kai'), findsOneWidget);
-      expect(
-        find.text('ваш компаньон путешественника'),
-        findsOneWidget,
-      );
       expect(find.text('by Wize'), findsOneWidget);
     });
 
@@ -50,11 +45,6 @@ void main() {
       );
 
       expect(find.byType(KaiLogo), findsOneWidget);
-      expect(find.text('kai'), findsOneWidget);
-      expect(
-        find.text('ваш компаньон путешественника'),
-        findsOneWidget,
-      );
       expect(find.text('by Wize'), findsOneWidget);
     });
 
