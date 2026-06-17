@@ -100,5 +100,5 @@ desktop.ini
 .claire/
 .playwright-mcp/
 .worktrees/
-*.png
+/*.png
 new-design/*.png
