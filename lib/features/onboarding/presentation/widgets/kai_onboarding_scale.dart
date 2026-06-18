@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
 
 /// Computes the visual scale factor for the onboarding flow based on the
 /// viewport's shortest side.
@@ -14,7 +15,7 @@ import 'package:flutter/material.dart';
 ///
 /// The result is clamped to [0.95, 1.15] to avoid absurd extremes.
 double onboardingScale(BuildContext context) {
-  return onboardingScaleForSize(MediaQuery.sizeOf(context));
+  return context.scale;
 }
 
 /// Test-friendly variant that works directly with a [Size].
@@ -28,3 +29,4 @@ double onboardingScaleForSize(Size size) {
   };
   return scale.clamp(0.95, 1.15);
 }
+

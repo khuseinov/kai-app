@@ -85,11 +85,7 @@ class KaiComposeIsland extends StatelessWidget {
   /// Placeholder shown when the field is empty.
   final String placeholder;
 
-  // Canon literals (room.html .compose-island).
-  static const double _padLeft = 16; // s4
-  static const double _padOther = 5;
-  static const double _gap = 4;
-  static const double _btn = 30;
+
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +96,18 @@ class KaiComposeIsland extends StatelessWidget {
             ? Duration.zero
             : KaiMotion.standard;
 
+    final scale = context.scale;
+    final textScale = context.textScale;
+
+    // Make compose island physically larger:
+    // Base padding: left 20 (was 16), other 6.5 (was 5).
+    // Base gap: 6 (was 4).
+    // Base button size: 38 (was 30).
+    final padLeft = 20.0 * scale;
+    final padOther = 6.5 * scale;
+    final gap = 6.0 * scale;
+    final btnSize = 38.0 * scale;
+
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
@@ -107,48 +115,49 @@ class KaiComposeIsland extends StatelessWidget {
         border: Border.all(color: c.line, width: 0.8),
         borderRadius: KaiRadius.brPill,
       ),
-      // canon: padding 5/5/5/16 (LTRB 16/5/5/5).
-      padding: const EdgeInsets.fromLTRB(
-        _padLeft,
-        _padOther,
-        _padOther,
-        _padOther,
+      padding: EdgeInsets.fromLTRB(
+        padLeft,
+        padOther,
+        padOther,
+        padOther,
       ),
       child: AnimatedSwitcher(
         duration: switchDuration,
         child: streaming
-            ? _buildStreaming(c)
+            ? _buildStreaming(c, scale, textScale, gap, btnSize)
             : ListenableBuilder(
                 key: const ValueKey<String>('compose_active'),
                 listenable: controller,
-                builder: (_, __) => _buildActive(c),
+                builder: (_, __) => _buildActive(c, scale, textScale, gap, btnSize),
               ),
       ),
     );
   }
 
   // ── Streaming: "Kai отвечает…" + stop (canon room.html frame 3) ────────────
-  Widget _buildStreaming(KaiColorTokens c) {
+  Widget _buildStreaming(KaiColorTokens c, double scale, double textScale, double gap, double btnSize) {
     return Row(
       key: const ValueKey<String>('compose_streaming'),
       children: [
         Expanded(
           child: Text(
             'Kai отвечает…',
-            style: _fieldStyle(c).copyWith(color: c.ink4),
+            style: _fieldStyle(c, textScale).copyWith(color: c.ink4),
           ),
         ),
-        const SizedBox(width: _gap),
+        SizedBox(width: gap),
         KaiSendButton(
           state: KaiSendState.streaming,
           onPressed: onStop,
+          size: btnSize,
+          iconSize: btnSize * 0.4,
         ),
       ],
     );
   }
 
   // ── Active (empty / typing / offline) ──────────────────────────────────────
-  Widget _buildActive(KaiColorTokens c) {
+  Widget _buildActive(KaiColorTokens c, double scale, double textScale, double gap, double btnSize) {
     final hasText = controller.text.isNotEmpty;
     final children = <Widget>[];
 
@@ -159,18 +168,19 @@ class KaiComposeIsland extends StatelessWidget {
             const ValueKey<String>('compose_add_button'),
             KaiIconName.plus,
             onAddTap!,
-            c.ink3,),)
-        ..add(const SizedBox(width: _gap));
+            c.ink3,
+            btnSize,),)
+        ..add(SizedBox(width: gap));
     }
 
     // Field, or the offline-empty hint.
     if (offline && !hasText) {
-      children.add(Expanded(child: _offlineHint(c)));
+      children.add(Expanded(child: _offlineHint(c, textScale)));
     } else if (dictating) {
       children.add(Expanded(
         child: Text(
           'Слушаю вас...',
-          style: _fieldStyle(c).copyWith(
+          style: _fieldStyle(c, textScale).copyWith(
             color: c.accent,
             fontStyle: FontStyle.italic,
           ),
@@ -181,8 +191,8 @@ class KaiComposeIsland extends StatelessWidget {
         child: _ComposeField(
           controller: controller,
           placeholder: placeholder,
-          style: _fieldStyle(c),
-          hintStyle: _fieldStyle(c).copyWith(color: c.ink4),
+          style: _fieldStyle(c, textScale),
+          hintStyle: _fieldStyle(c, textScale).copyWith(color: c.ink4),
           cursor: c.accent,
         ),
       ),);
@@ -193,27 +203,29 @@ class KaiComposeIsland extends StatelessWidget {
       // O-A: queue affordance appears only with text (nothing to queue empty).
       if (hasText) {
         children
-          ..add(const SizedBox(width: _gap))
+          ..add(SizedBox(width: gap))
           ..add(_iconBtn(
               const ValueKey<String>('compose_queue_button'),
               KaiIconName.clock,
               onQueue ?? onSend,
-              c.warning,),);
+              c.warning,
+              btnSize,),);
       }
     } else {
       // Persistent voice-Kai (inner), then the swap slot (mic ⇄ send).
       if (onVoiceTap != null) {
         children
-          ..add(const SizedBox(width: _gap))
+          ..add(SizedBox(width: gap))
           ..add(_iconBtn(
               const ValueKey<String>('compose_voice_button'),
               KaiIconName.waveform,
               onVoiceTap!,
-              c.ink3,),);
+              c.ink3,
+              btnSize,),);
       }
       children
-        ..add(const SizedBox(width: _gap))
-        ..add(_trailingSwap(hasText));
+        ..add(SizedBox(width: gap))
+        ..add(_trailingSwap(hasText, btnSize));
     }
 
     return Row(
@@ -224,38 +236,45 @@ class KaiComposeIsland extends StatelessWidget {
 
   /// Far-right slot: mic (empty) ⇄ send (text). When [onMicTap] is null the
   /// slot is always send (disabled when empty) — the room.html canon.
-  Widget _trailingSwap(bool hasText) {
+  Widget _trailingSwap(bool hasText, double btnSize) {
     final showSend = hasText || onMicTap == null;
     final child = showSend
         ? KaiSendButton(
             key: const ValueKey<String>('compose_send'),
             state: hasText ? KaiSendState.ready : KaiSendState.disabled,
             onPressed: hasText ? onSend : null,
+            size: btnSize,
+            iconSize: btnSize * 0.4,
           )
         : SizedBox(
             key: const ValueKey<String>('compose_mic_button'),
-            width: _btn,
-            height: _btn,
+            width: btnSize,
+            height: btnSize,
             child: KaiIconButton.toggle(
               active: dictating,
               onPressed: onMicTap,
               icon: KaiIconName.mic,
-              iconSize: KaiIconButtonSize.sm,
+              iconSize: KaiIconButtonSize.md,
             ),
           );
     return AnimatedSwitcher(duration: KaiMotion.micro, child: child);
   }
 
-  Widget _iconBtn(Key key, KaiIconName icon, VoidCallback onTap, Color color) {
+  Widget _iconBtn(Key key, KaiIconName icon, VoidCallback onTap, Color color, double btnSize) {
     return SizedBox(
       key: key,
-      width: _btn,
-      height: _btn,
-      child: KaiIconButton.bare(onPressed: onTap, icon: icon, color: color),
+      width: btnSize,
+      height: btnSize,
+      child: KaiIconButton.bare(
+        onPressed: onTap,
+        icon: icon,
+        color: color,
+        size: btnSize * 0.6,
+      ),
     );
   }
 
-  Widget _offlineHint(KaiColorTokens c) {
+  Widget _offlineHint(KaiColorTokens c, double textScale) {
     return Row(
       key: const ValueKey<String>('compose_offline_hint'),
       mainAxisSize: MainAxisSize.min,
@@ -272,20 +291,20 @@ class KaiComposeIsland extends StatelessWidget {
             'оффлайн — отправлю, когда вернётся сеть',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: _fieldStyle(c).copyWith(color: c.ink3),
+            style: _fieldStyle(c, textScale).copyWith(color: c.ink3),
           ),
         ),
       ],
     );
   }
 
-  // canon: room.html .compose-island input — Manrope 400 13.5px, ls -0.005em.
-  TextStyle _fieldStyle(KaiColorTokens c) => TextStyle(
+  // Input font size is increased to 15.0
+  TextStyle _fieldStyle(KaiColorTokens c, double textScale) => TextStyle(
         fontFamily: 'Manrope',
-        fontSize: 13.5,
+        fontSize: 15.0 * textScale,
         fontWeight: FontWeight.w400,
         color: c.ink1,
-        letterSpacing: 13.5 * -0.005,
+        letterSpacing: 15.0 * textScale * -0.005,
       );
 }
 

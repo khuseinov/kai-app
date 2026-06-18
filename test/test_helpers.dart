@@ -21,8 +21,18 @@ Widget buildTestWidget(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: const [Locale('ru'), Locale('en')],
       locale: const Locale('ru'),
-      home: KaiTheme(
-        child: Scaffold(body: child),
+      home: Builder(
+        builder: (context) {
+          final data = MediaQuery.of(context);
+          return MediaQuery(
+            data: data.copyWith(
+              size: const Size(360, 640),
+            ),
+            child: KaiTheme(
+              child: Scaffold(body: child),
+            ),
+          );
+        },
       ),
     ),
   );

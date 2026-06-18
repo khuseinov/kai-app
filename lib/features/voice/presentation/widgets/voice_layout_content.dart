@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/features/voice/presentation/providers/voice_state.dart';
 import 'package:kai_app/features/voice/presentation/widgets/kai_karaoke_text.dart';
 import 'package:kai_app/features/voice/presentation/widgets/kai_tide_large.dart';
@@ -21,6 +22,9 @@ class VoiceLayoutContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final c = KaiTheme.of(context).colors;
+
     final largeTideState = switch (flowState) {
       VoiceFlowState.idle => KaiTideLargeState.idle,
       VoiceFlowState.listening => KaiTideLargeState.listening,
@@ -62,7 +66,9 @@ class VoiceLayoutContent extends StatelessWidget {
                             fontFamily: 'Manrope',
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
-                            color: isListening ? Colors.white : const Color(0x52FFFFFF),
+                            color: isDark
+                                ? (isListening ? Colors.white : const Color(0x52FFFFFF))
+                                : (isListening ? c.ink1 : c.ink4),
                             letterSpacing: 16 * -0.01,
                           ),
                         ),

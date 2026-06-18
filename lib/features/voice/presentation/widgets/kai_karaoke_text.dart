@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
 
 /// Voice-mode karaoke word-reveal atom.
 ///
 /// Renders a list of words inline with three distinct states:
-/// - **spoken** (index < currentIndex): full white `Color(0xFFFFFFFF)`
-/// - **now** (index == currentIndex): white text on tide-3 amber highlight bg
+/// - **spoken** (index < currentIndex): full white `Color(0xFFFFFFFF)` or `c.ink1`
+/// - **now** (index == currentIndex): text on tide-3 amber highlight bg
 ///   `Color(0x47F4B589)` with `KaiRadius.br1` corners
-/// - **next** (index > currentIndex): dim white `Color(0x52FFFFFF)`
-///
-/// **Dark-surface only.** This widget is designed to sit on the always-dark
-/// voice field (#08080A). All colours are fixed white/tide literals —
-/// NOT theme tokens — and will not adapt to light mode.
+/// - **next** (index > currentIndex): dim white `Color(0x52FFFFFF)` or `c.ink4`
 ///
 /// Canon `.karaoke`: 16px / w500 / Manrope.
 /// Canon `.now`: bg rgba(#F4B589, 0.28) = Color(0x47F4B589), r4, pad 1v / 5h.
@@ -61,12 +58,19 @@ class KaiKaraokeText extends StatelessWidget {
       spacing: 4,
       runSpacing: 4,
       children: [
-        for (int i = 0; i < words.length; i++) _buildWord(i),
+        for (int i = 0; i < words.length; i++) _buildWord(i, context),
       ],
     );
   }
 
-  Widget _buildWord(int index) {
+  Widget _buildWord(int index, BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final c = KaiTheme.of(context).colors;
+
+    final spokenColor = isDark ? _spokenColor : c.ink1;
+    final nowTextColor = isDark ? _nowTextColor : c.ink1;
+    final nextColor = isDark ? _nextColor : c.ink4;
+
     if (index == currentIndex) {
       // "Now" word — highlighted with tide-3 amber bg.
       return Container(
@@ -77,19 +81,19 @@ class KaiKaraokeText extends StatelessWidget {
         ),
         child: Text(
           words[index],
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: _fontFamily,
             fontSize: _fontSize,
             fontWeight: _fontWeight,
             letterSpacing: _letterSpacing,
             height: _lineHeight,
-            color: _nowTextColor,
+            color: nowTextColor,
           ),
         ),
       );
     }
 
-    final color = index < currentIndex ? _spokenColor : _nextColor;
+    final color = index < currentIndex ? spokenColor : nextColor;
     return Text(
       words[index],
       style: TextStyle(

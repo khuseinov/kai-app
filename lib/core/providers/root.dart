@@ -1,12 +1,16 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:hive/hive.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import 'package:kai_app/core/network/dio_client.dart';
 import 'package:kai_app/core/network/interceptors/auth_interceptor.dart';
 import 'package:kai_app/core/network/interceptors/connectivity_interceptor.dart';
 import 'package:kai_app/core/network/interceptors/error_interceptor.dart';
 import 'package:kai_app/core/network/interceptors/logging_interceptor.dart';
 import 'package:kai_app/core/network/interceptors/retry_interceptor.dart';
+import 'package:kai_app/core/storage/hive_setup.dart';
 import 'package:kai_app/features/auth/data/repositories/mock_session_repository.dart';
 import 'package:kai_app/features/auth/data/repositories/session_repository_impl.dart';
 import 'package:kai_app/features/auth/domain/repositories/session_repository.dart';
@@ -16,7 +20,7 @@ import 'package:kai_app/features/memory/domain/repositories/memory_repository.da
 import 'package:kai_app/features/room/data/repositories/chat_repository_impl.dart';
 import 'package:kai_app/features/room/data/repositories/mock_chat_repository.dart';
 import 'package:kai_app/features/room/domain/repositories/chat_repository.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:kai_app/features/settings/data/models/settings.dart';
 
 part 'root.g.dart';
 
@@ -66,11 +70,47 @@ Dio dio(DioRef ref) {
 /// Active theme mode. Toggled from the theme showcase screen.
 @Riverpod(keepAlive: true)
 class ThemeModeNotifier extends _$ThemeModeNotifier {
+  // ponytail: Simple conversion between AppThemeMode and ThemeMode keeps persistence code dry and safe for unit tests.
   @override
-  ThemeMode build() => ThemeMode.system;
+  ThemeMode build() {
+    if (Hive.isBoxOpen(HiveSetup.settingsBoxName)) {
+      final settings = HiveSetup.settings.get(HiveSetup.settingsKey) ?? const AppSettings();
+      return _toThemeMode(settings.themeMode);
+    }
+    return ThemeMode.system;
+  }
 
-  void setThemeMode(ThemeMode mode) {
+  Future<void> setThemeMode(ThemeMode mode) async {
     state = mode;
+    if (Hive.isBoxOpen(HiveSetup.settingsBoxName)) {
+      final settings = HiveSetup.settings.get(HiveSetup.settingsKey) ?? const AppSettings();
+      await HiveSetup.settings.put(
+        HiveSetup.settingsKey,
+        settings.copyWith(themeMode: _toAppThemeMode(mode)),
+      );
+    }
+  }
+
+  ThemeMode _toThemeMode(AppThemeMode mode) {
+    switch (mode) {
+      case AppThemeMode.system:
+        return ThemeMode.system;
+      case AppThemeMode.light:
+        return ThemeMode.light;
+      case AppThemeMode.dark:
+        return ThemeMode.dark;
+    }
+  }
+
+  AppThemeMode _toAppThemeMode(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.system:
+        return AppThemeMode.system;
+      case ThemeMode.light:
+        return AppThemeMode.light;
+      case ThemeMode.dark:
+        return AppThemeMode.dark;
+    }
   }
 }
 

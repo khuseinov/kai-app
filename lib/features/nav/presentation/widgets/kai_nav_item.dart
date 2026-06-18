@@ -43,34 +43,36 @@ class KaiNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
+    final scale = context.scale;
+    final textScale = context.textScale;
     final labelColor = active ? c.accent : c.ink1;
     final iconColor = active ? c.accent : c.ink2;
 
     final row = Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 18, // canon: 18px horizontal padding in nav.html
-        vertical: 8.5, // canon: average of 8px (chat) and 9px (folder/app) in nav.html
+      padding: EdgeInsets.symmetric(
+        horizontal: 18 * scale, // canon: 18px horizontal padding in nav.html
+        vertical: 8.5 * scale, // canon: average of 8px (chat) and 9px (folder/app) in nav.html
       ),
       child: Row(
         children: [
           if (icon != null) ...[
-            KaiIcon(icon!, size: 14, color: iconColor),
-            const SizedBox(width: 9), // canon: gap between icon and label
+            KaiIcon(icon!, size: 14 * scale, color: iconColor),
+            SizedBox(width: 9 * scale), // canon: gap between icon and label
           ],
           Expanded(
             child: Text(
               label,
               style: TextStyle(
                 fontFamily: 'Manrope',
-                fontSize: 11,
+                fontSize: 11 * textScale,
                 fontWeight: FontWeight.w500,
                 color: labelColor,
-                letterSpacing: -0.005 * 11,
+                letterSpacing: -0.005 * 11 * textScale,
               ),
             ),
           ),
           if (trailing != null) ...[
-            const SizedBox(width: KaiSpace.s2),
+            SizedBox(width: KaiSpace.s2 * scale),
             trailing!,
           ],
         ],

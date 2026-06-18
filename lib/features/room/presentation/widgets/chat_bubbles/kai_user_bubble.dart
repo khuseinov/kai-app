@@ -31,6 +31,8 @@ class KaiUserBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
+    final scale = context.scale;
+    final textScale = context.textScale;
 
     return Align(
       alignment: Alignment.centerRight,
@@ -39,21 +41,21 @@ class KaiUserBubble extends StatelessWidget {
           maxWidth: MediaQuery.sizeOf(context).width * 0.78,
         ),
         child: Container(
-          padding: const EdgeInsets.symmetric(
+          padding: EdgeInsets.symmetric(
             // canon: room.html .user-b — 9px vertical / 13px horizontal
             // — verified spec-viewer 2026-05-29
-            vertical: 9, // canon: 9px
-            horizontal: 13, // canon: 13px
+            vertical: 9 * scale, // canon: 9px
+            horizontal: 13 * scale, // canon: 13px
           ),
           decoration: BoxDecoration(
             color: c.surface2,
             // canon: room.html .user-b border-radius = 16px 16px 4px 16px
             // — verified spec-viewer 2026-05-29 (was 18/18/4/18 from components.html)
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16), // canon: 16
-              topRight: Radius.circular(16), // canon: 16
-              bottomRight: Radius.circular(4), // canon: 4 (tail corner)
-              bottomLeft: Radius.circular(16), // canon: 16
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(16 * scale), // canon: 16
+              topRight: Radius.circular(16 * scale), // canon: 16
+              bottomRight: Radius.circular(4 * scale), // canon: 4 (tail corner)
+              bottomLeft: Radius.circular(16 * scale), // canon: 16
             ),
           ),
           child: Text(
@@ -62,11 +64,11 @@ class KaiUserBubble extends StatelessWidget {
               // canon: room.html .user-b — 13px font-size
               // — verified spec-viewer 2026-05-29 (was 13.5px from D2 decision
               //   which mis-targeted .txt inside .kai-b, not .user-b)
-              fontSize: 13, // canon: 13px
+              fontSize: 14.5 * textScale, // canon: 14.5px
               // 18.85px / 13px ≈ 1.45
               height: 1.45, // canon: line-height ~1.45
               // -0.08px / 13px ≈ -0.00615em
-              letterSpacing: 13 * -0.006, // canon: letter-spacing -0.08px
+              letterSpacing: 14.5 * textScale * -0.006, // canon: letter-spacing -0.08px
             ),
           ),
         ),

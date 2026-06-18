@@ -21,6 +21,13 @@ flutter run
 flutter test
 ```
 
+## Developer & Design Tools
+
+To keep the production client clean, the Storybook and HTML design spec viewer are run separately:
+
+*   **`run_storybook.bat`**: Launches the standalone Storybook in Chrome at port `8081`.
+*   **`run_specs.bat`**: Serves the design mockups/specifications (`new-design/spec-viewer.html`) at port `8743` via Python.
+
 ## Project Structure
 
 ```

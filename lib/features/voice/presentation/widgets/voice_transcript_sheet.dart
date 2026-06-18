@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kai_app/design_system/atoms/atoms.dart';
+import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 import 'package:kai_app/features/voice/presentation/widgets/kai_transcript_view.dart';
 
@@ -15,6 +16,11 @@ class VoiceTranscriptSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final c = KaiTheme.of(context).colors;
+    final textColor = isDark ? const Color(0x66FFFFFF) : c.ink3;
+    final dividerColor = isDark ? const Color(0x0FFFFFFF) : c.line;
+
     return Stack(
       key: const ValueKey<String>('transcript_view'),
       children: [
@@ -22,12 +28,12 @@ class VoiceTranscriptSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Header row with sub-wave
-            const Padding(
-              padding: EdgeInsets.fromLTRB(22, 16, 22, 12),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 16, 22, 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     width: 56,
                     height: 8,
                     child: KaiTideCurve(
@@ -41,14 +47,14 @@ class VoiceTranscriptSheet extends StatelessWidget {
                       fontFamily: 'JetBrainsMono',
                       fontSize: 10,
                       fontWeight: FontWeight.w500,
-                      color: Color(0x66FFFFFF),
+                      color: textColor,
                       letterSpacing: 0.1,
                     ),
                   ),
                 ],
               ),
             ),
-            Container(height: 1, color: const Color(0x0FFFFFFF)),
+            Container(height: 1, color: dividerColor),
             
             // Scrollable Timeline
             Expanded(
@@ -90,13 +96,13 @@ class VoiceTranscriptSheet extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 color: Colors.transparent,
-                child: const Text(
+                child: Text(
                   'СВАЙП ↑ · ВЕРНУТЬСЯ К ГОЛОСУ',
                   style: TextStyle(
                     fontFamily: 'JetBrainsMono',
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
-                    color: Color(0x66FFFFFF),
+                    color: textColor,
                     letterSpacing: 0.14,
                   ),
                 ),

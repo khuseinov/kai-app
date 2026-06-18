@@ -7,6 +7,7 @@ import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 import 'package:kai_app/features/memory/data/models/memory_fact.dart';
 import 'package:kai_app/features/memory/presentation/providers/memory_notifier.dart';
+import 'package:kai_app/features/room/presentation/providers/room_state.dart';
 import 'package:kai_app/features/room/presentation/widgets/sheets/kai_action_sheet.dart';
 import 'package:kai_app/l10n/app_localizations.dart';
 
@@ -158,6 +159,9 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
     // Explicit order matching memory.html
     const categoryOrder = ['about', 'preferences', 'restrictions', 'trips'];
 
+    final scale = context.scale;
+    final textScale = context.textScale;
+
     return Scaffold(
       backgroundColor: c.bg,
       body: SafeArea(
@@ -166,23 +170,20 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
           children: [
             // AppBar height 28
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              padding: EdgeInsets.fromLTRB(16 * scale, 16 * scale, 16 * scale, 0),
               child: SizedBox(
-                height: 28,
+                height: 28 * scale,
                 child: Row(
                   children: [
                     // Back button
                     GestureDetector(
                       onTap: () {
-                        if (context.canPop()) {
-                          context.pop();
-                        } else {
-                          context.go('/room');
-                        }
+                        ref.read(roomNotifierProvider.notifier).openNavPanel();
+                        context.go('/room');
                       },
                       child: Container(
-                        width: 28,
-                        height: 28,
+                        width: 28 * scale,
+                        height: 28 * scale,
                         decoration: BoxDecoration(
                           color: c.surface2,
                           shape: BoxShape.circle,
@@ -192,7 +193,7 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
                           flipX: true,
                           child: KaiIcon(
                             KaiIconName.chev,
-                            size: 14,
+                            size: 14 * scale,
                             color: c.ink1,
                           ),
                         ),
@@ -204,10 +205,10 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
                           l10n.memoryAppLabel,
                           style: TextStyle(
                             fontFamily: 'Manrope',
-                            fontSize: 13,
+                            fontSize: 13 * textScale,
                             fontWeight: FontWeight.w600,
                             color: c.ink1,
-                            letterSpacing: -0.005 * 13,
+                            letterSpacing: -0.005 * 13 * textScale,
                           ),
                         ),
                       ),
@@ -219,11 +220,11 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
             // Scrollable facts body
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                padding: EdgeInsets.fromLTRB(16 * scale, 16 * scale, 16 * scale, 24 * scale),
                 children: [
                   // 1. Memory Hero Card
                   Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: EdgeInsets.all(14 * scale),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
@@ -234,24 +235,25 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
                         ],
                       ),
                       border: Border.all(color: c.accentLine),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(16 * scale),
                     ),
                     child: Row(
                       children: [
                         Container(
-                          width: 36,
-                          height: 36,
+                          width: 36 * scale,
+                          height: 36 * scale,
                           decoration: BoxDecoration(
                             gradient: KaiTide.gradient,
-                            borderRadius: BorderRadius.circular(11),
+                            borderRadius: BorderRadius.circular(11 * scale),
                           ),
                           alignment: Alignment.center,
-                          child: const KaiIcon(
+                          child: KaiIcon(
                             KaiIconName.memory,
+                            size: 16 * scale,
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12 * scale),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,10 +262,10 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
                                 l10n.memoryFactsCount(facts.length),
                                 style: TextStyle(
                                   fontFamily: 'Manrope',
-                                  fontSize: 14,
+                                  fontSize: 14 * textScale,
                                   fontWeight: FontWeight.w600,
                                   color: c.ink1,
-                                  letterSpacing: -0.01 * 14,
+                                  letterSpacing: -0.01 * 14 * textScale,
                                 ),
                               ),
                               const SizedBox(height: 1),
@@ -271,7 +273,7 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
                                 l10n.memoryLastSaved('12 мин'),
                                 style: TextStyle(
                                   fontFamily: 'JetBrainsMono',
-                                  fontSize: 11,
+                                  fontSize: 11 * textScale,
                                   fontWeight: FontWeight.w400,
                                   color: c.ink3,
                                 ),
@@ -291,22 +293,22 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14 * scale),
 
                   // 2. Search Bar
                   KaiInput.line(
                     controller: _searchController,
                     placeholder: l10n.memorySearchPlaceholder,
                     prefix: Padding(
-                      padding: const EdgeInsets.only(left: 12, right: 8),
+                      padding: EdgeInsets.only(left: 12 * scale, right: 8 * scale),
                       child: KaiIcon(
                         KaiIconName.search,
-                        size: 13,
+                        size: 13 * scale,
                         color: c.ink3,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14 * scale),
 
                   // 3. Category Groups
                   ...categoryOrder.map((catKey) {
@@ -328,13 +330,13 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
                     }
 
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 14),
+                      padding: EdgeInsets.only(bottom: 14 * scale),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // s-label
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(4, 8, 4, 4),
+                            padding: EdgeInsets.fromLTRB(4 * scale, 8 * scale, 4 * scale, 4 * scale),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -342,17 +344,17 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
                                   title,
                                   style: TextStyle(
                                     fontFamily: 'JetBrainsMono',
-                                    fontSize: 9.5,
+                                    fontSize: 9.5 * textScale,
                                     fontWeight: FontWeight.w400,
                                     color: c.ink3,
-                                    letterSpacing: 9.5 * 0.1,
+                                    letterSpacing: 9.5 * 0.1 * textScale,
                                   ),
                                 ),
                                 Text(
                                   '${catFacts.length}',
                                   style: TextStyle(
                                     fontFamily: 'JetBrainsMono',
-                                    fontSize: 9.5,
+                                    fontSize: 9.5 * textScale,
                                     fontWeight: FontWeight.w400,
                                     color: c.ink4,
                                   ),
@@ -364,9 +366,9 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
                           Container(
                             decoration: BoxDecoration(
                               color: c.surface2,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(12 * scale),
                             ),
-                            padding: const EdgeInsets.all(4),
+                            padding: EdgeInsets.all(4 * scale),
                             child: Column(
                               children: catFacts.map((fact) {
                                 return _FactItemRow(
@@ -383,40 +385,40 @@ class _MemoryPageState extends ConsumerState<MemoryPage> {
 
                   // 4. Danger Zone GDPR Wipe All
                   Container(
-                    margin: const EdgeInsets.only(top: 4),
+                    margin: EdgeInsets.only(top: 4 * scale),
                     decoration: BoxDecoration(
                       color: c.surface,
                       border: Border.all(color: c.negativeWash),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12 * scale),
                     ),
-                    padding: const EdgeInsets.all(4),
+                    padding: EdgeInsets.all(4 * scale),
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(8 * scale),
                         onTap: () => _showWipeAllConfirmation(context),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 11,
-                            horizontal: 12,
+                          padding: EdgeInsets.symmetric(
+                            vertical: 11 * scale,
+                            horizontal: 12 * scale,
                           ),
                           child: Row(
                             children: [
                               KaiIcon(
                                 KaiIconName.trash,
-                                size: 14,
+                                size: 14 * scale,
                                 color: c.negative,
                               ),
-                              const SizedBox(width: 10),
+                              SizedBox(width: 10 * scale),
                               Expanded(
                                 child: Text(
                                   l10n.memoryDangerWipeAll,
                                   style: TextStyle(
                                     fontFamily: 'Manrope',
-                                    fontSize: 12,
+                                    fontSize: 12 * textScale,
                                     fontWeight: FontWeight.w500,
                                     color: c.negative,
-                                    letterSpacing: -0.005 * 12,
+                                    letterSpacing: -0.005 * 12 * textScale,
                                   ),
                                 ),
                               ),
@@ -446,6 +448,8 @@ class _FactItemRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
     final l10n = AppLocalizations.of(context);
+    final scale = context.scale;
+    final textScale = context.textScale;
 
     // Source texts parsing to match styling of memory.html
     // ".src .из" has c.accent color if it says "из", otherwise default c.ink3
@@ -455,17 +459,17 @@ class _FactItemRow extends StatelessWidget {
         : fact.sourceText;
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 2),
+      margin: EdgeInsets.symmetric(vertical: 2 * scale),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8 * scale),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8 * scale),
           onTap: onMenuTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 11),
+            padding: EdgeInsets.symmetric(vertical: 9 * scale, horizontal: 11 * scale),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -477,14 +481,14 @@ class _FactItemRow extends StatelessWidget {
                         fact.text,
                         style: TextStyle(
                           fontFamily: 'Manrope',
-                          fontSize: 12,
+                          fontSize: 12 * textScale,
                           fontWeight: FontWeight.w500,
                           color: c.ink1,
-                          letterSpacing: -0.005 * 12,
+                          letterSpacing: -0.005 * 12 * textScale,
                           height: 1.35,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2 * scale),
                       Row(
                         children: [
                           if (isFromChat) ...[
@@ -492,7 +496,7 @@ class _FactItemRow extends StatelessWidget {
                               '${l10n.memorySourceFrom} ',
                               style: TextStyle(
                                 fontFamily: 'JetBrainsMono',
-                                fontSize: 9.5,
+                                fontSize: 9.5 * textScale,
                                 fontWeight: FontWeight.w400,
                                 color: c.accent,
                               ),
@@ -503,7 +507,7 @@ class _FactItemRow extends StatelessWidget {
                               labelSourceText,
                               style: TextStyle(
                                 fontFamily: 'JetBrainsMono',
-                                fontSize: 9.5,
+                                fontSize: 9.5 * textScale,
                                 fontWeight: FontWeight.w400,
                                 color: c.ink3,
                               ),
@@ -511,7 +515,7 @@ class _FactItemRow extends StatelessWidget {
                             ),
                           ),
                           if (fact.expiresIn != null) ...[
-                            const SizedBox(width: 6),
+                            SizedBox(width: 6 * scale),
                             _TtlChip(
                               expiresIn: fact.expiresIn!,
                               isCritical: fact.isCritical,
@@ -522,12 +526,12 @@ class _FactItemRow extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8 * scale),
                 Padding(
-                  padding: const EdgeInsets.all(4),
+                  padding: EdgeInsets.all(4 * scale),
                   child: KaiIcon(
                     KaiIconName.menu, // i-dots matches dots menu
-                    size: 13,
+                    size: 13 * scale,
                     color: c.ink3,
                   ),
                 ),
@@ -580,22 +584,24 @@ class _TtlChipState extends State<_TtlChip> with SingleTickerProviderStateMixin 
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
+    final scale = context.scale;
+    final textScale = context.textScale;
     final text = 'expires ${widget.expiresIn}';
 
     final Widget chip = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+      padding: EdgeInsets.symmetric(horizontal: 5 * scale, vertical: 1 * scale),
       decoration: BoxDecoration(
         color: widget.isCritical ? c.negativeWash : c.warningWash,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(4 * scale),
       ),
       child: Text(
         text,
         style: TextStyle(
           fontFamily: 'JetBrainsMono',
-          fontSize: 9,
+          fontSize: 9 * textScale,
           fontWeight: FontWeight.w500,
           color: widget.isCritical ? c.negative : c.warning,
-          letterSpacing: 9 * 0.04,
+          letterSpacing: 9 * 0.04 * textScale,
         ),
       ),
     );

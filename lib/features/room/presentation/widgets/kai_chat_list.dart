@@ -201,11 +201,13 @@ class _EmptyFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
     final l10n = AppLocalizations.of(context);
+    final scale = context.scale;
+    final textScale = context.textScale;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 22, // canon: 22px (between s5=20 and s6=24)
-          vertical: KaiSpace.s4,
+        padding: EdgeInsets.symmetric(
+          horizontal: 22 * scale, // canon: 22px (between s5=20 and s6=24)
+          vertical: KaiSpace.s4 * scale,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -217,28 +219,28 @@ class _EmptyFrame extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: 'Manrope',
-                fontSize: 26, // canon: 26px (off-scale literal)
+                fontSize: 28.5 * textScale, // canon: 28.5px
                 fontWeight: FontWeight.w600,
                 height: 1.2, // canon: line-height 1.2
-                letterSpacing: 26 * -0.022, // canon: -0.022em
+                letterSpacing: 28.5 * -0.022 * textScale,
                 color: tokens.colors.ink1,
               ),
             ),
-            const SizedBox(height: 6), // canon: 6px gap
+            SizedBox(height: 6 * scale), // canon: 6px gap
             // Subtitle — Manrope 13.5/w400/h1.5/ls-0.005em ink3
             Text(
               l10n.emptySubtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: 'Manrope',
-                fontSize: 13.5, // canon: 13.5px
+                fontSize: 15.0 * textScale, // canon: 15.0px
                 fontWeight: FontWeight.w400,
                 height: 1.5,
-                letterSpacing: 13.5 * -0.005,
+                letterSpacing: 15.0 * -0.005 * textScale,
                 color: tokens.colors.ink3,
               ),
             ),
-            const SizedBox(height: 8), // canon: margin-top 8px before chips
+            SizedBox(height: 8 * scale), // canon: margin-top 8px before chips
             // Suggestion chips — column gap 8px (canon: .suggest)
             _SuggestionChip(
               question: l10n.suggestionVisaQuestion,
@@ -272,14 +274,16 @@ class _SuggestionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
+    final scale = context.scale;
+    final textScale = context.textScale;
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 14, // canon: 14px
-        vertical: 11, // canon: 11px
+      padding: EdgeInsets.symmetric(
+        horizontal: 14 * scale, // canon: 14px
+        vertical: 11 * scale, // canon: 11px
       ),
       decoration: BoxDecoration(
         color: tokens.colors.surface2, // canon: surface-2
-        borderRadius: KaiRadius.br12, // canon: 12px — exact
+        borderRadius: KaiRadius.br12 * scale, // canon: 12px — exact
         border: Border.all(color: tokens.colors.line),
       ),
       child: Column(
@@ -290,19 +294,19 @@ class _SuggestionChip extends StatelessWidget {
             question,
             style: TextStyle(
               fontFamily: 'Manrope',
-              fontSize: 13, // canon: 13px
+              fontSize: 14.5 * textScale, // canon: 14.5px
               fontWeight: FontWeight.w500,
-              letterSpacing: 13 * -0.005,
+              letterSpacing: 14.5 * -0.005 * textScale,
               color: tokens.colors.ink1,
             ),
           ),
-          const SizedBox(height: 1), // canon: gap 1px between q and hint
+          SizedBox(height: 1 * scale), // canon: gap 1px between q and hint
           // .hint — JetBrainsMono 11 ink3
           Text(
             hint,
             style: TextStyle(
               fontFamily: 'JetBrainsMono',
-              fontSize: 11, // canon: 11px
+              fontSize: 12 * textScale, // canon: 12px
               fontWeight: FontWeight.w400,
               color: tokens.colors.ink3,
             ),
@@ -337,20 +341,22 @@ class _LiveFrame extends StatelessWidget {
     }
     final tokens = KaiTheme.of(context);
     final l10n = AppLocalizations.of(context);
+    final scale = context.scale;
+    final textScale = context.textScale;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Day header — JetBrainsMono 9 ink3 uppercase ls 0.1em, margin-top 4px
         Padding(
-          padding: const EdgeInsets.only(top: 4), // canon: margin-top 4px
+          padding: EdgeInsets.only(top: 4 * scale), // canon: margin-top 4px
           child: Text(
             '— ${l10n.today} —',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'JetBrainsMono',
-              fontSize: 9, // canon: 9px
+              fontSize: 10 * textScale, // canon: 10px
               fontWeight: FontWeight.w400,
-              letterSpacing: 9 * 0.1, // canon: 0.1em
+              letterSpacing: 10 * 0.1 * textScale, // canon: 0.1em
               color: tokens.colors.ink3,
             ),
           ),
@@ -428,6 +434,8 @@ class _ErrorFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
     final l10n = AppLocalizations.of(context);
+    final scale = context.scale;
+    final textScale = context.textScale;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -435,13 +443,13 @@ class _ErrorFrame extends StatelessWidget {
         Expanded(
           child: _LiveFrame(
             messages: messages,
-            bottomPadding: 16, // Small bottom padding since it is above the error container
+            bottomPadding: 16 * scale, // Small bottom padding since it is above the error container
           ),
         ),
         Padding(
           padding: EdgeInsets.only(bottom: bottomPadding),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
+            padding: EdgeInsets.fromLTRB(18 * scale, 8 * scale, 18 * scale, 0),
             child: Align(
             alignment: Alignment.centerLeft,
             child: LayoutBuilder(
@@ -458,38 +466,38 @@ class _ErrorFrame extends StatelessWidget {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const KaiGradientBar(
-                            width: 12, // canon: 12px for error who-glyph
-                            height: 3, // canon: 3px
+                          KaiGradientBar(
+                            width: 12 * scale, // canon: 12px for error who-glyph
+                            height: 3 * scale, // canon: 3px
                           ),
-                          const SizedBox(width: 6), // canon: 6px gap
+                          SizedBox(width: 6 * scale), // canon: 6px gap
                           Text(
                             'KAI',
                             style: TextStyle(
                               fontFamily: 'JetBrainsMono',
-                              fontSize: 9, // canon: 9px
+                              fontSize: 10 * textScale, // canon: 10px
                               fontWeight: FontWeight.w400,
                               height: 1.4,
-                              letterSpacing: 9 * 0.08, // canon: 0.08em
+                              letterSpacing: 10 * 0.08 * textScale, // canon: 0.08em
                               color: c.ink3,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 5), // canon: 5px
+                      SizedBox(height: 5 * scale), // canon: 5px
                       // .err-bub container
                       Container(
                         decoration: BoxDecoration(
                           color: c.negativeWash,
-                          borderRadius: BorderRadius.circular(14), // canon: 14px
+                          borderRadius: BorderRadius.circular(14 * scale), // canon: 14px
                           border: Border.all(
                             // canon: rgba(196,74,60,0.15)
                             color: const Color.fromRGBO(196, 74, 60, 0.15),
                           ),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 13, // canon: 13px
-                          vertical: 11, // canon: 11px
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 13 * scale, // canon: 13px
+                          vertical: 11 * scale, // canon: 11px
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,8 +506,8 @@ class _ErrorFrame extends StatelessWidget {
                             Row(
                               children: [
                                 Container(
-                                  width: 18, // canon: 18×18 circle
-                                  height: 18,
+                                  width: 18 * scale, // canon: 18×18 circle
+                                  height: 18 * scale,
                                   decoration: const BoxDecoration(
                                     // canon: rgba(196,74,60,0.12)
                                     color: Color.fromRGBO(196, 74, 60, 0.12),
@@ -508,37 +516,37 @@ class _ErrorFrame extends StatelessWidget {
                                   child: Center(
                                     child: KaiIcon(
                                       KaiIconName.alert,
-                                      size: 10, // canon: 10px icon
+                                      size: 10 * scale, // canon: 10px icon
                                       color: c.negative,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 6), // canon: 6px
+                                SizedBox(width: 6 * scale), // canon: 6px
                                 Text(
                                   l10n.errorTitle,
                                   style: TextStyle(
                                     fontFamily: 'Manrope',
-                                    fontSize: 12, // canon: 12px
+                                    fontSize: 13 * textScale, // canon: 13px
                                     fontWeight: FontWeight.w600,
-                                    letterSpacing: 12 * -0.005,
+                                    letterSpacing: 13 * -0.005 * textScale,
                                     color: c.negative,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 7), // canon: 7px
+                            SizedBox(height: 7 * scale), // canon: 7px
                             // .eb — body text Manrope 11.5 ink2 h1.45
                             Text(
                               l10n.errorBody,
                               style: TextStyle(
                                 fontFamily: 'Manrope',
-                                fontSize: 11.5, // canon: 11.5px
+                                fontSize: 12.5 * textScale, // canon: 12.5px
                                 fontWeight: FontWeight.w400,
                                 height: 1.45, // canon: line-height 1.45
                                 color: c.ink2,
                               ),
                             ),
-                            const SizedBox(height: 9), // canon: 9px
+                            SizedBox(height: 9 * scale), // canon: 9px
                             // .retry-row — KaiButton.ghost (R1 audit fix) + hint
                             Row(
                               children: [
@@ -552,12 +560,12 @@ class _ErrorFrame extends StatelessWidget {
                                   tone: KaiButtonTone.negative,
                                   pill: true,
                                 ),
-                                const SizedBox(width: 8), // canon: 8px gap
+                                SizedBox(width: 8 * scale), // canon: 8px gap
                                 Text(
                                   l10n.errorRetryHint,
                                   style: TextStyle(
                                     fontFamily: 'JetBrainsMono',
-                                    fontSize: 10, // canon: 10px
+                                    fontSize: 11 * textScale, // canon: 11px
                                     fontWeight: FontWeight.w400,
                                     color: c.ink4,
                                   ),

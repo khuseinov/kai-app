@@ -6,6 +6,7 @@ import 'package:kai_app/design_system/atoms/atoms.dart';
 import 'package:kai_app/design_system/molecules/molecules.dart';
 import 'package:kai_app/design_system/primitives/primitives.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/features/room/presentation/providers/room_state.dart';
 
 /// Settings screen. Canon: `new-design/settings.html`.
 ///
@@ -51,6 +52,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final c = KaiTheme.of(context).colors;
     final themeMode = ref.watch(themeModeProvider);
 
+    final scale = context.scale;
+    final textScale = context.textScale;
+
     return Scaffold(
       backgroundColor: c.bg,
       body: SafeArea(
@@ -60,7 +64,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             _SettingsTopBar(),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(14, 16, 14, 24),
+                padding: EdgeInsets.fromLTRB(14 * scale, 16 * scale, 14 * scale, 24 * scale),
                 children: [
                   // 1. Account hero
                   const KaiAccountHero(
@@ -69,7 +73,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     initial: 'A',
                     planLabel: 'plus',
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12 * scale),
 
                   // 2. Внешний вид
                   KaiSettingsGroup(
@@ -99,7 +103,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12 * scale),
 
                   // 3. Голос
                   KaiSettingsGroup(
@@ -126,7 +130,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12 * scale),
 
                   // 4. Данные
                   KaiSettingsGroup(
@@ -148,7 +152,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8 * scale),
                   KaiSettingsGroup(
                     danger: true,
                     children: [
@@ -162,7 +166,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12 * scale),
 
                   // 5. Приватность
                   KaiSettingsGroup(
@@ -197,7 +201,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12 * scale),
 
                   // 6. Аккаунт
                   KaiSettingsGroup(
@@ -218,7 +222,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12 * scale),
 
                   // 7. О приложении
                   KaiSettingsGroup(
@@ -231,7 +235,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           '0.2.0',
                           style: TextStyle(
                             fontFamily: 'Manrope',
-                            fontSize: 11,
+                            fontSize: 11 * textScale,
                             fontWeight: FontWeight.w500,
                             color: c.ink3,
                           ),
@@ -251,29 +255,28 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
 // ─── Top bar — appbar 28 height ─────────────────────────────────────────────
 
-class _SettingsTopBar extends StatelessWidget {
+class _SettingsTopBar extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = KaiTheme.of(context).colors;
+    final scale = context.scale;
+    final textScale = context.textScale;
     return Padding(
       // Canon: appbar top 16, left/right 16, height 28.
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: EdgeInsets.fromLTRB(16 * scale, 16 * scale, 16 * scale, 0),
       child: SizedBox(
-        height: 28,
+        height: 28 * scale,
         child: Row(
           children: [
             // Back button — 28×28 circle, surface-2 bg, ink-1 chev-left.
             GestureDetector(
               onTap: () {
-                if (context.canPop()) {
-                  context.pop();
-                } else {
-                  context.go('/room');
-                }
+                ref.read(roomNotifierProvider.notifier).openNavPanel();
+                context.go('/room');
               },
               child: Container(
-                width: 28,
-                height: 28,
+                width: 28 * scale,
+                height: 28 * scale,
                 decoration: BoxDecoration(
                   color: c.surface2,
                   shape: BoxShape.circle,
@@ -283,7 +286,7 @@ class _SettingsTopBar extends StatelessWidget {
                   flipX: true,
                   child: KaiIcon(
                     KaiIconName.chev,
-                    size: 14,
+                    size: 14 * scale,
                     color: c.ink1,
                   ),
                 ),
@@ -296,17 +299,17 @@ class _SettingsTopBar extends StatelessWidget {
                   'Настройки',
                   style: TextStyle(
                     fontFamily: 'Manrope',
-                    fontSize: 13,
+                    fontSize: 13 * textScale,
                     fontWeight: FontWeight.w600,
                     color: c.ink1,
-                    letterSpacing: -0.005 * 13,
+                    letterSpacing: -0.005 * 13 * textScale,
                   ),
                 ),
               ),
             ),
             // Right spacer — matches back-button width so the title stays
             // perfectly centred. Canon settings.html uses `width:28px` here.
-            const SizedBox(width: 28),
+            SizedBox(width: 28 * scale),
           ],
         ),
       ),
@@ -324,9 +327,10 @@ class _ChevTrail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
+    final scale = context.scale;
     return KaiIcon(
       KaiIconName.chev,
-      size: 13,
+      size: 13 * scale,
       color: color ?? c.ink3,
     );
   }
@@ -340,6 +344,8 @@ class _TextChevTrail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
+    final scale = context.scale;
+    final textScale = context.textScale;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -347,13 +353,13 @@ class _TextChevTrail extends StatelessWidget {
           text,
           style: TextStyle(
             fontFamily: 'Manrope',
-            fontSize: 11,
+            fontSize: 11 * textScale,
             fontWeight: FontWeight.w500,
             color: c.ink3,
           ),
         ),
-        const SizedBox(width: 5),
-        KaiIcon(KaiIconName.chev, size: 13, color: c.ink3),
+        SizedBox(width: 5 * scale),
+        KaiIcon(KaiIconName.chev, size: 13 * scale, color: c.ink3),
       ],
     );
   }
@@ -372,11 +378,12 @@ class _StatusTrail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textScale = context.textScale;
     return Text(
       text,
       style: TextStyle(
         fontFamily: 'JetBrainsMono',
-        fontSize: 10,
+        fontSize: 10 * textScale,
         fontWeight: weight,
         color: color,
       ),

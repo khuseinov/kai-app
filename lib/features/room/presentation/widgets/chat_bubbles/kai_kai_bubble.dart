@@ -165,6 +165,8 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
     final c = tokens.colors;
+    final scale = context.scale;
+    final textScale = context.textScale;
 
     final hasReact = widget.onThumbUp != null || widget.onThumbDown != null;
     final hasMetaRow = widget.sourcesLabel != null || hasReact;
@@ -182,7 +184,7 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
                 AnimatedBuilder(
                   animation: _tideBarController!,
                   builder: (context, _) {
-                    final width = Tween<double>(begin: 10, end: 22).animate(
+                    final width = Tween<double>(begin: 10 * scale, end: 22 * scale).animate(
                       CurvedAnimation(
                         parent: _tideBarController!,
                         curve: Curves.easeInOut,
@@ -190,7 +192,7 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
                     ).value;
                     return Container(
                       width: width,
-                      height: 3,
+                      height: 3 * scale,
                       decoration: const BoxDecoration(
                         gradient: KaiTide.gradient,
                         borderRadius: KaiRadius.brPill,
@@ -200,23 +202,26 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
                 )
               else
                 // Canon: .who::before — 16×4 tide-gradient pill
-                const KaiGradientBar(),
-              const SizedBox(width: 6), // canon: gap 6px
+                KaiGradientBar(
+                  width: 16 * scale,
+                  height: 4 * scale,
+                ),
+              SizedBox(width: 6 * scale), // canon: gap 6px
               Text(
                 'KAI',
                 style: KaiType.mono(color: c.ink3).copyWith(
                   // canon (D2 locked): 9px — room.html .who (components shows 10).
-                  fontSize: 9, // canon: 9 (room / D2)
-                  letterSpacing: 9 * 0.08, // canon: 0.08em
+                  fontSize: 10 * textScale, // canon: 10 (room / D2)
+                  letterSpacing: 10 * textScale * 0.08, // canon: 0.08em
                 ),
               ),
               if (widget.streaming && widget.statusSuffix != null) ...[
-                const SizedBox(width: 6),
+                SizedBox(width: 6 * scale),
                 Text(
                   '· ${widget.statusSuffix}',
                   style: TextStyle(
                     fontFamily: 'Manrope',
-                    fontSize: 9,
+                    fontSize: 10 * textScale,
                     fontWeight: FontWeight.w400,
                     fontStyle: FontStyle.italic,
                     color: c.ink4,
@@ -228,21 +233,21 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
 
           // Gap between .who and .txt — canon: .kai-b flex gap 5px
           // — verified spec-viewer 2026-05-29 (was 6px)
-          if (widget.text.isNotEmpty) const SizedBox(height: 5), // canon: gap 5px
+          if (widget.text.isNotEmpty) SizedBox(height: 5 * scale), // canon: gap 5px
         ],
 
         // ── .txt — body with inline citation parsing ────────────────────────
-        if (widget.text.isNotEmpty) _buildBodyText(c),
+        if (widget.text.isNotEmpty) _buildBodyText(context, c, scale),
 
         // ── meta-row (sources label + optional react) ───────────────────────
         if (hasMetaRow) ...[
-          const SizedBox(height: 4), // canon: margin-top 4px
-          _buildMetaRow(c, hasReact),
+          SizedBox(height: 4 * scale), // canon: margin-top 4px
+          _buildMetaRow(context, c, scale, hasReact),
         ],
 
         // ── source widgets ──────────────────────────────────────────────────
         if (widget.sources.isNotEmpty) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: 8 * scale),
           ...widget.sources,
         ],
       ],
@@ -253,12 +258,13 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
   // Body text with citation spans + optional streaming caret
   // ---------------------------------------------------------------------------
 
-  Widget _buildBodyText(KaiColorTokens c) {
+  Widget _buildBodyText(BuildContext context, KaiColorTokens c, double scale) {
+    final textScale = context.textScale;
     final baseStyle = KaiType.small(color: c.ink1).copyWith(
       // canon (D2 locked): 13.5px — room.html chat context, not components 15px.
-      fontSize: 13.5, // canon: 13.5 (room / D2)
+      fontSize: 15.0 * textScale, // canon: 15.0 (room / D2)
       height: 1.55, // canon: line-height 1.55
-      letterSpacing: 13.5 * -0.005, // canon: letter-spacing -0.005em
+      letterSpacing: 15.0 * textScale * -0.005, // canon: letter-spacing -0.005em
     );
 
     final citationStyle = baseStyle.copyWith(
@@ -281,12 +287,12 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
               return Opacity(
                 opacity: opacity,
                 child: Container(
-                  width: 2.5,
-                  height: 15,
-                  margin: const EdgeInsets.only(left: 3),
+                  width: 2.5 * scale,
+                  height: 15 * scale,
+                  margin: EdgeInsets.only(left: 3 * scale),
                   decoration: BoxDecoration(
                     gradient: KaiTide.gradient,
-                    borderRadius: BorderRadius.circular(1.2),
+                    borderRadius: BorderRadius.circular(1.2 * scale),
                   ),
                 ),
               );
@@ -303,7 +309,8 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
   // Meta-row (sources label + react buttons)
   // ---------------------------------------------------------------------------
 
-  Widget _buildMetaRow(KaiColorTokens c, bool hasReact) {
+  Widget _buildMetaRow(BuildContext context, KaiColorTokens c, double scale, bool hasReact) {
+    final textScale = context.textScale;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -316,13 +323,13 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
               style: KaiType.mono(color: c.ink3).copyWith(
                 // canon: meta-row font-size 11px
                 // KaiType.mono base is 12px — drift -1px.
-                fontSize: 11, // canon: 11
+                fontSize: 12 * textScale, // canon: 12
               ),
             ),
           ),
         if (widget.sourcesLabel != null && hasReact)
-          const SizedBox(width: 16), // canon: meta-row gap 16px
-        if (hasReact) _buildReactRow(c),
+          SizedBox(width: 16 * scale), // canon: meta-row gap 16px
+        if (hasReact) _buildReactRow(context, c, scale),
       ],
     );
   }
@@ -331,7 +338,7 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
   // React row (thumb-up / thumb-down)
   // ---------------------------------------------------------------------------
 
-  Widget _buildReactRow(KaiColorTokens c) {
+  Widget _buildReactRow(BuildContext context, KaiColorTokens c, double scale) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -340,16 +347,16 @@ class _KaiKaiBubbleState extends State<KaiKaiBubble>
             onPressed: widget.onThumbUp,
             icon: KaiIconName.thumbUp,
             color: c.ink3,
-            size: 11, // canon: <svg width="11" height="11">
+            size: 13 * scale, // canon: <svg width="13" height="13">
           ),
-          const SizedBox(width: 6), // canon: react gap 6px
+          SizedBox(width: 6 * scale), // canon: react gap 6px
         ],
         if (widget.onThumbDown != null)
           KaiIconButton.bare(
             onPressed: widget.onThumbDown,
             icon: KaiIconName.thumbDown,
             color: c.ink3,
-            size: 11, // canon: <svg width="11" height="11">
+            size: 13 * scale, // canon: <svg width="13" height="13">
           ),
       ],
     );

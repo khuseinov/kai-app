@@ -77,15 +77,16 @@ class KaiAccountHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
+    final scale = context.scale;
     final isCompact = variant == KaiAccountHeroVariant.compact;
 
     final content = Container(
-      padding: const EdgeInsets.all(KaiSpace.s3), // 12px
+      padding: EdgeInsets.all(KaiSpace.s3 * scale), // scaled 12px
       decoration: BoxDecoration(
         color: c.surface2,
         borderRadius: KaiRadius.br12,
       ),
-      child: isCompact ? _buildCompact(c) : _buildFull(c),
+      child: isCompact ? _buildCompact(context, c, scale) : _buildFull(context, c, scale),
     );
 
     if (onTap != null) {
@@ -102,11 +103,12 @@ class KaiAccountHero extends StatelessWidget {
   // Full layout: avatar + name column (email + plan badge)
   // -------------------------------------------------------------------------
 
-  Widget _buildFull(KaiColorTokens c) {
+  Widget _buildFull(BuildContext context, KaiColorTokens c, double scale) {
+    final textScale = context.textScale;
     return Row(
       children: [
-        KaiAvatar(size: _avatarSize, initial: initial),
-        const SizedBox(width: 10), // canon: gap 10
+        KaiAvatar(size: _avatarSize * scale, initial: initial),
+        SizedBox(width: 10 * scale), // canon: gap 10
         Expanded(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -116,20 +118,20 @@ class KaiAccountHero extends StatelessWidget {
                 name,
                 style: TextStyle(
                   fontFamily: 'Manrope',
-                  fontSize: 13,
+                  fontSize: 13 * textScale,
                   fontWeight: FontWeight.w600,
                   color: c.ink1,
-                  letterSpacing: -0.01 * 13,
+                  letterSpacing: -0.01 * 13 * textScale,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 1),
+              SizedBox(height: 1 * scale),
               Text(
                 email,
                 style: TextStyle(
                   fontFamily: 'JetBrainsMono',
-                  fontSize: 10,
+                  fontSize: 10 * textScale,
                   fontWeight: FontWeight.w400,
                   color: c.ink3,
                 ),
@@ -140,8 +142,8 @@ class KaiAccountHero extends StatelessWidget {
           ),
         ),
         if (planLabel != null) ...[
-          const SizedBox(width: 10),
-          _PlanBadge(label: planLabel!),
+          SizedBox(width: 10 * scale),
+          _PlanBadge(label: planLabel!, scale: scale),
         ],
       ],
     );
@@ -151,21 +153,22 @@ class KaiAccountHero extends StatelessWidget {
   // Compact layout: avatar (sm) + name only, single row
   // -------------------------------------------------------------------------
 
-  Widget _buildCompact(KaiColorTokens c) {
+  Widget _buildCompact(BuildContext context, KaiColorTokens c, double scale) {
+    final textScale = context.textScale;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         KaiAvatar.user(initial, avatarSize: KaiAvatarSize.sm),
-        const SizedBox(width: 8),
+        SizedBox(width: 8 * scale),
         Flexible(
           child: Text(
             name,
             style: TextStyle(
               fontFamily: 'Manrope',
-              fontSize: 13,
+              fontSize: 13 * textScale,
               fontWeight: FontWeight.w600,
               color: c.ink1,
-              letterSpacing: -0.01 * 13,
+              letterSpacing: -0.01 * 13 * textScale,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -177,15 +180,17 @@ class KaiAccountHero extends StatelessWidget {
 }
 
 class _PlanBadge extends StatelessWidget {
-  const _PlanBadge({required this.label});
+  const _PlanBadge({required this.label, required this.scale});
 
   final String label;
+  final double scale;
 
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
+    final textScale = context.textScale;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 6 * scale, vertical: 2 * scale),
       decoration: BoxDecoration(
         color: c.accentWash,
         border: Border.all(color: c.accentLine),
@@ -195,12 +200,15 @@ class _PlanBadge extends StatelessWidget {
         label.toUpperCase(),
         style: TextStyle(
           fontFamily: 'JetBrainsMono',
-          fontSize: 9,
+          fontSize: 9 * textScale,
           fontWeight: FontWeight.w500,
           color: c.accent,
-          letterSpacing: 0.06 * 9,
+          letterSpacing: 0.06 * 9 * textScale,
         ),
       ),
     );
   }
 }
+
+
+

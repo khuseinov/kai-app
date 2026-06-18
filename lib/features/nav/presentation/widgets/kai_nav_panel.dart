@@ -200,8 +200,8 @@ class _KaiNavPanelState extends State<KaiNavPanel> {
   @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
-
-    // Bucket the sessions with the pure presenter (R3 fix).
+    final scale = context.scale;
+    final textScale = context.textScale;
     final dateGroups = groupSessionsByDate(widget.sessions, now: widget.now);
 
     return GestureDetector(
@@ -287,7 +287,7 @@ class _KaiNavPanelState extends State<KaiNavPanel> {
                               s.timeLabel,
                               style: TextStyle(
                                 fontFamily: 'JetBrainsMono',
-                                fontSize: 8.5, // canon: mono 8.5 ink3
+                                fontSize: 8.5 * textScale, // canon: mono 8.5 ink3
                                 color: tokens.colors.ink3,
                               ),
                             ),
@@ -299,38 +299,36 @@ class _KaiNavPanelState extends State<KaiNavPanel> {
                       ]
                     else if (widget.trips.isEmpty && widget.pinnedTrip == null)
                       Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 24,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 14 * scale,
+                          vertical: 24 * scale,
                         ),
                         child: Center(
                           child: Text(
                             widget.strings.noChats,
                             style: TextStyle(
                               fontFamily: 'Manrope',
-                              fontSize: 11, // canon: 11px ink4
+                              fontSize: 11 * textScale, // canon: 11px ink4
                               color: tokens.colors.ink4,
                             ),
                           ),
                         ),
                       ),
-
-                    // ── Memory and Settings (Apps header removed in AFTER design) ──
-                    const SizedBox(height: 14),
-                    KaiNavItem(
-                      label: widget.strings.memoryLabel,
-                      icon: KaiIconName.memory,
-                      trailing:
-                          widget.hasUnseenMemory ? const KaiBadge.dot() : null,
-                      onTap: widget.onMemoryTap,
-                    ),
-                    KaiNavItem(
-                      label: widget.strings.settingsLabel,
-                      icon: KaiIconName.settings,
-                      onTap: widget.onSettingsTap,
-                    ),
                   ],
                 ),
+              ),
+              // Memory and Settings pinned at the bottom, directly above the profile anchor.
+              KaiNavItem(
+                label: widget.strings.memoryLabel,
+                icon: KaiIconName.memory,
+                trailing:
+                    widget.hasUnseenMemory ? const KaiBadge.dot() : null,
+                onTap: widget.onMemoryTap,
+              ),
+              KaiNavItem(
+                label: widget.strings.settingsLabel,
+                icon: KaiIconName.settings,
+                onTap: widget.onSettingsTap,
               ),
               _NavAccountAnchor(
                 tokens: tokens,
@@ -366,30 +364,32 @@ class _NavSearchBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scale = context.scale;
+    final textScale = context.textScale;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+      padding: EdgeInsets.fromLTRB(14 * scale, 0, 14 * scale, 8 * scale),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12, // canon: 12px
-          vertical: 9, // canon: 9px
+        padding: EdgeInsets.symmetric(
+          horizontal: 12 * scale, // canon: 12px
+          vertical: 9 * scale, // canon: 9px
         ),
         decoration: BoxDecoration(
           color: tokens.colors.surface2,
-          borderRadius: BorderRadius.circular(10), // canon: r10
+          borderRadius: BorderRadius.circular(10 * scale), // canon: r10
         ),
         child: Row(
           children: [
             KaiIcon(
               KaiIconName.search,
-              size: 14, // canon: 14px
+              size: 14 * scale, // canon: 14px
               color: tokens.colors.ink3,
             ),
-            const SizedBox(width: 7), // canon: 7px gap
+            SizedBox(width: 7 * scale), // canon: 7px gap
             Text(
               placeholder,
               style: TextStyle(
                 fontFamily: 'Manrope',
-                fontSize: 11, // canon: 11px ink3
+                fontSize: 11 * textScale, // canon: 11px ink3
                 color: tokens.colors.ink3,
               ),
             ),
@@ -411,8 +411,10 @@ class _NavSectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = KaiTheme.of(context);
+    final scale = context.scale;
+    final textScale = context.textScale;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 6),
+      padding: EdgeInsets.fromLTRB(18 * scale, 12 * scale, 18 * scale, 6 * scale),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
@@ -422,9 +424,9 @@ class _NavSectionLabel extends StatelessWidget {
             label.toUpperCase(),
             style: TextStyle(
               fontFamily: 'JetBrainsMono',
-              fontSize: 8.5, // canon: 8.5px ls 0.1em ink3
+              fontSize: 8.5 * textScale, // canon: 8.5px ls 0.1em ink3
               color: tokens.colors.ink3,
-              letterSpacing: 0.1 * 8.5,
+              letterSpacing: 0.1 * 8.5 * textScale,
             ),
           ),
           if (count != null)
@@ -432,7 +434,7 @@ class _NavSectionLabel extends StatelessWidget {
               count.toString(),
               style: TextStyle(
                 fontFamily: 'JetBrainsMono',
-                fontSize: 8.5,
+                fontSize: 8.5 * textScale,
                 color: tokens.colors.ink4,
               ),
             ),
@@ -461,14 +463,16 @@ class _NavPinnedTripCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scale = context.scale;
+    final textScale = context.textScale;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 0, 14, 4),
+      padding: EdgeInsets.fromLTRB(14 * scale, 0, 14 * scale, 4 * scale),
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12, // canon: 12px
-            vertical: 11, // canon: 11px
+          padding: EdgeInsets.symmetric(
+            horizontal: 12 * scale, // canon: 12px
+            vertical: 11 * scale, // canon: 11px
           ),
           decoration: BoxDecoration(
             // canon: subtle tide tint — rgba(43,168,201,0.06) → rgba(244,181,137,0.04)
@@ -481,31 +485,31 @@ class _NavPinnedTripCard extends StatelessWidget {
               ],
             ),
             border: Border.all(color: tokens.colors.accentLine),
-            borderRadius: BorderRadius.circular(10), // canon: r10
+            borderRadius: BorderRadius.circular(10 * scale), // canon: r10
           ),
           child: Row(
             children: [
               // Tide-gradient glyph 24×24 r7 with destination initial
               Container(
-                width: 24, // canon: 24×24
-                height: 24,
+                width: 24 * scale, // canon: 24×24
+                height: 24 * scale,
                 decoration: BoxDecoration(
                   gradient: KaiTide.gradient,
-                  borderRadius: BorderRadius.circular(7), // canon: r7
+                  borderRadius: BorderRadius.circular(7 * scale), // canon: r7
                 ),
                 child: Center(
                   child: Text(
                     initial.isNotEmpty ? initial[0] : 'A',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Manrope',
                       color: Colors.white,
-                      fontSize: 9, // canon: 9px w700
+                      fontSize: 9 * textScale, // canon: 9px w700
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 9), // canon: 9px gap
+              SizedBox(width: 9 * scale), // canon: 9px gap
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -514,10 +518,10 @@ class _NavPinnedTripCard extends StatelessWidget {
                       title,
                       style: TextStyle(
                         fontFamily: 'Manrope',
-                        fontSize: 11, // canon: 11px w600 ink1
+                        fontSize: 11 * textScale, // canon: 11px w600 ink1
                         fontWeight: FontWeight.w600,
                         color: tokens.colors.ink1,
-                        letterSpacing: -0.005 * 11,
+                        letterSpacing: -0.005 * 11 * textScale,
                       ),
                     ),
                     const SizedBox(height: 1),
@@ -525,7 +529,7 @@ class _NavPinnedTripCard extends StatelessWidget {
                       subtitle,
                       style: TextStyle(
                         fontFamily: 'JetBrainsMono',
-                        fontSize: 9, // canon: 9px ink3
+                        fontSize: 9 * textScale, // canon: 9px ink3
                         color: tokens.colors.ink3,
                       ),
                     ),
@@ -555,10 +559,12 @@ class _CountBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scale = context.scale;
+    final textScale = context.textScale;
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 5, // canon: 5px
-        vertical: 1, // canon: 1px
+      padding: EdgeInsets.symmetric(
+        horizontal: 5 * scale, // canon: 5px
+        vertical: 1 * scale, // canon: 1px
       ),
       decoration: BoxDecoration(
         color: tokens.colors.surface2,
@@ -568,7 +574,7 @@ class _CountBadge extends StatelessWidget {
         count.toString(),
         style: TextStyle(
           fontFamily: 'JetBrainsMono',
-          fontSize: 8.5,
+          fontSize: 8.5 * textScale,
           color: tokens.colors.ink3,
         ),
       ),
@@ -595,6 +601,8 @@ class _NavAccountAnchor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scale = context.scale;
+    final textScale = context.textScale;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -603,16 +611,16 @@ class _NavAccountAnchor extends StatelessWidget {
             top: BorderSide(color: tokens.colors.line), // canon: 1px line
           ),
         ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14, // canon: 14px
-          vertical: 11, // canon: 11px
+        padding: EdgeInsets.symmetric(
+          horizontal: 14 * scale, // canon: 14px
+          vertical: 11 * scale, // canon: 11px
         ),
         child: Row(
           children: [
             // Tide-gradient avatar circle 24×24 with initial
             Container(
-              width: 24, // canon: 24×24
-              height: 24,
+              width: 24 * scale, // canon: 24×24
+              height: 24 * scale,
               decoration: const BoxDecoration(
                 gradient: KaiTide.gradient,
                 shape: BoxShape.circle,
@@ -620,16 +628,16 @@ class _NavAccountAnchor extends StatelessWidget {
               child: Center(
                 child: Text(
                   initial.isNotEmpty ? initial[0] : 'A',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Manrope',
                     color: Colors.white,
-                    fontSize: 9, // canon: 9px w700
+                    fontSize: 9 * textScale, // canon: 9px w700
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 8), // canon: 8px
+            SizedBox(width: 8 * scale), // canon: 8px
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -639,19 +647,19 @@ class _NavAccountAnchor extends StatelessWidget {
                     name,
                     style: TextStyle(
                       fontFamily: 'Manrope',
-                      fontSize: 11, // canon: 11px w500 ink1
+                      fontSize: 11 * textScale, // canon: 11px w500 ink1
                       fontWeight: FontWeight.w500,
                       color: tokens.colors.ink1,
-                      letterSpacing: -0.005 * 11,
+                      letterSpacing: -0.005 * 11 * textScale,
                     ),
                   ),
                   Text(
                     plan.toUpperCase(),
                     style: TextStyle(
                       fontFamily: 'JetBrainsMono',
-                      fontSize: 8.5, // canon: 8.5px ink3 ls 0.06em
+                      fontSize: 8.5 * textScale, // canon: 8.5px ink3 ls 0.06em
                       color: tokens.colors.ink3,
-                      letterSpacing: 0.06 * 8.5,
+                      letterSpacing: 0.06 * 8.5 * textScale,
                     ),
                   ),
                 ],
@@ -659,7 +667,7 @@ class _NavAccountAnchor extends StatelessWidget {
             ),
             KaiIcon(
               KaiIconName.chev,
-              size: 11, // canon: 11px ink3
+              size: 11 * scale, // canon: 11px ink3
               color: tokens.colors.ink3,
             ),
           ],

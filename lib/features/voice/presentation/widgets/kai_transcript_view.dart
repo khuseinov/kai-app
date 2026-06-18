@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 
 // ── Data model ────────────────────────────────────────────────────────────────
@@ -28,13 +28,10 @@ class KaiTranscriptEvent {
 
 /// Voice-mode transcript timeline molecule.
 ///
-/// Renders a dark vertical timeline of [KaiTranscriptEvent]s on a 1px rail.
+/// Renders a vertical timeline of [KaiTranscriptEvent]s on a 1px rail.
 /// Each event carries a 9px rail dot in the left gutter (you = translucent
-/// white; **kai = tide-gradient + glow**, the brand mark), a meta row
+/// white/grey; **kai = tide-gradient + glow**, the brand mark), a meta row
 /// (`who` label + timestamp) and the body text.
-///
-/// **Dark-surface only.** Designed for the always-dark voice field (#08080A).
-/// All colours are fixed white/tide literals — NOT theme tokens.
 ///
 /// Canon `voice.html .tr-view / .tr-event`:
 /// - Event padding `EdgeInsets.fromLTRB(52, 9, 22, 9)`; rail line at x=36
@@ -71,36 +68,45 @@ class KaiTranscriptView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final c = KaiTheme.of(context).colors;
+    final railColor = isDark ? _railColor : c.line;
+
     return Stack(
       children: [
         // Vertical rail line behind the events.
-        const Positioned(
+        Positioned(
           top: 0,
           bottom: 0,
           left: _railX,
           child: SizedBox(
             width: 1,
-            child: ColoredBox(color: _railColor),
+            child: ColoredBox(color: railColor),
           ),
         ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          children: [for (final e in events) _event(e)],
+          children: [for (final e in events) _event(e, context, c, isDark)],
         ),
       ],
     );
   }
 
-  Widget _event(KaiTranscriptEvent e) {
+  Widget _event(KaiTranscriptEvent e, BuildContext context, KaiColorTokens c, bool isDark) {
     final isKai = e.who == 'kai';
+    final whiteColor = isDark ? _white : c.ink1;
+    final youBodyColor = isDark ? _youBody : c.ink2;
+    final whoColor = isDark ? _whoColor : c.ink3;
+    final tsColor = isDark ? _tsColor : c.ink4;
+
     return Padding(
       padding: _eventPadding,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           // Rail dot — reaches left into the gutter to sit on the rail line.
-          Positioned(left: -20, top: 5, child: _dot(isKai)),
+          Positioned(left: -20, top: 5, child: _dot(isKai, c, isDark)),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -109,9 +115,9 @@ class KaiTranscriptView extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(e.who.toUpperCase(), style: _metaStyle(_whoColor)),
+                  Text(e.who.toUpperCase(), style: _metaStyle(whoColor)),
                   const SizedBox(width: 6),
-                  Text(e.timestamp, style: _metaStyle(_tsColor)),
+                  Text(e.timestamp, style: _metaStyle(tsColor)),
                 ],
               ),
               const SizedBox(height: 3),
@@ -124,7 +130,7 @@ class KaiTranscriptView extends StatelessWidget {
                   fontWeight: FontWeight.w400,
                   height: 1.5,
                   letterSpacing: _bodySize * -0.005,
-                  color: isKai ? _white : _youBody,
+                  color: isKai ? whiteColor : youBodyColor,
                 ),
               ),
             ],
@@ -142,18 +148,22 @@ class KaiTranscriptView extends StatelessWidget {
         color: color,
       );
 
-  Widget _dot(bool isKai) {
+  Widget _dot(bool isKai, KaiColorTokens c, bool isDark) {
+    final youDotColor = isDark ? _youDot : c.lineStrong;
+    final voiceBgColor = isDark ? _voiceBg : const Color(0xFFFAFAF9);
+    final kaiGlowColor = isDark ? _kaiGlow : const Color(0x202BA8C9);
+
     return Container(
       width: 9,
       height: 9,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isKai ? null : _youDot,
+        color: isKai ? null : youDotColor,
         gradient: isKai ? KaiTide.gradientCorner : null,
-        border: Border.all(color: _voiceBg, width: 1.6),
+        border: Border.all(color: voiceBgColor, width: 1.6),
         boxShadow: isKai
-            ? const [
-                BoxShadow(color: _kaiGlow, spreadRadius: 1),
+            ? [
+                BoxShadow(color: kaiGlowColor, spreadRadius: 1),
               ]
             : null,
       ),

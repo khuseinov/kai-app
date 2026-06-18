@@ -53,3 +53,27 @@ class _KaiThemeScope extends InheritedWidget {
   bool updateShouldNotify(_KaiThemeScope oldWidget) =>
       tokens != oldWidget.tokens;
 }
+
+extension KaiScaleExtension on BuildContext {
+  /// Resolves the visual scale factor for layout offsets, paddings, and margins.
+  ///
+  /// Clamped to [0.95, 1.10] to allow compacting on small screens but prevent
+  /// huge empty gaps on large tablets/desktops.
+  double get scale {
+    final s = MediaQuery.sizeOf(this).shortestSide;
+    final scaleFactor = switch (s) {
+      < 360 => 0.95,
+      < 430 => 1.00,
+      < 600 => 1.05,
+      _ => 1.10,
+    };
+    return scaleFactor.clamp(0.95, 1.10);
+  }
+
+  /// Resolves the scale factor specifically for font sizes.
+  ///
+  /// Never drops below 1.0 to prevent illegibly small/tiny text on small viewports.
+  /// Caps at 1.10 to prevent oversized letters.
+  double get textScale => scale.clamp(1.0, 1.10);
+}
+

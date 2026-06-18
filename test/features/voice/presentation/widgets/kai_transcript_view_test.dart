@@ -10,10 +10,18 @@ Future<void> _pump(WidgetTester tester, Widget child) async {
   await tester.pumpWidget(
     ProviderScope(
       child: MaterialApp(
-        home: KaiTheme(
-          child: Scaffold(
-            backgroundColor: const Color(0xFF08080A),
-            body: SingleChildScrollView(child: child),
+        themeMode: ThemeMode.dark,
+        darkTheme: ThemeData.dark(),
+        home: MediaQuery(
+          data: const MediaQueryData(
+            platformBrightness: Brightness.dark,
+            size: Size(360, 640),
+          ),
+          child: KaiTheme(
+            child: Scaffold(
+              backgroundColor: const Color(0xFF08080A),
+              body: SingleChildScrollView(child: child),
+            ),
           ),
         ),
       ),

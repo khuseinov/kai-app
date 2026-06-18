@@ -83,6 +83,8 @@ class KaiInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
+    final scale = context.scale;
+    final textScale = context.textScale;
 
     final isPill = _variant == _KaiInputVariant.pill;
     final radius = isPill ? KaiRadius.brPill : KaiRadius.br2;
@@ -91,10 +93,10 @@ class KaiInput extends StatelessWidget {
     // KaiType.small is 14px/400 — copyWith to 13.5px + lh 1.4 per canon.
     final textStyle = KaiType.small(
       color: enabled ? c.ink1 : c.ink4,
-    ).copyWith(fontSize: 13.5, height: 1.4);
+    ).copyWith(fontSize: 13.5 * textScale, height: 1.4);
 
     final hintStyle = KaiType.small(color: c.ink4)
-        .copyWith(fontSize: 13.5, height: 1.4);
+        .copyWith(fontSize: 13.5 * textScale, height: 1.4);
 
     // canon: compose pill border = 0.8px solid — verified spec-viewer 2026-05-29.
     // Flutter default BorderSide.width is 1.0; use 0.8 to match exactly.
@@ -117,15 +119,15 @@ class KaiInput extends StatelessWidget {
     //     approximated as: left=14, right=5, top=5, bottom=5
     //   line (search):  symmetric compact — 8px vertical, 12px horizontal
     final contentPadding = isPill
-        ? const EdgeInsets.only(
-            left: 14, // canon: 14px left padding
-            right: 5, // canon: 5px right padding
-            top: 5, // canon: 5px top padding
-            bottom: 5, // canon: 5px bottom padding
+        ? EdgeInsets.only(
+            left: 14 * scale, // canon: 14px left padding
+            right: 5 * scale, // canon: 5px right padding
+            top: 5 * scale, // canon: 5px top padding
+            bottom: 5 * scale, // canon: 5px bottom padding
           )
-        : const EdgeInsets.symmetric(
-            horizontal: KaiSpace.s3, // 12px — compact line input
-            vertical: KaiSpace.s2, // 8px — compact line input
+        : EdgeInsets.symmetric(
+            horizontal: KaiSpace.s3 * scale, // 12px — compact line input
+            vertical: KaiSpace.s2 * scale, // 8px — compact line input
           );
 
     return TextField(
@@ -148,7 +150,7 @@ class KaiInput extends StatelessWidget {
         disabledBorder: disabledBorder,
         prefixIcon: prefix,
         prefixIconConstraints: prefix != null
-            ? const BoxConstraints(minWidth: 32, minHeight: 32)
+            ? BoxConstraints(minWidth: 32 * scale, minHeight: 32 * scale)
             : null,
       ),
       onChanged: onChanged,

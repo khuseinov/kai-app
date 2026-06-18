@@ -44,6 +44,7 @@ class _RoomPageState extends ConsumerState<RoomPage> {
   double _dragDeltaX = 0;
   bool _isDictating = false;
   Timer? _dictationTimer;
+  bool _navRouteActive = false;
 
   @override
   void initState() {
@@ -112,9 +113,6 @@ class _RoomPageState extends ConsumerState<RoomPage> {
 
   void _openNav() {
     ref.read(roomNotifierProvider.notifier).openNavPanel();
-    Navigator.of(context).push(NavPanelRoute()).then((_) {
-      ref.read(roomNotifierProvider.notifier).closeNavPanel();
-    });
   }
 
   /// Maps v2-style compose state from [RoomStateData] → v3 [KaiSendState].
@@ -132,8 +130,22 @@ class _RoomPageState extends ConsumerState<RoomPage> {
   @override
   Widget build(BuildContext context) {
     final roomState = ref.watch(roomNotifierProvider);
+
+    if (roomState.currentFrame == RoomFrame.panel && !_navRouteActive) {
+      _navRouteActive = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).push(NavPanelRoute()).then((_) {
+            _navRouteActive = false;
+            ref.read(roomNotifierProvider.notifier).closeNavPanel();
+          });
+        }
+      });
+    }
+
     final colors = KaiTheme.of(context).colors;
     final topInset = MediaQuery.of(context).padding.top;
+    final scale = context.scale;
 
     return Scaffold(
       backgroundColor: colors.bg,
@@ -146,13 +158,13 @@ class _RoomPageState extends ConsumerState<RoomPage> {
               children: [
                 Column(
                   children: [
-                    SizedBox(height: topInset + 4),
+                    SizedBox(height: topInset + 4 * scale),
                   RepaintBoundary(
                     child: SizedBox(
-                      height: 16,
+                      height: 16 * scale,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 18),
-                        child: KaiTideCurve(state: roomState.tideState, height: 16),
+                        padding: EdgeInsets.symmetric(horizontal: 18 * scale),
+                        child: KaiTideCurve(state: roomState.tideState, height: 16 * scale),
                       ),
                     ),
                   ),
@@ -163,8 +175,8 @@ class _RoomPageState extends ConsumerState<RoomPage> {
                       partialContent: roomState.streamingPartial,
                       thinkingStep: roomState.thinkingStep,
                       bottomPadding: (roomState.isOffline || roomState.isRateLimited || roomState.isCrisis)
-                          ? 16.0  // Small padding if offline block is present, since the column itself has the 88px spacer
-                          : 88.0, // Full 88px padding to avoid compose island
+                          ? 16.0 * scale // Small padding if offline block is present, since the column itself has the 88px spacer
+                          : 88.0 * scale, // Full 88px padding to avoid compose island
                       onRetry: () {
                         final messages = roomState.messages;
                         var lastUserText = '';
@@ -213,15 +225,15 @@ class _RoomPageState extends ConsumerState<RoomPage> {
                   // Reserve space so edge state blocks don't hide behind compose island.
                   // Only active when edge blocks are present; otherwise padding is inside ListView.
                   if (roomState.isOffline || roomState.isRateLimited || roomState.isCrisis)
-                    const SizedBox(height: 88)
+                    SizedBox(height: 88 * scale)
                   else
                     const SizedBox(height: 0),
                 ],
               ),
               Positioned(
-                left: 18,
-                right: 18,
-                bottom: 26,
+                left: 18 * scale,
+                right: 18 * scale,
+                bottom: 26 * scale,
                 child: KaiComposeIsland(
                   controller: _composeController,
                   onSend: _onSend,

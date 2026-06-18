@@ -7,7 +7,6 @@ import 'package:kai_app/features/voice/presentation/providers/voice_notifier.dar
 import 'package:kai_app/features/voice/presentation/providers/voice_state.dart';
 import 'package:kai_app/features/voice/presentation/widgets/voice_home_indicator.dart';
 import 'package:kai_app/features/voice/presentation/widgets/voice_layout_content.dart';
-import 'package:kai_app/features/voice/presentation/widgets/voice_notch_island.dart';
 import 'package:kai_app/features/voice/presentation/widgets/voice_transcript_sheet.dart';
 
 class VoicePage extends HookConsumerWidget {
@@ -15,7 +14,8 @@ class VoicePage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const voiceBg = Color(0xFF08080A);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final voiceBg = isDark ? const Color(0xFF08080A) : const Color(0xFFFAFAF9);
     final state = ref.watch(voiceNotifierProvider);
     final notifier = ref.read(voiceNotifierProvider.notifier);
 
@@ -98,7 +98,6 @@ class VoicePage extends HookConsumerWidget {
               ),
 
               // Top and Bottom overlays
-              const VoiceNotchIsland(),
               const VoiceHomeIndicator(),
             ],
           ),
