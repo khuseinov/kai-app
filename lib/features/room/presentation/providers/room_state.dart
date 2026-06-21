@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kai_app/core/network/connectivity_listener.dart';
 import 'package:kai_app/core/providers/root.dart';
+import 'package:kai_app/core/storage/hive_setup.dart';
 import 'package:kai_app/design_system/tokens/kai_tide.dart';
+import 'package:kai_app/features/room/data/models/message.dart';
 import 'package:kai_app/features/room/domain/repositories/chat_repository.dart';
 import 'package:kai_app/features/room/presentation/widgets/kai_chat_list.dart';
 import 'package:uuid/uuid.dart';
@@ -360,12 +362,66 @@ class RoomNotifier extends Notifier<RoomStateData> {
     _resetInactivityTimer();
   }
 
-  void switchSession(String sessionId) {
+  Future<void> switchSession(String sessionId) async {
     state = RoomStateData(
       tideState: KaiTide.idle,
       activeSessionId: sessionId,
+      currentFrame: RoomFrame.live,
     );
     _resetInactivityTimer();
+
+    final env = ref.read(envProvider);
+    final loadedMessages = <Map<String, dynamic>>[];
+
+    if (env.useRealChat) {
+      try {
+        final dio = ref.read(dioProvider);
+        final response = await dio.get<List<dynamic>>('/sessions/$sessionId/messages');
+        if (response.data != null) {
+          for (final item in response.data!) {
+            final data = item as Map<String, dynamic>;
+            final role = data['role'] == 'assistant' ? 'kai' : 'user';
+            loadedMessages.add({
+              'id': const Uuid().v4(),
+              'role': role,
+              'content': data['content'] as String? ?? '',
+              'status': 'ok',
+            });
+          }
+        }
+      } catch (_) {
+        loadedMessages.addAll(_loadLocalMessages(sessionId));
+      }
+    } else {
+      loadedMessages.addAll(_loadLocalMessages(sessionId));
+    }
+
+    state = state.copyWith(
+      messages: loadedMessages,
+      currentFrame: loadedMessages.isEmpty ? RoomFrame.empty : RoomFrame.live,
+    );
+  }
+
+  List<Map<String, dynamic>> _loadLocalMessages(String sessionId) {
+    try {
+      final box = HiveSetup.messages;
+      final sessionMsgs = box.values
+          .where((msg) => msg.sessionId == sessionId)
+          .toList()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      return sessionMsgs
+          .map(
+            (msg) => <String, dynamic>{
+              'id': msg.id,
+              'role': msg.role == MessageRole.user ? 'user' : 'kai',
+              'content': msg.content,
+              'status': msg.status == MessageStatus.sent ? 'ok' : 'error',
+            },
+          )
+          .toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   Future<void> cancelStreaming() async {

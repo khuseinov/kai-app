@@ -35,18 +35,21 @@ class EnvConfig {
     this.hfToken,
   });
 
-  /// Read from `dotenv.env`, falling back to sensible defaults.
   factory EnvConfig.fromDotenv() {
-    final url = dotenv.maybeGet('API_BASE_URL') ?? 'https://api.wize.travel';
-    final useReal = dotenv.maybeGet('USE_REAL_CHAT') == 'true';
-    final internalToken = dotenv.maybeGet('INTERNAL_HEALTH_TOKEN');
-    final hfToken = dotenv.maybeGet('HF_TOKEN');
-    return EnvConfig(
-      apiBaseUrl: url,
-      useRealChat: useReal,
-      internalHealthToken: internalToken,
-      hfToken: hfToken,
-    );
+    try {
+      final url = dotenv.maybeGet('API_BASE_URL') ?? 'https://api.wize.travel';
+      final useReal = dotenv.maybeGet('USE_REAL_CHAT') == 'true';
+      final internalToken = dotenv.maybeGet('INTERNAL_HEALTH_TOKEN');
+      final hfToken = dotenv.maybeGet('HF_TOKEN');
+      return EnvConfig(
+        apiBaseUrl: url,
+        useRealChat: useReal,
+        internalHealthToken: internalToken,
+        hfToken: hfToken,
+      );
+    } catch (_) {
+      return const EnvConfig(apiBaseUrl: 'https://api.wize.travel');
+    }
   }
 
   final String apiBaseUrl;
@@ -161,6 +164,8 @@ ChatRepository chatRepository(ChatRepositoryRef ref) {
     return RealChatRepository.withDio(
       ref.watch(dioProvider),
       userId: ref.watch(userIdProvider),
+      hfToken: env.hfToken,
+      internalHealthToken: env.internalHealthToken,
     );
   }
   return MockChatRepository();
@@ -170,7 +175,12 @@ ChatRepository chatRepository(ChatRepositoryRef ref) {
 @Riverpod(keepAlive: true)
 SessionRepository sessionRepository(SessionRepositoryRef ref) {
   final env = ref.watch(envProvider);
-  if (env.useRealChat) return RealSessionRepository();
+  if (env.useRealChat) {
+    return RealSessionRepository.withDio(
+      ref.watch(dioProvider),
+      userId: ref.watch(userIdProvider),
+    );
+  }
   return MockSessionRepository();
 }
 
@@ -178,6 +188,11 @@ SessionRepository sessionRepository(SessionRepositoryRef ref) {
 @Riverpod(keepAlive: true)
 MemoryRepository memoryRepository(MemoryRepositoryRef ref) {
   final env = ref.watch(envProvider);
-  if (env.useRealChat) return MemoryRepositoryImpl();
+  if (env.useRealChat) {
+    return MemoryRepositoryImpl.withDio(
+      ref.watch(dioProvider),
+      userId: ref.watch(userIdProvider),
+    );
+  }
   return MockMemoryRepository();
 }

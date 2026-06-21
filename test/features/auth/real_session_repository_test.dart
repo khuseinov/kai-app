@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
@@ -27,7 +28,7 @@ void main() {
       Hive.registerAdapter(AppSettingsAdapter());
     }
     await Hive.openBox<Session>(HiveSetup.sessionsBoxName);
-    repo = RealSessionRepository();
+    repo = RealSessionRepository(dio: Dio(), userId: 'test-user');
   });
 
   tearDown(() async {

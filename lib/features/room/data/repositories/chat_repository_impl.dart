@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:kai_app/core/network/interceptors/error_interceptor.dart';
 import 'package:kai_app/core/network/sse_parser.dart';
 import 'package:kai_app/core/storage/hive_setup.dart';
 import 'package:kai_app/features/room/data/models/message.dart';
+import 'package:kai_app/features/room/data/repositories/stream_opener.dart';
 import 'package:kai_app/features/room/domain/repositories/chat_repository.dart';
 import 'package:uuid/uuid.dart';
 
@@ -31,20 +34,50 @@ class RealChatRepository implements ChatRepository {
   RealChatRepository({required SseStreamOpener streamOpener})
       : _streamOpener = streamOpener;
 
-  /// Production constructor — uses Dio.
-  factory RealChatRepository.withDio(Dio dio, {required String userId}) {
+  /// Production constructor — uses Dio on mobile/desktop and browser Fetch on Web.
+  factory RealChatRepository.withDio(
+    Dio dio, {
+    required String userId,
+    String? hfToken,
+    String? internalHealthToken,
+  }) {
     return RealChatRepository(
       streamOpener: (text, sessionId) async* {
-        final response = await dio.post<ResponseBody>(
-          '/chat/stream',
-          data: <String, dynamic>{
+        if (kIsWeb) {
+          // Bypass Dio's buffered XHR on Web to get true SSE streaming via browser Fetch API
+          final url = '${dio.options.baseUrl}/chat/stream';
+          final bodyJson = jsonEncode(<String, dynamic>{
             'message': text,
             'user_id': userId,
             'session_id': sessionId,
-          },
-          options: Options(responseType: ResponseType.stream),
-        );
-        yield* response.data!.stream;
+          });
+          final headers = <String, String>{
+            'Content-Type': 'application/json',
+            'Accept': 'text/event-stream',
+          };
+
+          if (hfToken != null && hfToken.isNotEmpty) {
+            headers['Authorization'] = 'Bearer $hfToken';
+          } else if (internalHealthToken != null && internalHealthToken.isNotEmpty) {
+            headers['Authorization'] = 'Bearer $internalHealthToken';
+          }
+          if (internalHealthToken != null && internalHealthToken.isNotEmpty) {
+            headers['X-Internal-Token'] = internalHealthToken;
+          }
+
+          yield* openWebStream(url, bodyJson, headers);
+        } else {
+          final response = await dio.post<ResponseBody>(
+            '/chat/stream',
+            data: <String, dynamic>{
+              'message': text,
+              'user_id': userId,
+              'session_id': sessionId,
+            },
+            options: Options(responseType: ResponseType.stream),
+          );
+          yield* response.data!.stream;
+        }
       },
     );
   }
