@@ -19,6 +19,14 @@ workflows:
           flutter precache
       - name: Get dependencies
         script: flutter pub get
+      - name: Generate .env
+        script: |
+          cat > .env <<EOF
+          API_BASE_URL=${API_BASE_URL:-https://rustamkhuseinov-kai.hf.space}
+          USE_REAL_CHAT=${USE_REAL_CHAT:-true}
+          HF_TOKEN=$HF_TOKEN
+          INTERNAL_HEALTH_TOKEN=$INTERNAL_HEALTH_TOKEN
+          EOF
       - name: Analyze
         script: flutter analyze --no-fatal-infos
       - name: Run tests
@@ -58,6 +66,14 @@ workflows:
           flutter precache
       - name: Get dependencies
         script: flutter pub get
+      - name: Generate .env
+        script: |
+          cat > .env <<EOF
+          API_BASE_URL=${API_BASE_URL:-https://rustamkhuseinov-kai.hf.space}
+          USE_REAL_CHAT=${USE_REAL_CHAT:-true}
+          HF_TOKEN=$HF_TOKEN
+          INTERNAL_HEALTH_TOKEN=$INTERNAL_HEALTH_TOKEN
+          EOF
       - name: Analyze
         script: flutter analyze --no-fatal-infos
       - name: Run tests
