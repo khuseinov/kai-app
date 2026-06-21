@@ -53,9 +53,21 @@ lib/
 
 ## Backend Connection
 
-Default: `http://10.0.2.2:8000` (Android emulator → host machine).
+Configuration is loaded from the bundled `.env` asset at startup:
 
-Change in Settings screen or set `api_base_url` in Hive box `settings`.
+```text
+API_BASE_URL=https://<username>-<space>.hf.space
+USE_REAL_CHAT=true
+HF_TOKEN=hf_...          # Required when the HF Space is private
+INTERNAL_HEALTH_TOKEN=... # Used by backend admin/health endpoints
+```
+
+- `API_BASE_URL` — base URL of the kai-core backend.
+- `USE_REAL_CHAT=true` — switches from mock chat to the real Dio-backed repository.
+- `HF_TOKEN` — Hugging Face access token. Required when the Space is private so HF ingress forwards requests to the container.
+- `INTERNAL_HEALTH_TOKEN` — backend internal token for `/sessions`, `/user`, `/health`, `/admin` endpoints.
+
+If `.env` is missing, the app falls back to `https://api.wize.travel` (non-functional placeholder).
 
 ## CI/CD
 

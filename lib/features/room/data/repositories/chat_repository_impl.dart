@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:kai_app/core/network/interceptors/error_interceptor.dart';
 import 'package:kai_app/core/network/sse_parser.dart';
 import 'package:kai_app/core/storage/hive_setup.dart';
 import 'package:kai_app/features/room/data/models/message.dart';
@@ -131,7 +132,7 @@ class RealChatRepository implements ChatRepository {
       if (e.response?.statusCode == 429) {
         yield ChatEventRateLimit(retryAfter: _parseRetryAfter(e.response));
       } else {
-        yield const ChatEventError(message: 'Connection error');
+        yield ChatEventError(message: _humanReadableError(e));
       }
     } catch (_) {
       // T34: on unexpected error, surface it to consumer
@@ -164,6 +165,30 @@ class RealChatRepository implements ChatRepository {
         // Persistence failure is non-fatal — stream continues
       }
     }
+  }
+
+  String _humanReadableError(DioException e) {
+    final wrapped = e.error;
+    if (wrapped is NetworkException) {
+      final status = wrapped.statusCode;
+      switch (wrapped.failure) {
+        case NetworkFailure.offline:
+          return 'No internet connection';
+        case NetworkFailure.timeout:
+          return 'Request timed out. The server is taking too long to respond.';
+        case NetworkFailure.clientError when status == 401 || status == 403:
+          return 'Authorization failed. Check your HF_TOKEN in .env.';
+        case NetworkFailure.clientError when status == 404:
+          return 'Backend is unreachable. The Space may be private, stopped, or the URL is wrong.';
+        case NetworkFailure.serverError:
+          return 'Server error. Please try again later.';
+        case NetworkFailure.cancelled:
+          return 'Request was cancelled.';
+        case _:
+          break;
+      }
+    }
+    return 'Connection error';
   }
 
   Duration _parseRetryAfter(Response<dynamic>? response) {

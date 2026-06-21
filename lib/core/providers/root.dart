@@ -32,17 +32,20 @@ class EnvConfig {
     required this.apiBaseUrl,
     this.useRealChat = false,
     this.internalHealthToken,
+    this.hfToken,
   });
 
   /// Read from `dotenv.env`, falling back to sensible defaults.
   factory EnvConfig.fromDotenv() {
     final url = dotenv.maybeGet('API_BASE_URL') ?? 'https://api.wize.travel';
     final useReal = dotenv.maybeGet('USE_REAL_CHAT') == 'true';
-    final token = dotenv.maybeGet('INTERNAL_HEALTH_TOKEN');
+    final internalToken = dotenv.maybeGet('INTERNAL_HEALTH_TOKEN');
+    final hfToken = dotenv.maybeGet('HF_TOKEN');
     return EnvConfig(
       apiBaseUrl: url,
       useRealChat: useReal,
-      internalHealthToken: token,
+      internalHealthToken: internalToken,
+      hfToken: hfToken,
     );
   }
 
@@ -54,6 +57,10 @@ class EnvConfig {
 
   /// Token for backend admin/health endpoints (e.g. INTERNAL_HEALTH_TOKEN).
   final String? internalHealthToken;
+
+  /// Hugging Face access token. Required when the Space is private so that
+  /// the HF edge proxy forwards requests to the container.
+  final String? hfToken;
 }
 
 /// Env configuration. Overridden in `bootstrap` / tests as needed.
@@ -83,7 +90,10 @@ Dio dio(DioRef ref) {
     baseUrl: env.apiBaseUrl,
     interceptors: [
       ConnectivityInterceptor(),
-      AuthInterceptor(token: env.internalHealthToken),
+      AuthInterceptor(
+        hfToken: env.hfToken,
+        internalToken: env.internalHealthToken,
+      ),
       LoggingInterceptor(),
       retry,
       ErrorInterceptor(),
