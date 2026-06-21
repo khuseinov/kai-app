@@ -31,12 +31,16 @@ class RealChatRepository implements ChatRepository {
       : _streamOpener = streamOpener;
 
   /// Production constructor — uses Dio.
-  factory RealChatRepository.withDio(Dio dio) {
+  factory RealChatRepository.withDio(Dio dio, {required String userId}) {
     return RealChatRepository(
       streamOpener: (text, sessionId) async* {
         final response = await dio.post<ResponseBody>(
           '/chat/stream',
-          data: <String, dynamic>{'text': text, 'session_id': sessionId},
+          data: <String, dynamic>{
+            'message': text,
+            'user_id': userId,
+            'session_id': sessionId,
+          },
           options: Options(responseType: ResponseType.stream),
         );
         yield* response.data!.stream;

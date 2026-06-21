@@ -1,16 +1,23 @@
 import 'package:dio/dio.dart';
 
-/// Auth interceptor — currently pass-through.
+/// Injects the internal health token when configured.
 ///
-// TODO(phase-2): inject anonymous session header on every request once
-/// `lib/core/session/anonymous_session.dart` is wired.
+/// Normal chat endpoints do not require auth, but admin/health endpoints
+/// (`/sessions`, `/user`, `/health`) use it via `require_internal_auth`.
 class AuthInterceptor extends Interceptor {
+  const AuthInterceptor({String? token}) : _token = token;
+
+  final String? _token;
+
   @override
   void onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) {
-    // Pass-through in phase 1. No auth headers yet.
+    final token = _token;
+    if (token != null && token.isNotEmpty) {
+      options.headers['Authorization'] = 'Bearer $token';
+    }
     handler.next(options);
   }
 }

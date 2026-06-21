@@ -81,7 +81,7 @@ void main() {
   group('T21 — correction replaces, not appends', () {
     test('correction event replaces kai message content in Hive', () async {
       const sseData =
-          'event: message\ndata: {"content":"hello","messageId":"m1"}\n\n'
+          'event: message\ndata: {"choices":[{"delta":{"content":"hello"}}]}\n\n'
           'event: correction\ndata: {"content":"fixed","messageId":"m1"}\n\n'
           'event: done\ndata: {}\n\n';
       final repo = _repoWithSse(sseData);
@@ -101,7 +101,7 @@ void main() {
 
     test('multiple corrections: last one wins', () async {
       const sseData =
-          'event: message\ndata: {"content":"v1","messageId":"m1"}\n\n'
+          'event: message\ndata: {"choices":[{"delta":{"content":"v1"}}]}\n\n'
           'event: correction\ndata: {"content":"v2","messageId":"m1"}\n\n'
           'event: correction\ndata: {"content":"v3","messageId":"m1"}\n\n'
           'event: done\ndata: {}\n\n';
@@ -135,7 +135,7 @@ void main() {
       // Push events after cancel — should not be processed
       controller.add(
         utf8.encode(
-          'event: message\ndata: {"content":"late","messageId":"m1"}\n\n',
+          'event: message\ndata: {"choices":[{"delta":{"content":"late"}}]}\n\n',
         ),
       );
       await Future<void>.delayed(const Duration(milliseconds: 10));
@@ -181,7 +181,7 @@ void main() {
     test('no events emitted after done', () async {
       const sseData =
           'event: done\ndata: {}\n\n'
-          'event: message\ndata: {"content":"after","messageId":"m1"}\n\n';
+          'event: message\ndata: {"choices":[{"delta":{"content":"after"}}]}\n\n';
       final repo = _repoWithSse(sseData);
       final events = await repo.sendMessage('test', 's1').toList();
       // Only done, no message after it
@@ -230,7 +230,7 @@ void main() {
 
     test('done with content: kai message IS persisted', () async {
       const sseData =
-          'event: message\ndata: {"content":"hello","messageId":"m1"}\n\n'
+          'event: message\ndata: {"choices":[{"delta":{"content":"hello"}}]}\n\n'
           'event: done\ndata: {}\n\n';
       final repo = _repoWithSse(sseData);
       await repo.sendMessage('test', 's1').drain<void>();
@@ -241,7 +241,7 @@ void main() {
 
     test('done with only thinking steps: kai message IS persisted', () async {
       const sseData =
-          'event: thinking\ndata: {"step":"planning"}\n\n'
+          'event: thinking\ndata: {"choices":[{"delta":{"content":"planning"}}]}\n\n'
           'event: done\ndata: {}\n\n';
       final repo = _repoWithSse(sseData);
       await repo.sendMessage('test', 's1').drain<void>();
@@ -257,7 +257,7 @@ void main() {
   group('T33 — safelyPersistMessages', () {
     test('completes normally on happy path', () async {
       const sseData =
-          'event: message\ndata: {"content":"ok","messageId":"m1"}\n\n'
+          'event: message\ndata: {"choices":[{"delta":{"content":"ok"}}]}\n\n'
           'event: done\ndata: {}\n\n';
       final repo = _repoWithSse(sseData);
       await expectLater(repo.sendMessage('test', 's1').drain<void>(), completes);
@@ -265,7 +265,7 @@ void main() {
 
     test('user and kai messages are both persisted correctly', () async {
       const sseData =
-          'event: message\ndata: {"content":"reply","messageId":"m1"}\n\n'
+          'event: message\ndata: {"choices":[{"delta":{"content":"reply"}}]}\n\n'
           'event: done\ndata: {}\n\n';
       final repo = _repoWithSse(sseData);
       await repo.sendMessage('query', 's1').drain<void>();

@@ -25,8 +25,14 @@ class HiveSetup {
   /// Box of [MemoryFact] keyed by fact id.
   static const String memoryFactsBoxName = 'memory_facts_v1';
 
+  /// Box for the stable anonymous user id (single value).
+  static const String userIdBoxName = 'user_id_v1';
+
   /// Stable key for the single [AppSettings] record.
   static const String settingsKey = 'app';
+
+  /// Stable key for the single user id record.
+  static const String userIdKey = 'uid';
 
   static bool _initialized = false;
 
@@ -41,6 +47,7 @@ class HiveSetup {
       Hive.openBox<Message>(messagesBoxName),
       Hive.openBox<AppSettings>(settingsBoxName),
       Hive.openBox<MemoryFact>(memoryFactsBoxName),
+      Hive.openBox<String>(userIdBoxName),
     ]);
     _initialized = true;
   }
@@ -56,6 +63,9 @@ class HiveSetup {
 
   /// Box accessor — memory facts.
   static Box<MemoryFact> get memoryFacts => Hive.box<MemoryFact>(memoryFactsBoxName);
+
+  /// Box accessor — stable user id.
+  static Box<String> get userIds => Hive.box<String>(userIdBoxName);
 
   static void _registerAdapters() {
     if (!Hive.isAdapterRegistered(0)) {

@@ -1,0 +1,196 @@
+{
+  "hunter": "academic",
+  "status": "DONE",
+  "topic": "AI memory systems for LLMs and AI agents — survey papers, benchmarks, and empirical research",
+  "findings": [
+    {
+      "claim": "AI Meets Brain survey bridges cognitive neuroscience with LLM agent memory, proposing a unified taxonomy across biological memory types (sensory, short-term, long-term with episodic/semantic/procedural subtypes) and artificial memory implementations (contextual, parametric, external storage). Includes security analysis of agent memory attacks/defenses.",
+      "evidence": "Memory serves as the pivotal nexus bridging past and future... this survey systematically synthesizes interdisciplinary knowledge of memory, connecting insights from cognitive neuroscience with LLM-driven agents.",
+      "sources": ["https://arxiv.org/abs/2512.23343"],
+      "confidence": 0.8,
+      "kai_relevance": "Direct philosophical/anatomical grounding for Kai's humanistic memory architecture — justifies bridging human memory models with LLM agent memory design.",
+      "paper_citations": "unknown (published Dec 2025, likely <10)",
+      "venue": "arXiv preprint"
+    },
+    {
+      "claim": "Memory in LLM-based Multi-agent Systems (Emory survey) is the first comprehensive review identifying synchronization, access control, scalability, alignment, and safety as distinct research challenges unique to multi-agent memory — not trivial extensions of single-agent memory.",
+      "evidence": "Memory in LLM-MAS is not a trivial extension of single-agent memory but a distinct research frontier—with new challenges in synchronization, access control, scalability, alignment, and safety.",
+      "sources": ["https://www.techrxiv.org/doi/10.36227/techrxiv.176539617.79044553"],
+      "confidence": 0.85,
+      "kai_relevance": "Directly informs Kai-1's multi-agent memory topology — must address consistency, access protocols, and shared memory space design.",
+      "paper_citations": "unknown (published Dec 2025, PAKDD 2026)",
+      "venue": "PAKDD 2026 (Springer) / TechRxiv preprint"
+    },
+    {
+      "claim": "MemGPT introduces virtual context management via hierarchical memory tiers (main context, working context, archival storage), drawing OS paging inspiration. Enables LLMs to operate beyond context windows. Achieves 35% F1 improvement on document QA exceeding context lengths.",
+      "evidence": "We propose virtual context management, a technique drawing inspiration from hierarchical memory systems in traditional operating systems that provide the appearance of large memory resources through data movement between fast and slow memory.",
+      "sources": ["https://arxiv.org/abs/2310.08560"],
+      "confidence": 0.9,
+      "kai_relevance": "Core reference architecture for Kai-1 external memory — OS-inspired tiered memory directly applicable to Kai's user memory persistence design.",
+      "paper_citations": 806,
+      "venue": "arXiv preprint (landmark, >50 citations)"
+    },
+    {
+      "claim": "Generative Agents (Stanford) demonstrate LLM-powered agents with memory stream, reflection, and retrieval produce emergent social behaviors (e.g., autonomously organizing a Valentine's party via memory-driven planning, conversation, and coordination across 25 agents).",
+      "evidence": "Generative agents wake up, cook breakfast, and head to work; artists paint, while authors write; they form opinions, notice each other, and initiate conversations; they remember and reflect on days past as they plan the next day.",
+      "sources": ["https://arxiv.org/abs/2304.03442"],
+      "confidence": 0.9,
+      "kai_relevance": "Foundational pattern for Kai's agent memory architecture — memory stream + reflection + retrieval is the baseline for Kai-1 agentic memory design.",
+      "paper_citations": 4448,
+      "venue": "UIST 2023 (landmark, >1000 citations)"
+    },
+    {
+      "claim": "Infini-Attention (DeepMind) integrates compressive memory into standard attention, enabling infinite context processing with bounded memory and computation. Combines masked local attention with long-term linear attention in a single Transformer block.",
+      "evidence": "Infini-attention incorporates a compressive memory into the vanilla attention mechanism and builds in both masked local attention and long-term linear attention mechanisms in a single Transformer block.",
+      "sources": ["https://arxiv.org/abs/2404.07143"],
+      "confidence": 0.9,
+      "kai_relevance": "Provides the architectural mechanism for infinite-context memory within the LLM itself — alternative to external RAG for Kai-1 long-context tasks.",
+      "paper_citations": 212,
+      "venue": "arXiv preprint (DeepMind, >50 citations)"
+    },
+    {
+      "claim": "LongMemEval benchmarks five core long-term memory abilities (information extraction, multi-session reasoning, temporal reasoning, knowledge updates, abstention) with 500 questions across 115K–1.5M token histories. Long-context LLMs show 30-60% accuracy drop; proposes three-stage memory framework (indexing, retrieval, reading).",
+      "evidence": "Long-context LLMs show a 30%∼60% performance drop on LongMemEvalS... We then present a unified framework that breaks down the long-term memory design into three stages: indexing, retrieval, and reading.",
+      "sources": ["https://arxiv.org/abs/2410.10813"],
+      "confidence": 0.9,
+      "kai_relevance": "Primary benchmark for evaluating Kai-1 memory — covers all critical memory competencies; three-stage framework guides Kai memory system design.",
+      "paper_citations": 173,
+      "venue": "ICLR 2025"
+    },
+    {
+      "claim": "MemoryAgentBench (accepted ICLR 2026) evaluates four core memory competencies (accurate retrieval, test-time learning, long-range understanding, conflict resolution). MemGPT, MIRIX, and RAG agents all fail to master all four; RAG strong on retrieval but weak on global understanding.",
+      "evidence": "Current methods fall short of mastering all four competencies, underscoring the need for further research into comprehensive memory mechanisms for LLM agents.",
+      "sources": ["https://arxiv.org/abs/2507.05257"],
+      "confidence": 0.85,
+      "kai_relevance": "Directly evaluates the type of memory agent Kai-1 will be; identifies specific failure modes (RAG's global understanding gap) that Kai architecture must address.",
+      "paper_citations": 117,
+      "venue": "ICLR 2026"
+    },
+    {
+      "claim": "Terminal-Bench (ICLR 2026) provides 89 hard real-world terminal tasks for evaluating agent memory and execution. Frontier agents resolve <65%. Covers software engineering, ML, security, data science. Not strictly a memory benchmark but tests procedural/episodic memory over long horizons.",
+      "evidence": "Frontier models and agents score less than 65% on the benchmark... each task features a unique environment, human-written solution, and comprehensive tests for verification.",
+      "sources": ["https://arxiv.org/abs/2601.11868"],
+      "confidence": 0.75,
+      "kai_relevance": "Relevant for evaluating Kai-1 procedural memory and long-horizon task execution — complements LongMemEval on the procedural/episodic dimension.",
+      "paper_citations": "unknown (<10, published Jan 2026)",
+      "venue": "ICLR 2026"
+    },
+    {
+      "claim": "Rethinking Memory Mechanisms of Foundation Agents (multi-institutional survey, Feb 2026) provides unified taxonomy across three dimensions: memory substrate (internal/external), cognitive mechanism (episodic/semantic/sensory/working/procedural), and memory subject (agent/user-centric). Reviews hundreds of papers.",
+      "evidence": "We provide a unified view of foundation agent memory along three dimensions: memory substrate (internal and external), cognitive mechanism (episodic, semantic, sensory, working, and procedural), and memory subject (agent- and user-centric).",
+      "sources": ["https://arxiv.org/abs/2602.06052"],
+      "confidence": 0.85,
+      "kai_relevance": "Most comprehensive recent survey; the three-dimensional taxonomy (substrate × cognitive mechanism × subject) is directly applicable to Kai-1 memory classification and design decisions.",
+      "paper_citations": "unknown (<10, published Feb 2026)",
+      "venue": "arXiv preprint (multi-institution, 45+ authors)"
+    },
+    {
+      "claim": "Rethinking Memory in AI: Taxonomy, Operations, Topics, and Future Directions introduces six fundamental memory operations (Consolidation, Updating, Indexing, Forgetting, Retrieval, Compression) and categorizes memory representations into parametric, contextual structured, and contextual unstructured. Analyzed 30K top-tier conference papers (2022-2025) using Relative Citation Index.",
+      "evidence": "We first categorize memory representations into parametric, contextual structured, and contextual unstructured and then introduce six fundamental memory operations... We collect and review more than 30K top-tier conference papers published between 2022-2025.",
+      "sources": ["https://arxiv.org/abs/2505.00675"],
+      "confidence": 0.8,
+      "kai_relevance": "Provides the atomic operations framework for building Kai's memory management layer — the six operations map directly to memory system engineering requirements.",
+      "paper_citations": "unknown (published May 2025, likely <30)",
+      "venue": "arXiv preprint (CUHK / Edinburgh / Huawei)"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://arxiv.org/abs/2310.08560",
+      "title": "MemGPT: Towards LLMs as Operating Systems",
+      "date": "2023-10-12",
+      "tier": "Official",
+      "credibility": 0.95
+    },
+    {
+      "url": "https://arxiv.org/abs/2304.03442",
+      "title": "Generative Agents: Interactive Simulacra of Human Behavior",
+      "date": "2023-04-07",
+      "tier": "Peer-reviewed",
+      "credibility": 0.95
+    },
+    {
+      "url": "https://arxiv.org/abs/2404.07143",
+      "title": "Leave No Context Behind: Efficient Infinite Context Transformers with Infini-attention",
+      "date": "2024-04-10",
+      "tier": "Official",
+      "credibility": 0.9
+    },
+    {
+      "url": "https://arxiv.org/abs/2410.10813",
+      "title": "LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory",
+      "date": "2024-10-14",
+      "tier": "Peer-reviewed",
+      "credibility": 0.9
+    },
+    {
+      "url": "https://arxiv.org/abs/2507.05257",
+      "title": "Evaluating Memory in LLM Agents via Incremental Multi-Turn Interactions (MemoryAgentBench)",
+      "date": "2025-07-07",
+      "tier": "Peer-reviewed",
+      "credibility": 0.9
+    },
+    {
+      "url": "https://arxiv.org/abs/2601.11868",
+      "title": "Terminal-Bench: Benchmarking Agents on Hard, Realistic Tasks in Command Line Interfaces",
+      "date": "2026-01-17",
+      "tier": "Peer-reviewed",
+      "credibility": 0.85
+    },
+    {
+      "url": "https://www.techrxiv.org/doi/10.36227/techrxiv.176539617.79044553",
+      "title": "Memory in LLM-based Multi-agent Systems: Mechanisms, Challenges, and Collective Intelligence",
+      "date": "2025-12-10",
+      "tier": "Reputable secondary",
+      "credibility": 0.8
+    },
+    {
+      "url": "https://arxiv.org/abs/2512.23343",
+      "title": "AI Meets Brain: A Unified Survey on Memory Systems from Cognitive Neuroscience to Autonomous Agents",
+      "date": "2025-12-29",
+      "tier": "Official",
+      "credibility": 0.8
+    },
+    {
+      "url": "https://arxiv.org/abs/2602.06052",
+      "title": "Rethinking Memory Mechanisms of Foundation Agents in the Second Half: A Survey",
+      "date": "2026-02-09",
+      "tier": "Official",
+      "credibility": 0.85
+    },
+    {
+      "url": "https://arxiv.org/abs/2505.00675",
+      "title": "Rethinking Memory in AI: Taxonomy, Operations, Topics, and Future Directions",
+      "date": "2025-05-01",
+      "tier": "Official",
+      "credibility": 0.8
+    }
+  ],
+  "gaps": [
+    "No benchmark specifically evaluates memory for AI safety/alignment in agentic systems — critical gap for Kai-1 safety domain.",
+    "Empirical comparisons between MemGPT-style OS memory, RAG, and Infini-attention architectures on practical latency/cost/quality metrics are scarce.",
+    "Multi-agent memory consistency protocols remain undefined — no formal theory comparable to database serializability or cache coherence for agent memory.",
+    "No standardized evaluation methodology exists for measuring the effect of memory on agent alignment and value consistency across sessions.",
+    "MemoryAgentBench and LongMemEval use different competency taxonomies — the field needs a unified evaluation standard before meaningful cross-system comparison.",
+    "Lack of benchmarks for Russian-language memory agents — Kai-1 operates in a Russian-first context, but all major benchmarks are English-only."
+  ],
+  "queries_used": [
+    "site:arxiv.org LLM agent memory survey 2025",
+    "MemGPT arxiv 2023 citations memory agent",
+    "LongMemEval benchmark 2025",
+    "MemoryAgentBench 2025 agent memory evaluation",
+    "generative agents memory Stanford arxiv 2023",
+    "Infini-Attention DeepMind long context memory 2024",
+    "site:semanticscholar.org agent memory taxonomy 2025 2026",
+    "emory university multi-agent memory survey arxiv 2025",
+    "Terminal-Bench: Benchmarking Agents on Hard, Realistic Tasks in Command Line Interfaces",
+    "\"A Survey on Memory Systems for Large Language Models\" arxiv 2025",
+    "LongMemEval benchmark arxiv 2025 long term memory LLM",
+    "\"Memory in LLM-based Multi-agent Systems\" arxiv 2025 Emory",
+    "arxiv 2404.07143 \"Infini-attention\" citations",
+    "arxiv 2410.10813 \"LongMemEval\" citations",
+    "arxiv 2601.11868 \"Terminal-Bench\" citations",
+    "arxiv 2512.23343 \"AI Meets Brain\" memory survey"
+  ],
+  "confidence_overall": 0.85
+}

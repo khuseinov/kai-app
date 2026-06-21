@@ -45,11 +45,18 @@ class SseParser {
     }
     return switch (type) {
       'message' => ChatEventMessage(
-          content: json['content'] as String? ?? '',
+          content: _deltaContent(json) ?? json['content'] as String? ?? '',
           messageId: json['messageId'] as String? ?? '',
         ),
-      'thinking' => ChatEventThinking(step: json['step'] as String? ?? ''),
-      'state' => ChatEventState(state: json['state'] as String? ?? ''),
+      'thinking' => ChatEventThinking(
+          step: _deltaContent(json) ?? json['step'] as String? ?? '',
+        ),
+      'state' => ChatEventState(
+          state: json['state'] as String? ??
+              json['label'] as String? ??
+              json['step'] as String? ??
+              '',
+        ),
       'metadata' => ChatEventMetadata(data: json),
       'approval' => ChatEventApproval(
           prompt: json['prompt'] as String? ?? '',
@@ -65,5 +72,18 @@ class SseParser {
         ),
       _ => null,
     };
+  }
+
+  /// Backend emits OpenAI-style deltas: `choices[0].delta.content`.
+  /// Fall back to flat fields for backward compatibility with mock fixtures.
+  static String? _deltaContent(Map<String, dynamic> json) {
+    final choices = json['choices'] as List<dynamic>?;
+    if (choices != null && choices.isNotEmpty) {
+      final first = choices.first as Map<String, dynamic>?;
+      final delta = first?['delta'] as Map<String, dynamic>?;
+      final content = delta?['content'] as String?;
+      if (content != null && content.isNotEmpty) return content;
+    }
+    return null;
   }
 }

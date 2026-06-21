@@ -1,9 +1,9 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive/hive.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:kai_app/core/network/dio_client.dart';
 import 'package:kai_app/core/network/interceptors/auth_interceptor.dart';
 import 'package:kai_app/core/network/interceptors/connectivity_interceptor.dart';
@@ -21,31 +21,57 @@ import 'package:kai_app/features/room/data/repositories/chat_repository_impl.dar
 import 'package:kai_app/features/room/data/repositories/mock_chat_repository.dart';
 import 'package:kai_app/features/room/domain/repositories/chat_repository.dart';
 import 'package:kai_app/features/settings/data/models/settings.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:uuid/uuid.dart';
 
 part 'root.g.dart';
 
-/// Env-loaded configuration. Populated by [bootstrap] via flutter_dotenv.
+/// Env-loaded configuration. Populated by `bootstrap` via flutter_dotenv.
 class EnvConfig {
-  const EnvConfig({required this.apiBaseUrl, this.useRealChat = false});
+  const EnvConfig({
+    required this.apiBaseUrl,
+    this.useRealChat = false,
+    this.internalHealthToken,
+  });
 
-  /// Read from `dotenv.env`, falling back to the default API URL.
+  /// Read from `dotenv.env`, falling back to sensible defaults.
   factory EnvConfig.fromDotenv() {
     final url = dotenv.maybeGet('API_BASE_URL') ?? 'https://api.wize.travel';
     final useReal = dotenv.maybeGet('USE_REAL_CHAT') == 'true';
-    return EnvConfig(apiBaseUrl: url, useRealChat: useReal);
+    final token = dotenv.maybeGet('INTERNAL_HEALTH_TOKEN');
+    return EnvConfig(
+      apiBaseUrl: url,
+      useRealChat: useReal,
+      internalHealthToken: token,
+    );
   }
 
   final String apiBaseUrl;
 
-  /// When `true`, [chatRepositoryProvider] and [sessionRepositoryProvider]
+  /// When `true`, `chatRepositoryProvider` and `sessionRepositoryProvider`
   /// use the real Hive/Dio-backed implementations instead of mocks.
   final bool useRealChat;
+
+  /// Token for backend admin/health endpoints (e.g. INTERNAL_HEALTH_TOKEN).
+  final String? internalHealthToken;
 }
 
-/// Env configuration. Overridden in [bootstrap] / tests as needed.
+/// Env configuration. Overridden in `bootstrap` / tests as needed.
 @Riverpod(keepAlive: true)
 EnvConfig env(EnvRef ref) {
   return EnvConfig.fromDotenv();
+}
+
+/// Stable anonymous user id. Generated once and persisted in Hive.
+@Riverpod(keepAlive: true)
+String userId(UserIdRef ref) {
+  final box = HiveSetup.userIds;
+  var uid = box.get(HiveSetup.userIdKey);
+  if (uid == null || uid.isEmpty) {
+    uid = const Uuid().v4();
+    unawaited(box.put(HiveSetup.userIdKey, uid));
+  }
+  return uid;
 }
 
 /// Single Dio client wired with the full interceptor chain.
@@ -57,7 +83,7 @@ Dio dio(DioRef ref) {
     baseUrl: env.apiBaseUrl,
     interceptors: [
       ConnectivityInterceptor(),
-      AuthInterceptor(),
+      AuthInterceptor(token: env.internalHealthToken),
       LoggingInterceptor(),
       retry,
       ErrorInterceptor(),
@@ -122,7 +148,10 @@ final themeModeProvider = themeModeNotifierProvider;
 ChatRepository chatRepository(ChatRepositoryRef ref) {
   final env = ref.watch(envProvider);
   if (env.useRealChat) {
-    return RealChatRepository.withDio(ref.watch(dioProvider));
+    return RealChatRepository.withDio(
+      ref.watch(dioProvider),
+      userId: ref.watch(userIdProvider),
+    );
   }
   return MockChatRepository();
 }
