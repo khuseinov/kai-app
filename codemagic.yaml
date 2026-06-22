@@ -36,7 +36,8 @@ workflows:
       - name: Build iOS
         script: |
           flutter build ios --release \
-            --export-method app-store-connect
+            --export-method app-store-connect \
+            --dart-define=KAI_DIAGNOSTICS=true
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
@@ -84,6 +85,6 @@ workflows:
         script: flutter test
       - name: Build Android
         script: |
-          flutter build apk --release
+          flutter build apk --release --dart-define=KAI_DIAGNOSTICS=true
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
