@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io' as io;
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive/hive.dart';
@@ -30,16 +32,20 @@ part 'root.g.dart';
 class EnvConfig {
   const EnvConfig({
     required this.apiBaseUrl,
-    this.useRealChat = false,
+    this.useRealChat = true,
     this.internalHealthToken,
     this.hfToken,
   });
 
   factory EnvConfig.fromDotenv() {
+    final isTest = !kIsWeb && io.Platform.environment.containsKey('FLUTTER_TEST');
+    final defaultUseReal = !isTest;
     try {
-      final url = dotenv.maybeGet('API_BASE_URL') ?? 'https://api.wize.travel';
-      final useReal = dotenv.maybeGet('USE_REAL_CHAT') == 'true';
-      final internalToken = dotenv.maybeGet('INTERNAL_HEALTH_TOKEN');
+      final url = dotenv.maybeGet('API_BASE_URL') ?? 'https://rustamkhuseinov-kai.hf.space';
+      final useReal = dotenv.maybeGet('USE_REAL_CHAT') != null
+          ? dotenv.maybeGet('USE_REAL_CHAT') == 'true'
+          : defaultUseReal;
+      final internalToken = dotenv.maybeGet('INTERNAL_HEALTH_TOKEN') ?? '2ddd1306da666a79a2eb56988b5fe84c042e4ea4d7c61ff689e42e2b1e96efba';
       final hfToken = dotenv.maybeGet('HF_TOKEN');
       return EnvConfig(
         apiBaseUrl: url,
@@ -48,7 +54,12 @@ class EnvConfig {
         hfToken: hfToken,
       );
     } catch (_) {
-      return const EnvConfig(apiBaseUrl: 'https://api.wize.travel');
+      return EnvConfig(
+        apiBaseUrl: 'https://rustamkhuseinov-kai.hf.space',
+        useRealChat: defaultUseReal,
+        internalHealthToken: '2ddd1306da666a79a2eb56988b5fe84c042e4ea4d7c61ff689e42e2b1e96efba',
+        hfToken: null,
+      );
     }
   }
 
