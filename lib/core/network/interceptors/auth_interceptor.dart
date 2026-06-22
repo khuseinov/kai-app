@@ -1,4 +1,8 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 /// Handles auth headers for private Hugging Face Spaces and backend admin endpoints.
 ///
@@ -26,6 +30,13 @@ class AuthInterceptor extends Interceptor {
     final hfToken = _hfToken;
     final internalToken = _internalToken;
 
+    if (_diagnosticsEnabled) {
+      debugPrint(
+        '[KAI_DIAGNOSTICS] AuthInterceptor (before): '
+        '${_redactHeaders(options.headers)}',
+      );
+    }
+
     if (hfToken != null && hfToken.isNotEmpty) {
       // Required by Hugging Face Spaces when the Space is private.
       options.headers['Authorization'] = 'Bearer $hfToken';
@@ -41,6 +52,35 @@ class AuthInterceptor extends Interceptor {
       options.headers['X-Internal-Token'] = internalToken;
     }
 
+    if (_diagnosticsEnabled) {
+      debugPrint(
+        '[KAI_DIAGNOSTICS] AuthInterceptor (after): '
+        '${_redactHeaders(options.headers)}',
+      );
+    }
+
     handler.next(options);
   }
+}
+
+bool get _diagnosticsEnabled =>
+    !kReleaseMode || const bool.fromEnvironment('KAI_DIAGNOSTICS');
+
+String _sha256Prefix(String? value) {
+  if (value == null || value.isEmpty) return '<empty>';
+  final hash = sha256.convert(utf8.encode(value)).toString();
+  return hash.length >= 8 ? hash.substring(0, 8) : hash;
+}
+
+Map<String, dynamic> _redactHeaders(Map<String, dynamic> headers) {
+  final redacted = Map<String, dynamic>.of(headers);
+  if (redacted.containsKey('Authorization')) {
+    final rawValue = redacted['Authorization']! as String;
+    final token = rawValue.startsWith('Bearer ') ? rawValue.substring(7) : rawValue;
+    redacted['Authorization'] = 'Bearer ${_sha256Prefix(token)}';
+  }
+  if (redacted.containsKey('X-Internal-Token')) {
+    redacted['X-Internal-Token'] = _sha256Prefix(redacted['X-Internal-Token']! as String);
+  }
+  return redacted;
 }
