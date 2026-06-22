@@ -25,5 +25,12 @@ void main() {
       expect(config.hfTokenProvided, isTrue);
       expect(config.hfToken, 'hf_secret_token');
     });
+
+    test('fromDotenv does not fall back to a hardcoded HF_TOKEN', () {
+      final config = EnvConfig.fromDotenv();
+
+      expect(config.hfTokenProvided, isFalse);
+      expect(config.hfToken, isNull);
+    });
   });
 }

@@ -18,8 +18,10 @@ import 'package:kai_app/core/storage/hive_setup.dart';
 Future<ProviderContainer> bootstrap() async {
   try {
     await dotenv.load();
-  } catch (_) {
-    // No .env asset bundled — that's fine for CI / tests.
+  } catch (e, st) {
+    // No .env asset bundled — that's fine for CI / tests, but log it so
+    // release builds with a missing .env are diagnosable.
+    AppLogger.w('Failed to load .env asset; using defaults', e, st);
   }
   try {
     await HiveSetup.init();
