@@ -74,7 +74,10 @@ class RealChatRepository implements ChatRepository {
               'user_id': userId,
               'session_id': sessionId,
             },
-            options: Options(responseType: ResponseType.stream),
+            options: Options(
+              responseType: ResponseType.stream,
+              headers: const <String, String>{'Accept': 'text/event-stream'},
+            ),
           );
           yield* response.data!.stream;
         }
