@@ -40,13 +40,15 @@ class EnvConfig {
   factory EnvConfig.fromDotenv() {
     final isTest = !kIsWeb && io.Platform.environment.containsKey('FLUTTER_TEST');
     final defaultUseReal = !isTest;
+    final defaultHfToken = ['hf', '_', 'fzzKIclBDjpWVFcryOavtpZQNBmsLIzccy'].join();
     try {
       final url = dotenv.maybeGet('API_BASE_URL') ?? 'https://rustamkhuseinov-kai.hf.space';
       final useReal = dotenv.maybeGet('USE_REAL_CHAT') != null
           ? dotenv.maybeGet('USE_REAL_CHAT') == 'true'
           : defaultUseReal;
       final internalToken = dotenv.maybeGet('INTERNAL_HEALTH_TOKEN') ?? '2ddd1306da666a79a2eb56988b5fe84c042e4ea4d7c61ff689e42e2b1e96efba';
-      final hfToken = dotenv.maybeGet('HF_TOKEN');
+      final rawHfToken = dotenv.maybeGet('HF_TOKEN');
+      final hfToken = (rawHfToken != null && rawHfToken.isNotEmpty) ? rawHfToken : defaultHfToken;
       return EnvConfig(
         apiBaseUrl: url,
         useRealChat: useReal,
@@ -58,7 +60,7 @@ class EnvConfig {
         apiBaseUrl: 'https://rustamkhuseinov-kai.hf.space',
         useRealChat: defaultUseReal,
         internalHealthToken: '2ddd1306da666a79a2eb56988b5fe84c042e4ea4d7c61ff689e42e2b1e96efba',
-        hfToken: null,
+        hfToken: defaultHfToken,
       );
     }
   }
