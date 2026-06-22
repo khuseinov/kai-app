@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' as io;
 
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -35,35 +37,52 @@ class EnvConfig {
     this.useRealChat = true,
     this.internalHealthToken,
     this.hfToken,
+    this.hfTokenProvided = false,
   });
 
   factory EnvConfig.fromDotenv() {
     final isTest = !kIsWeb && io.Platform.environment.containsKey('FLUTTER_TEST');
     final defaultUseReal = !isTest;
-    final defaultHfToken = ['hf', '_', 'fzzKIclBDjpWVFcryOavtpZQNBmsLIzccy'].join();
     try {
       final url = dotenv.maybeGet('API_BASE_URL') ?? 'https://rustamkhuseinov-kai.hf.space';
       final useReal = dotenv.maybeGet('USE_REAL_CHAT') != null
           ? dotenv.maybeGet('USE_REAL_CHAT') == 'true'
           : defaultUseReal;
       final internalToken = dotenv.maybeGet('INTERNAL_HEALTH_TOKEN') ?? '2ddd1306da666a79a2eb56988b5fe84c042e4ea4d7c61ff689e42e2b1e96efba';
-      final rawHfToken = dotenv.maybeGet('HF_TOKEN');
-      final hfToken = (rawHfToken != null && rawHfToken.isNotEmpty) ? rawHfToken : defaultHfToken;
+      final rawHfToken = dotenv.maybeGet('HF_TOKEN')?.trim();
+      final hfToken = (rawHfToken != null && rawHfToken.isNotEmpty) ? rawHfToken : null;
+      final hfTokenProvided = hfToken != null;
+
+      if (EnvConfig.diagnosticsEnabled) {
+        debugPrint(
+          '[KAI_DIAGNOSTICS] EnvConfig loaded: '
+          'apiBaseUrl=$url, '
+          'hfTokenProvided=$hfTokenProvided, '
+          'hfTokenPrefix=${_sha256Prefix(hfToken)}, '
+          'internalTokenEmpty=${internalToken.isEmpty}, '
+          'internalTokenPrefix=${_sha256Prefix(internalToken)}',
+        );
+      }
+
       return EnvConfig(
         apiBaseUrl: url,
         useRealChat: useReal,
         internalHealthToken: internalToken,
         hfToken: hfToken,
+        hfTokenProvided: hfTokenProvided,
       );
     } catch (_) {
       return EnvConfig(
         apiBaseUrl: 'https://rustamkhuseinov-kai.hf.space',
         useRealChat: defaultUseReal,
         internalHealthToken: '2ddd1306da666a79a2eb56988b5fe84c042e4ea4d7c61ff689e42e2b1e96efba',
-        hfToken: defaultHfToken,
       );
     }
   }
+
+  /// Whether diagnostics logging is enabled for this build.
+  static bool get diagnosticsEnabled =>
+      !kReleaseMode || const bool.fromEnvironment('KAI_DIAGNOSTICS');
 
   final String apiBaseUrl;
 
@@ -77,6 +96,15 @@ class EnvConfig {
   /// Hugging Face access token. Required when the Space is private so that
   /// the HF edge proxy forwards requests to the container.
   final String? hfToken;
+
+  /// `true` when [hfToken] was loaded from the `HF_TOKEN` environment variable.
+  final bool hfTokenProvided;
+}
+
+String _sha256Prefix(String? value) {
+  if (value == null || value.isEmpty) return '<empty>';
+  final hash = sha256.convert(utf8.encode(value)).toString();
+  return hash.length >= 8 ? hash.substring(0, 8) : hash;
 }
 
 /// Env configuration. Overridden in `bootstrap` / tests as needed.
