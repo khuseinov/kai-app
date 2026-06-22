@@ -31,11 +31,24 @@ jobs:
       # .env is gitignored but declared as a Flutter asset — create a real .env file using CI secrets
       # so the compiled release runs have access to API base and tokens.
       - name: Create .env from secrets
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          INTERNAL_HEALTH_TOKEN: ${{ secrets.INTERNAL_HEALTH_TOKEN }}
         run: |
-          echo "API_BASE_URL=https://rustamkhuseinov-kai.hf.space" >> .env
-          echo "USE_REAL_CHAT=true" >> .env
-          echo "INTERNAL_HEALTH_TOKEN=2ddd1306da666a79a2eb56988b5fe84c042e4ea4d7c61ff689e42e2b1e96efba" >> .env
-          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}" >> .env
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::error::HF_TOKEN secret is not set" >&2
+            exit 1
+          fi
+          if [ -z "$INTERNAL_HEALTH_TOKEN" ]; then
+            echo "::error::INTERNAL_HEALTH_TOKEN secret is not set" >&2
+            exit 1
+          fi
+          cat > .env <<EOF
+          API_BASE_URL=https://rustamkhuseinov-kai.hf.space
+          USE_REAL_CHAT=true
+          INTERNAL_HEALTH_TOKEN=$INTERNAL_HEALTH_TOKEN
+          HF_TOKEN=$HF_TOKEN
+          EOF
 
       # SIGNING NOTES (do not remove these env vars):
       # Flutter 3.x validates DEVELOPMENT_TEAM even with --no-codesign.
