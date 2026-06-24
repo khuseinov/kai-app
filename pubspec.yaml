@@ -73,6 +73,17 @@ dev_dependencies:
   image: ^4.8.0
   flutter_native_splash: ^2.4.0
 
+# Pin record_platform_interface to the last version whose abstract
+# RecordPlatform provides default implementations for all members.
+# record_linux 0.7.2 (pulled by record 5.2.1) does not implement
+# startStream and uses the old hasPermission signature, so any interface
+# >=1.3.0 breaks release kernel snapshot compilation.
+#
+# Remove this override once record is upgraded to a version that pulls
+# record_linux >=1.0.0 (or migrates to a different recorder package).
+dependency_overrides:
+  record_platform_interface: 1.2.0
+
 # Launcher-icons config — feeds platform AppIcon sets from brand/icon-1024.png.
 # Run: `dart run flutter_launcher_icons`
 flutter_launcher_icons:
