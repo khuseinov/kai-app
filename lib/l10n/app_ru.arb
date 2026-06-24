@@ -114,5 +114,13 @@
   "memoryEditFactTitle": "Редактировать факт",
   "memoryDeleteFactAction": "Удалить",
   "memoryEditFactAction": "Редактировать",
-  "memoryGoToSourceAction": "Перейти к источнику"
+  "memoryGoToSourceAction": "Перейти к источнику",
+  "voiceStatusIdle": "Kai ожидает",
+  "voiceStatusListening": "Говорите…",
+  "voiceStatusProcessing": "Kai думает",
+  "voiceTtsFailed": "Kai ответил текстом",
+  "voiceHintTapToSpeak": "нажмите и удерживайте, чтобы говорить",
+  "voiceHintSwipeTranscript": "SWIPE ↑ · ТРАНСКРИПЦИЯ",
+  "voiceTranscriptToday": "сегодня",
+  "voiceTranscriptReturnHint": "СВАЙП ↑ · ВЕРНУТЬСЯ К ГОЛОСУ"
 }

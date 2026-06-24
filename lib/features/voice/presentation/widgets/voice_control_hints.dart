@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/l10n/app_localizations.dart';
 
 class VoiceControlHints extends StatelessWidget {
   const VoiceControlHints({
@@ -18,6 +19,7 @@ class VoiceControlHints extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final c = KaiTheme.of(context).colors;
     final hintColor = isDark ? const Color(0x40FFFFFF) : c.ink3;
+    final loc = AppLocalizations.of(context);
 
     return Stack(
       children: [
@@ -25,7 +27,7 @@ class VoiceControlHints extends StatelessWidget {
           top: 12,
           left: 54,
           child: Text(
-            'нажмите, чтобы говорить',
+            loc.voiceHintTapToSpeak,
             style: TextStyle(
               fontFamily: 'JetBrainsMono',
               fontSize: 9,
@@ -40,7 +42,7 @@ class VoiceControlHints extends StatelessWidget {
           child: GestureDetector(
             onTap: onTapTranscript,
             child: Text(
-              'SWIPE ↑ · ТРАНСКРИПЦИЯ',
+              loc.voiceHintSwipeTranscript,
               style: TextStyle(
                 fontFamily: 'JetBrainsMono',
                 fontSize: 9,

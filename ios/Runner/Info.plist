@@ -65,5 +65,9 @@
 		</dict>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Kai needs microphone access so you can talk to your travel companion.</string>
+		<key>NSSpeechRecognitionUsageDescription</key>
+		<string>Kai uses speech recognition to turn your voice into text.</string>
 	</dict>
 </plist>

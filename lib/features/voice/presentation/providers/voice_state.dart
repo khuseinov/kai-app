@@ -3,6 +3,7 @@ import 'package:kai_app/features/voice/presentation/widgets/kai_transcript_view.
 enum VoiceFlowState {
   idle,
   listening,
+  processing,
   speaking,
   transcript,
 }
@@ -12,16 +13,12 @@ class VoiceStateData {
     this.flowState = VoiceFlowState.idle,
     this.previousState = VoiceFlowState.idle,
     this.karaokeIndex = 0,
-    this.karaokeWords = const [
-      'Синкансэн',
-      '—',
-      'быстрее',
-      'всего',
-      'добраться',
-      'за',
-      '¥14,000.',
-    ],
+    this.karaokeWords = const [],
     this.transcriptEvents = const [],
+    this.lastTranscript = '',
+    this.lastResponseText = '',
+    this.ttsFailed = false,
+    this.errorMessage,
   });
 
   final VoiceFlowState flowState;
@@ -29,6 +26,10 @@ class VoiceStateData {
   final int karaokeIndex;
   final List<String> karaokeWords;
   final List<KaiTranscriptEvent> transcriptEvents;
+  final String lastTranscript;
+  final String lastResponseText;
+  final bool ttsFailed;
+  final String? errorMessage;
 
   VoiceStateData copyWith({
     VoiceFlowState? flowState,
@@ -36,6 +37,10 @@ class VoiceStateData {
     int? karaokeIndex,
     List<String>? karaokeWords,
     List<KaiTranscriptEvent>? transcriptEvents,
+    String? lastTranscript,
+    String? lastResponseText,
+    bool? ttsFailed,
+    String? errorMessage,
   }) {
     return VoiceStateData(
       flowState: flowState ?? this.flowState,
@@ -43,6 +48,10 @@ class VoiceStateData {
       karaokeIndex: karaokeIndex ?? this.karaokeIndex,
       karaokeWords: karaokeWords ?? this.karaokeWords,
       transcriptEvents: transcriptEvents ?? this.transcriptEvents,
+      lastTranscript: lastTranscript ?? this.lastTranscript,
+      lastResponseText: lastResponseText ?? this.lastResponseText,
+      ttsFailed: ttsFailed ?? this.ttsFailed,
+      errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:kai_app/design_system/atoms/atoms.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/design_system/tokens/kai_tokens.dart';
 import 'package:kai_app/features/voice/presentation/widgets/kai_transcript_view.dart';
+import 'package:kai_app/l10n/app_localizations.dart';
 
 class VoiceTranscriptSheet extends StatelessWidget {
   const VoiceTranscriptSheet({
@@ -20,6 +21,8 @@ class VoiceTranscriptSheet extends StatelessWidget {
     final c = KaiTheme.of(context).colors;
     final textColor = isDark ? const Color(0x66FFFFFF) : c.ink3;
     final dividerColor = isDark ? const Color(0x0FFFFFFF) : c.line;
+    final loc = AppLocalizations.of(context);
+    final now = DateTime.now();
 
     return Stack(
       key: const ValueKey<String>('transcript_view'),
@@ -42,7 +45,7 @@ class VoiceTranscriptSheet extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'сегодня · 12:34',
+                    '${loc.voiceTranscriptToday} · ${_formatTime(now)}',
                     style: TextStyle(
                       fontFamily: 'JetBrainsMono',
                       fontSize: 10,
@@ -97,7 +100,7 @@ class VoiceTranscriptSheet extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 color: Colors.transparent,
                 child: Text(
-                  'СВАЙП ↑ · ВЕРНУТЬСЯ К ГОЛОСУ',
+                  loc.voiceTranscriptReturnHint,
                   style: TextStyle(
                     fontFamily: 'JetBrainsMono',
                     fontSize: 10,
@@ -112,5 +115,11 @@ class VoiceTranscriptSheet extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _formatTime(DateTime dt) {
+    final hour = dt.hour.toString().padLeft(2, '0');
+    final minute = dt.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 }

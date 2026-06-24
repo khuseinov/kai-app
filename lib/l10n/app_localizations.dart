@@ -703,6 +703,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Go to source'**
   String get memoryGoToSourceAction;
+
+  /// Voice screen status when idle
+  ///
+  /// In en, this message translates to:
+  /// **'Kai is listening'**
+  String get voiceStatusIdle;
+
+  /// Voice screen status while recording
+  ///
+  /// In en, this message translates to:
+  /// **'Speak…'**
+  String get voiceStatusListening;
+
+  /// Voice screen status while processing
+  ///
+  /// In en, this message translates to:
+  /// **'Kai is thinking'**
+  String get voiceStatusProcessing;
+
+  /// Voice screen status when TTS failed
+  ///
+  /// In en, this message translates to:
+  /// **'Kai responded in text'**
+  String get voiceTtsFailed;
+
+  /// Voice screen hint for tap to speak
+  ///
+  /// In en, this message translates to:
+  /// **'tap and hold to speak'**
+  String get voiceHintTapToSpeak;
+
+  /// Voice screen hint to open transcript
+  ///
+  /// In en, this message translates to:
+  /// **'SWIPE ↑ · TRANSCRIPT'**
+  String get voiceHintSwipeTranscript;
+
+  /// Transcript sheet date label
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get voiceTranscriptToday;
+
+  /// Transcript sheet return hint
+  ///
+  /// In en, this message translates to:
+  /// **'SWIPE ↑ · RETURN TO VOICE'**
+  String get voiceTranscriptReturnHint;
 }
 
 class _AppLocalizationsDelegate

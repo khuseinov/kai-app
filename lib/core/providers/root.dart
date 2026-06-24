@@ -25,6 +25,12 @@ import 'package:kai_app/features/room/data/repositories/chat_repository_impl.dar
 import 'package:kai_app/features/room/data/repositories/mock_chat_repository.dart';
 import 'package:kai_app/features/room/domain/repositories/chat_repository.dart';
 import 'package:kai_app/features/settings/data/models/settings.dart';
+import 'package:kai_app/features/voice/data/repositories/voice_repository_impl.dart';
+import 'package:kai_app/features/voice/data/services/just_audio_player_service.dart';
+import 'package:kai_app/features/voice/data/services/record_audio_recorder_service.dart';
+import 'package:kai_app/features/voice/domain/repositories/voice_repository.dart';
+import 'package:kai_app/features/voice/domain/services/audio_player_service.dart';
+import 'package:kai_app/features/voice/domain/services/audio_recorder_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -34,6 +40,8 @@ part 'root.g.dart';
 class EnvConfig {
   const EnvConfig({
     required this.apiBaseUrl,
+    this.voiceGatewayBaseUrl,
+    this.voiceGatewayApiKey,
     this.useRealChat = true,
     this.internalHealthToken,
     this.hfToken,
@@ -45,6 +53,8 @@ class EnvConfig {
     final defaultUseReal = !isTest;
     try {
       final url = dotenv.maybeGet('API_BASE_URL') ?? 'https://rustamkhuseinov-kai.hf.space';
+      final voiceGatewayUrl = dotenv.maybeGet('VOICE_GATEWAY_BASE_URL');
+      final voiceGatewayKey = dotenv.maybeGet('VOICE_GATEWAY_API_KEY')?.trim();
       final useReal = dotenv.maybeGet('USE_REAL_CHAT') != null
           ? dotenv.maybeGet('USE_REAL_CHAT') == 'true'
           : defaultUseReal;
@@ -57,6 +67,8 @@ class EnvConfig {
         debugPrint(
           '[KAI_DIAGNOSTICS] EnvConfig loaded: '
           'apiBaseUrl=$url, '
+          'voiceGatewayBaseUrl=$voiceGatewayUrl, '
+          'voiceGatewayApiKeyEmpty=${voiceGatewayKey == null || voiceGatewayKey.isEmpty}, '
           'hfTokenProvided=$hfTokenProvided, '
           'hfTokenPrefix=${_sha256Prefix(hfToken)}, '
           'internalTokenEmpty=${internalToken.isEmpty}, '
@@ -66,6 +78,8 @@ class EnvConfig {
 
       return EnvConfig(
         apiBaseUrl: url,
+        voiceGatewayBaseUrl: voiceGatewayUrl,
+        voiceGatewayApiKey: voiceGatewayKey,
         useRealChat: useReal,
         internalHealthToken: internalToken,
         hfToken: hfToken,
@@ -85,6 +99,13 @@ class EnvConfig {
       !kReleaseMode || const bool.fromEnvironment('KAI_DIAGNOSTICS');
 
   final String apiBaseUrl;
+
+  /// Base URL of the voice-gateway microservice.
+  /// When omitted, voice features are unavailable.
+  final String? voiceGatewayBaseUrl;
+
+  /// API key for voice-gateway endpoints (`X-Internal-API-Key`).
+  final String? voiceGatewayApiKey;
 
   /// When `true`, `chatRepositoryProvider` and `sessionRepositoryProvider`
   /// use the real Hive/Dio-backed implementations instead of mocks.
@@ -137,6 +158,8 @@ Dio dio(DioRef ref) {
       AuthInterceptor(
         hfToken: env.hfToken,
         internalToken: env.internalHealthToken,
+        voiceGatewayApiKey: env.voiceGatewayApiKey,
+        voiceGatewayBaseUrl: env.voiceGatewayBaseUrl,
       ),
       LoggingInterceptor(),
       retry,
@@ -236,4 +259,27 @@ MemoryRepository memoryRepository(MemoryRepositoryRef ref) {
     );
   }
   return MockMemoryRepository();
+}
+
+/// Voice repository. Requires [EnvConfig.voiceGatewayBaseUrl] to be set.
+@Riverpod(keepAlive: true)
+VoiceRepository voiceRepository(VoiceRepositoryRef ref) {
+  final env = ref.watch(envProvider);
+  final baseUrl = env.voiceGatewayBaseUrl ?? '';
+  return VoiceRepositoryImpl(
+    dio: ref.watch(dioProvider),
+    baseUrl: baseUrl,
+  );
+}
+
+/// Audio recorder service.
+@Riverpod(keepAlive: true)
+AudioRecorderService audioRecorderService(AudioRecorderServiceRef ref) {
+  return RecordAudioRecorderService();
+}
+
+/// Audio player service.
+@Riverpod(keepAlive: true)
+AudioPlayerService audioPlayerService(AudioPlayerServiceRef ref) {
+  return JustAudioPlayerService();
 }

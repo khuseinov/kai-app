@@ -132,5 +132,21 @@
   "memoryEditFactTitle": "Edit fact",
   "memoryDeleteFactAction": "Delete",
   "memoryEditFactAction": "Edit",
-  "memoryGoToSourceAction": "Go to source"
+  "memoryGoToSourceAction": "Go to source",
+  "voiceStatusIdle": "Kai is listening",
+  "@voiceStatusIdle": {"description": "Voice screen status when idle"},
+  "voiceStatusListening": "Speak…",
+  "@voiceStatusListening": {"description": "Voice screen status while recording"},
+  "voiceStatusProcessing": "Kai is thinking",
+  "@voiceStatusProcessing": {"description": "Voice screen status while processing"},
+  "voiceTtsFailed": "Kai responded in text",
+  "@voiceTtsFailed": {"description": "Voice screen status when TTS failed"},
+  "voiceHintTapToSpeak": "tap and hold to speak",
+  "@voiceHintTapToSpeak": {"description": "Voice screen hint for tap to speak"},
+  "voiceHintSwipeTranscript": "SWIPE ↑ · TRANSCRIPT",
+  "@voiceHintSwipeTranscript": {"description": "Voice screen hint to open transcript"},
+  "voiceTranscriptToday": "today",
+  "@voiceTranscriptToday": {"description": "Transcript sheet date label"},
+  "voiceTranscriptReturnHint": "SWIPE ↑ · RETURN TO VOICE",
+  "@voiceTranscriptReturnHint": {"description": "Transcript sheet return hint"}
 }

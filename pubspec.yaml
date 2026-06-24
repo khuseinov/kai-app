@@ -43,9 +43,13 @@ dependencies:
   flutter_dotenv: ^5.1.0
   flutter_svg: ^2.0.10
 
+  # Voice gateway integration
+  record: ^5.1.0
+  just_audio: ^0.9.39
+  permission_handler: ^11.3.1
+  path_provider: ^2.1.4
+
   # Gate 3 — uncomment when needed:
-  # record: ^5.1.0
-  # just_audio: ^0.9.39
   # firebase_core: ^3.3.0
   # firebase_messaging: ^15.1.0
 

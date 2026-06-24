@@ -71,7 +71,15 @@ class VoicePage extends HookConsumerWidget {
           onVerticalDragStart: (_) => dragDeltaY.value = 0,
           onVerticalDragUpdate: (details) => dragDeltaY.value += details.delta.dy,
           onVerticalDragEnd: handleVerticalDrag,
-          onTap: state.flowState == VoiceFlowState.transcript ? null : notifier.handleTap,
+          onTapDown: state.flowState == VoiceFlowState.transcript
+              ? null
+              : (_) => notifier.handleTapDown(),
+          onTapUp: state.flowState == VoiceFlowState.transcript
+              ? null
+              : (_) => notifier.handleTapUp(),
+          onTapCancel: state.flowState == VoiceFlowState.transcript
+              ? null
+              : notifier.handleTapUp,
           behavior: HitTestBehavior.opaque,
           child: Stack(
             children: [
@@ -80,6 +88,10 @@ class VoicePage extends HookConsumerWidget {
                 flowState: state.flowState,
                 karaokeWords: state.karaokeWords,
                 karaokeIndex: state.karaokeIndex,
+                transcript: state.lastTranscript,
+                responseText: state.lastResponseText,
+                ttsFailed: state.ttsFailed,
+                errorMessage: state.errorMessage,
                 onGoToTranscript: notifier.goToTranscript,
               ),
 

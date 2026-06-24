@@ -332,4 +332,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get memoryGoToSourceAction => 'Go to source';
+
+  @override
+  String get voiceStatusIdle => 'Kai is listening';
+
+  @override
+  String get voiceStatusListening => 'Speak…';
+
+  @override
+  String get voiceStatusProcessing => 'Kai is thinking';
+
+  @override
+  String get voiceTtsFailed => 'Kai responded in text';
+
+  @override
+  String get voiceHintTapToSpeak => 'tap and hold to speak';
+
+  @override
+  String get voiceHintSwipeTranscript => 'SWIPE ↑ · TRANSCRIPT';
+
+  @override
+  String get voiceTranscriptToday => 'today';
+
+  @override
+  String get voiceTranscriptReturnHint => 'SWIPE ↑ · RETURN TO VOICE';
 }

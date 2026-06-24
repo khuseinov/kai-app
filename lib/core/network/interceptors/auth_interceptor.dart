@@ -16,11 +16,17 @@ class AuthInterceptor extends Interceptor {
   const AuthInterceptor({
     String? hfToken,
     String? internalToken,
+    String? voiceGatewayApiKey,
+    String? voiceGatewayBaseUrl,
   })  : _hfToken = hfToken,
-        _internalToken = internalToken;
+        _internalToken = internalToken,
+        _voiceGatewayApiKey = voiceGatewayApiKey,
+        _voiceGatewayBaseUrl = voiceGatewayBaseUrl;
 
   final String? _hfToken;
   final String? _internalToken;
+  final String? _voiceGatewayApiKey;
+  final String? _voiceGatewayBaseUrl;
 
   @override
   void onRequest(
@@ -52,6 +58,16 @@ class AuthInterceptor extends Interceptor {
       options.headers['X-Internal-Token'] = internalToken;
     }
 
+    final voiceGatewayApiKey = _voiceGatewayApiKey;
+    final voiceGatewayBaseUrl = _voiceGatewayBaseUrl;
+    if (voiceGatewayApiKey != null &&
+        voiceGatewayApiKey.isNotEmpty &&
+        voiceGatewayBaseUrl != null &&
+        voiceGatewayBaseUrl.isNotEmpty &&
+        _isVoiceGatewayRequest(options, voiceGatewayBaseUrl)) {
+      options.headers['X-Internal-API-Key'] = voiceGatewayApiKey;
+    }
+
     if (_diagnosticsEnabled) {
       debugPrint(
         '[KAI_DIAGNOSTICS] AuthInterceptor (after): '
@@ -61,6 +77,15 @@ class AuthInterceptor extends Interceptor {
 
     handler.next(options);
   }
+}
+
+bool _isVoiceGatewayRequest(RequestOptions options, String baseUrl) {
+  final path = options.path;
+  if (path.startsWith(baseUrl)) return true;
+  // When Dio baseUrl is the main backend and voice gateway is a separate host,
+  // requests to the voice gateway are made with a full URL in `path`.
+  if (path.startsWith('http') && path.contains('/voice/')) return true;
+  return false;
 }
 
 bool get _diagnosticsEnabled =>
@@ -81,6 +106,9 @@ Map<String, dynamic> _redactHeaders(Map<String, dynamic> headers) {
   }
   if (redacted.containsKey('X-Internal-Token')) {
     redacted['X-Internal-Token'] = _sha256Prefix(redacted['X-Internal-Token']! as String);
+  }
+  if (redacted.containsKey('X-Internal-API-Key')) {
+    redacted['X-Internal-API-Key'] = _sha256Prefix(redacted['X-Internal-API-Key']! as String);
   }
   return redacted;
 }

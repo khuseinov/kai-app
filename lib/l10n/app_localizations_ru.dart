@@ -337,4 +337,28 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get memoryGoToSourceAction => 'Перейти к источнику';
+
+  @override
+  String get voiceStatusIdle => 'Kai ожидает';
+
+  @override
+  String get voiceStatusListening => 'Говорите…';
+
+  @override
+  String get voiceStatusProcessing => 'Kai думает';
+
+  @override
+  String get voiceTtsFailed => 'Kai ответил текстом';
+
+  @override
+  String get voiceHintTapToSpeak => 'нажмите и удерживайте, чтобы говорить';
+
+  @override
+  String get voiceHintSwipeTranscript => 'SWIPE ↑ · ТРАНСКРИПЦИЯ';
+
+  @override
+  String get voiceTranscriptToday => 'сегодня';
+
+  @override
+  String get voiceTranscriptReturnHint => 'СВАЙП ↑ · ВЕРНУТЬСЯ К ГОЛОСУ';
 }
