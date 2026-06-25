@@ -33,6 +33,12 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) {
+    // ponytail: Bypass authentication for local browser Blob URLs to avoid browser security blocking them.
+    if (options.path.startsWith('blob:')) {
+      handler.next(options);
+      return;
+    }
+
     final hfToken = _hfToken;
     final internalToken = _internalToken;
 

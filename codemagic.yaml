@@ -28,6 +28,8 @@ workflows:
           USE_REAL_CHAT=${USE_REAL_CHAT:-true}
           HF_TOKEN=$HF_TOKEN
           INTERNAL_HEALTH_TOKEN=$INTERNAL_HEALTH_TOKEN
+          VOICE_GATEWAY_BASE_URL=$VOICE_GATEWAY_BASE_URL
+          VOICE_GATEWAY_API_KEY=$VOICE_GATEWAY_API_KEY
           EOF
       - name: Analyze
         script: flutter analyze --no-fatal-infos
@@ -78,6 +80,8 @@ workflows:
           USE_REAL_CHAT=${USE_REAL_CHAT:-true}
           HF_TOKEN=$HF_TOKEN
           INTERNAL_HEALTH_TOKEN=$INTERNAL_HEALTH_TOKEN
+          VOICE_GATEWAY_BASE_URL=$VOICE_GATEWAY_BASE_URL
+          VOICE_GATEWAY_API_KEY=$VOICE_GATEWAY_API_KEY
           EOF
       - name: Analyze
         script: flutter analyze --no-fatal-infos

@@ -1,5 +1,4 @@
 import 'package:kai_app/features/voice/domain/services/audio_recorder_service.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 
 /// Audio recorder implementation using the `record` plugin.
@@ -11,8 +10,8 @@ class RecordAudioRecorderService implements AudioRecorderService {
 
   @override
   Future<void> start(String path) async {
-    final status = await Permission.microphone.request();
-    if (!status.isGranted) {
+    final hasPermission = await _recorder.hasPermission();
+    if (!hasPermission) {
       throw Exception('Microphone permission denied');
     }
     await _recorder.start(

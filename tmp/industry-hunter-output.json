@@ -1,0 +1,362 @@
+{
+  "hunter": "industry",
+  "status": "DONE",
+  "topic": "AI memory systems for LLMs and AI agents — industry frameworks, tools, and platforms",
+  "findings": [
+    {
+      "claim": "Letta (formerly MemGPT) is a full stateful agent platform with tiered memory blocks; latest v0.16.7 released March 2026 with 128k default context window",
+      "evidence": "Letta Server 0.16.7 Release Notes: 'Global context window default raised from 32k to 128k' and '173 commits since 0.16.6' (March 31, 2026). Letta repo has 23k GitHub stars, TypeScript migration (97.2% TS). Letta Code (memory-first coding agent) at v0.27.10 as of June 16, 2026 with 2.7k stars.",
+      "sources": [
+        "https://github.com/letta-ai/letta/releases",
+        "https://github.com/letta-ai/letta-code",
+        "https://github.com/letta-ai/letta"
+      ],
+      "confidence": 0.95,
+      "kai_relevance": "Letta is the most mature open-source agent platform with built-in memory — could serve as Kai-1's agent runtime if a full framework is preferred over a separate memory layer."
+    },
+    {
+      "claim": "Letta supports model-agnostic deployment with PostgreSQL/SQLite backends, skills/subagents, MemFS git-tracked memory, and local CLI; no published LongMemEval score",
+      "evidence": "Letta README: 'Fully model-agnostic, though we recommend Opus 4.5 and GPT-5.2 for best performance'. Database: PostgreSQL/SQLite. OMEGA comparison table confirms Letta has no published LongMemEval score. Letta Cloud available at app.letta.com.",
+      "sources": [
+        "https://github.com/letta-ai/letta",
+        "https://omegamax.co/compare"
+      ],
+      "confidence": 0.9,
+      "kai_relevance": "Letta's model-agnosticism and self-hosted option align with Kai-1's Qwen3.6-35B deployment, but lack of benchmark scores makes comparison with dedicated memory layers difficult."
+    },
+    {
+      "claim": "Mem0 has 48k+ GitHub stars, raised $24M Series A (Oct 2025), YC-backed; self-reports 92.5% on LoCoMo and 94.4% on LongMemEval (April 2026)",
+      "evidence": "AgentMarketCap Apr 2026: 'Mem0 (the community favorite with 48,000+ GitHub stars and a $24M Series A)'. Mem0 State of AI Agent Memory 2026 (April 2026): 'LoCoMo: 92.5 ... LongMemEval: 94.4 ... BEAM (1M): 64.1'. Bench'd reports Mem0 managed platform self-reports 93.4% on LongMemEval but OSS edition scored 32.4% in independent test.",
+      "sources": [
+        "https://agentmarketcap.ai/blog/2026/04/10/agent-memory-vendor-landscape-2026-letta-zep-mem0-langmem",
+        "https://mem0.ai/blog/state-of-ai-agent-memory-2026",
+        "https://benchd.ai/benchmarks"
+      ],
+      "confidence": 0.7,
+      "kai_relevance": "Critical discrepancy between managed and OSS Mem0 performance (94.4% vs 32.4% on LongMemEval) — Kai-1 self-hosted deployment would use OSS version, raising concerns about real-world performance."
+    },
+    {
+      "claim": "Mem0's April 2026 token-efficient algorithm uses single-pass ADD-only extraction and multi-signal retrieval (semantic + BM25 + entity matching); biggest gains on temporal (+29.6 pts) and multi-hop (+23.1 pts)",
+      "evidence": "Mem0 State of AI Agent Memory 2026: 'Two architectural changes drove these results: Single-pass ADD-only extraction ... Multi-signal retrieval: three scoring passes in parallel — semantic similarity, keyword matching, and entity matching ... The two largest gains are on temporal queries (+29.6 points) and multi-hop reasoning (+23.1 points)'. Average tokens per query: ~6,956 (LoCoMo), ~6,787 (LongMemEval).",
+      "sources": [
+        "https://mem0.ai/blog/state-of-ai-agent-memory-2026"
+      ],
+      "confidence": 0.85,
+      "kai_relevance": "Mem0's multi-signal retrieval approach (fusing semantic + keyword + entity) is directly applicable to Kai-1's memory architecture design, and the 6.9k tokens/query efficiency is important for 32GB VPS deployment."
+    },
+    {
+      "claim": "Zep/Graphiti uses temporal knowledge graphs; DMR 94.8% vs MemGPT 93.4%; LongMemEval 71.2%; LoCoMo 94.7%; requires Neo4j; YC W24 with $3.3M funding",
+      "evidence": "arXiv 2501.13956 (Jan 2025): 'Zep demonstrates superior performance (94.8% vs 93.4%)' on DMR. 'LongMemEval benchmark accuracy improvements of up to 18.5% while simultaneously reducing response latency by 90%'. Zep official site: LoCoMo 94.7% accuracy, 155ms latency, 5,760 tokens; LongMemEval 90.2% accuracy, 162ms latency, 4,408 tokens. OMEGA comparison: Zep LongMemEval 71.2% (different methodology). Generational.pub: 'Zep founded 2023, YC W24, $3.3M from Engineering Capital, Step Function, Vercel founders'.",
+      "sources": [
+        "https://arxiv.org/abs/2501.13956",
+        "https://www.getzep.com/platform/graphiti/",
+        "https://omegamax.co/compare",
+        "https://www.generational.pub/p/memory-in-ai-agents"
+      ],
+      "confidence": 0.85,
+      "kai_relevance": "Zep's temporal knowledge graph approach excels at tracking fact changes over time (e.g., user moved cities), but Neo4j dependency adds deployment complexity for Kai-1's 32GB VPS."
+    },
+    {
+      "claim": "Graphiti (open source, Apache 2.0) runs on Neo4j/FalkorDB/Neptune; has built-in MCP server; Zep Cloud pricing: free 1K episodes then $25-475/mo",
+      "evidence": "Zep Graphiti page: 'Pluggable backends — Runs on Neo4j, FalkorDB, and Amazon Neptune'. 'MCP Server — Connect Graphiti directly to Claude, Cursor, and other MCP-compatible clients'. OMEGA comparison: 'Zep/Graphiti — Free (self-host). Cloud: Free 1K episodes, then $25-475/mo'.",
+      "sources": [
+        "https://www.getzep.com/platform/graphiti/",
+        "https://omegamax.co/compare"
+      ],
+      "confidence": 0.9,
+      "kai_relevance": "Graphiti's MCP server makes it easy to integrate with Kai-1's agent stack, but Neo4j resource requirements may be prohibitive for a 32GB VPS running a ~22GB model."
+    },
+    {
+      "claim": "LangMem SDK (released Feb 2025) provides semantic, episodic, and procedural memory for LangGraph agents; works with any storage backend; native LangGraph integration",
+      "evidence": "LangChain blog Feb 18, 2025: 'Today we're releasing the LangMem SDK, a library that helps your agents learn and improve through long-term memory ... provides tooling to extract information from conversations, optimize agent behavior through prompt updates'. PyPI: 'pip install -U langmem'. Works with InMemoryStore (dev) or AsyncPostgresStore (production).",
+      "sources": [
+        "https://www.langchain.com/blog/langmem-sdk-launch",
+        "https://pypi.org/project/langmem/",
+        "https://changelog.langchain.com/announcements/langmem-sdk-for-long-term-agent-memory"
+      ],
+      "confidence": 0.9,
+      "kai_relevance": "LangMem is the natural choice if Kai-1 uses LangGraph for agent orchestration; native integration reduces architectural complexity."
+    },
+    {
+      "claim": "OMEGA scores #1 on LongMemEval at 95.4% (GPT-4.1), fully local with zero cloud dependencies (SQLite + ONNX), Apache 2.0, free forever",
+      "evidence": "OMEGA official site: 'OMEGA leads with 95.4% on LongMemEval (vs Zep's 71.2%), runs fully local with zero cloud dependency, and requires no API keys'. 'Database: SQLite (built-in, zero config). Cloud Required: No. LongMemEval: 95.4%. License: Apache-2.0. Pricing: Free forever (open source)'. 'Task-averaged accuracy: 95.4% (raw: 466/500). Uses category-tuned answer prompts with GPT-4.1'. OMEGA blog (Feb 13, 2026): 'Single SQLite file running on a MacBook Pro. No cloud. No Neo4j. No external APIs for retrieval'.",
+      "sources": [
+        "https://omegamax.co/compare",
+        "https://omegamax.co/blog/number-one-on-longmemeval",
+        "https://omegamax.co/benchmarks"
+      ],
+      "confidence": 0.85,
+      "kai_relevance": "OMEGA's local-first architecture and zero dependencies are ideal for Kai-1's 32GB VPS — no extra infrastructure, SQLite fits the resource budget alongside Qwen3.6-35B."
+    },
+    {
+      "claim": "OMEGA provides 18 MCP tools, auto-capture hooks (session start/stop/prompt/tool use), graph relationships, temporal reasoning, intelligent forgetting, contradiction detection, and AES-256 encryption",
+      "evidence": "OMEGA comparison table: 'MCP Tools: 18. Semantic Search: Yes. Auto-Capture: Yes. Cross-Session Memory: Yes. Intelligent Forgetting: Yes. Graph Relationships: Yes. Temporal Reasoning: Yes. Checkpoint/Resume: Yes. Encryption at Rest: AES-256. Local-First/No Cloud: Yes. Zero External Dependencies: Yes. Contradiction Detection: Yes'. Token efficiency: ~1,500 tokens per query vs Zep ~5K-15K and Observational Memory ~70,000.",
+      "sources": [
+        "https://omegamax.co/compare"
+      ],
+      "confidence": 0.8,
+      "kai_relevance": "OMEGA's ~1,500 tokens/query efficiency and no external API dependencies make it the most resource-efficient option for Kai-1's constrained VPS, but it's a newer project with a smaller community than Mem0/Letta."
+    },
+    {
+      "claim": "Mastra Observational Memory (OM) scores 94.87% on LongMemEval (gpt-5-mini) using in-context text compression with no vector database; TypeScript-first framework by Gatsby team",
+      "evidence": "Mastra OM research page: '94.87% on LongMemEval (gpt-5-mini) — highest recorded score on this benchmark by any system'. 'No vector database, no graph store — everything is text in context'. Mastra GitHub: 23k+ stars. $35M total funding. YC W25. Built by Gatsby.js team. MadAppGang guide: 'Four-tier memory architecture covering message history, working memory, semantic recall, and Observational Memory'.",
+      "sources": [
+        "https://lin-guanguo.github.io/llm-memory-research/mastra.research/",
+        "https://madappgang.com/blog/ai-agent-framework-decision-guide-2026",
+        "https://mastra.ai/"
+      ],
+      "confidence": 0.8,
+      "kai_relevance": "Mastra OM's 'no infrastructure' approach is appealing for resource-constrained deployments, but ~70,000 tokens/query cost projection makes it expensive for Kai-1 scale (OMEGA-comparison figure)."
+    },
+    {
+      "claim": "Cognee provides GraphRAG-style AI memory via ECL pipeline (Extract-Cognify-Load); 17.8k GitHub stars; uses Neo4j/NetworkX + Qdrant/Weaviate",
+      "evidence": "AIBARS (June 2026): Cognee '17.8k Last Updated: June 15, 2026'. 'ECL (Extract, Cognify, Load) pipeline ... Graph and Vector Dual Storage'. OMEGA comparison: 'Database: Neo4j / NetworkX + Qdrant / Weaviate. Cloud Required: OpenAI key required for embeddings'. Cognee docs: 'Add memory in 5 lines of code using @cognee.agent_memory decorator'.",
+      "sources": [
+        "https://www.aibars.net/en/library/open-source-ai/details/724990972701839360",
+        "https://omegamax.co/compare",
+        "https://docs.cognee.ai/guides/agent-memory-quickstart"
+      ],
+      "confidence": 0.85,
+      "kai_relevance": "Cognee's dual graph+vector approach may be over-engineered for Kai-1's needs; Neo4j dependency adds deployment complexity on a 32GB VPS."
+    },
+    {
+      "claim": "Weaviate Engram (launched GA April 2026) is a managed memory service with async extract-transform-commit pipeline; Weaviate v1.37 has built-in MCP server",
+      "evidence": "Weaviate blog April 21, 2026: 'Engram: Memory by Weaviate — a deep dive into our managed memory service for agents'. Weaviate 1.37 Release (April 23, 2026): 'built-in MCP Server (Preview) ... that lets LLMs and IDEs speak to your database natively'. ANI News June 6, 2026: 'Engram processes inputs asynchronously through an extract-transform-commit pipeline'. Weaviate also launched a Free Forever Tier on Weaviate Cloud.",
+      "sources": [
+        "https://weaviate.io/blog/weaviate-1-37-release",
+        "https://weaviate.io/blog",
+        "https://www.aninews.in/news/business/weaviate-launches-engram-to-break-the-ai-memory-bottleneck-and-let-agents-learn-from-conversation-without-slowing-down20260606172949"
+      ],
+      "confidence": 0.85,
+      "kai_relevance": "Engram is cloud-managed (not self-hostable), making it a poor fit for Kai-1's on-premise VPS deployment, but Weaviate's MCP server is relevant as a vector storage backend for other frameworks."
+    },
+    {
+      "claim": "Redis provides agent-memory-server (open source GitHub) and published long-term memory architecture guides; Redis Iris unifies caching, vectors, and memory",
+      "evidence": "Redis blog April 28, 2026: 'Long-Term Memory Architectures for AI Agents — this guide focuses on the architecture behind long-term memory'. Redis GitHub agent-memory-server: 'Fast and flexible memory for agents and AI applications using Redis'. Redis blog June 10, 2026: 'Real-time context engine: Fresh context for better AI agents' — Redis Iris. Feb 11, 2026: 'Relevance AI reduced vector search latency from 2 seconds to 10 milliseconds after migrating to Redis — a 99.5% improvement'.",
+      "sources": [
+        "https://redis.io/blog/long-term-memory-architectures-ai-agents",
+        "https://github.com/redis/agent-memory-server",
+        "https://redis.io/blog/build-smarter-ai-agents-manage-short-term-and-long-term-memory-with-redis"
+      ],
+      "confidence": 0.9,
+      "kai_relevance": "Redis is best positioned as an infrastructure component (short-term memory/caching layer) rather than a full memory framework for Kai-1, but the agent-memory-server is a viable self-hosted option."
+    },
+    {
+      "claim": "MCP (Model Context Protocol) is the de facto standard for AI agent connectivity; 97M+ SDK downloads, 13k+ MCP servers; donated to Linux Foundation Dec 2025",
+      "evidence": "Lushbinary MCP Guide 2026: 'Over 97 million SDK downloads, 13,000+ MCP servers on GitHub'. 'Donated to the Linux Foundation's Agentic AI Foundation in December 2025'. n1n.ai: 'LangChain, CrewAI, LangGraph, and LlamaIndex have moved from experimental support to making MCP the default protocol for tool-calling'. Anthropic released MCP Nov 2024; now supported by OpenAI, Google, Microsoft.",
+      "sources": [
+        "https://lushbinary.com/blog/mcp-model-context-protocol-developer-guide-2026",
+        "https://explore.n1n.ai/blog/mcp-tools-2026-model-context-protocol-guide-2026-05-12",
+        "https://hypernestlabs.com/insights/mcp-model-context-protocol-guide"
+      ],
+      "confidence": 0.95,
+      "kai_relevance": "MCP compatibility is table-stakes for any memory framework Kai-1 adopts — OMEGA, Mem0 (OpenMemory), Graphiti/Zep all offer MCP servers, ensuring tool-agnostic integration."
+    },
+    {
+      "claim": "Agent Memory benchmarks landscape: LongMemEval (ICLR 2025, 500 Qs), LoCoMo (1,540 Qs), BEAM (1M/10M tokens) are the three standards; Bench'd provides independent verification",
+      "evidence": "Mem0 State of AI Agent Memory 2026: 'Three benchmarks now define the measurement landscape: LoCoMo (1,540 questions), LongMemEval (500 questions), BEAM (1M and 10M token scales)'. Bench'd: 'Mem0 managed platform self-reports 93.4% on LongMemEval and 66.9-68.5% on LOCOMO. Bench'd's independent test of Mem0's open-source edition scored 32.4% on LongMemEval'. Bench'd harness is open source (Ed25519-signed manifests). AgentOS methodology disclosure shows most vendors report 'S only' (single-session) rather than 'M' (multi-session) on LongMemEval.",
+      "sources": [
+        "https://benchd.ai/benchmarks",
+        "https://docs.agentos.sh/benchmarks",
+        "https://mem0.ai/blog/state-of-ai-agent-memory-2026"
+      ],
+      "confidence": 0.85,
+      "kai_relevance": "Critical lesson for Kai-1: self-reported benchmarks (especially Mem0) may not reflect actual self-hosted OSS performance; independent verification via Bench'd is recommended before any framework decision."
+    },
+    {
+      "claim": "Token efficiency varies wildly: OMEGA ~1,500 tokens/query, Zep ~5K-15K, Mem0 ~6.9K, Observational Memory ~70,000 tokens/query",
+      "evidence": "OMEGA cost analysis: 'OMEGA ~1,500 tokens/query (hybrid semantic + BM25, top 5-10 results). Zep/Graphiti ~5K-15K (graph query + entity extraction). Observational Memory ~70,000 (full memory dump into context block)'. Mem0 reports 6,956 tokens/query on LoCoMo. Claude Native ~800 tokens (MEMORY.md capped at 200 lines). Monthly cost projection at 10K sessions: OMEGA $150, Zep Cloud $1,000-1,475, Mem0 Pro $249+, Observational $7,000.",
+      "sources": [
+        "https://omegamax.co/compare"
+      ],
+      "confidence": 0.7,
+      "kai_relevance": "For Kai-1's 32GB VPS, token efficiency directly impacts inference cost and context window management: OMEGA's ~1,500 tokens/query is ideal; Obs.Memory's ~70K is prohibitive."
+    },
+    {
+      "claim": "LongMemEval leaderboard (verified): OMEGA 95.4% (GPT-4.1), Mastra OM 94.87% (gpt-5-mini), Emergence 86%, Zep 71.2% (GPT-4o); Mem0 managed 94.4%, Mem0 OSS 32.4%",
+      "evidence": "OMEGA benchmarks page (April 2026): LongMemEval leaderboard — 1. OMEGA 95.4%, 2. Mastra OM 94.87% (gpt-5-mini, gpt-4o score: 84.23%), 3. Emergence AI 86%, 4. Zep/Graphiti 71.2%. Mem0 self-reports 94.4% (April 2026). Bench'd independent: Mem0 OSS 32.4%. AgentOS: 'Competitive with the strongest published M results in the LongMemEval paper' at 72%+ for multi-session. Note: different evaluation methodologies make direct cross-framework comparison unreliable without a common harness.",
+      "sources": [
+        "https://omegamax.co/benchmarks",
+        "https://benchd.ai/benchmarks",
+        "https://docs.agentos.sh/benchmarks"
+      ],
+      "confidence": 0.75,
+      "kai_relevance": "The LongMemEval leaderboard shows OMEGA and Mastra leading, but Kai-1 should benchmark candidates on its own Russian-language conversational data for an apples-to-apples comparison."
+    },
+    {
+      "claim": "Agent memory stacks in 2026 split into two layers: thread-scoped checkpointing (LangGraph) and cross-session memory (Mem0/Letta/Zep); not one component",
+      "evidence": "BestAIWeb.ai May 2026: 'Agent State Management is no longer one decision — it's a layered architecture, with thread-scoped checkpointing at the bottom and cross-session memory on top'. 'LangGraph 1.0 became the production default for one specific job: keeping a single agent task alive through crashes, retries, and human-in-the-loop interrupts. It does not persist what the user told you yesterday.'",
+      "sources": [
+        "https://www.bestaiweb.ai/langgraph-mem0-and-letta-how-the-agent-state-management-stack-took-shape-in-2026"
+      ],
+      "confidence": 0.9,
+      "kai_relevance": "Kai-1 should architect memory as a separate layer from agent orchestration (LangGraph) rather than choosing a single monolithic framework, following 2026 production patterns."
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/letta-ai/letta/releases",
+      "title": "Letta Releases — GitHub",
+      "date": "2026-03-31",
+      "tier": "Official",
+      "credibility": 1.0
+    },
+    {
+      "url": "https://github.com/letta-ai/letta",
+      "title": "Letta — GitHub (23k stars)",
+      "date": "2026-06-18",
+      "tier": "Official",
+      "credibility": 1.0
+    },
+    {
+      "url": "https://mem0.ai/blog/state-of-ai-agent-memory-2026",
+      "title": "State of AI Agent Memory 2026 — Mem0 Blog",
+      "date": "2026-04-01",
+      "tier": "Authoritative",
+      "credibility": 0.85
+    },
+    {
+      "url": "https://agentmarketcap.ai/blog/2026/04/10/agent-memory-vendor-landscape-2026-letta-zep-mem0-langmem",
+      "title": "Agent Memory at Scale 2026: Letta, Zep, Mem0, LangMem Compared",
+      "date": "2026-04-10",
+      "tier": "Reputable secondary",
+      "credibility": 0.7
+    },
+    {
+      "url": "https://arxiv.org/abs/2501.13956",
+      "title": "Zep: A Temporal Knowledge Graph Architecture for Agent Memory",
+      "date": "2025-01-20",
+      "tier": "Peer-reviewed",
+      "credibility": 0.9
+    },
+    {
+      "url": "https://www.getzep.com/platform/graphiti/",
+      "title": "Graphiti — Zep Official Site",
+      "date": "2026-06-18",
+      "tier": "Official",
+      "credibility": 1.0
+    },
+    {
+      "url": "https://omegamax.co/compare",
+      "title": "OMEGA vs Mem0, Zep, Letta, Cognee — Comparison",
+      "date": "2026-04-01",
+      "tier": "Official",
+      "credibility": 0.8
+    },
+    {
+      "url": "https://omegamax.co/blog/number-one-on-longmemeval",
+      "title": "#1 on LongMemEval — OMEGA Blog",
+      "date": "2026-02-13",
+      "tier": "Official",
+      "credibility": 0.85
+    },
+    {
+      "url": "https://www.langchain.com/blog/langmem-sdk-launch",
+      "title": "LangMem SDK for Agent Long-Term Memory",
+      "date": "2025-02-18",
+      "tier": "Official",
+      "credibility": 1.0
+    },
+    {
+      "url": "https://benchd.ai/benchmarks",
+      "title": "AI Memory Benchmarks 2026 — Bench'd",
+      "date": "2026-06-18",
+      "tier": "Reputable secondary",
+      "credibility": 0.8
+    },
+    {
+      "url": "https://docs.agentos.sh/benchmarks",
+      "title": "Memory Benchmarks — AgentOS Docs",
+      "date": "2026-06-18",
+      "tier": "Reputable secondary",
+      "credibility": 0.75
+    },
+    {
+      "url": "https://lin-guanguo.github.io/llm-memory-research/mastra.research/",
+      "title": "Mastra OM — LLM Agent Research",
+      "date": "2026-03-24",
+      "tier": "Reputable secondary",
+      "credibility": 0.7
+    },
+    {
+      "url": "https://madappgang.com/blog/ai-agent-framework-decision-guide-2026",
+      "title": "Best AI Agent Framework 2026 — MAG",
+      "date": "2026-05-22",
+      "tier": "Reputable secondary",
+      "credibility": 0.7
+    },
+    {
+      "url": "https://www.bestaiweb.ai/langgraph-mem0-and-letta-how-the-agent-state-management-stack-took-shape-in-2026",
+      "title": "LangGraph, Mem0, Letta: The Agent State Stack in 2026",
+      "date": "2026-05-14",
+      "tier": "Reputable secondary",
+      "credibility": 0.7
+    },
+    {
+      "url": "https://redis.io/blog/long-term-memory-architectures-ai-agents",
+      "title": "Long-Term Memory Architectures for AI Agents — Redis",
+      "date": "2026-04-28",
+      "tier": "Official",
+      "credibility": 0.9
+    },
+    {
+      "url": "https://github.com/redis/agent-memory-server",
+      "title": "Redis Agent Memory Server — GitHub",
+      "date": "2026-06-18",
+      "tier": "Official",
+      "credibility": 1.0
+    },
+    {
+      "url": "https://weaviate.io/blog/weaviate-1-37-release",
+      "title": "Weaviate 1.37 Release (MCP Server)",
+      "date": "2026-04-23",
+      "tier": "Official",
+      "credibility": 1.0
+    },
+    {
+      "url": "https://lushbinary.com/blog/mcp-model-context-protocol-developer-guide-2026",
+      "title": "MCP Developer Guide 2026 — Lushbinary",
+      "date": "2026-02-28",
+      "tier": "Reputable secondary",
+      "credibility": 0.7
+    },
+    {
+      "url": "https://www.generational.pub/p/memory-in-ai-agents",
+      "title": "Memory in AI Agents — Generational",
+      "date": "2025-02-22",
+      "tier": "Reputable secondary",
+      "credibility": 0.7
+    },
+    {
+      "url": "https://www.getzep.com/platform/graphiti/",
+      "title": "Graphiti Benchmark Results — Official Zep Site",
+      "date": "2026-06-18",
+      "tier": "Official",
+      "credibility": 0.95
+    }
+  ],
+  "gaps": [
+    "No published LongMemEval scores for Letta, Cognee, or LangMem — cannot compare their benchmark performance on the standard metric",
+    "Mem0 OSS vs managed platform performance gap (32.4% vs 94.4% on LongMemEval) is documented but root cause not clearly explained in official sources",
+    "Redis agent-memory-server has no published benchmark scores on LongMemEval or LoCoMo",
+    "Weaviate Engram has no published LongMemEval/LoCoMo benchmark scores yet (product is very new, GA April 2026)",
+    "No direct comparison of Russian-language memory retrieval performance across frameworks — all benchmarks use English datasets",
+    "OMEGA's 18 MCP tools are listed but not individually documented in the comparison page; specific tool capabilities need further investigation",
+    "Pricing for Letta Cloud and Weaviate Cloud is not clearly published (contact-sales pricing)",
+    "LongMemEval leaderboard scores use different methodologies (task-averaged vs category-specific), making cross-framework comparison imprecise without a common harness like Bench'd",
+    "No memory framework has published benchmarks for 32GB VPS resource-constrained deployment scenarios similar to Kai-1"
+  ],
+  "queries_used": [
+    "site:github.com letta-ai/letta releases memory agent 2026",
+    "site:mem0.ai memory framework 2025 2026",
+    "Zep Graphiti temporal knowledge graph LongMemEval 2025 2026",
+    "LangMem LangGraph memory agent 2025 2026",
+    "OMEGA memory agent 95.4 LongMemEval local 2026",
+    "MCP memory server agent protocol 2025 2026",
+    "Cognee memory framework LLM agent 2025 2026",
+    "Mastra OM memory agent framework 2025 2026",
+    "Weaviate context engineering memory layer agent 2025 2026",
+    "Redis long term memory LLM agent guide 2025 2026"
+  ],
+  "confidence_overall": 0.82
+}

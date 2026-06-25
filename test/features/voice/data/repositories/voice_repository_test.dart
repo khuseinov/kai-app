@@ -44,7 +44,7 @@ void main() {
         ),
       ).thenAnswer((_) async => response);
 
-      final result = await repository.transcribeAudio(audioFile, 'en');
+      final result = await repository.transcribeAudio(audioFile.path, 'en');
 
       expect(result.text, 'hello world');
       expect(result.language, 'en');
@@ -123,7 +123,7 @@ void main() {
       ).thenAnswer((_) async => response);
 
       final result = await repository.sendVoiceChat(
-        audioFile,
+        audioFile.path,
         'session-123',
         'user-456',
         'en',

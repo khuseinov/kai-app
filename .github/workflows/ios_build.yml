@@ -34,6 +34,8 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           INTERNAL_HEALTH_TOKEN: ${{ secrets.INTERNAL_HEALTH_TOKEN }}
+          VOICE_GATEWAY_BASE_URL: ${{ secrets.VOICE_GATEWAY_BASE_URL }}
+          VOICE_GATEWAY_API_KEY: ${{ secrets.VOICE_GATEWAY_API_KEY }}
         run: |
           if [ -z "$HF_TOKEN" ]; then
             echo "::error::HF_TOKEN secret is not set" >&2
@@ -48,6 +50,8 @@ jobs:
           USE_REAL_CHAT=true
           INTERNAL_HEALTH_TOKEN=$INTERNAL_HEALTH_TOKEN
           HF_TOKEN=$HF_TOKEN
+          VOICE_GATEWAY_BASE_URL=$VOICE_GATEWAY_BASE_URL
+          VOICE_GATEWAY_API_KEY=$VOICE_GATEWAY_API_KEY
           EOF
 
       # SIGNING NOTES (do not remove these env vars):

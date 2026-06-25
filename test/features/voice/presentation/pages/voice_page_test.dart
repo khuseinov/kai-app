@@ -71,13 +71,13 @@ class _MockVoiceRepository implements VoiceRepository {
   }
 
   @override
-  Future<SttResponse> transcribeAudio(File audio, String language) async {
+  Future<SttResponse> transcribeAudio(String audioPath, String language) async {
     throw UnimplementedError();
   }
 
   @override
   Future<VoiceChatResponse> sendVoiceChat(
-    File audio,
+    String audioPath,
     String sessionId,
     String? userId,
     String language,
@@ -98,6 +98,13 @@ class _MockRoomNotifier extends RoomNotifier {
 Widget _buildVoiceTest() {
   return ProviderScope(
     overrides: [
+      envProvider.overrideWithValue(
+        const EnvConfig(
+          apiBaseUrl: 'http://mock-api',
+          voiceGatewayBaseUrl: 'http://mock-voice-gateway',
+          useRealChat: false,
+        ),
+      ),
       themeModeProvider.overrideWith(() => _MockThemeModeNotifier(ThemeMode.light)),
       audioRecorderServiceProvider.overrideWithValue(_MockAudioRecorder()),
       audioPlayerServiceProvider.overrideWithValue(_MockAudioPlayer()),

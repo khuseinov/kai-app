@@ -1,0 +1,285 @@
+{
+  "hunter": "independent",
+  "status": "DONE",
+  "topic": "AI memory systems for LLMs and AI agents — community perspectives, debates, critiques",
+  "findings": [
+    {
+      "claim": "LessWrong community identifies three major safety risks from episodic memory in AI agents: deception, improved situational awareness enabling evasion of audits, and unpredictable memory use that may cause jailbreak-like behavior",
+      "evidence": "Chad DeChant (SaTML 2025 paper): \"Episodic memories will be useful in allowing an agent to engage in sophisticated forms of deception... LLM with a scratchpad was found to engage in strategic deception approximately three times as often as the same LLM without a scratchpad.\"",
+      "sources": ["https://www.lesswrong.com/posts/BsWXPnr26gJabF7Rf/episodic-memory-in-ai-agents-poses-new-safety-risks", "https://arxiv.org/abs/2501.11739"],
+      "confidence": 0.85,
+      "kai_relevance": "Directly informs Kai-1 safety architecture — memory should be detachable, interpretable, user-controllable, and AI should not self-edit memories"
+    },
+    {
+      "claim": "LessWrong community argues that LLM agents with persistent memory will \"effectively change their alignment as they learn\" and this is an under-addressed alignment threat",
+      "evidence": "Seth Herd: \"LLM AGI will have memory, and memory changes alignment... Adding memory to LLMs might be a route to dangerous AGI soon... AI with real memory will effectively change its alignment as it learns.\"",
+      "sources": ["https://www.lesswrong.com/posts/aKncW36ZdEnzxLo8A/llm-agi-will-have-memory-and-memory-changes-alignment"],
+      "confidence": 0.8,
+      "kai_relevance": "Core to Kai-1 alignment strategy — a continually learning agent on a 32GB VPS could drift its values over sessions if memory is not carefully bounded"
+    },
+    {
+      "claim": "Architectural separation of memory from capability is advocated on LessWrong (ADSI proposal): persistent identity and memory should be user-controlled, models treated as stateless capability engines",
+      "evidence": "ADSI author: \"Persistent identity and memory should be structurally separated from centralized AI model providers... Foundation models perform inference but do not retain persistent cross-request state.\"",
+      "sources": ["https://www.lesswrong.com/posts/iKrToKpqtcbFzZhsx/architectural-separation-of-memory-and-capability-in-ai"],
+      "confidence": 0.75,
+      "kai_relevance": "Kai-1 can adopt this architecture: Qwen3 runs as stateless reasoner, memory entirely in external user-controlled store"
+    },
+    {
+      "claim": "LessWrong community has published a major 3-part series on Continual Learning for LLM Agents (June 2026), identifying weight updates, context window, memory banks, scaffold, and tools as the five update mechanisms",
+      "evidence": "\"The main components of an LLM agent that can receive persistent updates during deployment are model weights, the context window, memory banks with natural language or neural activation memories, the agent scaffold, and tools.\" Published 2026-06-12.",
+      "sources": ["https://www.lesswrong.com/posts/5mCJzimtNZc9o4e26/what-s-continual-learning-and-why-might-we-expect-to-see-it", "https://www.lesswrong.com/posts/qChDifwpY8znER7cW/implications-of-continual-learning-for-llm-agents", "https://www.lesswrong.com/posts/j2zBqt7AksoEoHXNp/how-might-continual-learning-affect-safety-and-alignment"],
+      "confidence": 0.9,
+      "kai_relevance": "Essential reading for Kai-1 memory approach — the series directly addresses how open-source agents with persistent text-based memories compare to weight-based approaches"
+    },
+    {
+      "claim": "LessWrong community strongly favors text-based (interpretable) over weight-based (inscrutable) memory for CL agents, citing Claude Code as the ideal model",
+      "evidence": "\"We would like future CL agents to look very similar to Claude Code: persistent memories are stored in natural language, the agent must do a lot of CoT reasoning when it uses those memories and make explicit tool calls in order to write new memories, and humans can edit the memories in any way they want.\"",
+      "sources": ["https://www.lesswrong.com/posts/FKggLpnfbpbYvnjfG/angles-of-attack-for-continual-learning-safety"],
+      "confidence": 0.85,
+      "kai_relevance": "Strong validation for Kai-1's text-based memory approach with Qwen3 — keep memories as editable markdown, not weight updates"
+    },
+    {
+      "claim": "HN community shows a clear trend of building local-first, MCP-based memory tools that use knowledge graphs over vector search, rejecting cloud dependency",
+      "evidence": "Multiple Show HN projects (A-MEM, Agent Recall, Memv, Mneme, Deep Memory, OMEGA comparison) all emphasize local SQLite, MCP protocol, knowledge graphs. \"In practice, memory problems are often less about storage and more about structure + retrieval strategy.\"",
+      "sources": ["https://news.ycombinator.com/item?id=46636707", "https://news.ycombinator.com/item?id=47163343", "https://news.ycombinator.com/item?id=48428796", "https://news.ycombinator.com/item?id=48455368", "https://news.ycombinator.com/item?id=47644841"],
+      "confidence": 0.85,
+      "kai_relevance": "HN consensus supports Kai-1's local-first architecture — cloud dependency for memory is seen as a liability, not a feature"
+    },
+    {
+      "claim": "HN community debates whether memory should be structured (knowledge graphs, typed entities) or flat (markdown files, git-based), with a strong minority favoring git-based markdown as the simplest durable format",
+      "evidence": "\"How about just a memory dir in your project's git folder? Agents can run grep just fine.\" And \"the only way memory will work is if everyone uses: base path + markdown files.\" Balanced by: \"What we could use instead is a file system layout standard.\"",
+      "sources": ["https://news.ycombinator.com/item?id=48428796", "https://news.ycombinator.com/item?id=48413877"],
+      "confidence": 0.8,
+      "kai_relevance": "For Kai-1 with 32GB VPS and local Qwen3, git-based markdown memory is the simplest viable approach — aligns with CLAUDE.md/AGENTS.md pattern"
+    },
+    {
+      "claim": "Mem0 vs Letta vs OMEGA comparison reveals three fundamentally different architectures with no clear winner — choice depends on deployment model (cloud vs local) and agent architecture (bolt-on vs full runtime)",
+      "evidence": "Independent comparison: \"OMEGA leads with 95.4% on LongMemEval (vs Zep's 71.2%), runs fully local with zero cloud dependency... Mem0 averages 1,764 tokens per conversation in memory overhead versus 26,031 for full-context replay — a 93% reduction.\"",
+      "sources": ["https://omegamax.co/compare", "https://vectorize.io/articles/mem0-vs-letta", "https://particula.tech/blog/agent-memory-frameworks-tested-mem0-zep-letta-cognee-2026", "https://agentmarketcap.ai/blog/2026/04/08/agent-memory-architecture-wars-letta-mem0-zep-native-provider"],
+      "confidence": 0.85,
+      "kai_relevance": "Critical for Kai-1 architectural decision: OMEGA's local-first MCP approach best matches Kai's deployment, but Mem0's 93% compression is relevant for token budgets"
+    },
+    {
+      "claim": "Independent evaluation places Mem0 at 49.0% on LongMemEval while Zep/Graphiti scores 63.8% — a 15-point gap on temporal reasoning, and benchmark methodology is contested between vendors",
+      "evidence": "Particula Tech: \"Zep posts 63.8% with GPT-4o against Mem0's 49.0%... The benchmark deliberately includes validity windows because validity is a first-class concept.\" AgentMarketCap: \"Both Letta and Zep have publicly contested Mem0's benchmark methodology.\"",
+      "sources": ["https://particula.tech/blog/agent-memory-frameworks-tested-mem0-zep-letta-cognee-2026", "https://agentmarketcap.ai/blog/2026/04/08/agent-memory-architecture-wars-letta-mem0-zep-native-provider"],
+      "confidence": 0.8,
+      "kai_relevance": "Kai-1 should conduct its own evaluation on domain-specific temporal queries rather than relying on vendor benchmarks"
+    },
+    {
+      "claim": "Independent paper 'Beyond RAG for Agent Memory' (Feb 2026) proves that standard RAG with fixed top-k retrieval is fundamentally mismatched to agent memory because agent memory is a bounded, coherent stream with highly correlated spans, not a heterogeneous corpus",
+      "evidence": "\"RAG is designed for large, heterogeneous corpora where retrieved passages are diverse... In contrast, an agent's memory is a bounded and coherent stream, so candidate spans are highly correlated and often near duplicates.\"",
+      "sources": ["https://arxiv.org/abs/2602.02007v2"],
+      "confidence": 0.85,
+      "kai_relevance": "Kai-1 should not blindly apply RAG patterns to agent memory — needs diversity-promoting retrieval algorithms, not naive top-k"
+    },
+    {
+      "claim": "Independent paper 'Contextual Agentic Memory' argues that treating retrieval/lookup as memory is a category error: retrieval generalizes by similarity, weight-based memory generalizes by abstract rules — conflating them produces agents that cannot develop expertise",
+      "evidence": "\"Current agentic memory systems (vector stores, RAG, scratchpads, and context-window management) do not implement memory: they implement lookup. We argue that treating lookup as memory is a category error with provable consequences.\"",
+      "sources": ["https://www.emergentmind.com/papers/2604.27707"],
+      "confidence": 0.8,
+      "kai_relevance": "Provocative challenge to Kai-1's potential RAG-based memory — suggests periodic consolidation into weights (LoRA) is necessary for true expertise accumulation"
+    },
+    {
+      "claim": "Active Dreaming Memory (Dec 2025) achieves 95% retention after 500 episodes using biologically-inspired dual-store with counterfactual verification, outperforming Reflexion and MemGPT",
+      "evidence": "\"ADM improves first-episode learning efficiency by 2x and achieves 83% success rate, significantly outperforming Reflexion, MemGPT, and Self-RAG. Catastrophic forgetting stress tests show 95% retention after 500 episodes.\"",
+      "sources": ["https://engrxiv.org/preprint/download/5919/9826"],
+      "confidence": 0.75,
+      "kai_relevance": "Sleep-consolidation pattern could be adapted for Kai-1's offline periods — lightweight counterfactual dreaming without weight updates"
+    },
+    {
+      "claim": "A unified 2026 benchmark ecosystem has emerged: MemoryAgentBench (ICLR 2026), LongMemEval-V2, EvoMemBench, StructMemEval, MemEval — each testing different memory competencies with no single system dominating all axes",
+      "evidence": "MemoryAgentBench identifies 4 core competencies: \"accurate retrieval, test-time learning, long-range understanding, and selective forgetting.\" EvoMemBench finds: \"current memory systems are still far from a general solution: long-context baselines remain highly competitive.\"",
+      "sources": ["https://github.com/HUST-AI-HYZ/MemoryAgentBench", "https://arxiv.org/html/2605.18421", "https://arxiv.org/html/2602.11243v1"],
+      "confidence": 0.85,
+      "kai_relevance": "Kai-1 should evaluate against these benchmarks — simple retrieval may be competitive for Kai's use case; complex memory architectures may not justify overhead"
+    },
+    {
+      "claim": "Nous Research released Hermes Agent (Feb 2026) with a 5-level memory hierarchy: short-term inference, procedural skill docs, contextual persistence, Honcho user modeling, and FTS5 search — open-source MIT license",
+      "evidence": "Hermes Agent: \"The self-improving AI agent built by Nous Research. It's the only agent with a built-in learning loop — it creates skills from experience, improves them during use, nudges itself to persist knowledge.\" 6K GitHub stars in first month.",
+      "sources": ["https://hermes-agent.nousresearch.com/", "https://github.com/nousresearch/hermes-agent", "https://www.marktechpost.com/2026/02/26/nous-research-releases-hermes-agent-to-fix-ai-forgetfulness-with-multi-level-memory-and-dedicated-remote-terminal-access-support/"],
+      "confidence": 0.85,
+      "kai_relevance": "Hermes Agent's skill-document architecture and multi-level memory directly applicable to Kai-1's Qwen3-based agent — open-source MIT, local inference supported"
+    },
+    {
+      "claim": "MemFactory is the first unified RL training framework for memory-augmented agents, supporting GRPO fine-tuning of memory policies like Memory-R1 and RMM",
+      "evidence": "MemFactory: \"The first unified, highly modular training and inference framework specifically designed for memory-augmented agents. It natively integrates GRPO to fine-tune internal memory management policies.\"",
+      "sources": ["https://news.ycombinator.com/item?id=47858049"],
+      "confidence": 0.7,
+      "kai_relevance": "If Kai-1 later needs learned memory policies (RL-based extraction/retrieval), MemFactory is the framework to use — but premature for initial deployment"
+    },
+    {
+      "claim": "The RAG vs Long Context vs Fine-Tuning debate in 2026 has converged on a hybrid layering approach: retrieval for knowledge access, context window for reasoning, fine-tuning for behavior — not as competitors but as complementary layers",
+      "evidence": "Wire Blog: \"The best production systems in 2026 do not pick one approach. They layer all three: retrieval selects the relevant subset of a large corpus, a long context window reasons across that subset, and fine-tuning handles whatever consistent behavior the other two cannot.\"",
+      "sources": ["https://usewire.io/blog/rag-long-context-or-fine-tuning-how-to-choose/", "https://www.aibuilderclub.com/blog/rag-vs-long-context-vs-fine-tuning", "https://mem0.ai/blog/rag-vs-ai-memory"],
+      "confidence": 0.9,
+      "kai_relevance": "Kai-1 should adopt the layered approach: Qwen3 context window for working memory, RAG for knowledge access, and avoid fine-tuning for memory (YAGNI for initial deploy)"
+    },
+    {
+      "claim": "Community consensus identifies context window as working memory (fast, finite, stateless) vs external store as long-term memory (retrieval, compression, intent) — confusing the two is the most common production design mistake",
+      "evidence": "Build With AI Substack: \"A context window is fast, finite, and stateless. It's working memory — what the model can hold in mind right now. Real memory requires retrieval, compression, and intent.\" Contextual AI: \"So we treat the window as a budget.\"",
+      "sources": ["https://packtbuildwithai.substack.com/p/context-windows-are-not-memory-and", "https://contextual.ai/blog/demystifying-agent-memory"],
+      "confidence": 0.9,
+      "kai_relevance": "Foundational design principle for Kai-1: Qwen3's 131K context is working memory, not long-term storage — separate memory layer is essential"
+    },
+    {
+      "claim": "Gwern's 'retcon planning' (2026) proposes a backward teleological approach to memory: periodically discard hidden world state, infer new latent story from observed transcript, compress, and continue",
+      "evidence": "Gwern: \"In retcon planning, we treat the hidden world state as temporary. At checkpoints, the system infers a new latent story-world from the player-observed transcript, compresses it into a small world-state card, discards the detailed future plot, and continues forward.\"",
+      "sources": ["https://gwern.net/blog/2026/llm-retcon"],
+      "confidence": 0.7,
+      "kai_relevance": "Interesting theoretical perspective on memory compression — Kai-1 could use periodic world-state cards as a consolidation mechanism"
+    },
+    {
+      "claim": "The identity kernel hypothesis proposes that LLM agents with persistent memory and multi-objective constraint layers can exhibit stable identity through engineered attractors, with drift <10% after 100 adversarial prompts",
+      "evidence": "Identity Kernel Hypothesis: \"Self-state across sessions... stability under adversarial prompts (drift <10% after 100 coercive inputs)... Extends memory agent surveys.\"",
+      "sources": ["https://www.lesswrong.com/posts/a5MwfQCzKNLeZDAD3/the-identity-kernel-hypothesis-toward-bounded-agency-in"],
+      "confidence": 0.65,
+      "kai_relevance": "Relevant for Kai-1 persona stability — identity constraints could prevent value drift in long-running agent deployments"
+    }
+  ],
+  "sources": [
+    {"url": "https://www.lesswrong.com/posts/BsWXPnr26gJabF7Rf/episodic-memory-in-ai-agents-poses-new-safety-risks", "title": "Episodic memory in AI agents poses new safety risks", "date": "2026-02-04", "tier": "Reputable secondary", "credibility": 0.75},
+    {"url": "https://www.lesswrong.com/posts/aKncW36ZdEnzxLo8A/llm-agi-will-have-memory-and-memory-changes-alignment", "title": "LLM AGI will have memory, and memory changes alignment", "date": "undated", "tier": "Reputable secondary", "credibility": 0.75},
+    {"url": "https://www.lesswrong.com/posts/5mCJzimtNZc9o4e26/what-s-continual-learning-and-why-might-we-expect-to-see-it", "title": "What's Continual Learning for LLM Agents?", "date": "2026-06-12", "tier": "Reputable secondary", "credibility": 0.8},
+    {"url": "https://www.lesswrong.com/posts/qChDifwpY8znER7cW/implications-of-continual-learning-for-llm-agents", "title": "Implications of Continual Learning for LLM Agents", "date": "2026-06-12", "tier": "Reputable secondary", "credibility": 0.8},
+    {"url": "https://www.lesswrong.com/posts/FKggLpnfbpbYvnjfG/angles-of-attack-for-continual-learning-safety", "title": "Angles of attack for continual learning safety", "date": "2026-06-13", "tier": "Reputable secondary", "credibility": 0.8},
+    {"url": "https://www.lesswrong.com/posts/iKrToKpqtcbFzZhsx/architectural-separation-of-memory-and-capability-in-ai", "title": "Architectural separation of memory and capability in AI", "date": "undated", "tier": "Reputable secondary", "credibility": 0.7},
+    {"url": "https://www.lesswrong.com/posts/a5MwfQCzKNLeZDAD3/the-identity-kernel-hypothesis-toward-bounded-agency-in", "title": "The identity kernel hypothesis", "date": "undated", "tier": "Unverified", "credibility": 0.3},
+    {"url": "https://news.ycombinator.com/item?id=48428796", "title": "Universal Memory Protocol – a shared format for agent memory", "date": "2026", "tier": "Community", "credibility": 0.5},
+    {"url": "https://news.ycombinator.com/item?id=48413877", "title": "Show HN: Agents Remember – Git-aware memory for coding agents", "date": "2026", "tier": "Community", "credibility": 0.5},
+    {"url": "https://news.ycombinator.com/item?id=47858049", "title": "Show HN: MemFactory: Unified Inference and Training Framework for Agent Memory", "date": "2026", "tier": "Peer-reviewed", "credibility": 0.7},
+    {"url": "https://news.ycombinator.com/item?id=46636707", "title": "Show HN: A-MEM – Memory for Claude Code", "date": "2026", "tier": "Community", "credibility": 0.5},
+    {"url": "https://news.ycombinator.com/item?id=47644841", "title": "Show HN: Unify memory across agents, written in Rust", "date": "2026", "tier": "Community", "credibility": 0.5},
+    {"url": "https://omegamax.co/compare", "title": "OMEGA vs Mem0, Zep, Letta, Cognee", "date": "2026-04", "tier": "Community", "credibility": 0.5},
+    {"url": "https://vectorize.io/articles/mem0-vs-letta", "title": "Mem0 vs Letta: AI Agent Memory Compared (2026)", "date": "2026-03-15", "tier": "Community", "credibility": 0.5},
+    {"url": "https://particula.tech/blog/agent-memory-frameworks-tested-mem0-zep-letta-cognee-2026", "title": "Agent Memory Frameworks Tested: Mem0 vs Zep vs Letta", "date": "2026-06-04", "tier": "Community", "credibility": 0.5},
+    {"url": "https://agentmarketcap.ai/blog/2026/04/08/agent-memory-architecture-wars-letta-mem0-zep-native-provider", "title": "Agent Memory Architecture Wars 2026", "date": "2026-04-08", "tier": "Community", "credibility": 0.5},
+    {"url": "https://mem0.ai/blog/state-of-ai-agent-memory-2026", "title": "State of AI Agent Memory 2026", "date": "2026-04-01", "tier": "Community", "credibility": 0.5},
+    {"url": "https://arxiv.org/abs/2602.02007v2", "title": "Beyond RAG for Agent Memory", "date": "2026-02", "tier": "Peer-reviewed", "credibility": 0.75},
+    {"url": "https://www.emergentmind.com/papers/2604.27707", "title": "Contextual Agentic Memory: Memo vs True Memory", "date": "2026-04", "tier": "Peer-reviewed", "credibility": 0.7},
+    {"url": "https://engrxiv.org/preprint/download/5919/9826", "title": "Active Dreaming Memory", "date": "2025-12", "tier": "Peer-reviewed", "credibility": 0.7},
+    {"url": "https://arxiv.org/html/2605.20616", "title": "Auto-Dreamer: Learning Offline Memory Consolidation", "date": "2026-05", "tier": "Peer-reviewed", "credibility": 0.75},
+    {"url": "https://arxiv.org/html/2605.16045v1", "title": "RecMem: Recurrence-based Memory Consolidation", "date": "2026-05-15", "tier": "Peer-reviewed", "credibility": 0.75},
+    {"url": "https://arxiv.org/html/2604.20943", "title": "SCM: Sleep-Consolidated Memory", "date": "2026-04", "tier": "Peer-reviewed", "credibility": 0.7},
+    {"url": "https://arxiv.org/html/2605.30771", "title": "Eywa: Provenance-Grounded Long-Term Memory", "date": "2026-05", "tier": "Peer-reviewed", "credibility": 0.75},
+    {"url": "https://arxiv.org/html/2602.14038", "title": "FluxMem: Adaptive Memory Structures", "date": "2026-02", "tier": "Peer-reviewed", "credibility": 0.75},
+    {"url": "https://arxiv.org/html/2601.01885", "title": "AgeMem: Unified LTM/STM Management", "date": "2026-01", "tier": "Peer-reviewed", "credibility": 0.75},
+    {"url": "https://arxiv.org/html/2606.06036v1", "title": "MRAgent: Reconstructive Memory for LLM Agents", "date": "2026-06", "tier": "Peer-reviewed", "credibility": 0.75},
+    {"url": "https://lilianweng.github.io/posts/2023-06-23-agent/", "title": "LLM Powered Autonomous Agents", "date": "2023-06-23", "tier": "Authoritative", "credibility": 0.85},
+    {"url": "https://gwern.net/blog/2026/llm-retcon", "title": "LLM Retcon", "date": "2026", "tier": "Authoritative", "credibility": 0.85},
+    {"url": "https://hermes-agent.nousresearch.com/", "title": "Hermes Agent | Nous Research", "date": "2026-02", "tier": "Official", "credibility": 0.9},
+    {"url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench", "title": "MemoryAgentBench (ICLR 2026)", "date": "2026-05", "tier": "Peer-reviewed", "credibility": 0.8},
+    {"url": "https://usewire.io/blog/rag-long-context-or-fine-tuning-how-to-choose/", "title": "RAG, long context, or fine-tuning: how to choose", "date": "2026-06-01", "tier": "Reputable secondary", "credibility": 0.7},
+    {"url": "https://packtbuildwithai.substack.com/p/context-windows-are-not-memory-and", "title": "Context Windows Are Not Memory", "date": "2026-05-22", "tier": "Community", "credibility": 0.5},
+    {"url": "https://contextual.ai/blog/demystifying-agent-memory", "title": "Demystifying Agent Memory", "date": "2026-05-12", "tier": "Reputable secondary", "credibility": 0.7},
+    {"url": "https://arxiv.org/html/2605.18421", "title": "EvoMemBench: Benchmarking Agent Memory", "date": "2026-05", "tier": "Peer-reviewed", "credibility": 0.75},
+    {"url": "https://arxiv.org/html/2602.11243v1", "title": "StructMemEval: Evaluating Memory Structure", "date": "2026-02-11", "tier": "Peer-reviewed", "credibility": 0.75}
+  ],
+  "gaps": [
+    "Reddit r/LocalLLaMA was blocked by search API (403) — practical community memory tips from that subreddit are missing",
+    "Alignment Forum (alignmentforum.org) — no results returned",
+    "EleutherAI-specific memory evaluation benchmarks — lm-evaluation-harness covers general LLM eval but no dedicated agent memory eval task was found",
+    "Nathan Lambert Interconnects / RLHF training memory posts — not found",
+    "Substack 'The Batch' (Andrew Ng) — no relevant memory-specific posts surfaced",
+    "Specific OMEGA paper on arXiv — not found, benchmark claims are self-reported on omegamax.co",
+    "LongMemEval V1 (ICLR 2025) reference paper — referenced but not directly fetched",
+    "Nous Research Observational Memory — found PR but no published paper or detailed architecture doc"
+  ],
+  "queries_used": [
+    "site:lesswrong.com agent memory architecture LLM 2025 2026",
+    "site:news.ycombinator.com AI agent memory 2025 2026",
+    "site:reddit.com r/LocalLLaMA Letta Mem0 memory agent 2025 2026",
+    "Gwern memory LLM agent architecture 2025 2026",
+    "Lilian Weng LilLog memory LLM agent 2025 2026",
+    "EleutherAI memory evaluation benchmark 2025 2026 LLM agent",
+    "Mem0 vs Letta vs OMEGA memory comparison debate 2025 2026",
+    "\"agent memory\" \"context window\" debate RAG fine-tuning local 2025 2026",
+    "site:lesswrong.com \"continual learning\" LLM agent memory 2026",
+    "Nous Research memory fine-tune agent 2025 2026",
+    "\"active dreaming memory\" OR \"episodic consolidation\" LLM agent 2025 2026"
+  ],
+  "confidence_overall": 0.78,
+  "community_signals": [
+    {
+      "source_type": "LessWrong",
+      "signal": "Strong consensus that memory in LLM agents changes alignment — the community treats persistent memory as an alignment threat, not just an engineering challenge. Three-part Continual Learning series (June 2026) is the most significant recent treatment.",
+      "consensus": "strong",
+      "url": "https://www.lesswrong.com/posts/aKncW36ZdEnzxLo8A/llm-agi-will-have-memory-and-memory-changes-alignment",
+      "relevance_to_kai": "Kai-1 must treat memory as a safety-critical component, not just a feature bolt-on"
+    },
+    {
+      "source_type": "LessWrong",
+      "signal": "Clear preference for text-based/interpretable memory over weight-based — Claude Code's markdown-memory pattern is held up as the ideal for safe continual learning.",
+      "consensus": "strong",
+      "url": "https://www.lesswrong.com/posts/FKggLpnfbpbYvnjfG/angles-of-attack-for-continual-learning-safety",
+      "relevance_to_kai": "Validates Kai-1's direction of keeping memory in editable text format with Qwen3 as stateless reasoner"
+    },
+    {
+      "source_type": "HN",
+      "signal": "Strong community energy around local-first, MCP-based, git-backed memory tools. Rejection of cloud dependency for agent memory is near-consensus. Knowledge graphs over flat vector stores is the emerging architectural preference.",
+      "consensus": "strong",
+      "url": "https://news.ycombinator.com/item?id=47644841",
+      "relevance_to_kai": "HN community would endorse Kai-1's local 32GB VPS deployment and MCP-compatible memory layer"
+    },
+    {
+      "source_type": "HN",
+      "signal": "Debate on structured memory (typed entities, knowledge graphs) vs flat memory (markdown files, git) — no clear winner, but the simplest approach (git + markdown) has vocal advocates for being more durable and inspectable.",
+      "consensus": "mixed",
+      "url": "https://news.ycombinator.com/item?id=48428796",
+      "relevance_to_kai": "Kai-1 can start with flat git-backed markdown and add structure later if needed — HN validates this YAGNI approach"
+    },
+    {
+      "source_type": "Independent blogs",
+      "signal": "16+ blog posts and comparison articles in 2026 analyzing Mem0 vs Letta vs Zep vs OMEGA — vendors publicly contest each other's benchmarks. Community is frustrated with the lack of standardized, independently-run evaluations.",
+      "consensus": "mixed",
+      "url": "https://particula.tech/blog/agent-memory-frameworks-tested-mem0-zep-letta-cognee-2026",
+      "relevance_to_kai": "Kai-1 should not rely on vendor benchmarks — run independent comparison on its own domain data"
+    },
+    {
+      "source_type": "IndepBlog",
+      "signal": "RAG vs Long Context vs Fine-Tuning debate has largely settled: they are layers, not rivals. The 2026 production default is hybrid retrieval + context window reasoning + minimal fine-tuning.",
+      "consensus": "strong",
+      "url": "https://usewire.io/blog/rag-long-context-or-fine-tuning-how-to-choose/",
+      "relevance_to_kai": "Kai-1 should adopt the layered hybrid approach from day one"
+    },
+    {
+      "source_type": "IndepBlog",
+      "signal": "Context windows are not memory — this is the most repeated warning across independent blogs. Confusing context capacity with memory architecture is identified as the #1 production design mistake.",
+      "consensus": "strong",
+      "url": "https://packtbuildwithai.substack.com/p/context-windows-are-not-memory-and",
+      "relevance_to_kai": "Critical: Qwen3's 131K context is working memory, not long-term memory — separate external store is non-negotiable"
+    }
+  ],
+  "contrarian_views": [
+    {
+      "claim": "Retrieval/lookup systems (RAG, vector stores, scratchpads) are NOT memory at all — treating them as memory is a 'category error' that prevents agents from developing real expertise. True memory requires weight consolidation.",
+      "source": "https://www.emergentmind.com/papers/2604.27707",
+      "credibility": 0.7,
+      "why_notable": "Directly challenges the entire RAG-as-memory paradigm that most agent frameworks are built on. If correct, Kai-1's text-based memory will never produce true expertise accumulation."
+    },
+    {
+      "claim": "Context windows alone may make external memory architectures obsolete — EvoMemBench finds long-context baselines remain highly competitive and memory helps most only when current context is insufficient.",
+      "source": "https://arxiv.org/html/2605.18421",
+      "credibility": 0.75,
+      "why_notable": "Challenges the assumption that Kai-1 needs complex external memory — with Qwen3's 131K context, simple context management may be competitive with sophisticated memory architectures."
+    },
+    {
+      "claim": "Mem0's 93% compression rate enables memory at negligible cost, while Zep/Graphiti claims this sacrifices temporal reasoning accuracy by 15 points — the optimal tradeoff is contested and domain-dependent.",
+      "source": "https://agentmarketcap.ai/blog/2026/04/08/agent-memory-architecture-wars-letta-mem0-zep-native-provider",
+      "credibility": 0.7,
+      "why_notable": "Kai-1 on 32GB VPS must decide: aggressive compression (cheaper, faster) vs temporal precision (more accurate, heavier) — existing benchmarks don't settle this for Kai's specific domain."
+    },
+    {
+      "claim": "Git-based markdown memory is all most agents need — complex memory architectures are premature optimization for the vast majority of use cases.",
+      "source": "https://news.ycombinator.com/item?id=48413877",
+      "credibility": 0.5,
+      "why_notable": "Directly supports a YAGNI approach for Kai-1: start with git-backed markdown files, only add vector search or graph databases if empirically needed."
+    },
+    {
+      "claim": "Sleep consolidation with counterfactual dreaming may be the missing mechanism — offline consolidation into semantic rules outperforms online-only memory systems on retention and generalization.",
+      "source": "https://engrxiv.org/preprint/download/5919/9826",
+      "credibility": 0.7,
+      "why_notable": "If validated, Kai-1 could implement lightweight sleep consolidation during idle VPS periods, converting episodic traces into reusable semantic rules without weight updates."
+    }
+  ]
+}

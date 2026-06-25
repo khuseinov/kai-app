@@ -62,7 +62,7 @@ class _FakeVoiceRepository implements VoiceRepository {
 
   @override
   Future<VoiceChatResponse> sendVoiceChat(
-    File audio,
+    String audioPath,
     String sessionId,
     String? userId,
     String language,
@@ -76,7 +76,7 @@ class _FakeVoiceRepository implements VoiceRepository {
   }
 
   @override
-  Future<SttResponse> transcribeAudio(File audio, String language) async {
+  Future<SttResponse> transcribeAudio(String audioPath, String language) async {
     throw UnimplementedError();
   }
 }
@@ -88,6 +88,13 @@ ProviderContainer _createContainer({
 }) {
   return ProviderContainer(
     overrides: [
+      envProvider.overrideWithValue(
+        const EnvConfig(
+          apiBaseUrl: 'http://mock-api',
+          voiceGatewayBaseUrl: 'http://mock-voice-gateway',
+          useRealChat: false,
+        ),
+      ),
       audioRecorderServiceProvider.overrideWithValue(recorder),
       audioPlayerServiceProvider.overrideWithValue(player),
       voiceRepositoryProvider.overrideWithValue(repository),

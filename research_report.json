@@ -1,0 +1,207 @@
+{
+  "hunter": "primary",
+  "status": "DONE",
+  "topic": "AI memory systems for LLMs and AI agents — architectures, technologies, features, practices, implementations",
+  "findings": [
+    {
+      "claim": "Agent memory has matured from ad-hoc context stuffing to a first-class architectural concern with dedicated benchmarks (LoCoMo, LongMemEval, BEAM) and four production frameworks (Mem0, Zep/Graphiti, Letta, LangMem).",
+      "evidence": "Mem0's State of AI Agent Memory 2026 report: 'Three years ago, AI agent memory meant shoving conversation history into a context window... In 2026, memory is a first-class architectural component: its own benchmark suite, its own research literature, a measurable performance gap between approaches.'",
+      "sources": ["https://mem0.ai/blog/state-of-ai-agent-memory-2026", "https://maidul-haque.vercel.app/blog/agent-memory-architectures-2026/"],
+      "confidence": 0.95,
+      "kai_relevance": "Kai-1 must evaluate whether to adopt one of these frameworks (Mem0, Zep, LangMem) or build custom memory for its Qwen-based agent architecture."
+    },
+    {
+      "claim": "Five canonical agent memory architecture patterns exist in production 2026: In-Process/Working-Only, Flat External Vector Store, Tiered Memory (MemGPT/Letta), Knowledge Graph+Vector Hybrid, and Enterprise Context Layer.",
+      "evidence": "Atlan's agent memory architecture guide: 'An agent memory architecture combines storage, retrieval, and control logic... In production in 2026, five patterns span trade-offs from 72.9% accuracy at 17.12s p95 latency to 66.9% at 1.44s.' Pattern 5 is 'a governed, continuously maintained metadata graph serves as the agent's long-term semantic and organizational memory.'",
+      "sources": ["https://atlan.com/know/agent-memory-architectures/", "https://maidul-haque.vercel.app/blog/agent-memory-architectures-2026/"],
+      "confidence": 0.90,
+      "kai_relevance": "Kai-1 with 32GB VPS budget should target Pattern 2 (flat vector with pgvector/Qdrant) or Pattern 3 (tiered) — Pattern 5 requires enterprise data catalog infrastructure Kai-1 doesn't have."
+    },
+    {
+      "claim": "Full-context in-process memory achieves 72.9% accuracy at 17.12s p95 latency; selective external memory drops to 66.9% but cuts latency to 1.44s (91% faster) with 90% fewer tokens (~26K vs ~1.8K per conversation).",
+      "evidence": "Atlan's analysis citing Mem0 LOCOMO benchmark (arXiv:2504.19413): 'full-context in-process achieves 72.9% accuracy at 17.12s p95 latency, while selective external memory drops to 66.9% accuracy but cuts latency to 1.44s, a 91% speed gain at 6-point accuracy cost, with a 90% reduction in token cost (~26,031 tokens vs. ~1,764 per conversation).'",
+      "sources": ["https://atlan.com/know/agent-memory-architectures/", "https://mem0.ai/blog/state-of-ai-agent-memory-2026"],
+      "confidence": 0.85,
+      "kai_relevance": "For Kai-1 on self-hosted Qwen, this token cost difference is decisive — external memory with ~1.8K tokens/turn vs ~26K full-context makes 32GB VPS feasible for multi-session deployments."
+    },
+    {
+      "claim": "RAG, knowledge graphs, and agent memory serve distinct roles: RAG for breadth (document retrieval), memory for continuity (cross-session persistence), knowledge graphs for multi-hop reasoning. Production systems compose all three.",
+      "evidence": "Atlan's guide: 'AI memory, RAG, and knowledge graphs are not alternatives to pick between — they are three distinct layers of the same context stack. RAG retrieves documents at query time; memory persists context across sessions; knowledge graphs store entities and explicit relationships for multi-hop reasoning.' Vanilla RAG 'fails on multi-hop questions' because it 'cannot reason about the causal relationship between retrieved facts.'",
+      "sources": ["https://atlan.com/know/ai-memory-vs-rag-vs-knowledge-graph/", "https://timewell.jp/en/columns/ai-rag-agi"],
+      "confidence": 0.90,
+      "kai_relevance": "Kai-1 should compose RAG (for document grounding) + tiered memory (for cross-session user context) — GraphRAG adds 3-5x cost and may not be justified for Kai-1's Phase 2 scope."
+    },
+    {
+      "claim": "Mem0 achieves 92.5 on LoCoMo and 94.4 on LongMemEval with ~6,900 tokens/query using single-pass hierarchical extraction and multi-signal retrieval (semantic + BM25 + entity matching). Temporal queries improved +29.6 points.",
+      "evidence": "Mem0's State of AI Agent Memory 2026: 'Benchmark: LoCoMo 92.5, LongMemEval 94.4, BEAM-1M 64.1, BEAM-10M 48.6 — at ~6,900 tokens per query.' 'Biggest gains are on temporal queries (+29.6 points) and multi-hop reasoning (+23.1 points).' The 'retrieval stack runs three scoring passes in parallel, including semantic similarity, keyword matching, and entity matching, and fuses the results.'",
+      "sources": ["https://mem0.ai/blog/state-of-ai-agent-memory-2026", "https://atlan.com/know/ai-memory-system-vs-rag/"],
+      "confidence": 0.80,
+      "kai_relevance": "Mem0's benchmarks are credible but vendor-reported. For Kai-1, Mem0's OSS self-hosted option ($0 infra beyond vector DB) fits the 32GB VPS budget if Qwen3-35B can run alongside a lightweight memory service."
+    },
+    {
+      "claim": "Zep/Graphiti's temporal knowledge graph scores 63.8% on LongMemEval vs Mem0's 49.0% (15-point gap) because Graphiti stores bi-temporal fact validity windows (valid_from/valid_to/invalid_at) while Mem0 attaches only creation timestamps.",
+      "evidence": "Particula Tech: 'On LongMemEval... Zep's Graphiti backend scores 63.8% with GPT-4o while Mem0 lands at 49.0%. That is a 15-point gap on the exact capability (remembering facts that change over time).' AgentMarketCap: 'the gap is almost entirely explained by Zep's temporal modeling advantage.' Zep also has '600,000+ tokens per conversation' memory footprint vs Mem0's ~1,764.",
+      "sources": ["https://particula.tech/blog/agent-memory-frameworks-tested-mem0-zep-letta-cognee-2026", "https://agentmarketcap.ai/blog/2026/04/08/ai-agent-memory-shootout-2026-mem0-zep-letta-supermemory"],
+      "confidence": 0.85,
+      "kai_relevance": "For Kai-1, temporal awareness matters if user preferences evolve across sessions. Zep's Graphiti OSS (Apache-2.0) is viable but its higher token footprint (~600K vs ~1.8K) may be prohibitive on 32GB VPS. Mem0 or a custom simpler approach may be more practical."
+    },
+    {
+      "claim": "Letta (formerly MemGPT) implements OS-style tiered memory (core=RAM, recall=disk cache, archival=cold storage) with agent self-managed memory allocation. Achieves ~74-83% accuracy on benchmarks depending on configuration.",
+      "evidence": "AgentMarketCap: 'On the LoCoMo benchmark with GPT-4o mini, Letta achieves 74.0%, significantly above Mem0's reported 68.5%.' 'Letta's tiered model handles memory degradation gracefully across indefinitely long sessions.' But Letta 'is an agent runtime, not just a memory library' — integrating Letta 'requires a different architectural commitment than adding Mem0 or Zep.' Third-party testing puts Letta at ~83.2%.",
+      "sources": ["https://wowhow.cloud/blogs/agent-memory-race-2026-mem0-zep-letta-mempalace", "https://agentmarketcap.ai/blog/2026/04/05/agent-memory-architecture-langmem-letta-rag-production"],
+      "confidence": 0.80,
+      "kai_relevance": "Letta's architecture is conceptually ideal for Kai-1 (tiered memory matching cognitive models) but its requirement to build agents inside its runtime may conflict with Kai-1's existing Qwen-based architecture. Higher integration cost."
+    },
+    {
+      "claim": "LangMem (LangChain) supports semantic, episodic, and procedural memory natively via LangGraph's store/checkpointer. LangMem p95 latency is 59.82s per LOCOMO, making it unsuitable for interactive agents. Mem0 (0.200s p95) and Zep (~300ms) are faster.",
+      "evidence": "Atlan's analysis: 'LangMem's p95 search latency on the LOCOMO benchmark is 59.82 seconds. If your agent needs sub-second memory recall, use Mem0 (0.200s p95) or Zep instead.' LangMem supports procedural memory ('agents rewriting their own system prompts') which is unique. LongMemEval: 'Mem0 scores 49.0% on temporal reasoning tasks — below Zep's 63.8%.'",
+      "sources": ["https://atlan.com/know/long-term-memory-langchain-agents/", "https://maidul-haque.vercel.app/blog/agent-memory-architectures-2026/"],
+      "confidence": 0.85,
+      "kai_relevance": "LangMem's procedural memory (agent self-prompt-rewriting) is compelling for Kai-1's governance v7.5.0 rules, but 59.82s latency is prohibitive for real-time interaction. Use only for background consolidation, not hot-path retrieval."
+    },
+    {
+      "claim": "MCP-based memory servers have emerged as a standard pattern for portable, local-first agent memory. Multiple production-grade implementations exist (mem0 OpenMemory, memory-mcp, mcp-memory-engine, mnemory) with features like bi-temporal knowledge, entity resolution, and graph relationships.",
+      "evidence": "GitHub repositories show: memory_mcp (Rust/SurrealDB, 'bi-temporal knowledge model for valid time and ingestion time'), mcp-memory-engine (Rust+Python, 'schema formation, prospective memory, contradiction detection'), mnemory (Python, 'two-tier memory in vector store+detailed artifact store'). Mem0 launched OpenMemory MCP: 'local-first memory layer... runs as an MCP-compatible memory server.'",
+      "sources": ["https://github.com/like-a-freedom/memory_mcp", "https://github.com/ForNeverAnd/mcp-memory-engine", "https://mem0.ai/blog/state-of-ai-agent-memory-2026", "https://github.com/fpytloun/mnemory"],
+      "confidence": 0.90,
+      "kai_relevance": "MCP memory servers provide a self-hostable, tool-agnostic memory layer that works with any MCP-compatible client. For Kai-1, an MCP memory server (self-hosted alongside Qwen) is the lowest-friction integration path."
+    },
+    {
+      "claim": "Context engineering has emerged as a formal discipline distinct from prompt engineering, treating the context window as an OS that manages memory (retain/evict), resource allocation, process isolation, and unified interface to external systems.",
+      "evidence": "arXiv paper 'Context Engineering' (2603.09619, 2026): 'Context engineering (CE) in 2026 is now a necessary discipline concerned with what the agent knows, sees, and remembers at the moment of action... I propose treating context, the informational environment, as the agent's operating system (OS).' Weaviate blog: 'Context engineering is about shifting our role from being prompters who talk at a model to architects who build the world the model lives in.'",
+      "sources": ["https://arxiv.org/pdf/2603.09619", "https://weaviate.io/blog/context-engineering"],
+      "confidence": 0.90,
+      "kai_relevance": "For Kai-1, adopting context engineering as a design principle means architecting memory, retrieval, and governance as integrated subsystems — not bolting them on. This frames Kai-1's Phase 3 memory architecture decisions."
+    },
+    {
+      "claim": "Weaviate launched Engram (June 2026), a managed memory service with async extract-reconcile-commit pipelines, built-in deduplication, temporal reconciliation, and scope-based multi-agent isolation.",
+      "evidence": "Weaviate Engram GA announcement: 'Engram is our managed memory and context service, purpose-built to help agents orchestrate workflows, learn from experience, and anchor decisions to trusted knowledge.' 'Asynchronous pipelines run in the background to extract relevant information, reconcile it against what's already known while handling deduplication, preference changes, and time-evolving facts.' The Agent Times: 'Weaviate declared that persistent AI agent failures stem from inadequate memory infrastructure rather than model limitations.'",
+      "sources": ["https://weaviate.io/product/engram", "https://github.com/weaviate/weaviate-io/blob/main/blog/2026-06-03-engram-generally-available/index.mdx", "https://theagenttimes.com/articles/weaviate-argues-bad-memory-systems-not-models-cause-agent-fa-b5c9e321"],
+      "confidence": 0.80,
+      "kai_relevance": "Engram is managed (not self-hostable), so it's not directly applicable to Kai-1's self-hosted Qwen setup. But its pipeline architecture (extract-reconcile-commit) is a reference pattern for Kai-1's custom memory implementation."
+    },
+    {
+      "claim": "BEAM benchmark reveals that no current memory architecture saturates at scale: BEAM-1M scores range ~48-64% and BEAM-10M drops further. Temporal queries remain the hardest category across all benchmarks.",
+      "evidence": "Mem0's report: 'BEAM-1M: 64.1, BEAM-10M: 48.6.' 'The BEAM-1M and BEAM-10M scores (64.1 and 48.6) are below the LoCoMo and LongMemEval headlines. That gap is the point of BEAM. It is a benchmark designed so that no current memory architecture saturates it.' Mem0's own data shows 'temporal queries are the hardest category, and the headroom is significant even after the +29.6 point gain.'",
+      "sources": ["https://mem0.ai/blog/state-of-ai-agent-memory-2026", "https://mem0.ai/blog/ai-memory-benchmarks-in-2026"],
+      "confidence": 0.85,
+      "kai_relevance": "Kai-1 should set realistic expectations: even SOTA memory systems struggle at scale. For single-user or small-team deployment (Kai-1's likely Phase 2 scope), simpler architectures are sufficient — BEAM's 10M-token scale is not a near-term constraint."
+    },
+    {
+      "claim": "Agentic Memory (AgeMem) proposes unified learned management of short-term and long-term memory via a three-stage progressive RL strategy (GRPO), treating memory operations as tools the agent learns to invoke.",
+      "evidence": "AgeMem paper (arXiv:2601.01885): 'We propose Agentic Memory (AgeMem), a unified framework that jointly manages LTM and STM... the LLM autonomously invokes and executes memory operations for both LTM and STM... three-stage progressive RL strategy: the model first acquires LTM storage capabilities, then learns STM context management, and finally coordinates both forms of memory.' Evaluated on 'five long-context, reasoning-intensive benchmarks.'",
+      "sources": ["https://arxiv.org/html/2601.01885", "https://arxiv.org/html/2605.06716"],
+      "confidence": 0.75,
+      "kai_relevance": "AgeMem's approach of learned memory management via RL is too heavy for Kai-1's current Qwen-based deployment (needs RL training). But the tool-based memory interface pattern (agent calls memory tools) is adoptable directly."
+    },
+    {
+      "claim": "GraphRAG improves precision up to 35% over vector-only retrieval for multi-hop queries but costs 3-5x more than basic RAG. Entity recognition accuracy in specialized domains ranges 60-85%, and imperfection propagates.",
+      "evidence": "Atlan: 'Graph-based retrieval improves precision up to 35% over vector-only approaches for multi-hop queries.' ClarityArc: 'GraphRAG costs 3-5x more than basic RAG.' 'Entity recognition accuracy in specialized domains ranges from 60 to 85 percent, which means the graph is imperfect and imperfection in the graph propagates into imperfection in the answers.' RAG vs GraphRAG (arXiv:2502.11371): 'RAG and GraphRAG exhibit complementary behaviors rather than a consistent winner.'",
+      "sources": ["https://www.clarityarc.com/insights/rag-agentic-rag-graphrag-guide", "https://atlan.com/know/ai-memory-vs-rag-vs-knowledge-graph/", "https://arxiv.org/abs/2502.11371v3"],
+      "confidence": 0.90,
+      "kai_relevance": "GraphRAG's 3-5x cost and domain-specific accuracy issues make it a poor fit for Kai-1's 32GB VPS. Standard RAG + structured metadata filtering is the pragmatic choice for Phase 2."
+    },
+    {
+      "claim": "LangGraph's persistence architecture separates short-term memory (checkpointers, per-thread state snapshots) from long-term memory (stores, cross-thread key-value data). Both can compose in the same graph.",
+      "evidence": "LangGraph docs: 'LangGraph provides two complementary persistence systems: Checkpointers persist a thread's graph state as checkpoints... for short-term, thread-scoped memory... Stores persist application-defined data outside the graph state... for long-term, cross-thread memory.' Checkpointers support 'time travel' (fork from any historical checkpoint). Stores support 'semantic search' via vector index.",
+      "sources": ["https://docs.langchain.com/oss/python/langgraph/persistence", "https://docs.langchain.com/oss/python/langgraph/add-memory"],
+      "confidence": 0.95,
+      "kai_relevance": "LangGraph's clear separation of checkpointer (thread/state) vs store (cross-session) is directly applicable to Kai-1 architecture design. Checkpointer for conversation turns, store for user preferences and learned facts."
+    },
+    {
+      "claim": "LongMemEval-V2 (May 2026) extends memory evaluation to agentic contexts with 451 questions, up to 115M tokens, two domains (web/enterprise), and five memory abilities. Best baseline (AgentRunbook-C) achieves 74.9% on small tier — far from saturation.",
+      "evidence": "LongMemEval-V2 paper (arXiv:2605.12493): '451 manually curated questions, 5 memory abilities, up to 500 trajectories per haystack, up to 115M tokens.' 'AgentRunbook-C achieves the best overall accuracy, reaching 74.9% on LME-V2-Small and 70.1% on LME-V2-Medium.' No-retrieval baseline scores only 1.3%. RAG baselines (query-to-slice) reach 42.8-51.0%. 'Coding agents can serve as strong memory controllers with a proper file-based environment.'",
+      "sources": ["https://github.com/xiaowu0162/LongMemEval-V2", "https://arxiv.org/html/2605.12493v1"],
+      "confidence": 0.85,
+      "kai_relevance": "LongMemEval-V2's web agent domain is directly relevant to Kai-1's agentic use case. The finding that file-based memory achieves strong results suggests a file-based approach paired with vector search may be sufficient for Kai-1."
+    },
+    {
+      "claim": "TencentDB Agent Memory demonstrates a 4-tier progressive pipeline (L0 Conversation → L1 Atom → L2 Scenario → L3 Persona) with symbolic memory using Mermaid graphs for token reduction.",
+      "evidence": "TencentDB Agent Memory: 'TencentDB Agent Memory = symbolic short-term memory + layered long-term memory.' 'Symbolic short-term memory offloads heavy tool logs and condenses them into compact Mermaid symbols, cutting token usage and improving task success.' 'Layered long-term memory distills fragmented conversations into structured personas and scenes, instead of flat vector piles.' Full traceability: 'top-layer symbol → mid-layer index → bottom-layer raw text.'",
+      "sources": ["https://github.com/Tencent/TencentDB-Agent-Memory"],
+      "confidence": 0.75,
+      "kai_relevance": "Tencent's layered approach (L0→L3 pyramid) and Mermaid-symbolic memory pattern is directly relevant to Kai-1's Phase 3 architecture. The Persona→Scenario→Atom→Conversation hierarchy maps well to Kai-1's user modeling needs."
+    },
+    {
+      "claim": "Supermemory achieves 85.4% on LongMemEval — currently the highest reported score — surpassing Mem0 (49.0%), Zep (63.8%), and Letta (~83.2%). The 36-point gap suggests flat vector retrieval leaves substantial accuracy on the table.",
+      "evidence": "AgentMarketCap shootout: 'Supermemory: 85.4% LongMemEval' vs 'Mem0: 49.0%, Zep: 63.8%, Letta: ~83.2%'. 'The LongMemEval gap between Supermemory (85.4%) and Mem0 (49.0%) — 36 points — is the most striking finding in recent memory benchmarking. It suggests that flat vector retrieval, even well-implemented, is leaving substantial accuracy on the table.'",
+      "sources": ["https://agentmarketcap.ai/blog/2026/04/08/ai-agent-memory-shootout-2026-mem0-zep-letta-supermemory"],
+      "confidence": 0.70,
+      "kai_relevance": "Supermemory's architecture details are less documented, making it hard to assess for Kai-1 adoption. The score gap signals that retrieval architecture matters enormously — simple vector search won't suffice for complex agent memory."
+    }
+  ],
+  "sources": [
+    {"url": "https://arxiv.org/abs/2605.06716", "title": "From Storage to Experience: A Survey on the Evolution of LLM Agent Memory Mechanisms (ACL 2026 Findings)", "date": "2026-05-07", "tier": "Peer-reviewed", "credibility": 0.90},
+    {"url": "https://arxiv.org/pdf/2603.07670", "title": "Memory for Autonomous LLM Agents: Mechanisms, Evaluation, and Emerging Frontiers", "date": "2026-03", "tier": "Peer-reviewed", "credibility": 0.85},
+    {"url": "https://arxiv.org/html/2602.19320v2", "title": "Anatomy of Agentic Memory: Taxonomy and Empirical Analysis", "date": "2026-02", "tier": "Peer-reviewed", "credibility": 0.85},
+    {"url": "https://arxiv.org/html/2604.01707", "title": "Memory in the LLM Era: Modular Architectures and Strategies in a Unified Framework", "date": "2026-04", "tier": "Peer-reviewed", "credibility": 0.85},
+    {"url": "https://arxiv.org/html/2602.06052v3", "title": "Rethinking Memory Mechanisms of Foundation Agents in the Second Half: A Survey", "date": "2026-02", "tier": "Peer-reviewed", "credibility": 0.85},
+    {"url": "https://arxiv.org/pdf/2602.05665", "title": "Graph-based Agent Memory: Taxonomy, Techniques, and Applications", "date": "2026-02", "tier": "Peer-reviewed", "credibility": 0.85},
+    {"url": "https://arxiv.org/pdf/2601.09113v1", "title": "The AI Hippocampus: How Far are We From Human Memory?", "date": "2026-01", "tier": "Peer-reviewed", "credibility": 0.85},
+    {"url": "https://arxiv.org/html/2601.01885", "title": "Agentic Memory (AgeMem): Unified LTM/STM Management for LLM Agents", "date": "2026-01", "tier": "Peer-reviewed", "credibility": 0.80},
+    {"url": "https://arxiv.org/html/2606.06787", "title": "AdMem: Advanced Memory for Task-solving Agents", "date": "2026-06", "tier": "Peer-reviewed", "credibility": 0.80},
+    {"url": "https://arxiv.org/pdf/2603.15642", "title": "CraniMem: Cranial Inspired Gated and Bounded Memory for Agentic Systems", "date": "2026-03", "tier": "Peer-reviewed", "credibility": 0.80},
+    {"url": "https://arxiv.org/abs/2604.09666v1", "title": "Do We Still Need GraphRAG? Benchmarking RAG and GraphRAG for Agentic Search", "date": "2026-04", "tier": "Peer-reviewed", "credibility": 0.85},
+    {"url": "https://arxiv.org/abs/2502.11371v3", "title": "RAG vs GraphRAG: A Systematic Evaluation and Key Insights", "date": "2025-02 (revised 2026)", "tier": "Peer-reviewed", "credibility": 0.85},
+    {"url": "https://arxiv.org/pdf/2603.09619", "title": "Context Engineering", "date": "2026-03", "tier": "Peer-reviewed", "credibility": 0.80},
+    {"url": "https://arxiv.org/pdf/2605.12493v1", "title": "LongMemEval-V2: Evaluating Long-Term Agent Memory Toward Experienced Colleagues", "date": "2026-05", "tier": "Peer-reviewed", "credibility": 0.85},
+    {"url": "https://atlan.com/know/agent-memory-architectures/", "title": "Agent Memory Architectures: 5 Patterns and Trade-offs (2026)", "date": "2026-04-17", "tier": "Reputable secondary", "credibility": 0.75},
+    {"url": "https://atlan.com/know/ai-memory-vs-rag-vs-knowledge-graph/", "title": "AI Memory vs RAG vs Knowledge Graph: Enterprise Guide 2026", "date": "2026-04-14", "tier": "Reputable secondary", "credibility": 0.75},
+    {"url": "https://atlan.com/know/ai-memory-system-vs-rag/", "title": "AI Memory System vs RAG: Differences, Tradeoffs, and Use Cases", "date": "2026-04-08", "tier": "Reputable secondary", "credibility": 0.75},
+    {"url": "https://atlan.com/know/long-term-memory-langchain-agents/", "title": "Long-Term Memory LangChain Agents: LangGraph and LangMem Guide", "date": "2026-04-08", "tier": "Reputable secondary", "credibility": 0.75},
+    {"url": "https://mem0.ai/blog/state-of-ai-agent-memory-2026", "title": "State of AI Agent Memory 2026: Benchmarks, Architectures & Production Gaps", "date": "2026-04-01", "tier": "Official", "credibility": 0.70},
+    {"url": "https://mem0.ai/blog/ai-memory-benchmarks-in-2026", "title": "AI Memory Benchmarks 2026: LoCoMo, LongMemEval & BEAM", "date": "2026-06-12", "tier": "Official", "credibility": 0.70},
+    {"url": "https://maidul-haque.vercel.app/blog/agent-memory-architectures-2026/", "title": "Agent Memory in 2026: Mem0 vs Zep vs Letta vs LangMem", "date": "2026-05-31", "tier": "Community", "credibility": 0.65},
+    {"url": "https://agentmarketcap.ai/blog/2026/04/05/agent-memory-architecture-langmem-letta-rag-production", "title": "Agent Memory Architecture Wars: LangMem vs Letta vs Custom RAG", "date": "2026-04-05", "tier": "Reputable secondary", "credibility": 0.70},
+    {"url": "https://agentmarketcap.ai/blog/2026/04/08/ai-agent-memory-shootout-2026-mem0-zep-letta-supermemory", "title": "AI Agent Memory Shootout 2026: Mem0 vs Zep vs Letta vs Supermemory", "date": "2026-04-08", "tier": "Reputable secondary", "credibility": 0.70},
+    {"url": "https://particula.tech/blog/agent-memory-frameworks-tested-mem0-zep-letta-cognee-2026", "title": "Agent Memory Frameworks Tested: Mem0 vs Zep vs Letta", "date": "2026-06-04", "tier": "Reputable secondary", "credibility": 0.70},
+    {"url": "https://aicraftguide.com/article/ai-agent-memory-mem0-vs-zep-vs-letta-cognee-2026", "title": "Mem0 vs Zep vs Letta vs Cognee (2026)", "date": "2026-06-04", "tier": "Community", "credibility": 0.60},
+    {"url": "https://wowhow.cloud/blogs/agent-memory-race-2026-mem0-zep-letta-mempalace", "title": "The 2026 Agent Memory Race: Mem0 vs Zep vs Letta vs MemPalace", "date": "2026-04-13", "tier": "Community", "credibility": 0.60},
+    {"url": "https://weaviate.io/blog/context-engineering", "title": "Context Engineering — LLM Memory and Retrieval for AI Agents", "date": "2025-12-09", "tier": "Official", "credibility": 0.80},
+    {"url": "https://weaviate.io/product/engram", "title": "Engram: Memory Built for AI Agents (Weaviate)", "date": "undated (GA June 2026)", "tier": "Official", "credibility": 0.75},
+    {"url": "https://theagenttimes.com/articles/weaviate-argues-bad-memory-systems-not-models-cause-agent-fa-b5c9e321", "title": "Weaviate: Bad Memory Systems (Not Models) Cause Agent Failures", "date": "2026-06-09", "tier": "Reputable secondary", "credibility": 0.70},
+    {"url": "https://timewell.jp/en/columns/ai-rag-agi", "title": "RAG Complete Guide 2026: GraphRAG, Agentic Memory, Knowledge Runtime", "date": "2026-01-21", "tier": "Reputable secondary", "credibility": 0.65},
+    {"url": "https://www.clarityarc.com/insights/rag-agentic-rag-graphrag-guide", "title": "RAG vs Agentic RAG vs GraphRAG — Enterprise Guide", "date": "2026-05-12", "tier": "Reputable secondary", "credibility": 0.65},
+    {"url": "https://docs.langchain.com/oss/python/langgraph/persistence", "title": "LangGraph Persistence (checkpointers + stores)", "date": "undated", "tier": "Official", "credibility": 0.90},
+    {"url": "https://docs.langchain.com/oss/python/langgraph/add-memory", "title": "LangGraph Add Memory (short-term + long-term)", "date": "undated", "tier": "Official", "credibility": 0.90},
+    {"url": "https://github.com/Tencent/TencentDB-Agent-Memory", "title": "TencentDB Agent Memory (4-tier progressive pipeline)", "date": "2026", "tier": "Official", "credibility": 0.75},
+    {"url": "https://github.com/like-a-freedom/memory_mcp", "title": "memory_mcp — Rust MCP memory server with SurrealDB", "date": "2026-03-25", "tier": "Community", "credibility": 0.60},
+    {"url": "https://github.com/ForNeverAnd/mcp-memory-engine", "title": "mcp-memory-engine — Rust+Python MCP memory with schema formation", "date": "2026-03-15", "tier": "Community", "credibility": 0.55},
+    {"url": "https://github.com/fpytloun/mnemory", "title": "mnemony — self-hosted memory system for AI agents", "date": "undated", "tier": "Community", "credibility": 0.55},
+    {"url": "https://github.com/JordanMcCann/agentmemory", "title": "agentmemory — #1 on LongMemEval at 96.2%", "date": "2026-03-26", "tier": "Community", "credibility": 0.55},
+    {"url": "https://github.com/rostchri/smriti-memcore", "title": "SMRITI — neuro-inspired long-term memory for AI agents", "date": "2026-05-18", "tier": "Community", "credibility": 0.55},
+    {"url": "https://github.com/xiaowu0162/LongMemEval-V2", "title": "LongMemEval-V2 official repository", "date": "2026-05-11", "tier": "Official", "credibility": 0.85},
+    {"url": "https://pub.towardsai.net/state-of-context-engineering-in-2026-cf92d010eab1", "title": "State of Context Engineering in 2026", "date": "2026-03-22", "tier": "Community", "credibility": 0.60},
+    {"url": "https://explore.n1n.ai/blog/building-ai-agent-memory-architecture-infrastructure-workflow-2026-02-25", "title": "Building an AI Agent Memory Architecture: Deep Dive", "date": "2026-02-25", "tier": "Community", "credibility": 0.50},
+    {"url": "https://aclanthology.org/anthology-files/pdf/acl/2024.acl-long.747.pdf", "title": "LOCOMO: Very Long-Term Conversational Memory (ACL 2024)", "date": "2024", "tier": "Peer-reviewed", "credibility": 0.90},
+    {"url": "https://github.com/xiaowu0162/LongMemEval", "title": "LongMemEval: Benchmarking Chat Assistants (ICLR 2025)", "date": "2024-10-10", "tier": "Peer-reviewed", "credibility": 0.90},
+    {"url": "https://openreview.net/forum?id=DT7JyQC3MR", "title": "MemoryAgentBench: Evaluating Memory in LLM Agents (ICLR 2026)", "date": "2025-10-08", "tier": "Peer-reviewed", "credibility": 0.85},
+    {"url": "https://github.com/BAI-LAB/Survey-on-AI-Memory", "title": "BAI-LAB AI Memory Survey (4W Memory Taxonomy)", "date": "2025-2026", "tier": "Peer-reviewed", "credibility": 0.80},
+    {"url": "https://dev.to/vishalmysore/rag-vs-agent-memory-vs-llm-wiki-a-practical-comparison-1oo6", "title": "RAG vs Agent Memory vs LLM Wiki: Practical Comparison", "date": "2026-04-19", "tier": "Community", "credibility": 0.55},
+    {"url": "https://langchain-ai.github.io/langmem/hot_path_quickstart/", "title": "LangMem Hot Path Quickstart Guide", "date": "undated", "tier": "Official", "credibility": 0.85},
+    {"url": "https://www.langchain.com/blog/langmem-sdk-launch", "title": "LangMem SDK for agent long-term memory", "date": "2025-02-18", "tier": "Official", "credibility": 0.85},
+    {"url": "https://machinelearningplus.com/gen-ai/langgraph-persistence-checkpointing-save-resume/", "title": "LangGraph Checkpointing: Save & Resume Graph State", "date": "2026-03-10", "tier": "Reputable secondary", "credibility": 0.70},
+    {"url": "https://micheallanham.substack.com/p/comparative-analysis-of-rag-architectures", "title": "Comparative Analysis of RAG Architectures (2026)", "date": "2026-02-18", "tier": "Community", "credibility": 0.55}
+  ],
+  "gaps": [
+    "Quantitative benchmark scores for agent memory on Qwen3-35B specifically (most benchmarks use GPT-4o or GPT-4o-mini as judge/backbone)",
+    "Detailed memory architecture cost estimates for self-hosted 32GB VPS deployment (most published numbers assume cloud-managed vector DBs)",
+    "Comparisons of agent memory frameworks running alongside local LLMs vs API-based models — current literature assumes API-based LLM access",
+    "Evaluation of memory systems for Russian-language user interactions (all benchmarks are English)",
+    "Direct comparison of file-based memory (e.g., LongMemEval-V2's AgentRunbook approach) vs vector DB memory for agentic workloads",
+    "Provenance and governance features in open-source agent memory frameworks (most governance features are in enterprise/cloud tiers)",
+    "Memory staleness detection — a widely acknowledged open problem with no production solution across any framework",
+    "Integration patterns between MCP memory servers and self-hosted local LLMs (Qwen, Llama, etc.) — most MCP docs assume cloud LLM access"
+  ],
+  "queries_used": [
+    "AI agent memory architectures 2025 2026 survey comparison",
+    "RAG GraphRAG agentic RAG memory LLM comparison 2025 2026",
+    "MCP memory server AI agent context 2025 2026",
+    "long term memory short term memory working memory LLM agent implementation 2025 2026",
+    "AI memory benchmarks LongMemEval MemoryAgentBench LOCOMO 2025 2026 results",
+    "LangGraph LangMem checkpointing agent memory 2025 2026",
+    "Mem0 Zep Letta agent memory comparison benchmarks 2026",
+    "context engineering Weaviate memory layer autonomous agent 2025 2026"
+  ],
+  "confidence_overall": 0.78
+}

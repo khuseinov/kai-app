@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
+import 'package:kai_app/core/logger/app_logger.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/features/room/presentation/providers/room_state.dart';
 import 'package:kai_app/features/voice/domain/repositories/voice_repository.dart';
@@ -42,12 +44,19 @@ class VoiceNotifier extends _$VoiceNotifier {
   }
 
   Future<String> _ensureRecordingPath() async {
+    if (kIsWeb) {
+      return '';
+    }
     try {
       final tempDir = await getTemporaryDirectory();
       return '${tempDir.path}/kai_voice_recording.wav';
-    } on Exception {
+    } catch (_) {
       // Fallback for environments where path_provider is unavailable (e.g. unit tests).
-      return '${Directory.systemTemp.path}/kai_voice_recording.wav';
+      try {
+        return '${Directory.systemTemp.path}/kai_voice_recording.wav';
+      } catch (_) {
+        return '';
+      }
     }
   }
 
@@ -59,7 +68,8 @@ class VoiceNotifier extends _$VoiceNotifier {
       final path = await _ensureRecordingPath();
       _recordingPath = path;
       await _recorder.start(path);
-    } on Exception catch (e) {
+    } catch (e, st) {
+      AppLogger.e('Failed to start recording', e, st);
       _setError('Failed to start recording: $e');
     }
   }
@@ -73,21 +83,33 @@ class VoiceNotifier extends _$VoiceNotifier {
       final recordingPath = path ?? _recordingPath;
       _recordingPath = null;
 
-      if (recordingPath == null || !File(recordingPath).existsSync()) {
+      if (recordingPath == null || recordingPath.isEmpty) {
         _setError('No recording captured');
         return;
       }
 
-      await _sendVoiceChat(File(recordingPath));
-    } on Exception catch (e) {
+      if (!kIsWeb && !File(recordingPath).existsSync()) {
+        _setError('No recording captured');
+        return;
+      }
+
+      await _sendVoiceChat(recordingPath);
+    } catch (e, st) {
+      AppLogger.e('Failed to process recording', e, st);
       _setError('Failed to process recording: $e');
     }
   }
 
-  Future<void> _sendVoiceChat(File audio) async {
+  Future<void> _sendVoiceChat(String audioPath) async {
+    final env = ref.read(envProvider);
+    if (env.voiceGatewayBaseUrl == null || env.voiceGatewayBaseUrl!.isEmpty) {
+      _setError('Voice gateway URL is not configured. Please check your .env file.');
+      return;
+    }
+
     try {
       final response = await _voiceRepository.sendVoiceChat(
-        audio,
+        audioPath,
         _sessionId,
         _userId,
         'en',
@@ -132,7 +154,8 @@ class VoiceNotifier extends _$VoiceNotifier {
           state = state.copyWith(flowState: VoiceFlowState.idle);
         }
       }
-    } on Exception catch (e) {
+    } catch (e, st) {
+      AppLogger.e('Voice chat failed', e, st);
       _setError('Voice chat failed: $e');
     }
   }
@@ -143,7 +166,8 @@ class VoiceNotifier extends _$VoiceNotifier {
       if (!_isDisposed) {
         state = state.copyWith(flowState: VoiceFlowState.idle);
       }
-    } on Exception catch (e) {
+    } catch (e, st) {
+      AppLogger.e('Audio playback failed', e, st);
       _setError('Audio playback failed: $e');
     }
   }

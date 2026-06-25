@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:kai_app/features/voice/data/models/stt_response.dart';
 import 'package:kai_app/features/voice/data/models/tts_request.dart';
 import 'package:kai_app/features/voice/data/models/tts_response.dart';
@@ -20,15 +21,29 @@ class VoiceRepositoryImpl implements VoiceRepository {
   final String _baseUrl;
 
   @override
-  Future<SttResponse> transcribeAudio(File audio, String language) async {
+  Future<SttResponse> transcribeAudio(String audioPath, String language) async {
+    final MultipartFile multipartFile;
+    if (kIsWeb) {
+      final response = await _dio.get<List<int>>(
+        audioPath,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      multipartFile = MultipartFile.fromBytes(
+        response.data!,
+        filename: 'audio.wav',
+      );
+    } else {
+      multipartFile = await MultipartFile.fromFile(
+        audioPath,
+        filename: 'audio.wav',
+      );
+    }
+
     final response = await _dio.post<Map<String, dynamic>>(
       '$_baseUrl/voice/stt',
       data: FormData.fromMap(<String, dynamic>{
         'language': language,
-        'audio': await MultipartFile.fromFile(
-          audio.path,
-          filename: 'audio.wav',
-        ),
+        'audio': multipartFile,
       }),
     );
     return SttResponse.fromJson(response.data!);
@@ -52,18 +67,32 @@ class VoiceRepositoryImpl implements VoiceRepository {
 
   @override
   Future<VoiceChatResponse> sendVoiceChat(
-    File audio,
+    String audioPath,
     String sessionId,
     String? userId,
     String language,
   ) async {
+    final MultipartFile multipartFile;
+    if (kIsWeb) {
+      final response = await _dio.get<List<int>>(
+        audioPath,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      multipartFile = MultipartFile.fromBytes(
+        response.data!,
+        filename: 'audio.wav',
+      );
+    } else {
+      multipartFile = await MultipartFile.fromFile(
+        audioPath,
+        filename: 'audio.wav',
+      );
+    }
+
     final formMap = <String, dynamic>{
       'session_id': sessionId,
       'language': language,
-      'audio': await MultipartFile.fromFile(
-        audio.path,
-        filename: 'audio.wav',
-      ),
+      'audio': multipartFile,
     };
     if (userId != null && userId.isNotEmpty) {
       formMap['user_id'] = userId;
