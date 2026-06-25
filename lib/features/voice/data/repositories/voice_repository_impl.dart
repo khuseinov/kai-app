@@ -24,7 +24,8 @@ class VoiceRepositoryImpl implements VoiceRepository {
   Future<SttResponse> transcribeAudio(String audioPath, String language) async {
     final MultipartFile multipartFile;
     if (kIsWeb) {
-      final response = await _dio.get<List<int>>(
+      // ponytail: use a fresh, unconfigured Dio instance to avoid custom headers/interceptors failing on browser blob requests
+      final response = await Dio().get<List<int>>(
         audioPath,
         options: Options(responseType: ResponseType.bytes),
       );
@@ -74,7 +75,8 @@ class VoiceRepositoryImpl implements VoiceRepository {
   ) async {
     final MultipartFile multipartFile;
     if (kIsWeb) {
-      final response = await _dio.get<List<int>>(
+      // ponytail: use a fresh, unconfigured Dio instance to avoid custom headers/interceptors failing on browser blob requests
+      final response = await Dio().get<List<int>>(
         audioPath,
         options: Options(responseType: ResponseType.bytes),
       );
