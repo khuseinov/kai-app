@@ -34,7 +34,6 @@ class RealChatRepository implements ChatRepository {
   RealChatRepository({required SseStreamOpener streamOpener})
       : _streamOpener = streamOpener;
 
-  /// Production constructor — uses Dio on mobile/desktop and browser Fetch on Web.
   factory RealChatRepository.withDio(
     Dio dio, {
     required String userId,
@@ -43,43 +42,45 @@ class RealChatRepository implements ChatRepository {
   }) {
     return RealChatRepository(
       streamOpener: (text, sessionId) async* {
-        if (kIsWeb) {
-          // Bypass Dio's buffered XHR on Web to get true SSE streaming via browser Fetch API
-          final url = '${dio.options.baseUrl}/chat/stream';
-          final bodyJson = jsonEncode(<String, dynamic>{
+        final response = await dio.post<Map<String, dynamic>>(
+          '/chat',
+          data: <String, dynamic>{
             'message': text,
             'user_id': userId,
             'session_id': sessionId,
+          },
+        );
+
+        final data = response.data;
+        if (data != null) {
+          final content = data['response'] as String? ?? '';
+          final correlationId = data['correlation_id'] as String? ?? '';
+
+          yield utf8.encode('event: state\ndata: {"state": "responding"}\n\n');
+
+          final msgData = jsonEncode({
+            'choices': [
+              {
+                'delta': {'content': content}
+              }
+            ],
+            'messageId': '',
           });
-          final headers = <String, String>{
-            'Content-Type': 'application/json',
-            'Accept': 'text/event-stream',
-          };
+          yield utf8.encode('event: message\ndata: $msgData\n\n');
 
-          if (hfToken != null && hfToken.isNotEmpty) {
-            headers['Authorization'] = 'Bearer $hfToken';
-          } else if (internalHealthToken != null && internalHealthToken.isNotEmpty) {
-            headers['Authorization'] = 'Bearer $internalHealthToken';
-          }
-          if (internalHealthToken != null && internalHealthToken.isNotEmpty) {
-            headers['X-Internal-Token'] = internalHealthToken;
+          yield utf8.encode('event: metadata\ndata: ${jsonEncode(data)}\n\n');
+
+          final requiresApproval = data['requires_human_approval'] as bool? ?? false;
+          final pendingConfirmation = data['pending_confirmation'] as bool? ?? false;
+          if (requiresApproval || pendingConfirmation) {
+            final appData = jsonEncode({
+              'prompt': data['confirmation_prompt'] as String? ?? 'Requires approval',
+              'requestId': correlationId,
+            });
+            yield utf8.encode('event: approval\ndata: $appData\n\n');
           }
 
-          yield* openWebStream(url, bodyJson, headers);
-        } else {
-          final response = await dio.post<ResponseBody>(
-            '/chat/stream',
-            data: <String, dynamic>{
-              'message': text,
-              'user_id': userId,
-              'session_id': sessionId,
-            },
-            options: Options(
-              responseType: ResponseType.stream,
-              headers: const <String, String>{'Accept': 'text/event-stream'},
-            ),
-          );
-          yield* response.data!.stream;
+          yield utf8.encode('event: done\ndata: [DONE]\n\n');
         }
       },
     );

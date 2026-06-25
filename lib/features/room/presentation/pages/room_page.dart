@@ -280,7 +280,7 @@ class _RoomPageState extends ConsumerState<RoomPage> {
                     );
                   },
                   onMicTap: _onMicTap,
-                  onVoiceTap: () => context.go('/voice'),
+                  onVoiceTap: null,
                   onStop: () => ref
                       .read(roomNotifierProvider.notifier)
                       .cancelStreaming(),

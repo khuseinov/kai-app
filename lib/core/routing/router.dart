@@ -5,7 +5,6 @@ import 'package:kai_app/features/onboarding/presentation/pages/onboarding_page.d
 import 'package:kai_app/features/room/presentation/pages/room_page.dart';
 import 'package:kai_app/features/settings/data/models/settings.dart';
 import 'package:kai_app/features/settings/presentation/pages/settings_page.dart';
-import 'package:kai_app/features/voice/presentation/pages/voice_page.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'router.g.dart';
@@ -43,10 +42,6 @@ GoRouter router(RouterRef ref) {
       GoRoute(
         path: '/memory',
         builder: (context, state) => const MemoryPage(),
-      ),
-      GoRoute(
-        path: '/voice',
-        builder: (context, state) => const VoicePage(),
       ),
     ],
   );
