@@ -158,6 +158,14 @@ class VoiceNotifier extends _$VoiceNotifier {
       }
     } on DioException catch (e, st) {
       AppLogger.e('Voice chat failed', e, st);
+      // 503 = voice-gateway not deployed (HF Space single-container mode)
+      if (e.response?.statusCode == 503) {
+        _setError(
+          'Голосовой режим недоступен в этой версии приложения. '
+          'Используйте текстовый чат.',
+        );
+        return;
+      }
       final message = switch (e.type) {
         DioExceptionType.connectionTimeout =>
           'Сервер просыпается, пожалуйста, попробуйте снова через минуту',
