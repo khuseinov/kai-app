@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:kai_app/core/logger/app_logger.dart';
 import 'package:kai_app/core/providers/root.dart';
@@ -103,7 +104,8 @@ class VoiceNotifier extends _$VoiceNotifier {
   Future<void> _sendVoiceChat(String audioPath) async {
     final env = ref.read(envProvider);
     if (env.voiceGatewayBaseUrl == null || env.voiceGatewayBaseUrl!.isEmpty) {
-      _setError('Voice gateway URL is not configured. Please check your .env file.');
+      _setError(
+          'Voice gateway URL is not configured. Please check your .env file.');
       return;
     }
 
@@ -154,6 +156,19 @@ class VoiceNotifier extends _$VoiceNotifier {
           state = state.copyWith(flowState: VoiceFlowState.idle);
         }
       }
+    } on DioException catch (e, st) {
+      AppLogger.e('Voice chat failed', e, st);
+      final message = switch (e.type) {
+        DioExceptionType.connectionTimeout =>
+          'Сервер просыпается, пожалуйста, попробуйте снова через минуту',
+        DioExceptionType.receiveTimeout =>
+          'Ответ сервера занял слишком много времени',
+        DioExceptionType.unknown =>
+          'Не удалось связаться с сервером голосового чата. Проверьте подключение.',
+        _ =>
+          'Ошибка голосового чата: ${e.response?.statusCode ?? "неизвестная ошибка"}',
+      };
+      _setError(message);
     } catch (e, st) {
       AppLogger.e('Voice chat failed', e, st);
       _setError('Voice chat failed: $e');
