@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -75,7 +74,7 @@ class VoiceNotifier extends _$VoiceNotifier {
     }
   }
 
-  Future<void> handleTapUp() async {
+  Future<void> handleTapUp([String language = 'en']) async {
     if (state.flowState != VoiceFlowState.listening) return;
     state = state.copyWith(flowState: VoiceFlowState.processing);
 
@@ -94,18 +93,20 @@ class VoiceNotifier extends _$VoiceNotifier {
         return;
       }
 
-      await _sendVoiceChat(recordingPath);
+      await _sendVoiceChat(recordingPath, language);
     } catch (e, st) {
       AppLogger.e('Failed to process recording', e, st);
       _setError('Failed to process recording: $e');
     }
   }
 
-  Future<void> _sendVoiceChat(String audioPath) async {
+  Future<void> _sendVoiceChat(String audioPath, String language) async {
     final env = ref.read(envProvider);
-    if (env.voiceGatewayBaseUrl == null || env.voiceGatewayBaseUrl!.isEmpty) {
+    if ((env.voiceGatewayBaseUrl == null || env.voiceGatewayBaseUrl!.isEmpty) &&
+        env.apiBaseUrl.isEmpty) {
       _setError(
-          'Voice gateway URL is not configured. Please check your .env file.');
+        'Voice gateway URL is not configured. Please check your .env file.',
+      );
       return;
     }
 
@@ -114,7 +115,7 @@ class VoiceNotifier extends _$VoiceNotifier {
         audioPath,
         _sessionId,
         _userId,
-        'en',
+        language,
       );
 
       if (_isDisposed) return;

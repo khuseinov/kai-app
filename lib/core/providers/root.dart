@@ -261,11 +261,17 @@ MemoryRepository memoryRepository(MemoryRepositoryRef ref) {
   return MockMemoryRepository();
 }
 
-/// Voice repository. Requires [EnvConfig.voiceGatewayBaseUrl] to be set.
+/// Voice repository.
+///
+/// Uses [EnvConfig.voiceGatewayBaseUrl] when set. If it is empty, falls back
+/// to [EnvConfig.apiBaseUrl] so voice traffic is routed through kai-core's
+/// `/voice/*` proxy instead of requiring a separate public voice-gateway URL.
 @Riverpod(keepAlive: true)
 VoiceRepository voiceRepository(VoiceRepositoryRef ref) {
   final env = ref.watch(envProvider);
-  final baseUrl = env.voiceGatewayBaseUrl ?? '';
+  final baseUrl = env.voiceGatewayBaseUrl?.isNotEmpty ?? false
+      ? env.voiceGatewayBaseUrl!
+      : env.apiBaseUrl;
   return VoiceRepositoryImpl(
     dio: ref.watch(dioProvider),
     baseUrl: baseUrl,

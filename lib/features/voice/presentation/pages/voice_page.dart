@@ -76,10 +76,16 @@ class VoicePage extends HookConsumerWidget {
               : (_) => notifier.handleTapDown(),
           onTapUp: state.flowState == VoiceFlowState.transcript
               ? null
-              : (_) => notifier.handleTapUp(),
+              : (_) {
+                  final lang = Localizations.localeOf(context).languageCode;
+                  notifier.handleTapUp(lang);
+                },
           onTapCancel: state.flowState == VoiceFlowState.transcript
               ? null
-              : notifier.handleTapUp,
+              : () {
+                  final lang = Localizations.localeOf(context).languageCode;
+                  notifier.handleTapUp(lang);
+                },
           behavior: HitTestBehavior.opaque,
           child: Stack(
             children: [
