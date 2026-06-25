@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:kai_app/features/voice/domain/services/audio_recorder_service.dart';
 import 'package:record/record.dart';
 
@@ -15,8 +16,8 @@ class RecordAudioRecorderService implements AudioRecorderService {
       throw Exception('Microphone permission denied');
     }
     await _recorder.start(
-      const RecordConfig(
-        encoder: AudioEncoder.wav,
+      RecordConfig(
+        encoder: kIsWeb ? AudioEncoder.opus : AudioEncoder.wav,
         sampleRate: 16000,
         numChannels: 1,
       ),

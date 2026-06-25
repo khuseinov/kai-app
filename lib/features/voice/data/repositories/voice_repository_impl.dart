@@ -31,7 +31,7 @@ class VoiceRepositoryImpl implements VoiceRepository {
       );
       multipartFile = MultipartFile.fromBytes(
         response.data!,
-        filename: 'audio.wav',
+        filename: 'audio.webm',
       );
     } else {
       multipartFile = await MultipartFile.fromFile(
@@ -82,7 +82,7 @@ class VoiceRepositoryImpl implements VoiceRepository {
       );
       multipartFile = MultipartFile.fromBytes(
         response.data!,
-        filename: 'audio.wav',
+        filename: 'audio.webm',
       );
     } else {
       multipartFile = await MultipartFile.fromFile(
