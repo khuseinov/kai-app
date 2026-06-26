@@ -138,7 +138,7 @@ class RoomNotifier extends Notifier<RoomStateData> {
 
     final uid = const Uuid().v4();
     final kaiMsgId = const Uuid().v4();
-    final sessionId = state.activeSessionId ?? 'default-session';
+    final sessionId = state.activeSessionId ?? const Uuid().v4();
 
     // Add user message.
     final updatedMessages = [
@@ -154,6 +154,7 @@ class RoomNotifier extends Notifier<RoomStateData> {
 
     state = state.copyWith(
       messages: withKai,
+      activeSessionId: sessionId,
       currentFrame: RoomFrame.streaming,
       tideState: KaiTide.thinking,
       isStreaming: true,

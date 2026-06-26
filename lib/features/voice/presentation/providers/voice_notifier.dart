@@ -35,9 +35,9 @@ class VoiceNotifier extends _$VoiceNotifier {
     _recorder = ref.read(audioRecorderServiceProvider);
     _player = ref.read(audioPlayerServiceProvider);
     _voiceRepository = ref.read(voiceRepositoryProvider);
-    _sessionId =
-        ref.read(roomNotifierProvider).activeSessionId ?? 'default-session';
     _userId = ref.read(userIdProvider);
+    _sessionId =
+        ref.read(roomNotifierProvider).activeSessionId ?? 'voice-$_userId';
 
     ref.onDispose(() {
       _isDisposed = true;
