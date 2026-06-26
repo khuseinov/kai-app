@@ -2,12 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:kai_app/core/network/interceptors/error_interceptor.dart';
 import 'package:kai_app/core/network/sse_parser.dart';
 import 'package:kai_app/core/storage/hive_setup.dart';
 import 'package:kai_app/features/room/data/models/message.dart';
-import 'package:kai_app/features/room/data/repositories/stream_opener.dart';
 import 'package:kai_app/features/room/domain/repositories/chat_repository.dart';
 import 'package:uuid/uuid.dart';
 
