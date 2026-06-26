@@ -45,14 +45,14 @@ jobs:
             echo "::error::INTERNAL_HEALTH_TOKEN secret is not set" >&2
             exit 1
           fi
-          cat > .env <<EOF
-          API_BASE_URL=https://rustamkhuseinov-kai.hf.space
-          USE_REAL_CHAT=true
-          INTERNAL_HEALTH_TOKEN=$INTERNAL_HEALTH_TOKEN
-          HF_TOKEN=$HF_TOKEN
-          VOICE_GATEWAY_BASE_URL=$VOICE_GATEWAY_BASE_URL
-          VOICE_GATEWAY_API_KEY=$VOICE_GATEWAY_API_KEY
-          EOF
+          printf '%s\n' \
+            "API_BASE_URL=https://rustamkhuseinov-kai.hf.space" \
+            "USE_REAL_CHAT=true" \
+            "INTERNAL_HEALTH_TOKEN=${INTERNAL_HEALTH_TOKEN}" \
+            "HF_TOKEN=${HF_TOKEN}" \
+            "VOICE_GATEWAY_BASE_URL=${VOICE_GATEWAY_BASE_URL}" \
+            "VOICE_GATEWAY_API_KEY=${VOICE_GATEWAY_API_KEY}" \
+            > .env
 
       # SIGNING NOTES (do not remove these env vars):
       # Flutter 3.x validates DEVELOPMENT_TEAM even with --no-codesign.
