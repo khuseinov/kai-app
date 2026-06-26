@@ -94,24 +94,19 @@ void main() {
   });
 
   group('sendVoiceChat', () {
-    test('posts multipart audio to /voice/chat and decodes base64 audio',
+    test('posts multipart audio to /voice/chat and returns job handle',
         () async {
       final audioFile = File('${Directory.systemTemp.path}/test.wav');
       await audioFile.writeAsBytes(Uint8List.fromList([7, 8, 9]));
       addTearDown(audioFile.deleteSync);
 
-      final audioBytes = Uint8List.fromList([10, 11, 12]);
+      final createdAt = DateTime(2026, 6, 26, 10, 0);
       final response = Response<Map<String, dynamic>>(
         requestOptions: RequestOptions(),
         data: <String, dynamic>{
-          'transcript': 'book a flight',
-          'response_text': 'I can help with that.',
-          'audio': base64Encode(audioBytes),
-          'tts_failed': true,
-          'tts_voice': 'en-US-JennyNeural',
-          'tts_cached': false,
-          'language': 'en',
-          'correlation_id': 'corr-123',
+          'job_id': 'job-123',
+          'status': 'pending',
+          'created_at': createdAt.toIso8601String(),
         },
       );
 
@@ -129,12 +124,9 @@ void main() {
         'en',
       );
 
-      expect(result.transcript, 'book a flight');
-      expect(result.responseText, 'I can help with that.');
-      expect(result.audio, audioBytes);
-      expect(result.ttsFailed, isTrue);
-      expect(result.ttsVoice, 'en-US-JennyNeural');
-      expect(result.correlationId, 'corr-123');
+      expect(result.jobId, 'job-123');
+      expect(result.status, 'pending');
+      expect(result.createdAt, createdAt);
 
       final captured = verify(
         dio.post<Map<String, dynamic>>(
@@ -153,6 +145,50 @@ void main() {
         isTrue,
       );
       expect(captured.files.any((f) => f.key == 'audio'), isTrue);
+    });
+  });
+
+  group('getVoiceChatJob', () {
+    test('fetches and decodes job status from /voice/jobs/{job_id}',
+        () async {
+      final audioBytes = Uint8List.fromList([10, 11, 12]);
+      final updatedAt = DateTime(2026, 6, 26, 10, 1);
+      final response = Response<Map<String, dynamic>>(
+        requestOptions: RequestOptions(),
+        data: <String, dynamic>{
+          'job_id': 'job-123',
+          'status': 'completed',
+          'session_id': 'session-123',
+          'transcript': 'book a flight',
+          'response_text': 'I can help with that.',
+          'audio': base64Encode(audioBytes),
+          'tts_failed': true,
+          'tts_voice': 'en-US-JennyNeural',
+          'tts_cached': false,
+          'language': 'en',
+          'correlation_id': 'corr-123',
+          'created_at': DateTime(2026, 6, 26, 10, 0).toIso8601String(),
+          'updated_at': updatedAt.toIso8601String(),
+        },
+      );
+
+      when(
+        dio.get<Map<String, dynamic>>(
+          'http://localhost:8002/voice/jobs/job-123',
+        ),
+      ).thenAnswer((_) async => response);
+
+      final result = await repository.getVoiceChatJob('job-123');
+
+      expect(result.jobId, 'job-123');
+      expect(result.status.name, 'completed');
+      expect(result.transcript, 'book a flight');
+      expect(result.responseText, 'I can help with that.');
+      expect(result.audio, audioBytes);
+      expect(result.ttsFailed, isTrue);
+      expect(result.ttsVoice, 'en-US-JennyNeural');
+      expect(result.correlationId, 'corr-123');
+      expect(result.updatedAt, updatedAt);
     });
   });
 }

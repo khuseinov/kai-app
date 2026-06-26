@@ -33,6 +33,9 @@ class RetryInterceptor extends Interceptor {
   bool _shouldRetry(DioException err) {
     final status = err.response?.statusCode;
     if (status == 401 || status == 403 || status == 429) return false;
+    // Voice chat uploads use multipart/form-data; retrying a streamed body is
+    // unreliable and the new job-polling API handles long processing explicitly.
+    if (err.requestOptions.data is FormData) return false;
     switch (err.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:

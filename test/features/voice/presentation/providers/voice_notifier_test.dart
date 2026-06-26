@@ -7,7 +7,8 @@ import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/features/room/presentation/providers/room_state.dart';
 import 'package:kai_app/features/voice/data/models/stt_response.dart';
 import 'package:kai_app/features/voice/data/models/tts_response.dart';
-import 'package:kai_app/features/voice/data/models/voice_chat_response.dart';
+import 'package:kai_app/features/voice/data/models/voice_chat_job_response.dart';
+import 'package:kai_app/features/voice/data/models/voice_chat_job_status.dart';
 import 'package:kai_app/features/voice/domain/repositories/voice_repository.dart';
 import 'package:kai_app/features/voice/domain/services/audio_player_service.dart';
 import 'package:kai_app/features/voice/domain/services/audio_recorder_service.dart';
@@ -55,19 +56,32 @@ class _FakeAudioPlayer implements AudioPlayerService {
 }
 
 class _FakeVoiceRepository implements VoiceRepository {
-  late VoiceChatResponse _nextResponse;
+  VoiceChatJobResponse _nextJobResponse = VoiceChatJobResponse(
+    jobId: 'job-1',
+    status: 'pending',
+    createdAt: DateTime.now(),
+  );
+  VoiceChatJobStatus? _nextJobStatus;
 
-  VoiceChatResponse get nextResponse => _nextResponse;
-  set nextResponse(VoiceChatResponse value) => _nextResponse = value;
+  VoiceChatJobResponse get nextJobResponse => _nextJobResponse;
+  set nextJobResponse(VoiceChatJobResponse value) => _nextJobResponse = value;
+
+  VoiceChatJobStatus? get nextJobStatus => _nextJobStatus;
+  set nextJobStatus(VoiceChatJobStatus? value) => _nextJobStatus = value;
 
   @override
-  Future<VoiceChatResponse> sendVoiceChat(
+  Future<VoiceChatJobResponse> sendVoiceChat(
     String audioPath,
     String sessionId,
     String? userId,
     String language,
   ) async {
-    return _nextResponse;
+    return _nextJobResponse;
+  }
+
+  @override
+  Future<VoiceChatJobStatus> getVoiceChatJob(String jobId) async {
+    return _nextJobStatus!;
   }
 
   @override
@@ -114,6 +128,30 @@ class _MockRoomNotifier extends RoomNotifier {
   RoomStateData build() => _initial;
 }
 
+VoiceChatJobStatus _completedStatus({
+  String transcript = 'hello',
+  String responseText = 'Hi there',
+  Uint8List? audio,
+  bool ttsFailed = false,
+}) {
+  final now = DateTime.now();
+  return VoiceChatJobStatus(
+    jobId: 'job-1',
+    status: VoiceJobStatus.completed,
+    sessionId: 's-1',
+    transcript: transcript,
+    responseText: responseText,
+    audio: audio,
+    ttsFailed: ttsFailed,
+    ttsVoice: 'en-US-JennyNeural',
+    ttsCached: false,
+    language: 'en',
+    correlationId: 'corr-1',
+    createdAt: now,
+    updatedAt: now,
+  );
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -146,9 +184,7 @@ void main() {
     final recorder = _FakeAudioRecorder();
     final player = _FakeAudioPlayer();
     final repository = _FakeVoiceRepository();
-    repository.nextResponse = VoiceChatResponse(
-      transcript: 'hello',
-      responseText: 'Hi there',
+    repository.nextJobStatus = _completedStatus(
       audio: Uint8List.fromList([1, 2, 3]),
     );
 
@@ -182,9 +218,7 @@ void main() {
     final recorder = _FakeAudioRecorder();
     final player = _FakeAudioPlayer();
     final repository = _FakeVoiceRepository();
-    repository.nextResponse = VoiceChatResponse(
-      transcript: 'hello',
-      responseText: 'Hi there',
+    repository.nextJobStatus = _completedStatus(
       audio: Uint8List(0),
       ttsFailed: true,
     );
@@ -202,6 +236,39 @@ void main() {
     await pumpEventQueue();
 
     expect(container.read(voiceNotifierProvider).ttsFailed, isTrue);
+
+    container.dispose();
+  });
+
+  test('failed job surfaces error message', () async {
+    final recorder = _FakeAudioRecorder();
+    final player = _FakeAudioPlayer();
+    final repository = _FakeVoiceRepository();
+    final now = DateTime.now();
+    repository.nextJobStatus = VoiceChatJobStatus(
+      jobId: 'job-1',
+      status: VoiceJobStatus.failed,
+      sessionId: 's-1',
+      error: 'ASR down',
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    final container = _createContainer(
+      recorder: recorder,
+      player: player,
+      repository: repository,
+    );
+    final notifier = container.read(voiceNotifierProvider.notifier);
+    container.listen(voiceNotifierProvider, (_, __) {});
+
+    await notifier.handleTapDown();
+    await notifier.handleTapUp();
+    await pumpEventQueue();
+
+    final state = container.read(voiceNotifierProvider);
+    expect(state.flowState, VoiceFlowState.idle);
+    expect(state.errorMessage, 'ASR down');
 
     container.dispose();
   });

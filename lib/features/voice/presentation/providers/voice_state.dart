@@ -4,6 +4,9 @@ enum VoiceFlowState {
   idle,
   listening,
   processing,
+  transcribing,
+  thinking,
+  synthesizing,
   speaking,
   transcript,
 }

@@ -3,7 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:kai_app/features/voice/data/models/stt_response.dart';
 import 'package:kai_app/features/voice/data/models/tts_request.dart';
 import 'package:kai_app/features/voice/data/models/tts_response.dart';
-import 'package:kai_app/features/voice/data/models/voice_chat_response.dart';
+import 'package:kai_app/features/voice/data/models/voice_chat_job_response.dart';
+import 'package:kai_app/features/voice/data/models/voice_chat_job_status.dart';
 import 'package:kai_app/features/voice/domain/repositories/voice_repository.dart';
 
 /// Dio-backed implementation of [VoiceRepository].
@@ -64,7 +65,7 @@ class VoiceRepositoryImpl implements VoiceRepository {
   }
 
   @override
-  Future<VoiceChatResponse> sendVoiceChat(
+  Future<VoiceChatJobResponse> sendVoiceChat(
     String audioPath,
     String sessionId,
     String? userId,
@@ -101,6 +102,14 @@ class VoiceRepositoryImpl implements VoiceRepository {
       '$_baseUrl/voice/chat',
       data: FormData.fromMap(formMap),
     );
-    return VoiceChatResponse.fromJson(response.data!);
+    return VoiceChatJobResponse.fromJson(response.data!);
+  }
+
+  @override
+  Future<VoiceChatJobStatus> getVoiceChatJob(String jobId) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '$_baseUrl/voice/jobs/$jobId',
+    );
+    return VoiceChatJobStatus.fromJson(response.data!);
   }
 }

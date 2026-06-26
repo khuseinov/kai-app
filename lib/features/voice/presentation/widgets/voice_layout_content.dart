@@ -38,6 +38,9 @@ class VoiceLayoutContent extends StatelessWidget {
       VoiceFlowState.idle => KaiTideLargeState.idle,
       VoiceFlowState.listening => KaiTideLargeState.listening,
       VoiceFlowState.processing => KaiTideLargeState.listening,
+      VoiceFlowState.transcribing => KaiTideLargeState.listening,
+      VoiceFlowState.thinking => KaiTideLargeState.listening,
+      VoiceFlowState.synthesizing => KaiTideLargeState.listening,
       VoiceFlowState.speaking => KaiTideLargeState.speaking,
       VoiceFlowState.transcript => KaiTideLargeState.idle,
     };
@@ -45,7 +48,13 @@ class VoiceLayoutContent extends StatelessWidget {
     final isIdle = flowState == VoiceFlowState.idle;
     final isSpeaking = flowState == VoiceFlowState.speaking;
     final isListening = flowState == VoiceFlowState.listening;
-    final isProcessing = flowState == VoiceFlowState.processing;
+    final isProcessing = switch (flowState) {
+      VoiceFlowState.processing ||
+      VoiceFlowState.transcribing ||
+      VoiceFlowState.thinking ||
+      VoiceFlowState.synthesizing => true,
+      _ => false,
+    };
     final loc = AppLocalizations.of(context);
 
     String statusText() {

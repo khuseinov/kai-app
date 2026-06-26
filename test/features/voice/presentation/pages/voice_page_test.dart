@@ -10,7 +10,8 @@ import 'package:kai_app/design_system/theme/kai_theme.dart';
 import 'package:kai_app/features/room/presentation/providers/room_state.dart';
 import 'package:kai_app/features/voice/data/models/stt_response.dart';
 import 'package:kai_app/features/voice/data/models/tts_response.dart';
-import 'package:kai_app/features/voice/data/models/voice_chat_response.dart';
+import 'package:kai_app/features/voice/data/models/voice_chat_job_response.dart';
+import 'package:kai_app/features/voice/data/models/voice_chat_job_status.dart';
 import 'package:kai_app/features/voice/domain/repositories/voice_repository.dart';
 import 'package:kai_app/features/voice/domain/services/audio_player_service.dart';
 import 'package:kai_app/features/voice/domain/services/audio_recorder_service.dart';
@@ -76,16 +77,30 @@ class _MockVoiceRepository implements VoiceRepository {
   }
 
   @override
-  Future<VoiceChatResponse> sendVoiceChat(
+  Future<VoiceChatJobResponse> sendVoiceChat(
     String audioPath,
     String sessionId,
     String? userId,
     String language,
   ) async {
-    return VoiceChatResponse(
+    return VoiceChatJobResponse(
+      jobId: 'job-1',
+      status: 'pending',
+      createdAt: DateTime.now(),
+    );
+  }
+
+  @override
+  Future<VoiceChatJobStatus> getVoiceChatJob(String jobId) async {
+    return VoiceChatJobStatus(
+      jobId: jobId,
+      status: VoiceJobStatus.completed,
+      sessionId: 's-1',
       transcript: 'hello',
       responseText: 'Hi there',
       audio: Uint8List.fromList([1, 2, 3]),
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
   }
 }
