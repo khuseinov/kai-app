@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:kai_app/features/voice/data/models/stt_response.dart';
 import 'package:kai_app/features/voice/data/models/tts_request.dart';
 import 'package:kai_app/features/voice/data/models/tts_response.dart';
@@ -30,11 +31,13 @@ class VoiceRepositoryImpl implements VoiceRepository {
       multipartFile = MultipartFile.fromBytes(
         response.data!,
         filename: 'audio.webm',
+        contentType: MediaType('audio', 'webm'),
       );
     } else {
       multipartFile = await MultipartFile.fromFile(
         audioPath,
         filename: 'audio.m4a',
+        contentType: MediaType('audio', 'mp4'),
       );
     }
 
@@ -81,11 +84,13 @@ class VoiceRepositoryImpl implements VoiceRepository {
       multipartFile = MultipartFile.fromBytes(
         response.data!,
         filename: 'audio.webm',
+        contentType: MediaType('audio', 'webm'),
       );
     } else {
       multipartFile = await MultipartFile.fromFile(
         audioPath,
         filename: 'audio.m4a',
+        contentType: MediaType('audio', 'mp4'),
       );
     }
 

@@ -23,6 +23,7 @@ dependencies:
 
   # Network
   dio: ^5.9.2
+  http_parser: ^4.0.0
 
   # Storage
   hive: ^2.2.3

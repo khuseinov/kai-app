@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -9,6 +8,7 @@ import 'package:kai_app/core/network/interceptors/error_interceptor.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/features/room/presentation/providers/room_state.dart';
 import 'package:kai_app/features/voice/data/models/voice_chat_job_status.dart';
+import 'package:kai_app/features/voice/data/services/m4a_utils.dart';
 import 'package:kai_app/features/voice/domain/repositories/voice_repository.dart';
 import 'package:kai_app/features/voice/domain/services/audio_player_service.dart';
 import 'package:kai_app/features/voice/domain/services/audio_recorder_service.dart';
@@ -113,18 +113,28 @@ class VoiceNotifier extends _$VoiceNotifier {
   /// `AVAudioRecorder.stop()`, but AVFoundation finalizes the m4a asynchronously
   /// (the `moov` atom is appended last). Reading the file too early uploads a
   /// truncated, undecodable m4a → server STT "Invalid data found...". We poll
-  /// until the file size stops growing, after a short settle delay.
-  // ponytail: size-stable poll, not a fixed sleep — adapts to slow devices.
+  /// until the file size stops growing *and* the `moov` atom is present.
+  // ponytail: verify m4a box structure, not just size — avoids the race where
+  // the file size stabilizes before the moov atom is written.
   Future<void> _awaitRecordingFinalized(String path) async {
     final file = File(path);
+    final isM4a = path.toLowerCase().endsWith('.m4a');
     await Future<void>.delayed(const Duration(milliseconds: 350));
     var lastSize = -1;
-    for (var i = 0; i < 20; i++) {
+    const maxIterations = 40;
+    const pollInterval = Duration(milliseconds: 150);
+    for (var i = 0; i < maxIterations; i++) {
       final size = file.existsSync() ? file.lengthSync() : 0;
-      if (size > 0 && size == lastSize) return; // stable → moov written
+      final sizeStable = size > 0 && size == lastSize;
       lastSize = size;
-      await Future<void>.delayed(const Duration(milliseconds: 120));
+
+      if (sizeStable && (!isM4a || m4aFileHasMoovAtom(file))) {
+        return;
+      }
+
+      await Future<void>.delayed(pollInterval);
     }
+    throw Exception('Recording was not saved. Please try again.');
   }
 
   Future<void> _sendVoiceChat(String audioPath, String language) async {
@@ -182,7 +192,7 @@ class VoiceNotifier extends _$VoiceNotifier {
         // Retry on transient errors; if the failure persists we will time out.
       }
 
-      await Future.delayed(interval);
+      await Future<void>.delayed(interval);
       if (_isDisposed) return null;
     }
 

@@ -15,6 +15,25 @@ import 'package:kai_app/features/voice/domain/services/audio_recorder_service.da
 import 'package:kai_app/features/voice/presentation/providers/voice_notifier.dart';
 import 'package:kai_app/features/voice/presentation/providers/voice_state.dart';
 
+Uint8List _validM4aBytes() {
+  final ftyp = Uint8List(20)
+    ..buffer.asByteData().setUint32(0, 20, Endian.big);
+  ftyp.setRange(4, 8, 'ftyp'.codeUnits);
+  ftyp.setRange(8, 12, 'M4A '.codeUnits);
+  // minor version + compatible brands left as zeros.
+
+  final moovPayload = Uint8List(8);
+  final moov = Uint8List(16 + moovPayload.length)
+    ..buffer.asByteData().setUint32(0, 16 + moovPayload.length, Endian.big);
+  moov.setRange(4, 8, 'moov'.codeUnits);
+  moov.setRange(16, 16 + moovPayload.length, moovPayload);
+
+  final builder = BytesBuilder()
+    ..add(ftyp)
+    ..add(moov);
+  return builder.toBytes();
+}
+
 class _FakeAudioRecorder implements AudioRecorderService {
   String? _lastPath;
   bool _recording = false;
@@ -26,7 +45,8 @@ class _FakeAudioRecorder implements AudioRecorderService {
   Future<void> start(String path) async {
     _lastPath = path;
     _recording = true;
-    await File(path).create(recursive: true);
+    final file = await File(path).create(recursive: true);
+    await file.writeAsBytes(_validM4aBytes());
   }
 
   @override

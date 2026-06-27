@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:kai_app/features/voice/data/repositories/voice_repository_impl.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -62,6 +63,9 @@ void main() {
         isTrue,
       );
       expect(captured.files.any((f) => f.key == 'audio'), isTrue);
+      final audioPart = captured.files.firstWhere((f) => f.key == 'audio').value;
+      expect(audioPart.filename, 'audio.m4a');
+      expect(audioPart.contentType?.mimeType, 'audio/mp4');
     });
   });
 
@@ -145,6 +149,9 @@ void main() {
         isTrue,
       );
       expect(captured.files.any((f) => f.key == 'audio'), isTrue);
+      final audioPart = captured.files.firstWhere((f) => f.key == 'audio').value;
+      expect(audioPart.filename, 'audio.m4a');
+      expect(audioPart.contentType?.mimeType, 'audio/mp4');
     });
   });
 
