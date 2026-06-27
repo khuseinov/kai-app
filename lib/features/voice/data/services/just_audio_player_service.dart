@@ -12,7 +12,19 @@ class JustAudioPlayerService implements AudioPlayerService {
   @override
   Future<void> playBytes(Uint8List bytes) async {
     await _player.stop();
-    await _player.setAudioSource(AudioSource.uri(Uri.dataFromBytes(bytes)));
+    // ponytail: a data-URI needs a real audio MIME or browsers / AVPlayer reject
+    // it ("Failed to load URL"). Default Uri.dataFromBytes is octet-stream.
+    // edge-tts → MP3, Piper fallback → WAV (RIFF header) — sniff and label.
+    final isWav = bytes.length >= 4 &&
+        bytes[0] == 0x52 &&
+        bytes[1] == 0x49 &&
+        bytes[2] == 0x46 &&
+        bytes[3] == 0x46;
+    await _player.setAudioSource(
+      AudioSource.uri(
+        Uri.dataFromBytes(bytes, mimeType: isWav ? 'audio/wav' : 'audio/mpeg'),
+      ),
+    );
     await _player.play();
     await _player.processingStateStream.firstWhere(
       (state) => state == ProcessingState.completed,

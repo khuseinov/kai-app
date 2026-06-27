@@ -52,11 +52,11 @@ class VoiceNotifier extends _$VoiceNotifier {
     }
     try {
       final tempDir = await getTemporaryDirectory();
-      return '${tempDir.path}/kai_voice_recording.wav';
+      return '${tempDir.path}/kai_voice_recording.m4a';
     } catch (_) {
       // Fallback for environments where path_provider is unavailable (e.g. unit tests).
       try {
-        return '${Directory.systemTemp.path}/kai_voice_recording.wav';
+        return '${Directory.systemTemp.path}/kai_voice_recording.m4a';
       } catch (_) {
         return '';
       }

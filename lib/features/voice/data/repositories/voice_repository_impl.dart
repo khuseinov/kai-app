@@ -34,7 +34,7 @@ class VoiceRepositoryImpl implements VoiceRepository {
     } else {
       multipartFile = await MultipartFile.fromFile(
         audioPath,
-        filename: 'audio.wav',
+        filename: 'audio.m4a',
       );
     }
 
@@ -85,7 +85,7 @@ class VoiceRepositoryImpl implements VoiceRepository {
     } else {
       multipartFile = await MultipartFile.fromFile(
         audioPath,
-        filename: 'audio.wav',
+        filename: 'audio.m4a',
       );
     }
 

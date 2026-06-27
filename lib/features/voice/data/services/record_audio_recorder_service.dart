@@ -17,7 +17,10 @@ class RecordAudioRecorderService implements AudioRecorderService {
     }
     await _recorder.start(
       RecordConfig(
-        encoder: kIsWeb ? AudioEncoder.opus : AudioEncoder.wav,
+        // ponytail: compressed AAC on mobile — uncompressed WAV makes long
+        // clips multi-MB and the upload drops mid-body (ClientDisconnect) over
+        // a mobile link. Whisper decodes m4a/aac via PyAV. Web keeps opus.
+        encoder: kIsWeb ? AudioEncoder.opus : AudioEncoder.aacLc,
         sampleRate: 16000,
         numChannels: 1,
       ),
