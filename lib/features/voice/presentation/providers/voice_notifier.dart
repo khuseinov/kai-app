@@ -96,10 +96,34 @@ class VoiceNotifier extends _$VoiceNotifier {
         return;
       }
 
+      if (!kIsWeb) {
+        await _awaitRecordingFinalized(recordingPath);
+      }
+
       await _sendVoiceChat(recordingPath, language);
     } catch (e, st) {
       AppLogger.e('Failed to process recording', e, st);
       _setError('Failed to process recording: $e');
+    }
+  }
+
+  /// Wait for the native recorder to finish flushing the file before we read it.
+  ///
+  /// record_darwin calls its stop() completionHandler immediately after
+  /// `AVAudioRecorder.stop()`, but AVFoundation finalizes the m4a asynchronously
+  /// (the `moov` atom is appended last). Reading the file too early uploads a
+  /// truncated, undecodable m4a → server STT "Invalid data found...". We poll
+  /// until the file size stops growing, after a short settle delay.
+  // ponytail: size-stable poll, not a fixed sleep — adapts to slow devices.
+  Future<void> _awaitRecordingFinalized(String path) async {
+    final file = File(path);
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    var lastSize = -1;
+    for (var i = 0; i < 20; i++) {
+      final size = file.existsSync() ? file.lengthSync() : 0;
+      if (size > 0 && size == lastSize) return; // stable → moov written
+      lastSize = size;
+      await Future<void>.delayed(const Duration(milliseconds: 120));
     }
   }
 
