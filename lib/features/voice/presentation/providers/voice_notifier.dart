@@ -134,7 +134,9 @@ class VoiceNotifier extends _$VoiceNotifier {
 
       await Future<void>.delayed(pollInterval);
     }
-    throw Exception('Recording was not saved. Please try again.');
+    // Do not block the user flow if finalization takes too long.
+    // The backend will validate the audio and return a clear error if needed.
+    AppLogger.w('Recording finalization timed out for $path');
   }
 
   Future<void> _sendVoiceChat(String audioPath, String language) async {
@@ -315,6 +317,8 @@ class VoiceNotifier extends _$VoiceNotifier {
           return 'Authorization failed. Check your HF_TOKEN in .env.';
         case NetworkFailure.clientError when status == 404:
           return 'Backend is unreachable. The Space may be private, stopped, or the URL is wrong.';
+        case NetworkFailure.clientError:
+          return wrapped.message;
         case NetworkFailure.serverError:
           return 'Server error. Please try again later.';
         case NetworkFailure.cancelled:

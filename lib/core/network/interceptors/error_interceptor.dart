@@ -61,6 +61,12 @@ class ErrorInterceptor extends Interceptor {
         }
     }
 
+    var message = err.message ?? failure.name;
+    final data = err.response?.data;
+    if (data is Map && data['detail'] is String) {
+      message = data['detail'] as String;
+    }
+
     final wrapped = DioException(
       requestOptions: err.requestOptions,
       response: err.response,
@@ -68,7 +74,7 @@ class ErrorInterceptor extends Interceptor {
       error: NetworkException(
         failure: failure,
         statusCode: status,
-        message: err.message ?? failure.name,
+        message: message,
         cause: err.error,
       ),
       message: err.message,
