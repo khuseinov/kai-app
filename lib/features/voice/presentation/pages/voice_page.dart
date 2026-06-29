@@ -71,21 +71,10 @@ class VoicePage extends HookConsumerWidget {
           onVerticalDragStart: (_) => dragDeltaY.value = 0,
           onVerticalDragUpdate: (details) => dragDeltaY.value += details.delta.dy,
           onVerticalDragEnd: handleVerticalDrag,
-          onTapDown: state.flowState == VoiceFlowState.transcript
+          // Tap to start the live session; tap again to stop (duplex toggle).
+          onTap: state.flowState == VoiceFlowState.transcript
               ? null
-              : (_) => notifier.handleTapDown(),
-          onTapUp: state.flowState == VoiceFlowState.transcript
-              ? null
-              : (_) {
-                  final lang = Localizations.localeOf(context).languageCode;
-                  notifier.handleTapUp(lang);
-                },
-          onTapCancel: state.flowState == VoiceFlowState.transcript
-              ? null
-              : () {
-                  final lang = Localizations.localeOf(context).languageCode;
-                  notifier.handleTapUp(lang);
-                },
+              : notifier.handleTap,
           behavior: HitTestBehavior.opaque,
           child: Stack(
             children: [

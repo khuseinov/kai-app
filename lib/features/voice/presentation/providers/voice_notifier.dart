@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:kai_app/core/logger/app_logger.dart';
@@ -28,6 +29,8 @@ class VoiceNotifier extends _$VoiceNotifier {
   final _audioBuf = BytesBuilder(copy: false);
   bool _collecting = false;
   bool _isActive = false; // WS session open
+  bool _starting = false; // guards the start window before _isActive flips
+  bool _isDisposed = false; // set in onDispose; gates state writes from async cbs
 
   @override
   VoiceStateData build() {
@@ -36,7 +39,10 @@ class VoiceNotifier extends _$VoiceNotifier {
     _userId = ref.read(userIdProvider);
     _sessionId = ref.read(roomNotifierProvider).activeSessionId ?? 'voice-$_userId';
 
-    ref.onDispose(_cleanup);
+    ref.onDispose(() {
+      _isDisposed = true;
+      _cleanup();
+    });
     return const VoiceStateData();
   }
 
@@ -82,20 +88,22 @@ class VoiceNotifier extends _$VoiceNotifier {
   // ────────────────────────────── internals ──────────────────────────────────
 
   Future<void> _startSession() async {
-    if (_isActive) return;
-
-    final env = ref.read(envProvider);
-    final baseUrl = env.voiceGatewayBaseUrl ?? '';
-    if (baseUrl.isEmpty) {
-      _setError('Voice gateway URL not configured');
-      return;
-    }
-
-    final apiKey = env.voiceGatewayApiKey ?? '';
-    final wsUrl = '${baseUrl.replaceFirst(RegExp('^http'), 'ws')}/voice/live';
-    final language = _detectLanguage();
-
+    // Synchronous guard: _isActive only flips after `await connect()`, so a
+    // second tap during that window would start a duplicate session.
+    if (_isActive || _starting) return;
+    _starting = true;
     try {
+      final env = ref.read(envProvider);
+      final baseUrl = env.voiceGatewayBaseUrl ?? '';
+      if (baseUrl.isEmpty) {
+        _setError('Voice gateway URL not configured');
+        return;
+      }
+
+      final apiKey = env.voiceGatewayApiKey ?? '';
+      final wsUrl = '${baseUrl.replaceFirst(RegExp('^http'), 'ws')}/voice/live';
+      final language = _detectLanguage();
+
       final hasPermission = await _recorder.hasPermission();
       if (!hasPermission) {
         _setError('Microphone permission denied');
@@ -121,6 +129,7 @@ class VoiceNotifier extends _$VoiceNotifier {
       // Start streaming PCM to server
       final pcmStream = await _recorder.startStream();
       _pcmSub = pcmStream.listen((chunk) {
+        if (_isDisposed) return;
         _wsClient?.sendPcm(chunk);
         // RMS amplitude for KaiTideLarge
         final amp = _rms(chunk).clamp(0.0, 1.0);
@@ -132,6 +141,8 @@ class VoiceNotifier extends _$VoiceNotifier {
       AppLogger.e('Failed to start voice session', e, st);
       _setError('Failed to start: $e');
       await _cleanup();
+    } finally {
+      _starting = false;
     }
   }
 
@@ -142,6 +153,7 @@ class VoiceNotifier extends _$VoiceNotifier {
   }
 
   void _onWsMessage(dynamic msg) {
+    if (_isDisposed) return;
     if (msg is Uint8List) {
       if (_collecting) _audioBuf.add(msg);
       return;
@@ -164,7 +176,9 @@ class VoiceNotifier extends _$VoiceNotifier {
         _collecting = false;
         final bytes = _audioBuf.takeBytes();
         if (bytes.isNotEmpty) {
-          _playResponseAudio(bytes);
+          // Capture the transcript for THIS turn now; a barge-in could overwrite
+          // state.lastTranscript before the (un-awaited) playback completes.
+          _playResponseAudio(bytes, state.lastTranscript);
         }
       case 'clear':
         _collecting = false;
@@ -185,18 +199,25 @@ class VoiceNotifier extends _$VoiceNotifier {
       'speaking' => VoiceFlowState.speaking,
       _ => VoiceFlowState.idle,
     };
+    // Don't yank the user out of the transcript overlay on a server state push;
+    // remember it so returnFromTranscript() restores the live state instead.
+    if (state.flowState == VoiceFlowState.transcript) {
+      state = state.copyWith(previousState: flowState);
+      return;
+    }
     state = state.copyWith(flowState: flowState);
   }
 
-  Future<void> _playResponseAudio(Uint8List bytes) async {
+  Future<void> _playResponseAudio(Uint8List bytes, String transcript) async {
     try {
       await _player.playBytes(bytes);
+      if (_isDisposed) return;
       // Update transcript after playback
       final now = _formatTime(DateTime.now());
       final updatedEvents = [
         ...state.transcriptEvents,
-        if (state.lastTranscript.isNotEmpty)
-          KaiTranscriptEvent(who: 'you', text: state.lastTranscript, timestamp: now),
+        if (transcript.isNotEmpty)
+          KaiTranscriptEvent(who: 'you', text: transcript, timestamp: now),
       ];
       state = state.copyWith(transcriptEvents: updatedEvents, amplitude: 0);
     } catch (e, st) {
@@ -206,12 +227,30 @@ class VoiceNotifier extends _$VoiceNotifier {
 
   Future<void> _cleanup() async {
     _isActive = false;
-    await _pcmSub?.cancel();
+    // Each step guarded so a failure (e.g. recorder.stop PlatformException)
+    // doesn't leak the WS socket / subscriptions left after it.
+    try {
+      await _pcmSub?.cancel();
+    } catch (e, st) {
+      AppLogger.e('pcmSub cancel failed', e, st);
+    }
     _pcmSub = null;
-    await _recorder.stop();
-    await _eventSub?.cancel();
+    try {
+      await _recorder.stop();
+    } catch (e, st) {
+      AppLogger.e('recorder stop failed', e, st);
+    }
+    try {
+      await _eventSub?.cancel();
+    } catch (e, st) {
+      AppLogger.e('eventSub cancel failed', e, st);
+    }
     _eventSub = null;
-    await _wsClient?.close();
+    try {
+      await _wsClient?.close();
+    } catch (e, st) {
+      AppLogger.e('wsClient close failed', e, st);
+    }
     _wsClient = null;
     _collecting = false;
     _audioBuf.clear();
@@ -234,7 +273,7 @@ class VoiceNotifier extends _$VoiceNotifier {
       final s = bd.getInt16(i * 2, Endian.little) / 32768.0;
       sum += s * s;
     }
-    return (sum / samples == 0) ? 0 : (sum / samples);
+    return math.sqrt(sum / samples); // root-mean-square (was mean-square: wave never animated)
   }
 
   static String _detectLanguage() {
