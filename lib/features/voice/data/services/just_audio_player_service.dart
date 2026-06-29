@@ -26,8 +26,12 @@ class JustAudioPlayerService implements AudioPlayerService {
       ),
     );
     await _player.play();
+    // Resolve on natural end OR on stop()/idle — otherwise a barge-in stop()
+    // (which sets idle, never completed) would hang the caller's await forever,
+    // stalling the progressive play queue.
     await _player.processingStateStream.firstWhere(
-      (state) => state == ProcessingState.completed,
+      (state) =>
+          state == ProcessingState.completed || state == ProcessingState.idle,
     );
   }
 

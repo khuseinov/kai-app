@@ -25,9 +25,10 @@ class VoiceNotifier extends _$VoiceNotifier {
   StreamSubscription<dynamic>? _eventSub;
   StreamSubscription<Uint8List>? _pcmSub;
 
-  // Collect MP3 chunks during a turn; play on audio_end.
-  final _audioBuf = BytesBuilder(copy: false);
-  bool _collecting = false;
+  // Progressive playback: each server binary frame is a complete clause MP3.
+  // Queue them and play sequentially so long replies stream sentence-by-sentence.
+  final _playQueue = <Uint8List>[];
+  bool _draining = false;
   bool _isActive = false; // WS session open
   bool _starting = false; // guards the start window before _isActive flips
   bool _isDisposed = false; // set in onDispose; gates state writes from async cbs
@@ -155,7 +156,7 @@ class VoiceNotifier extends _$VoiceNotifier {
   void _onWsMessage(dynamic msg) {
     if (_isDisposed) return;
     if (msg is Uint8List) {
-      if (_collecting) _audioBuf.add(msg);
+      _enqueueClause(msg); // one frame == one complete clause MP3
       return;
     }
     if (msg is! Map<String, dynamic>) return;
@@ -170,19 +171,11 @@ class VoiceNotifier extends _$VoiceNotifier {
           state = state.copyWith(lastTranscript: text);
         }
       case 'audio_begin':
-        _collecting = true;
-        _audioBuf.clear();
-      case 'audio_end':
-        _collecting = false;
-        final bytes = _audioBuf.takeBytes();
-        if (bytes.isNotEmpty) {
-          // Capture the transcript for THIS turn now; a barge-in could overwrite
-          // state.lastTranscript before the (un-awaited) playback completes.
-          _playResponseAudio(bytes, state.lastTranscript);
-        }
-      case 'clear':
-        _collecting = false;
-        _audioBuf.clear();
+        // New turn: log the user's line and reset the play queue.
+        _appendUserTranscript(state.lastTranscript);
+        _playQueue.clear();
+      case 'clear': // barge-in: drop queued clauses and stop current playback
+        _playQueue.clear();
         _player.stop();
       case 'error':
         _setError(msg['code'] as String? ?? 'error');
@@ -208,21 +201,42 @@ class VoiceNotifier extends _$VoiceNotifier {
     state = state.copyWith(flowState: flowState);
   }
 
-  Future<void> _playResponseAudio(Uint8List bytes, String transcript) async {
+  void _enqueueClause(Uint8List mp3) {
+    if (mp3.isEmpty) return;
+    _playQueue.add(mp3);
+    unawaited(_drainQueue());
+  }
+
+  /// Plays queued clauses one after another. A single drain loop runs at a time;
+  /// new clauses appended mid-turn are picked up by the running loop.
+  Future<void> _drainQueue() async {
+    if (_draining) return;
+    _draining = true;
     try {
-      await _player.playBytes(bytes);
-      if (_isDisposed) return;
-      // Update transcript after playback
-      final now = _formatTime(DateTime.now());
-      final updatedEvents = [
-        ...state.transcriptEvents,
-        if (transcript.isNotEmpty)
-          KaiTranscriptEvent(who: 'you', text: transcript, timestamp: now),
-      ];
-      state = state.copyWith(transcriptEvents: updatedEvents, amplitude: 0);
-    } catch (e, st) {
-      AppLogger.e('Audio playback failed', e, st);
+      while (_playQueue.isNotEmpty) {
+        if (_isDisposed) break;
+        final clause = _playQueue.removeAt(0);
+        try {
+          await _player.playBytes(clause);
+        } catch (e, st) {
+          AppLogger.e('Clause playback failed', e, st);
+        }
+      }
+    } finally {
+      _draining = false;
+      if (!_isDisposed) state = state.copyWith(amplitude: 0);
     }
+  }
+
+  void _appendUserTranscript(String text) {
+    if (text.isEmpty) return;
+    final now = _formatTime(DateTime.now());
+    state = state.copyWith(
+      transcriptEvents: [
+        ...state.transcriptEvents,
+        KaiTranscriptEvent(who: 'you', text: text, timestamp: now),
+      ],
+    );
   }
 
   Future<void> _cleanup() async {
@@ -252,8 +266,12 @@ class VoiceNotifier extends _$VoiceNotifier {
       AppLogger.e('wsClient close failed', e, st);
     }
     _wsClient = null;
-    _collecting = false;
-    _audioBuf.clear();
+    _playQueue.clear();
+    try {
+      await _player.stop();
+    } catch (e, st) {
+      AppLogger.e('player stop failed', e, st);
+    }
   }
 
   void _setError(String message) {
