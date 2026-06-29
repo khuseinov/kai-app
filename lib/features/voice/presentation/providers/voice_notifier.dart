@@ -1,284 +1,65 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:kai_app/core/logger/app_logger.dart';
-import 'package:kai_app/core/network/interceptors/error_interceptor.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/features/room/presentation/providers/room_state.dart';
-import 'package:kai_app/features/voice/data/models/voice_chat_job_status.dart';
-import 'package:kai_app/features/voice/data/services/m4a_utils.dart';
-import 'package:kai_app/features/voice/domain/repositories/voice_repository.dart';
+import 'package:kai_app/features/voice/data/services/streaming_recorder_service.dart';
+import 'package:kai_app/features/voice/data/services/ws_voice_client.dart';
 import 'package:kai_app/features/voice/domain/services/audio_player_service.dart';
-import 'package:kai_app/features/voice/domain/services/audio_recorder_service.dart';
 import 'package:kai_app/features/voice/presentation/providers/voice_state.dart';
 import 'package:kai_app/features/voice/presentation/widgets/kai_transcript_view.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'voice_notifier.g.dart';
 
 @riverpod
 class VoiceNotifier extends _$VoiceNotifier {
-  late final AudioRecorderService _recorder;
   late final AudioPlayerService _player;
-  late final VoiceRepository _voiceRepository;
   late final String _sessionId;
   late final String _userId;
 
-  String? _recordingPath;
-  bool _isDisposed = false;
+  WsVoiceClient? _wsClient;
+  StreamingRecorderService? _recorder;
+  StreamSubscription<dynamic>? _eventSub;
+  StreamSubscription<Uint8List>? _pcmSub;
+
+  // Collect MP3 chunks during a turn; play on audio_end.
+  final _audioBuf = BytesBuilder(copy: false);
+  bool _collecting = false;
+  bool _isActive = false; // WS session open
 
   @override
   VoiceStateData build() {
-    _recorder = ref.read(audioRecorderServiceProvider);
     _player = ref.read(audioPlayerServiceProvider);
-    _voiceRepository = ref.read(voiceRepositoryProvider);
     _userId = ref.read(userIdProvider);
-    _sessionId =
-        ref.read(roomNotifierProvider).activeSessionId ?? 'voice-$_userId';
+    _sessionId = ref.read(roomNotifierProvider).activeSessionId ?? 'voice-$_userId';
 
-    ref.onDispose(() {
-      _isDisposed = true;
-      _player.stop();
-    });
+    ref.onDispose(_cleanup);
     return const VoiceStateData();
   }
 
-  Future<String> _ensureRecordingPath() async {
-    if (kIsWeb) {
-      return '';
-    }
-    try {
-      final tempDir = await getTemporaryDirectory();
-      return '${tempDir.path}/kai_voice_recording.m4a';
-    } catch (_) {
-      // Fallback for environments where path_provider is unavailable (e.g. unit tests).
-      try {
-        return '${Directory.systemTemp.path}/kai_voice_recording.m4a';
-      } catch (_) {
-        return '';
-      }
-    }
-  }
+  // ───────────────────────────── tap-toggle API ──────────────────────────────
 
-  Future<void> handleTapDown() async {
-    if (state.flowState != VoiceFlowState.idle) return;
-    state = state.copyWith(flowState: VoiceFlowState.listening);
-
-    try {
-      final path = await _ensureRecordingPath();
-      _recordingPath = path;
-      await _recorder.start(path);
-    } catch (e, st) {
-      AppLogger.e('Failed to start recording', e, st);
-      _setError('Failed to start recording: $e');
-    }
-  }
-
-  Future<void> handleTapUp([String language = 'en']) async {
-    if (state.flowState != VoiceFlowState.listening) return;
-    state = state.copyWith(flowState: VoiceFlowState.processing);
-
-    try {
-      final path = await _recorder.stop();
-      final recordingPath = path ?? _recordingPath;
-      _recordingPath = null;
-
-      if (recordingPath == null || recordingPath.isEmpty) {
-        _setError('No recording captured');
-        return;
-      }
-
-      if (!kIsWeb && !File(recordingPath).existsSync()) {
-        _setError('No recording captured');
-        return;
-      }
-
-      if (!kIsWeb) {
-        await _awaitRecordingFinalized(recordingPath);
-      }
-
-      await _sendVoiceChat(recordingPath, language);
-    } catch (e, st) {
-      AppLogger.e('Failed to process recording', e, st);
-      _setError('Failed to process recording: $e');
-    }
-  }
-
-  /// Wait for the native recorder to finish flushing the file before we read it.
-  ///
-  /// record_darwin calls its stop() completionHandler immediately after
-  /// `AVAudioRecorder.stop()`, but AVFoundation finalizes the m4a asynchronously
-  /// (the `moov` atom is appended last). Reading the file too early uploads a
-  /// truncated, undecodable m4a → server STT "Invalid data found...". We poll
-  /// until the file size stops growing *and* the `moov` atom is present.
-  // ponytail: verify m4a box structure, not just size — avoids the race where
-  // the file size stabilizes before the moov atom is written.
-  Future<void> _awaitRecordingFinalized(String path) async {
-    final file = File(path);
-    final isM4a = path.toLowerCase().endsWith('.m4a');
-    await Future<void>.delayed(const Duration(milliseconds: 350));
-    var lastSize = -1;
-    const maxIterations = 40;
-    const pollInterval = Duration(milliseconds: 150);
-    for (var i = 0; i < maxIterations; i++) {
-      final size = file.existsSync() ? file.lengthSync() : 0;
-      final sizeStable = size > 0 && size == lastSize;
-      lastSize = size;
-
-      if (sizeStable && (!isM4a || m4aFileHasMoovAtom(file))) {
-        return;
-      }
-
-      await Future<void>.delayed(pollInterval);
-    }
-    // Do not block the user flow if finalization takes too long.
-    // The backend will validate the audio and return a clear error if needed.
-    AppLogger.w('Recording finalization timed out for $path');
-  }
-
-  Future<void> _sendVoiceChat(String audioPath, String language) async {
-    final env = ref.read(envProvider);
-    if ((env.voiceGatewayBaseUrl == null || env.voiceGatewayBaseUrl!.isEmpty) &&
-        env.apiBaseUrl.isEmpty) {
-      _setError(
-        'Voice gateway URL is not configured. Please check your .env file.',
-      );
-      return;
-    }
-
-    try {
-      final job = await _voiceRepository.sendVoiceChat(
-        audioPath,
-        _sessionId,
-        _userId,
-        language,
-      );
-
-      if (_isDisposed) return;
-
-      state = state.copyWith(flowState: VoiceFlowState.transcribing);
-      final result = await _pollVoiceChatJob(job.jobId);
-      if (_isDisposed || result == null) return;
-
-      await _handleJobResult(result);
-    } on DioException catch (e, st) {
-      AppLogger.e('Voice chat failed', e, st);
-      final message = _humanReadableError(e);
-      _setError(message);
-    } catch (e, st) {
-      AppLogger.e('Voice chat failed', e, st);
-      _setError('Voice chat failed: $e');
-    }
-  }
-
-  Future<VoiceChatJobStatus?> _pollVoiceChatJob(String jobId) async {
-    const maxAttempts = 90;
-    const interval = Duration(seconds: 2);
-
-    for (var attempt = 0; attempt < maxAttempts; attempt++) {
-      if (_isDisposed) return null;
-
-      try {
-        final job = await _voiceRepository.getVoiceChatJob(jobId);
-        _applyJobStatus(job.status);
-
-        if (job.status == VoiceJobStatus.completed ||
-            job.status == VoiceJobStatus.failed) {
-          return job;
-        }
-      } on DioException catch (e, st) {
-        AppLogger.e('Voice job poll failed', e, st);
-        // Retry on transient errors; if the failure persists we will time out.
-      }
-
-      await Future<void>.delayed(interval);
-      if (_isDisposed) return null;
-    }
-
-    _setError('Голосовой чат занял слишком много времени');
-    return null;
-  }
-
-  void _applyJobStatus(VoiceJobStatus status) {
-    if (_isDisposed) return;
-    final flowState = switch (status) {
-      VoiceJobStatus.pending => VoiceFlowState.processing,
-      VoiceJobStatus.transcribing => VoiceFlowState.transcribing,
-      VoiceJobStatus.thinking => VoiceFlowState.thinking,
-      VoiceJobStatus.synthesizing => VoiceFlowState.synthesizing,
-      VoiceJobStatus.completed || VoiceJobStatus.failed => state.flowState,
-    };
-    state = state.copyWith(flowState: flowState);
-  }
-
-  Future<void> _handleJobResult(VoiceChatJobStatus job) async {
-    if (job.status == VoiceJobStatus.failed) {
-      _setError(job.error ?? 'Голосовой чат завершился с ошибкой');
-      return;
-    }
-
-    if (_isDisposed) return;
-
-    final now = _formatTime(DateTime.now());
-    final updatedEvents = [
-      ...state.transcriptEvents,
-      KaiTranscriptEvent(
-        who: 'you',
-        text: job.transcript ?? '',
-        timestamp: now,
-      ),
-      KaiTranscriptEvent(
-        who: 'kai',
-        text: job.responseText ?? '',
-        timestamp: now,
-      ),
-    ];
-
-    final responseText = job.responseText ?? '';
-    final words = responseText.trim().isEmpty
-        ? <String>[]
-        : responseText.trim().split(RegExp(r'\s+'));
-
-    state = state.copyWith(
-      flowState: VoiceFlowState.speaking,
-      transcriptEvents: updatedEvents,
-      lastTranscript: job.transcript ?? '',
-      lastResponseText: responseText,
-      ttsFailed: job.ttsFailed ?? false,
-      karaokeWords: words,
-      karaokeIndex: 0,
-    );
-
-    final audio = job.audio;
-    if ((job.ttsFailed ?? false) || audio == null || audio.isEmpty) {
-      await Future<void>.delayed(const Duration(seconds: 2));
-      if (!_isDisposed && state.flowState == VoiceFlowState.speaking) {
-        state = state.copyWith(flowState: VoiceFlowState.idle);
-      }
+  /// Tap once to start; tap again to stop.
+  Future<void> handleTap() async {
+    if (_isActive) {
+      await _stopSession();
     } else {
-      unawaited(_playAudio(audio));
+      await _startSession();
     }
   }
 
-  Future<void> _playAudio(Uint8List audio) async {
-    try {
-      await _player.playBytes(audio);
-      if (!_isDisposed) {
-        state = state.copyWith(flowState: VoiceFlowState.idle);
-      }
-    } catch (e, st) {
-      AppLogger.e('Audio playback failed', e, st);
-      _setError('Audio playback failed: $e');
-    }
-  }
+  /// Legacy hold-down (kept for backward compat with VoicePage).
+  Future<void> handleTapDown() => _startSession();
+
+  /// Legacy hold-up.
+  Future<void> handleTapUp([String language = 'ru']) => Future.value();
 
   void stopSpeaking() {
     if (state.flowState == VoiceFlowState.speaking) {
-      unawaited(_player.stop());
-      state = state.copyWith(flowState: VoiceFlowState.idle);
+      _player.stop();
+      state = state.copyWith(flowState: VoiceFlowState.idle, amplitude: 0);
     }
   }
 
@@ -297,42 +78,174 @@ class VoiceNotifier extends _$VoiceNotifier {
     }
   }
 
+  // ────────────────────────────── internals ──────────────────────────────────
+
+  Future<void> _startSession() async {
+    if (_isActive) return;
+
+    final env = ref.read(envProvider);
+    final baseUrl = env.voiceGatewayBaseUrl ?? '';
+    if (baseUrl.isEmpty) {
+      _setError('Voice gateway URL not configured');
+      return;
+    }
+
+    final apiKey = env.voiceGatewayApiKey ?? '';
+    final wsUrl = '${baseUrl.replaceFirst(RegExp('^http'), 'ws')}/voice/live';
+    final language = _detectLanguage();
+
+    try {
+      _recorder = StreamingRecorderService();
+      final hasPermission = await _recorder!.hasPermission();
+      if (!hasPermission) {
+        _setError('Microphone permission denied');
+        return;
+      }
+
+      _wsClient = WsVoiceClient(wsUrl: wsUrl, apiKey: apiKey);
+      await _wsClient!.connect(
+        userId: _userId,
+        sessionId: _sessionId,
+        language: language,
+      );
+      _isActive = true;
+
+      _eventSub = _wsClient!.events.listen(
+        _onWsMessage,
+        onError: (Object e) {
+          AppLogger.e('WS error', e, StackTrace.current);
+          _setError('Connection error');
+        },
+      );
+
+      // Start streaming PCM to server
+      final pcmStream = await _recorder!.startStream();
+      _pcmSub = pcmStream.listen((chunk) {
+        _wsClient?.sendPcm(chunk);
+        // RMS amplitude for KaiTideLarge
+        final amp = _rms(chunk).clamp(0.0, 1.0);
+        if ((amp - state.amplitude).abs() > 0.02) {
+          state = state.copyWith(amplitude: amp);
+        }
+      });
+    } catch (e, st) {
+      AppLogger.e('Failed to start voice session', e, st);
+      _setError('Failed to start: $e');
+      await _cleanup();
+    }
+  }
+
+  Future<void> _stopSession() async {
+    _wsClient?.sendEvent({'event': 'stop'});
+    await _cleanup();
+    state = state.copyWith(flowState: VoiceFlowState.idle, amplitude: 0);
+  }
+
+  void _onWsMessage(dynamic msg) {
+    if (msg is Uint8List) {
+      if (_collecting) _audioBuf.add(msg);
+      return;
+    }
+    if (msg is! Map<String, dynamic>) return;
+
+    final event = msg['event'] as String? ?? '';
+    switch (event) {
+      case 'state':
+        _applyServerState(msg['state'] as String? ?? 'idle');
+      case 'transcript':
+        final text = msg['text'] as String? ?? '';
+        if (text.isNotEmpty) {
+          state = state.copyWith(lastTranscript: text);
+        }
+      case 'audio_begin':
+        _collecting = true;
+        _audioBuf.clear();
+      case 'audio_end':
+        _collecting = false;
+        final bytes = _audioBuf.takeBytes();
+        if (bytes.isNotEmpty) {
+          _playResponseAudio(bytes);
+        }
+      case 'clear':
+        _collecting = false;
+        _audioBuf.clear();
+        _player.stop();
+      case 'error':
+        _setError(msg['code'] as String? ?? 'error');
+      case 'disconnected':
+        _isActive = false;
+        state = state.copyWith(flowState: VoiceFlowState.idle, amplitude: 0);
+    }
+  }
+
+  void _applyServerState(String serverState) {
+    final flowState = switch (serverState) {
+      'listening' => VoiceFlowState.listening,
+      'thinking' => VoiceFlowState.thinking,
+      'speaking' => VoiceFlowState.speaking,
+      _ => VoiceFlowState.idle,
+    };
+    state = state.copyWith(flowState: flowState);
+  }
+
+  Future<void> _playResponseAudio(Uint8List bytes) async {
+    try {
+      await _player.playBytes(bytes);
+      // Update transcript after playback
+      final now = _formatTime(DateTime.now());
+      final updatedEvents = [
+        ...state.transcriptEvents,
+        if (state.lastTranscript.isNotEmpty)
+          KaiTranscriptEvent(who: 'you', text: state.lastTranscript, timestamp: now),
+      ];
+      state = state.copyWith(transcriptEvents: updatedEvents, amplitude: 0);
+    } catch (e, st) {
+      AppLogger.e('Audio playback failed', e, st);
+    }
+  }
+
+  Future<void> _cleanup() async {
+    _isActive = false;
+    await _pcmSub?.cancel();
+    _pcmSub = null;
+    await _recorder?.stop();
+    _recorder = null;
+    await _eventSub?.cancel();
+    _eventSub = null;
+    await _wsClient?.close();
+    _wsClient = null;
+    _collecting = false;
+    _audioBuf.clear();
+  }
+
   void _setError(String message) {
     state = state.copyWith(
       flowState: VoiceFlowState.idle,
       errorMessage: message,
+      amplitude: 0,
     );
   }
 
-  String _humanReadableError(DioException e) {
-    final wrapped = e.error;
-    if (wrapped is NetworkException) {
-      final status = wrapped.statusCode;
-      switch (wrapped.failure) {
-        case NetworkFailure.offline:
-          return 'No internet connection';
-        case NetworkFailure.timeout:
-          return 'Request timed out. The server is taking too long to respond.';
-        case NetworkFailure.clientError when status == 401 || status == 403:
-          return 'Authorization failed. Check your HF_TOKEN in .env.';
-        case NetworkFailure.clientError when status == 404:
-          return 'Backend is unreachable. The Space may be private, stopped, or the URL is wrong.';
-        case NetworkFailure.clientError:
-          return wrapped.message;
-        case NetworkFailure.serverError:
-          return 'Server error. Please try again later.';
-        case NetworkFailure.cancelled:
-          return 'Request was cancelled.';
-        case _:
-          break;
-      }
+  static double _rms(Uint8List pcm16) {
+    if (pcm16.length < 2) return 0;
+    var sum = 0.0;
+    final samples = pcm16.length ~/ 2;
+    final bd = pcm16.buffer.asByteData();
+    for (var i = 0; i < samples; i++) {
+      final s = bd.getInt16(i * 2, Endian.little) / 32768.0;
+      sum += s * s;
     }
-    return 'Connection error';
+    return (sum / samples == 0) ? 0 : (sum / samples);
   }
 
-  String _formatTime(DateTime dt) {
-    final hour = dt.hour.toString().padLeft(2, '0');
-    final minute = dt.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+  static String _detectLanguage() {
+    // ponytail: hardcoded ru for v1; read from locale in Phase 2
+    return 'ru';
+  }
+
+  static String _formatTime(DateTime dt) {
+    final h = dt.hour.toString().padLeft(2, '0');
+    final m = dt.minute.toString().padLeft(2, '0');
+    return '$h:$m';
   }
 }

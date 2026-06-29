@@ -17,6 +17,7 @@ class VoiceLayoutContent extends StatelessWidget {
     required this.ttsFailed,
     required this.onGoToTranscript,
     this.errorMessage,
+    this.amplitude = 0.0,
     super.key,
   });
 
@@ -28,6 +29,7 @@ class VoiceLayoutContent extends StatelessWidget {
   final bool ttsFailed;
   final String? errorMessage;
   final VoidCallback onGoToTranscript;
+  final double amplitude;
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +83,7 @@ class VoiceLayoutContent extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                KaiTideLarge(state: largeTideState),
+                KaiTideLarge(state: largeTideState, amplitude: amplitude),
                 const SizedBox(height: 28),
                 Container(
                   height: 48,

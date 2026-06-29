@@ -99,6 +99,7 @@ class VoicePage extends HookConsumerWidget {
                 ttsFailed: state.ttsFailed,
                 errorMessage: state.errorMessage,
                 onGoToTranscript: notifier.goToTranscript,
+                amplitude: state.amplitude,
               ),
 
               // Transcript Slide Transition Cover Layer

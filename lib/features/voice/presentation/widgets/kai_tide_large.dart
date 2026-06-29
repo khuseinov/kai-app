@@ -28,6 +28,7 @@ class KaiTideLarge extends StatefulWidget {
   const KaiTideLarge({
     required this.state,
     this.height = 100,
+    this.amplitude = 0.0,
     super.key,
   });
 
@@ -36,6 +37,10 @@ class KaiTideLarge extends StatefulWidget {
 
   /// Height constraints. Matches HTML's 100px large tide container.
   final double height;
+
+  /// Live amplitude 0..1 from mic RMS or playback level.
+  /// Scales the listening wave vertical amplitude in [KaiTideLargeState.listening].
+  final double amplitude;
 
   @override
   State<KaiTideLarge> createState() => _KaiTideLargeState();
@@ -75,6 +80,7 @@ class _KaiTideLargeState extends State<KaiTideLarge>
               state: widget.state,
               animationValue: _controller.value,
               tokens: tokens,
+              amplitude: widget.amplitude,
             ),
           );
         },
@@ -88,11 +94,13 @@ class _LargeTidePainter extends CustomPainter {
     required this.state,
     required this.animationValue,
     required this.tokens,
+    this.amplitude = 0.0,
   });
 
   final KaiTideLargeState state;
   final double animationValue;
   final KaiTokens tokens;
+  final double amplitude;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -201,18 +209,19 @@ class _LargeTidePainter extends CustomPainter {
       final yEnd2 = 56.0 * sy;
       final yEnd3 = 46.0 * sy;
 
-      p.moveTo(6 * sx, yStart);
-      p.quadraticBezierTo(50 * sx, yCtrl1, 100 * sx, yEnd1);
+      p..moveTo(6 * sx, yStart)..quadraticBezierTo(50 * sx, yCtrl1, 100 * sx, yEnd1);
       final yCtrl2 = 2.0 * yEnd1 - yCtrl1;
       p.quadraticBezierTo(150 * sx, yCtrl2, 200 * sx, yEnd2);
       final yCtrl3 = 2.0 * yEnd2 - yCtrl2;
       p.quadraticBezierTo(250 * sx, yCtrl3, 314 * sx, yEnd3);
     } else if (state == KaiTideLargeState.listening) {
       // Listening state path: interpolates between Path 1 and Path 2 dynamically
+      // amplitude scales the peak-to-peak swing (0=subtle, 1=full excursion)
       // u: 0.0 -> 1.0 -> 0.0
       // Path 1: M 6 56 Q 50 24, 100 56 T 200 56 T 314 40
       // Path 2: M 6 54 Q 50 72, 100 54 T 200 48 T 314 60
-      final u = (math.sin(t) + 1.0) / 2.0;
+      final amp = 0.2 + amplitude * 0.8; // 0.2 baseline so wave always moves
+      final u = ((math.sin(t) + 1.0) / 2.0) * amp;
 
       final yStart = (56.0 + (54.0 - 56.0) * u) * sy;
       final yCtrl1 = (24.0 + (72.0 - 24.0) * u) * sy;
@@ -220,8 +229,7 @@ class _LargeTidePainter extends CustomPainter {
       final yEnd2 = (56.0 + (48.0 - 56.0) * u) * sy;
       final yEnd3 = (40.0 + (60.0 - 40.0) * u) * sy;
 
-      p.moveTo(6 * sx, yStart);
-      p.quadraticBezierTo(50 * sx, yCtrl1, 100 * sx, yEnd1);
+      p..moveTo(6 * sx, yStart)..quadraticBezierTo(50 * sx, yCtrl1, 100 * sx, yEnd1);
       final yCtrl2 = 2.0 * yEnd1 - yCtrl1;
       p.quadraticBezierTo(150 * sx, yCtrl2, 200 * sx, yEnd2);
       final yCtrl3 = 2.0 * yEnd2 - yCtrl2;
@@ -234,8 +242,7 @@ class _LargeTidePainter extends CustomPainter {
       final yEnd2 = 56.0 * sy;
       final yEnd3 = 40.0 * sy;
 
-      p.moveTo(6 * sx, yStart);
-      p.quadraticBezierTo(50 * sx, yCtrl1, 100 * sx, yEnd1);
+      p..moveTo(6 * sx, yStart)..quadraticBezierTo(50 * sx, yCtrl1, 100 * sx, yEnd1);
       final yCtrl2 = 2.0 * yEnd1 - yCtrl1;
       p.quadraticBezierTo(150 * sx, yCtrl2, 200 * sx, yEnd2);
       final yCtrl3 = 2.0 * yEnd2 - yCtrl2;
@@ -268,5 +275,6 @@ class _LargeTidePainter extends CustomPainter {
   bool shouldRepaint(covariant _LargeTidePainter old) =>
       old.state != state ||
       old.animationValue != animationValue ||
-      old.tokens != tokens;
+      old.tokens != tokens ||
+      old.amplitude != amplitude;
 }

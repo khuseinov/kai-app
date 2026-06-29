@@ -3,7 +3,7 @@ import 'package:kai_app/features/voice/presentation/widgets/kai_transcript_view.
 enum VoiceFlowState {
   idle,
   listening,
-  processing,
+  processing, // kept for legacy layout_content compat
   transcribing,
   thinking,
   synthesizing,
@@ -22,6 +22,7 @@ class VoiceStateData {
     this.lastResponseText = '',
     this.ttsFailed = false,
     this.errorMessage,
+    this.amplitude = 0.0,
   });
 
   final VoiceFlowState flowState;
@@ -34,6 +35,9 @@ class VoiceStateData {
   final bool ttsFailed;
   final String? errorMessage;
 
+  /// Normalised mic/playback amplitude 0..1 for KaiTideLarge animation.
+  final double amplitude;
+
   VoiceStateData copyWith({
     VoiceFlowState? flowState,
     VoiceFlowState? previousState,
@@ -44,6 +48,7 @@ class VoiceStateData {
     String? lastResponseText,
     bool? ttsFailed,
     String? errorMessage,
+    double? amplitude,
   }) {
     return VoiceStateData(
       flowState: flowState ?? this.flowState,
@@ -55,6 +60,7 @@ class VoiceStateData {
       lastResponseText: lastResponseText ?? this.lastResponseText,
       ttsFailed: ttsFailed ?? this.ttsFailed,
       errorMessage: errorMessage ?? this.errorMessage,
+      amplitude: amplitude ?? this.amplitude,
     );
   }
 }
