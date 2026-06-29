@@ -16,11 +16,11 @@ part 'voice_notifier.g.dart';
 @riverpod
 class VoiceNotifier extends _$VoiceNotifier {
   late final AudioPlayerService _player;
+  late final StreamingRecorderService _recorder;
   late final String _sessionId;
   late final String _userId;
 
   WsVoiceClient? _wsClient;
-  StreamingRecorderService? _recorder;
   StreamSubscription<dynamic>? _eventSub;
   StreamSubscription<Uint8List>? _pcmSub;
 
@@ -32,6 +32,7 @@ class VoiceNotifier extends _$VoiceNotifier {
   @override
   VoiceStateData build() {
     _player = ref.read(audioPlayerServiceProvider);
+    _recorder = ref.read(streamingRecorderServiceProvider);
     _userId = ref.read(userIdProvider);
     _sessionId = ref.read(roomNotifierProvider).activeSessionId ?? 'voice-$_userId';
 
@@ -95,8 +96,7 @@ class VoiceNotifier extends _$VoiceNotifier {
     final language = _detectLanguage();
 
     try {
-      _recorder = StreamingRecorderService();
-      final hasPermission = await _recorder!.hasPermission();
+      final hasPermission = await _recorder.hasPermission();
       if (!hasPermission) {
         _setError('Microphone permission denied');
         return;
@@ -119,7 +119,7 @@ class VoiceNotifier extends _$VoiceNotifier {
       );
 
       // Start streaming PCM to server
-      final pcmStream = await _recorder!.startStream();
+      final pcmStream = await _recorder.startStream();
       _pcmSub = pcmStream.listen((chunk) {
         _wsClient?.sendPcm(chunk);
         // RMS amplitude for KaiTideLarge
@@ -208,8 +208,7 @@ class VoiceNotifier extends _$VoiceNotifier {
     _isActive = false;
     await _pcmSub?.cancel();
     _pcmSub = null;
-    await _recorder?.stop();
-    _recorder = null;
+    await _recorder.stop();
     await _eventSub?.cancel();
     _eventSub = null;
     await _wsClient?.close();
