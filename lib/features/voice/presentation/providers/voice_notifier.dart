@@ -110,7 +110,7 @@ class VoiceNotifier extends _$VoiceNotifier {
         return;
       }
 
-      _wsClient = WsVoiceClient(wsUrl: wsUrl, apiKey: apiKey);
+      _wsClient = WsVoiceClient(wsUrl: wsUrl, apiKey: apiKey, hfToken: env.hfToken);
       await _wsClient!.connect(
         userId: _userId,
         sessionId: _sessionId,

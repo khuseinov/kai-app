@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// Real-time duplex voice client over WebSocket.
@@ -16,10 +17,14 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 ///   client.sendPcm(pcmBytes);
 ///   await client.close();
 class WsVoiceClient {
-  WsVoiceClient({required this.wsUrl, required this.apiKey});
+  WsVoiceClient({required this.wsUrl, required this.apiKey, this.hfToken});
 
   final String wsUrl;
   final String apiKey;
+
+  /// HF token for the edge proxy on a private Space. Sent as
+  /// `Authorization: Bearer <hfToken>` — mirrors AuthInterceptor for HTTP.
+  final String? hfToken;
 
   WebSocketChannel? _channel;
   StreamSubscription<dynamic>? _sub;
@@ -42,7 +47,18 @@ class WsVoiceClient {
       'session_id': sessionId,
       'language': language,
     },);
-    _channel = WebSocketChannel.connect(uri);
+    // Private HF Spaces gate the WS handshake at the edge on the HF token.
+    // IOWebSocketChannel carries the header on iOS/Android; browsers can't set
+    // WS headers (web is out of v1 scope — storybook only).
+    final token = hfToken;
+    if (token != null && token.isNotEmpty) {
+      _channel = IOWebSocketChannel.connect(
+        uri,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+    } else {
+      _channel = WebSocketChannel.connect(uri);
+    }
     await _channel!.ready;
 
     _sub = _channel!.stream.listen(
