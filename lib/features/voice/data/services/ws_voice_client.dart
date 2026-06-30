@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:kai_app/core/logger/app_logger.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -42,17 +43,23 @@ class WsVoiceClient {
     required String sessionId,
     required String language,
   }) async {
-    final uri = Uri.parse(wsUrl).replace(queryParameters: {
+    final token = hfToken;
+    final query = <String, String>{
       'api_key': apiKey,
       'user_id': userId,
       'session_id': sessionId,
       'language': language,
-    },);
-    // Private HF Spaces gate the WS handshake at the edge on the HF token.
-    // IOWebSocketChannel carries the header on iOS/Android; browsers can't set
-    // WS headers (web is out of v1 scope — storybook only).
-    final token = hfToken;
-    if (token != null && token.isNotEmpty) {
+    };
+    // Browsers cannot set WebSocket headers, so on web pass the HF token via
+    // query (best effort). Native sends it as an Authorization header below.
+    if (kIsWeb && token != null && token.isNotEmpty) {
+      query['hf_token'] = token;
+    }
+    final uri = Uri.parse(wsUrl).replace(queryParameters: query);
+
+    // IOWebSocketChannel (header auth) only works on dart:io platforms.
+    // On web it throws `Platform._version` — use the plain channel there.
+    if (!kIsWeb && token != null && token.isNotEmpty) {
       _channel = IOWebSocketChannel.connect(
         uri,
         headers: {'Authorization': 'Bearer $token'},
