@@ -199,12 +199,17 @@ class VoiceNotifier extends _$VoiceNotifier {
   void _onWsMessage(dynamic msg) {
     if (_isDisposed) return;
     if (msg is Uint8List) {
+      AppLogger.i('[VOICE] enqueue audio clause: ${msg.length} bytes');
       _enqueueClause(msg); // one frame == one complete clause MP3
       return;
     }
-    if (msg is! Map<String, dynamic>) return;
+    if (msg is! Map<String, dynamic>) {
+      AppLogger.w('[VOICE] unknown WS message type: ${msg.runtimeType}');
+      return;
+    }
 
     final event = msg['event'] as String? ?? '';
+    AppLogger.i('[VOICE] WS event: $event payload=$msg');
     switch (event) {
       case 'state':
         _applyServerState(msg['state'] as String? ?? 'idle');
@@ -212,11 +217,18 @@ class VoiceNotifier extends _$VoiceNotifier {
         final text = msg['text'] as String? ?? '';
         if (text.isNotEmpty) {
           state = state.copyWith(lastTranscript: text);
+          AppLogger.i('[VOICE] transcript updated: $text');
         }
       case 'audio_begin':
         // New turn: log the user's line and reset the play queue.
         _appendUserTranscript(state.lastTranscript);
         _playQueue.clear();
+      case 'response_text':
+        // Server may stream the assistant reply as text for display.
+        final text = msg['text'] as String? ?? '';
+        if (text.isNotEmpty) {
+          state = state.copyWith(lastResponseText: text);
+        }
       case 'clear': // barge-in: drop queued clauses and stop current playback
         _playQueue.clear();
         _player.stop();
