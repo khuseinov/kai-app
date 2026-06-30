@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:record/record.dart';
@@ -15,16 +16,19 @@ class StreamingRecorderService {
 
   /// Start streaming PCM16 frames. Caller must ensure mic permission.
   Future<Stream<Uint8List>> startStream() async {
+    // iOS: AVAudioSession.Mode.voiceChat already applies hardware AEC/AGC.
+    // Enabling record-plugin voice processing on top of it causes double
+    // suppression and very low RMS, so we leave echoCancel/noiseSuppress off
+    // on iOS. Android still benefits from software preprocessing.
+    final enableVoiceProcessing = !Platform.isIOS;
     final stream = await _recorder.startStream(
-      const RecordConfig(
+      RecordConfig(
         encoder: AudioEncoder.pcm16bits,
         sampleRate: 16000,
         numChannels: 1,
-        // iOS voice preprocessing: AGC/NS improve STT; echoCancel is best-effort
-        // on mobile and is disabled if it conflicts with the audio session.
         autoGain: true,
-        echoCancel: true,
-        noiseSuppress: true,
+        echoCancel: enableVoiceProcessing,
+        noiseSuppress: enableVoiceProcessing,
       ),
     );
     return stream.map(Uint8List.fromList);

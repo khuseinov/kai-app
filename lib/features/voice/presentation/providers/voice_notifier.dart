@@ -178,10 +178,17 @@ class VoiceNotifier extends _$VoiceNotifier {
         },
         onError: (Object e, StackTrace st) {
           AppLogger.e('[VOICE] Recorder stream error', e, st);
-          _setError('Microphone stream error');
+          if (_isActive && !_isDisposed) {
+            unawaited(_cleanup());
+            _setError('Microphone stream error');
+          }
         },
         onDone: () {
           AppLogger.i('[VOICE] Recorder stream done (produced=$_pcmProducedCount sent=$_pcmChunkCount)');
+          if (_isActive && !_isDisposed) {
+            unawaited(_cleanup());
+            _setError('Microphone stopped unexpectedly');
+          }
         },
       );
     } catch (e, st) {
