@@ -26,8 +26,8 @@ import 'package:kai_app/features/room/data/repositories/mock_chat_repository.dar
 import 'package:kai_app/features/room/domain/repositories/chat_repository.dart';
 import 'package:kai_app/features/settings/data/models/settings.dart';
 import 'package:kai_app/features/voice/data/repositories/voice_repository_impl.dart';
-import 'package:kai_app/features/voice/data/services/just_audio_player_service.dart';
 import 'package:kai_app/features/voice/data/services/record_audio_recorder_service.dart';
+import 'package:kai_app/features/voice/data/services/soloud_player_service.dart';
 import 'package:kai_app/features/voice/data/services/streaming_recorder_service.dart';
 import 'package:kai_app/features/voice/data/services/voice_vad_service.dart' show VoiceVadServiceImpl;
 import 'package:kai_app/features/voice/domain/repositories/voice_repository.dart';
@@ -290,7 +290,7 @@ AudioRecorderService audioRecorderService(AudioRecorderServiceRef ref) {
 /// Audio player service.
 @Riverpod(keepAlive: true)
 AudioPlayerService audioPlayerService(AudioPlayerServiceRef ref) {
-  return JustAudioPlayerService();
+  return SoloudPlayerService();
 }
 
 /// Streaming recorder service (PCM16 mic stream for live voice WS).

@@ -46,12 +46,12 @@ dependencies:
 
   # Voice gateway integration
   record: ^5.1.0
-  just_audio: ^0.9.39
   audio_session: ^0.1.25 # iOS playAndRecord so mic + playback coexist
   permission_handler: ^11.3.1
   path_provider: ^2.1.4
   web_socket_channel: ^3.0.1
   vad: ^0.0.5
+  flutter_soloud: ^4.0.12
 
   # Gate 3 — uncomment when needed:
   # firebase_core: ^3.3.0
