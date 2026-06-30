@@ -86,27 +86,43 @@ class VoiceLayoutContent extends StatelessWidget {
                 KaiTideLarge(state: largeTideState, amplitude: amplitude),
                 const SizedBox(height: 28),
                 Container(
-                  height: 48,
+                  constraints: const BoxConstraints(minHeight: 48),
                   alignment: Alignment.center,
-                  child: isSpeaking
-                      ? KaiKaraokeText(
-                          words: karaokeWords,
-                          currentIndex: karaokeIndex,
-                        )
-                      : Text(
-                          statusText(),
+                  // Speaking: show Kai's reply text. karaokeWords is never
+                  // populated yet, so fall back to responseText (the actual reply).
+                  child: isSpeaking && responseText.isNotEmpty
+                      ? Text(
+                          responseText,
+                          textAlign: TextAlign.center,
+                          maxLines: 6,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontFamily: 'Manrope',
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
-                            color: isDark
-                                ? (isListening || isProcessing
-                                    ? Colors.white
-                                    : const Color(0x52FFFFFF))
-                                : (isListening || isProcessing ? c.ink1 : c.ink4),
-                            letterSpacing: 16 * -0.01,
+                            height: 1.4,
+                            color: isDark ? Colors.white : c.ink1,
                           ),
-                        ),
+                        )
+                      : isSpeaking
+                          ? KaiKaraokeText(
+                              words: karaokeWords,
+                              currentIndex: karaokeIndex,
+                            )
+                          : Text(
+                              statusText(),
+                              style: TextStyle(
+                                fontFamily: 'Manrope',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: isDark
+                                    ? (isListening || isProcessing
+                                        ? Colors.white
+                                        : const Color(0x52FFFFFF))
+                                    : (isListening || isProcessing ? c.ink1 : c.ink4),
+                                letterSpacing: 16 * -0.01,
+                              ),
+                            ),
                 ),
               ],
             ),

@@ -12,9 +12,15 @@ class JustAudioPlayerService implements AudioPlayerService {
 
   final AudioPlayer _player;
 
+  /// Previous clause's temp file — deleted one-behind (when the next clause
+  /// starts, after the player has stopped) so AVPlayer is done with it, and on
+  /// stop(). Without this every clause leaked a file into the temp dir.
+  File? _lastTempFile;
+
   @override
   Future<void> playBytes(Uint8List bytes) async {
     await _player.stop();
+    await _deleteLastTemp(); // player stopped → safe to remove prior clause's file
 
     // sniff format: edge-tts → MP3, Piper fallback → WAV
     final isWav = bytes.length >= 4 &&
@@ -28,6 +34,7 @@ class JustAudioPlayerService implements AudioPlayerService {
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/kai_voice_${DateTime.now().millisecondsSinceEpoch}.$ext');
     await file.writeAsBytes(bytes);
+    _lastTempFile = file;
     AppLogger.i('[VOICE] playing ${bytes.length} bytes from ${file.path}');
 
     await _player.setAudioSource(AudioSource.file(file.path));
@@ -43,7 +50,21 @@ class JustAudioPlayerService implements AudioPlayerService {
   }
 
   @override
-  Future<void> stop() => _player.stop();
+  Future<void> stop() async {
+    await _player.stop();
+    await _deleteLastTemp();
+  }
+
+  Future<void> _deleteLastTemp() async {
+    final f = _lastTempFile;
+    _lastTempFile = null;
+    if (f == null) return;
+    try {
+      if (f.existsSync()) await f.delete();
+    } catch (_) {
+      // OS may have already purged the temp file — nothing to do.
+    }
+  }
 
   @override
   Future<bool> isPlaying() async => _player.playing;
