@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:audio_session/audio_session.dart';
 import 'package:kai_app/core/logger/app_logger.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/features/room/presentation/providers/room_state.dart';
@@ -111,6 +112,11 @@ class VoiceNotifier extends _$VoiceNotifier {
         return;
       }
 
+      // iOS: route mic + playback through one playAndRecord session on the
+      // speaker. Without this the record session silences just_audio playback
+      // (and can leave the mic dead between turns).
+      await _configureAudioSession();
+
       _wsClient = WsVoiceClient(wsUrl: wsUrl, apiKey: apiKey, hfToken: env.hfToken);
       await _wsClient!.connect(
         userId: _userId,
@@ -118,6 +124,9 @@ class VoiceNotifier extends _$VoiceNotifier {
         language: language,
       );
       _isActive = true;
+      // Immediate feedback: the mic is hot — show "listening" without waiting for
+      // the server's speech-onset event so the user knows to start talking.
+      state = state.copyWith(flowState: VoiceFlowState.listening);
 
       _eventSub = _wsClient!.events.listen(
         _onWsMessage,
@@ -153,6 +162,29 @@ class VoiceNotifier extends _$VoiceNotifier {
     state = state.copyWith(flowState: VoiceFlowState.idle, amplitude: 0);
   }
 
+  /// Configure one shared playAndRecord session so the mic and just_audio
+  /// playback coexist on iOS, routed to the loudspeaker. No-op-safe on failure.
+  Future<void> _configureAudioSession() async {
+    try {
+      final session = await AudioSession.instance;
+      await session.configure(
+        const AudioSessionConfiguration(
+          avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
+          avAudioSessionCategoryOptions:
+              AVAudioSessionCategoryOptions.defaultToSpeaker,
+          avAudioSessionMode: AVAudioSessionMode.spokenAudio,
+          androidAudioAttributes: AndroidAudioAttributes(
+            contentType: AndroidAudioContentType.speech,
+            usage: AndroidAudioUsage.voiceCommunication,
+          ),
+        ),
+      );
+      await session.setActive(true);
+    } catch (e, st) {
+      AppLogger.e('audio session config failed', e, st);
+    }
+  }
+
   void _onWsMessage(dynamic msg) {
     if (_isDisposed) return;
     if (msg is Uint8List) {
@@ -186,12 +218,18 @@ class VoiceNotifier extends _$VoiceNotifier {
   }
 
   void _applyServerState(String serverState) {
-    final flowState = switch (serverState) {
+    var flowState = switch (serverState) {
       'listening' => VoiceFlowState.listening,
       'thinking' => VoiceFlowState.thinking,
       'speaking' => VoiceFlowState.speaking,
       _ => VoiceFlowState.idle,
     };
+    // While the session is open the mic stays hot: server "idle" (no active turn)
+    // means "armed, waiting for speech", so show listening — not a dead idle that
+    // reads as "off". Real idle only after the session closes.
+    if (flowState == VoiceFlowState.idle && _isActive) {
+      flowState = VoiceFlowState.listening;
+    }
     // Don't yank the user out of the transcript overlay on a server state push;
     // remember it so returnFromTranscript() restores the live state instead.
     if (state.flowState == VoiceFlowState.transcript) {
