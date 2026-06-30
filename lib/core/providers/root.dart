@@ -29,9 +29,11 @@ import 'package:kai_app/features/voice/data/repositories/voice_repository_impl.d
 import 'package:kai_app/features/voice/data/services/just_audio_player_service.dart';
 import 'package:kai_app/features/voice/data/services/record_audio_recorder_service.dart';
 import 'package:kai_app/features/voice/data/services/streaming_recorder_service.dart';
+import 'package:kai_app/features/voice/data/services/voice_vad_service.dart' show VoiceVadServiceImpl;
 import 'package:kai_app/features/voice/domain/repositories/voice_repository.dart';
 import 'package:kai_app/features/voice/domain/services/audio_player_service.dart';
 import 'package:kai_app/features/voice/domain/services/audio_recorder_service.dart';
+import 'package:kai_app/features/voice/domain/services/voice_vad_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -295,4 +297,10 @@ AudioPlayerService audioPlayerService(AudioPlayerServiceRef ref) {
 @Riverpod(keepAlive: true)
 StreamingRecorderService streamingRecorderService(StreamingRecorderServiceRef ref) {
   return StreamingRecorderService();
+}
+
+/// Client-side VAD for barge-in detection during TTS playback.
+@Riverpod(keepAlive: true)
+VoiceVadService voiceVadService(VoiceVadServiceRef ref) {
+  return VoiceVadServiceImpl();
 }

@@ -51,6 +51,7 @@ dependencies:
   permission_handler: ^11.3.1
   path_provider: ^2.1.4
   web_socket_channel: ^3.0.1
+  vad: ^0.0.5
 
   # Gate 3 — uncomment when needed:
   # firebase_core: ^3.3.0

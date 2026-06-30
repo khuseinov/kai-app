@@ -8,6 +8,7 @@ import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/features/room/presentation/providers/room_state.dart';
 import 'package:kai_app/features/voice/data/services/streaming_recorder_service.dart';
 import 'package:kai_app/features/voice/domain/services/audio_player_service.dart';
+import 'package:kai_app/features/voice/domain/services/voice_vad_service.dart';
 import 'package:kai_app/features/voice/presentation/providers/voice_notifier.dart';
 import 'package:kai_app/features/voice/presentation/providers/voice_state.dart';
 
@@ -38,6 +39,24 @@ class _FakePlayer implements AudioPlayerService {
   Future<void> stop() async {}
 }
 
+class _FakeVadService implements VoiceVadService {
+  final feedCalls = <Uint8List>[];
+  bool initialized = false;
+  bool wasReset = false;
+  final _controller = StreamController<void>.broadcast();
+
+  @override
+  Future<void> init() async => initialized = true;
+  @override
+  void feed(Uint8List pcm16) => feedCalls.add(pcm16);
+  @override
+  Stream<void> get onRealSpeechStart => _controller.stream;
+  @override
+  void reset() => wasReset = true;
+  @override
+  void dispose() => _controller.close();
+}
+
 class _MockRoomNotifier extends RoomNotifier {
   _MockRoomNotifier(this._initial);
   final RoomStateData _initial;
@@ -64,6 +83,7 @@ ProviderContainer _container({
         _FakeRecorder(permissionResult: permissionResult),
       ),
       audioPlayerServiceProvider.overrideWithValue(_FakePlayer()),
+      voiceVadServiceProvider.overrideWithValue(_FakeVadService()),
       roomNotifierProvider.overrideWith(
         () => _MockRoomNotifier(const RoomStateData(activeSessionId: 's-1')),
       ),

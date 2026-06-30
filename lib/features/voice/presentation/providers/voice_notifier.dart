@@ -10,6 +10,7 @@ import 'package:kai_app/features/room/presentation/providers/room_state.dart';
 import 'package:kai_app/features/voice/data/services/streaming_recorder_service.dart';
 import 'package:kai_app/features/voice/data/services/ws_voice_client.dart';
 import 'package:kai_app/features/voice/domain/services/audio_player_service.dart';
+import 'package:kai_app/features/voice/domain/services/voice_vad_service.dart';
 import 'package:kai_app/features/voice/presentation/providers/voice_state.dart';
 import 'package:kai_app/features/voice/presentation/widgets/kai_transcript_view.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -20,6 +21,7 @@ part 'voice_notifier.g.dart';
 class VoiceNotifier extends _$VoiceNotifier {
   late final AudioPlayerService _player;
   late final StreamingRecorderService _recorder;
+  late final VoiceVadService _vad;
   late final String _sessionId;
   late final String _userId;
 
@@ -28,6 +30,7 @@ class VoiceNotifier extends _$VoiceNotifier {
   StreamSubscription<Uint8List>? _pcmSub;
   StreamSubscription<AudioInterruptionEvent>? _interruptionSub;
   StreamSubscription<AudioDevicesChangedEvent>? _devicesSub;
+  StreamSubscription<void>? _vadSub;
 
   // Progressive playback: each server binary frame is a complete clause MP3.
   // Queue them and play sequentially so long replies stream sentence-by-sentence.
@@ -44,6 +47,7 @@ class VoiceNotifier extends _$VoiceNotifier {
   VoiceStateData build() {
     _player = ref.read(audioPlayerServiceProvider);
     _recorder = ref.read(streamingRecorderServiceProvider);
+    _vad = ref.read(voiceVadServiceProvider);
     _userId = ref.read(userIdProvider);
     _sessionId = ref.read(roomNotifierProvider).activeSessionId ?? 'voice-$_userId';
 
@@ -147,6 +151,19 @@ class VoiceNotifier extends _$VoiceNotifier {
         },
       );
 
+      // Barge-in: detect real speech while Kai is talking and tell the server
+      // to cancel the in-flight reply. The server already handles
+      // {"event":"barge_in"} unconditionally (orchestrator.py _handle_control);
+      // this only needs to fire it.
+      await _vad.init();
+      await _vadSub?.cancel();
+      _vadSub = _vad.onRealSpeechStart.listen((_) {
+        if (_isDisposed || state.flowState != VoiceFlowState.speaking) return;
+        AppLogger.i('[VOICE] barge-in: real speech detected during playback');
+        _wsClient?.sendEvent({'event': 'barge_in'});
+        _vad.reset();
+      });
+
       // Start streaming PCM to server
       _pcmChunkCount = 0;
       _pcmProducedCount = 0; // DEBUG: chunks produced by the recorder plugin
@@ -157,6 +174,11 @@ class VoiceNotifier extends _$VoiceNotifier {
           if (_isDisposed) return;
           _pcmProducedCount++;
           _wsClient?.sendPcm(chunk);
+          // Only run barge-in detection while Kai is actually speaking — no
+          // point spending CPU/battery on VAD inference the rest of the turn.
+          if (state.flowState == VoiceFlowState.speaking) {
+            _vad.feed(chunk);
+          }
           _pcmChunkCount++;
           // RMS amplitude for KaiTideLarge
           final amp = _rms(chunk).clamp(0.0, 1.0);
@@ -351,9 +373,12 @@ class VoiceNotifier extends _$VoiceNotifier {
           );
         }
       case 'audio_begin':
-        // New turn: log the user's line and reset the play queue.
+        // New turn: log the user's line, reset the play queue and VAD state
+        // (a fresh reply shouldn't inherit leftover detector buffer/redemption
+        // counters from the previous turn).
         _appendUserTranscript(state.lastTranscript);
         _playQueue.clear();
+        _vad.reset();
       case 'response_text':
         // Assistant reply text: show on screen AND append to the conversation
         // transcript (so the transcript sheet shows both 'you' and 'kai' lines).
@@ -469,6 +494,13 @@ class VoiceNotifier extends _$VoiceNotifier {
       AppLogger.e('devicesSub cancel failed', e, st);
     }
     _devicesSub = null;
+    try {
+      await _vadSub?.cancel();
+    } catch (e, st) {
+      AppLogger.e('vadSub cancel failed', e, st);
+    }
+    _vadSub = null;
+    _vad.reset();
     try {
       await _pcmSub?.cancel();
     } catch (e, st) {
