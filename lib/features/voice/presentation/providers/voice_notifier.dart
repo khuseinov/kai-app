@@ -25,6 +25,8 @@ class VoiceNotifier extends _$VoiceNotifier {
   WsVoiceClient? _wsClient;
   StreamSubscription<dynamic>? _eventSub;
   StreamSubscription<Uint8List>? _pcmSub;
+  StreamSubscription<AudioInterruptionEvent>? _interruptionSub;
+  StreamSubscription<AudioDevicesChangedEvent>? _devicesSub;
 
   // Progressive playback: each server binary frame is a complete clause MP3.
   // Queue them and play sequentially so long replies stream sentence-by-sentence.
@@ -33,6 +35,7 @@ class VoiceNotifier extends _$VoiceNotifier {
   bool _isActive = false; // WS session open
   bool _starting = false; // guards the start window before _isActive flips
   bool _isDisposed = false; // set in onDispose; gates state writes from async cbs
+  bool _resumeAfterInterruption = false; // auto-resume when interruption ends
   int _pcmChunkCount = 0; // DEBUG: count PCM chunks sent to server
   int _pcmProducedCount = 0; // DEBUG: count PCM chunks produced by recorder
 
@@ -119,6 +122,7 @@ class VoiceNotifier extends _$VoiceNotifier {
       // approach failed because it was called too late; audio_session handles
       // the lifecycle correctly.
       await _configureAudioSession();
+      await _listenToAudioSessionEvents();
 
       _wsClient = WsVoiceClient(wsUrl: wsUrl, apiKey: apiKey, hfToken: env.hfToken);
       await _wsClient!.connect(
@@ -234,6 +238,76 @@ class VoiceNotifier extends _$VoiceNotifier {
     } catch (e, st) {
       AppLogger.e('[VOICE] AudioSession deactivation failed', e, st);
     }
+  }
+
+  /// Subscribe to audio focus and route changes so we can recover from phone
+  /// calls, Siri, headphones unplugging, etc. Subscriptions are cancelled in
+  /// [_cleanup] to avoid leaking listeners across sessions.
+  Future<void> _listenToAudioSessionEvents() async {
+    try {
+      final session = await AudioSession.instance;
+      await _interruptionSub?.cancel();
+      _interruptionSub = session.interruptionEventStream.listen(
+        _onInterruption,
+        onError: (Object e, StackTrace st) {
+          AppLogger.e('[VOICE] interruption stream error', e, st);
+        },
+      );
+      await _devicesSub?.cancel();
+      _devicesSub = session.devicesChangedEventStream.listen(
+        _onDevicesChanged,
+        onError: (Object e, StackTrace st) {
+          AppLogger.e('[VOICE] devices-changed stream error', e, st);
+        },
+      );
+    } catch (e, st) {
+      AppLogger.e('[VOICE] Failed to listen to audio session events', e, st);
+    }
+  }
+
+  /// React to audio interruptions (phone call, Siri, alarm, etc.).
+  /// On iOS this corresponds to AVAudioSessionInterruptionNotification.
+  void _onInterruption(AudioInterruptionEvent event) {
+    AppLogger.i(
+      '[VOICE] Interruption begin=${event.begin} type=${event.type}',
+    );
+    if (event.begin) {
+      // Another app took audio focus. Remember whether we were live so we can
+      // auto-resume when the interruption ends.
+      if (_isActive) {
+        _resumeAfterInterruption = true;
+        _cleanup();
+        state = state.copyWith(
+          flowState: VoiceFlowState.idle,
+          debug: 'Audio interrupted — paused',
+        );
+      }
+    } else {
+      // Interruption ended. For pause-type interruptions the OS tells us if we
+      // should resume. Unknown-type interruptions are handled conservatively:
+      // we do not auto-resume because the user may no longer be in the voice UI.
+      final shouldResume = event.type == AudioInterruptionType.pause;
+      if (_resumeAfterInterruption && shouldResume) {
+        _resumeAfterInterruption = false;
+        AppLogger.i('[VOICE] Auto-resuming after interruption');
+        unawaited(_startSession());
+      } else {
+        _resumeAfterInterruption = false;
+      }
+    }
+  }
+
+  /// Log audio route/device changes (headphones, bluetooth, receiver, etc.).
+  /// On iOS this mirrors AVAudioSessionRouteChangeNotification.
+  void _onDevicesChanged(AudioDevicesChangedEvent event) {
+    AppLogger.i(
+      '[VOICE] Audio devices added=${event.devicesAdded} '
+      'removed=${event.devicesRemoved}',
+    );
+    state = state.copyWith(
+      debug: 'audio route changed ▸ +${event.devicesAdded.length} '
+          '-${event.devicesRemoved.length}',
+    );
   }
 
   void _onWsMessage(dynamic msg) {
@@ -364,11 +438,24 @@ class VoiceNotifier extends _$VoiceNotifier {
 
   Future<void> _cleanup() async {
     _isActive = false;
+    _resumeAfterInterruption = false;
     _pcmChunkCount = 0;
     _pcmProducedCount = 0;
     await _deactivateAudioSession();
     // Each step guarded so a failure (e.g. recorder.stop PlatformException)
     // doesn't leak the WS socket / subscriptions left after it.
+    try {
+      await _interruptionSub?.cancel();
+    } catch (e, st) {
+      AppLogger.e('interruptionSub cancel failed', e, st);
+    }
+    _interruptionSub = null;
+    try {
+      await _devicesSub?.cancel();
+    } catch (e, st) {
+      AppLogger.e('devicesSub cancel failed', e, st);
+    }
+    _devicesSub = null;
     try {
       await _pcmSub?.cancel();
     } catch (e, st) {
