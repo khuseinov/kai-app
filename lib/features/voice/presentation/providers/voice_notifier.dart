@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:audio_session/audio_session.dart';
 import 'package:kai_app/core/logger/app_logger.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/features/room/presentation/providers/room_state.dart';
@@ -33,6 +34,7 @@ class VoiceNotifier extends _$VoiceNotifier {
   bool _starting = false; // guards the start window before _isActive flips
   bool _isDisposed = false; // set in onDispose; gates state writes from async cbs
   int _pcmChunkCount = 0; // DEBUG: count PCM chunks sent to server
+  int _pcmProducedCount = 0; // DEBUG: count PCM chunks produced by recorder
 
   @override
   VoiceStateData build() {
@@ -112,10 +114,12 @@ class VoiceNotifier extends _$VoiceNotifier {
         return;
       }
 
-      // NOTE: a manual AudioSession(playAndRecord)+setActive(true) here KILLED the
-      // record-plugin mic stream after ~0.5s (only ~5 PCM chunks reached the server,
-      // turns never dispatched). Reverted. Playback routing on iOS (speaker vs
-      // earpiece) is handled separately, without touching the mic session.
+      // Configure the AVAudioSession before opening the mic so iOS keeps the
+      // recording alive while we stream over the WebSocket. The previous manual
+      // approach failed because it was called too late; audio_session handles
+      // the lifecycle correctly.
+      await _configureAudioSession();
+
       _wsClient = WsVoiceClient(wsUrl: wsUrl, apiKey: apiKey, hfToken: env.hfToken);
       await _wsClient!.connect(
         userId: _userId,
@@ -140,23 +144,42 @@ class VoiceNotifier extends _$VoiceNotifier {
 
       // Start streaming PCM to server
       _pcmChunkCount = 0;
+      _pcmProducedCount = 0; // DEBUG: chunks produced by the recorder plugin
       final pcmStream = await _recorder.startStream();
-      _pcmSub = pcmStream.listen((chunk) {
-        if (_isDisposed) return;
-        _wsClient?.sendPcm(chunk);
-        _pcmChunkCount++;
-        // RMS amplitude for KaiTideLarge
-        final amp = _rms(chunk).clamp(0.0, 1.0);
-        // DEBUG: log first chunk and every 50th so we can verify the mic is
-        // actually producing data and it is being forwarded to the backend.
-        final ampChanged = (amp - state.amplitude).abs() > 0.02;
-        if (_pcmChunkCount % 10 == 0 || ampChanged) {
-          state = state.copyWith(
-            amplitude: ampChanged ? amp : null,
-            debug: 'mic ▸ $_pcmChunkCount chunks · rms ${amp.toStringAsFixed(3)}',
-          );
-        }
-      });
+      AppLogger.i('[VOICE] Recorder stream started');
+      _pcmSub = pcmStream.listen(
+        (chunk) {
+          if (_isDisposed) return;
+          _pcmProducedCount++;
+          _wsClient?.sendPcm(chunk);
+          _pcmChunkCount++;
+          // RMS amplitude for KaiTideLarge
+          final amp = _rms(chunk).clamp(0.0, 1.0);
+          // DEBUG: log first chunk and every 50th so we can verify the mic is
+          // actually producing data and it is being forwarded to the backend.
+          final ampChanged = (amp - state.amplitude).abs() > 0.02;
+          if (_pcmChunkCount <= 5 ||
+              _pcmChunkCount % 50 == 0 ||
+              ampChanged ||
+              _pcmProducedCount != _pcmChunkCount) {
+            AppLogger.i(
+              '[VOICE] pcm produced=$_pcmProducedCount sent=$_pcmChunkCount '
+              'bytes=${chunk.length} rms=${amp.toStringAsFixed(3)}',
+            );
+            state = state.copyWith(
+              amplitude: ampChanged ? amp : null,
+              debug: 'mic ▸ produced $_pcmProducedCount · sent $_pcmChunkCount · rms ${amp.toStringAsFixed(3)}',
+            );
+          }
+        },
+        onError: (Object e, StackTrace st) {
+          AppLogger.e('[VOICE] Recorder stream error', e, st);
+          _setError('Microphone stream error');
+        },
+        onDone: () {
+          AppLogger.i('[VOICE] Recorder stream done (produced=$_pcmProducedCount sent=$_pcmChunkCount)');
+        },
+      );
     } catch (e, st) {
       AppLogger.e('Failed to start voice session', e, st);
       _setError('Failed to start: $e');
@@ -172,18 +195,62 @@ class VoiceNotifier extends _$VoiceNotifier {
     state = state.copyWith(flowState: VoiceFlowState.idle, amplitude: 0);
   }
 
+  /// Configure AVAudioSession for duplex voice on iOS.
+  ///
+  /// - Category playAndRecord lets us capture mic and play TTS.
+  /// - Mode voiceChat optimises the built-in mic + receiver path.
+  /// - defaultToSpeaker routes playback to the loudspeaker (AI companion style).
+  /// - allowBluetooth lets the user use a headset.
+  Future<void> _configureAudioSession() async {
+    try {
+      final session = await AudioSession.instance;
+      await session.configure(
+        const AudioSessionConfiguration(
+          avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
+          avAudioSessionMode: AVAudioSessionMode.voiceChat,
+          avAudioSessionRouteSharingPolicy:
+              AVAudioSessionRouteSharingPolicy.defaultPolicy,
+          avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+          androidAudioAttributes: AndroidAudioAttributes(
+            contentType: AndroidAudioContentType.speech,
+            usage: AndroidAudioUsage.voiceCommunication,
+          ),
+          androidWillPauseWhenDucked: true,
+        ),
+      );
+      final activated = await session.setActive(true);
+      AppLogger.i('[VOICE] AudioSession setActive(true) -> $activated');
+    } catch (e, st) {
+      AppLogger.e('[VOICE] AudioSession configuration failed', e, st);
+      // Don't fail the whole session if AudioSession is unavailable on a platform.
+    }
+  }
+
+  Future<void> _deactivateAudioSession() async {
+    try {
+      final session = await AudioSession.instance;
+      final deactivated = await session.setActive(false);
+      AppLogger.i('[VOICE] AudioSession setActive(false) -> $deactivated');
+    } catch (e, st) {
+      AppLogger.e('[VOICE] AudioSession deactivation failed', e, st);
+    }
+  }
+
   void _onWsMessage(dynamic msg) {
     if (_isDisposed) return;
     if (msg is Uint8List) {
+      AppLogger.i('[VOICE] WS binary rx ${msg.length}b');
       state = state.copyWith(debug: 'rx ◂ audio ${msg.length}b');
       _enqueueClause(msg); // one frame == one complete clause MP3
       return;
     }
     if (msg is! Map<String, dynamic>) {
+      AppLogger.i('[VOICE] WS unknown msg type: ${msg.runtimeType}');
       return;
     }
 
     final event = msg['event'] as String? ?? '';
+    AppLogger.i('[VOICE] WS event: $event payload=$msg');
     switch (event) {
       case 'state':
         state = state.copyWith(debug: 'rx ◂ state:${msg['state']}');
@@ -223,6 +290,12 @@ class VoiceNotifier extends _$VoiceNotifier {
         _player.stop();
       case 'error':
         _setError(msg['code'] as String? ?? 'error');
+      case 'ping':
+        // Server keepalive; WsVoiceClient replies with pong automatically.
+        break;
+      case 'pong':
+        // Client should never receive its own pong; ignore.
+        break;
       case 'disconnected':
         _isActive = false;
         state = state.copyWith(flowState: VoiceFlowState.idle, amplitude: 0);
@@ -292,6 +365,8 @@ class VoiceNotifier extends _$VoiceNotifier {
   Future<void> _cleanup() async {
     _isActive = false;
     _pcmChunkCount = 0;
+    _pcmProducedCount = 0;
+    await _deactivateAudioSession();
     // Each step guarded so a failure (e.g. recorder.stop PlatformException)
     // doesn't leak the WS socket / subscriptions left after it.
     try {

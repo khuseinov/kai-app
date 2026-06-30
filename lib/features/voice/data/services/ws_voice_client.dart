@@ -75,8 +75,14 @@ class WsVoiceClient {
         if (msg is String) {
           try {
             final decoded = json.decode(msg) as Map<String, dynamic>;
+            final event = decoded['event'] as String? ?? '';
             // DEBUG: log control events from server.
-            AppLogger.i('[VOICE] WS text event: ${decoded['event']}');
+            AppLogger.i('[VOICE] WS text event: $event');
+            if (event == 'ping') {
+              // Application-level keepalive: respond immediately.
+              sendEvent({'event': 'pong'});
+              return;
+            }
             _eventsController.add(decoded);
           } catch (_) {}
         } else if (msg is List<int>) {
@@ -90,9 +96,11 @@ class WsVoiceClient {
         _eventsController.addError(e);
       },
       onDone: () {
-        AppLogger.i('[VOICE] WS connection closed');
+        final closeCode = _channel?.closeCode;
+        final closeReason = _channel?.closeReason;
+        AppLogger.i('[VOICE] WS connection closed code=$closeCode reason=$closeReason');
         if (!_eventsController.isClosed) {
-          _eventsController.add({'event': 'disconnected'});
+          _eventsController.add({'event': 'disconnected', 'code': closeCode, 'reason': closeReason});
         }
       },
     );

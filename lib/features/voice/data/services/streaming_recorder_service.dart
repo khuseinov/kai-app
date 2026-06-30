@@ -20,6 +20,11 @@ class StreamingRecorderService {
         encoder: AudioEncoder.pcm16bits,
         sampleRate: 16000,
         numChannels: 1,
+        // iOS voice preprocessing: AGC/NS improve STT; echoCancel is best-effort
+        // on mobile and is disabled if it conflicts with the audio session.
+        autoGain: true,
+        echoCancel: true,
+        noiseSuppress: true,
       ),
     );
     return stream.map(Uint8List.fromList);
