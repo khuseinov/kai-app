@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/core/providers/root.dart';
@@ -123,4 +124,28 @@ void main() {
       completes,
     );
   });
+
+  test(
+    'shared AVAudioSession config: playAndRecord + voiceChat + speaker/bluetooth '
+    'on every platform (no iOS skip — audio_session is now the single owner)',
+    () {
+      final config = VoiceNotifier.kaiVoiceSessionConfig;
+      expect(config.avAudioSessionCategory, AVAudioSessionCategory.playAndRecord);
+      expect(config.avAudioSessionMode, AVAudioSessionMode.voiceChat);
+      expect(
+        config.avAudioSessionCategoryOptions
+            ?.contains(AVAudioSessionCategoryOptions.defaultToSpeaker),
+        isTrue,
+      );
+      expect(
+        config.avAudioSessionCategoryOptions
+            ?.contains(AVAudioSessionCategoryOptions.allowBluetooth),
+        isTrue,
+      );
+      expect(
+        config.androidAudioAttributes?.usage,
+        AndroidAudioUsage.voiceCommunication,
+      );
+    },
+  );
 }

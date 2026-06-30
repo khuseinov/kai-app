@@ -17,27 +17,37 @@ class StreamingRecorderService {
 
   /// Start streaming PCM16 frames. Caller must ensure mic permission.
   Future<Stream<Uint8List>> startStream() async {
-    // iOS: the record plugin manages AVAudioSession; we avoid layering
-    // audio_session on top. Measured RMS on iPhone is ~0.03-0.04 even when
-    // speaking normally, so apply a small software gain boost to bring speech
-    // comfortably above the backend VAD threshold. Android uses the platform
-    // voice processing path and does not need extra gain.
-    final enableVoiceProcessing = !Platform.isIOS;
+    // iOS: measured RMS on iPhone is ~0.03-0.04 even when speaking normally,
+    // so apply a small software gain boost to bring speech comfortably above
+    // the backend VAD threshold. Android uses the platform voice processing
+    // path and does not need extra gain.
     final applyGain = Platform.isIOS;
-    final stream = await _recorder.startStream(
-      RecordConfig(
-        encoder: AudioEncoder.pcm16bits,
-        sampleRate: 16000,
-        numChannels: 1,
-        autoGain: true,
-        echoCancel: enableVoiceProcessing,
-        noiseSuppress: enableVoiceProcessing,
-      ),
-    );
+    final stream = await _recorder.startStream(buildRecordConfig());
     if (applyGain) {
       return stream.map(_applyGain).map(Uint8List.fromList);
     }
     return stream.map(Uint8List.fromList);
+  }
+
+  /// Recorder configuration shared by both platforms.
+  ///
+  /// `iosConfig.manageAudioSession: false` is load-bearing: VoiceNotifier's
+  /// `audio_session` configuration is the single owner of the shared
+  /// AVAudioSession. If `record` also manages it (the package default), the
+  /// two fight over category/active state and the mic goes silent after a
+  /// few frames.
+  @visibleForTesting
+  static RecordConfig buildRecordConfig() {
+    final enableVoiceProcessing = !Platform.isIOS;
+    return RecordConfig(
+      encoder: AudioEncoder.pcm16bits,
+      sampleRate: 16000,
+      numChannels: 1,
+      autoGain: true,
+      echoCancel: enableVoiceProcessing,
+      noiseSuppress: enableVoiceProcessing,
+      iosConfig: const IosRecordConfig(manageAudioSession: false),
+    );
   }
 
   Future<void> stop() => _recorder.stop();

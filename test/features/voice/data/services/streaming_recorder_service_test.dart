@@ -31,6 +31,17 @@ void main() {
       expect(output, isEmpty);
     });
   });
+
+  group('StreamingRecorderService.buildRecordConfig', () {
+    test('always disables record-plugin AVAudioSession ownership', () {
+      // audio_session is the single owner of the shared iOS session (configured
+      // in VoiceNotifier before the mic opens); the `record` plugin must not
+      // also try to manage it, or the two fight over category/active state and
+      // the mic goes silent after a few frames.
+      final config = StreamingRecorderService.buildRecordConfig();
+      expect(config.iosConfig.manageAudioSession, isFalse);
+    });
+  });
 }
 
 Uint8List _int16ToBytes(List<int> samples) {
