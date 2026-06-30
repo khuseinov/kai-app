@@ -224,10 +224,21 @@ class VoiceNotifier extends _$VoiceNotifier {
         _appendUserTranscript(state.lastTranscript);
         _playQueue.clear();
       case 'response_text':
-        // Server may stream the assistant reply as text for display.
+        // Assistant reply text: show on screen AND append to the conversation
+        // transcript (so the transcript sheet shows both 'you' and 'kai' lines).
         final text = msg['text'] as String? ?? '';
         if (text.isNotEmpty) {
-          state = state.copyWith(lastResponseText: text);
+          state = state.copyWith(
+            lastResponseText: text,
+            transcriptEvents: [
+              ...state.transcriptEvents,
+              KaiTranscriptEvent(
+                who: 'kai',
+                text: text,
+                timestamp: _formatTime(DateTime.now()),
+              ),
+            ],
+          );
         }
       case 'clear': // barge-in: drop queued clauses and stop current playback
         _playQueue.clear();
