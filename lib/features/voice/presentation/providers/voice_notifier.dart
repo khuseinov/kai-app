@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -206,28 +207,28 @@ class VoiceNotifier extends _$VoiceNotifier {
     state = state.copyWith(flowState: VoiceFlowState.idle, amplitude: 0);
   }
 
-  /// Configure AVAudioSession for duplex voice on iOS.
+  /// Configure AVAudioSession for duplex voice.
   ///
-  /// - Category playAndRecord lets us capture mic and play TTS.
-  /// - Mode videoChat uses the loudspeaker + main mic (AI companion style);
-  ///   voiceChat would force the receiver/bottom mic and is too quiet at arm's
-  ///   length.
-  /// - defaultToSpeaker routes playback to the loudspeaker.
-  /// - allowBluetooth lets the user use a headset.
+  /// On iOS the `record` plugin manages AVAudioSession itself
+  /// (IosRecordConfig.manageAudioSession defaults to true). Our previous
+  /// attempts to layer audio_session on top caused very low RMS, so we let
+  /// the recorder drive the session on iOS and only configure audio_session
+  /// on Android.
   Future<void> _configureAudioSession() async {
+    if (Platform.isIOS) {
+      AppLogger.i('[VOICE] iOS: letting record plugin manage AVAudioSession');
+      return;
+    }
     try {
       final session = await AudioSession.instance;
-      final categoryOptions = AVAudioSessionCategoryOptions.defaultToSpeaker |
-          AVAudioSessionCategoryOptions.allowBluetooth;
       await session.configure(
-        AudioSessionConfiguration(
+        const AudioSessionConfiguration(
           avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
-          avAudioSessionCategoryOptions: categoryOptions,
-          avAudioSessionMode: AVAudioSessionMode.videoChat,
+          avAudioSessionMode: AVAudioSessionMode.voiceChat,
           avAudioSessionRouteSharingPolicy:
               AVAudioSessionRouteSharingPolicy.defaultPolicy,
           avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
-          androidAudioAttributes: const AndroidAudioAttributes(
+          androidAudioAttributes: AndroidAudioAttributes(
             contentType: AndroidAudioContentType.speech,
             usage: AndroidAudioUsage.voiceCommunication,
           ),
@@ -236,32 +237,17 @@ class VoiceNotifier extends _$VoiceNotifier {
       );
       final activated = await session.setActive(true);
       AppLogger.i('[VOICE] AudioSession setActive(true) -> $activated');
-      await _logAudioRoute();
     } catch (e, st) {
       AppLogger.e('[VOICE] AudioSession configuration failed', e, st);
       // Don't fail the whole session if AudioSession is unavailable on a platform.
     }
   }
 
-  /// Log the active audio route so we can diagnose silent mic / low RMS issues.
-  Future<void> _logAudioRoute() async {
-    try {
-      final avSession = AVAudioSession();
-      final route = await avSession.currentRoute;
-      final inputs = route.inputs.map((p) => '${p.portType}:${p.portName}').join(', ');
-      final outputs = route.outputs.map((p) => '${p.portType}:${p.portName}').join(', ');
-      final gainSettable = await avSession.inputGainSettable;
-      final gain = await avSession.inputGain;
-      AppLogger.i(
-        '[VOICE] route inputs=[$inputs] outputs=[$outputs] '
-        'inputGainSettable=$gainSettable inputGain=$gain',
-      );
-    } catch (e, st) {
-      AppLogger.e('[VOICE] Failed to log audio route', e, st);
-    }
-  }
-
   Future<void> _deactivateAudioSession() async {
+    if (Platform.isIOS) {
+      // record plugin owns AVAudioSession lifecycle on iOS.
+      return;
+    }
     try {
       final session = await AudioSession.instance;
       final deactivated = await session.setActive(false);
@@ -274,7 +260,11 @@ class VoiceNotifier extends _$VoiceNotifier {
   /// Subscribe to audio focus and route changes so we can recover from phone
   /// calls, Siri, headphones unplugging, etc. Subscriptions are cancelled in
   /// [_cleanup] to avoid leaking listeners across sessions.
+  ///
+  /// Currently only active on Android; on iOS the record plugin manages the
+  /// AVAudioSession and we avoid layering a second controller on top.
   Future<void> _listenToAudioSessionEvents() async {
+    if (Platform.isIOS) return;
     try {
       final session = await AudioSession.instance;
       await _interruptionSub?.cancel();
