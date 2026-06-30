@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
 
 /// Streams 16-bit PCM mono 16kHz frames from the microphone.
@@ -16,11 +17,13 @@ class StreamingRecorderService {
 
   /// Start streaming PCM16 frames. Caller must ensure mic permission.
   Future<Stream<Uint8List>> startStream() async {
-    // iOS: AVAudioSession.Mode.voiceChat already applies hardware AEC/AGC.
-    // Enabling record-plugin voice processing on top of it causes double
-    // suppression and very low RMS, so we leave echoCancel/noiseSuppress off
-    // on iOS. Android still benefits from software preprocessing.
+    // iOS: the record plugin manages AVAudioSession; we avoid layering
+    // audio_session on top. Measured RMS on iPhone is ~0.03-0.04 even when
+    // speaking normally, so apply a small software gain boost to bring speech
+    // comfortably above the backend VAD threshold. Android uses the platform
+    // voice processing path and does not need extra gain.
     final enableVoiceProcessing = !Platform.isIOS;
+    final applyGain = Platform.isIOS;
     final stream = await _recorder.startStream(
       RecordConfig(
         encoder: AudioEncoder.pcm16bits,
@@ -31,10 +34,33 @@ class StreamingRecorderService {
         noiseSuppress: enableVoiceProcessing,
       ),
     );
+    if (applyGain) {
+      return stream.map(_applyGain).map(Uint8List.fromList);
+    }
     return stream.map(Uint8List.fromList);
   }
 
   Future<void> stop() => _recorder.stop();
 
   Future<bool> hasPermission() => _recorder.hasPermission();
+
+  /// Test hook for [_applyGain].
+  @visibleForTesting
+  static Uint8List applyGainForTest(Uint8List pcm16) => _applyGain(pcm16);
+
+  /// Boost iOS mic signal by ~8 dB (linear gain 2.5) so speech RMS lands
+  /// above the backend energy-VAD threshold. Values are clamped to Int16
+  /// range to avoid clipping artifacts.
+  static Uint8List _applyGain(Uint8List pcm16) {
+    const gain = 2.5;
+    final view = ByteData.sublistView(pcm16);
+    final out = Uint8List(pcm16.length);
+    final outView = ByteData.sublistView(out);
+    for (var i = 0; i < pcm16.length; i += 2) {
+      final sample = view.getInt16(i, Endian.little);
+      final boosted = (sample * gain).clamp(-32768, 32767).toInt();
+      outView.setInt16(i, boosted, Endian.little);
+    }
+    return out;
+  }
 }
