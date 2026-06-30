@@ -23,6 +23,7 @@ class VoiceStateData {
     this.ttsFailed = false,
     this.errorMessage,
     this.amplitude = 0.0,
+    this.debug = '',
   });
 
   final VoiceFlowState flowState;
@@ -38,6 +39,10 @@ class VoiceStateData {
   /// Normalised mic/playback amplitude 0..1 for KaiTideLarge animation.
   final double amplitude;
 
+  /// On-screen debug line (chunks sent, last WS event, audio bytes) — visible
+  /// without Xcode so voice can be diagnosed on a sideloaded build.
+  final String debug;
+
   VoiceStateData copyWith({
     VoiceFlowState? flowState,
     VoiceFlowState? previousState,
@@ -49,6 +54,7 @@ class VoiceStateData {
     bool? ttsFailed,
     String? errorMessage,
     double? amplitude,
+    String? debug,
   }) {
     return VoiceStateData(
       flowState: flowState ?? this.flowState,
@@ -61,6 +67,7 @@ class VoiceStateData {
       ttsFailed: ttsFailed ?? this.ttsFailed,
       errorMessage: errorMessage ?? this.errorMessage,
       amplitude: amplitude ?? this.amplitude,
+      debug: debug ?? this.debug,
     );
   }
 }

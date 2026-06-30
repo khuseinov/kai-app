@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:audio_session/audio_session.dart';
 import 'package:kai_app/core/logger/app_logger.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/features/room/presentation/providers/room_state.dart';
@@ -113,11 +112,10 @@ class VoiceNotifier extends _$VoiceNotifier {
         return;
       }
 
-      // iOS: route mic + playback through one playAndRecord session on the
-      // speaker. Without this the record session silences just_audio playback
-      // (and can leave the mic dead between turns).
-      await _configureAudioSession();
-
+      // NOTE: a manual AudioSession(playAndRecord)+setActive(true) here KILLED the
+      // record-plugin mic stream after ~0.5s (only ~5 PCM chunks reached the server,
+      // turns never dispatched). Reverted. Playback routing on iOS (speaker vs
+      // earpiece) is handled separately, without touching the mic session.
       _wsClient = WsVoiceClient(wsUrl: wsUrl, apiKey: apiKey, hfToken: env.hfToken);
       await _wsClient!.connect(
         userId: _userId,
@@ -127,7 +125,10 @@ class VoiceNotifier extends _$VoiceNotifier {
       _isActive = true;
       // Immediate feedback: the mic is hot — show "listening" without waiting for
       // the server's speech-onset event so the user knows to start talking.
-      state = state.copyWith(flowState: VoiceFlowState.listening);
+      state = state.copyWith(
+        flowState: VoiceFlowState.listening,
+        debug: 'WS connected ✓ — speak now',
+      );
 
       _eventSub = _wsClient!.events.listen(
         _onWsMessage,
@@ -148,14 +149,12 @@ class VoiceNotifier extends _$VoiceNotifier {
         final amp = _rms(chunk).clamp(0.0, 1.0);
         // DEBUG: log first chunk and every 50th so we can verify the mic is
         // actually producing data and it is being forwarded to the backend.
-        if (_pcmChunkCount == 1 || _pcmChunkCount % 50 == 0) {
-          AppLogger.i(
-            '[VOICE] PCM chunk #$_pcmChunkCount sent: ${chunk.length} bytes, '
-            'rms=${amp.toStringAsFixed(4)}',
+        final ampChanged = (amp - state.amplitude).abs() > 0.02;
+        if (_pcmChunkCount % 10 == 0 || ampChanged) {
+          state = state.copyWith(
+            amplitude: ampChanged ? amp : null,
+            debug: 'mic ▸ $_pcmChunkCount chunks · rms ${amp.toStringAsFixed(3)}',
           );
-        }
-        if ((amp - state.amplitude).abs() > 0.02) {
-          state = state.copyWith(amplitude: amp);
         }
       });
     } catch (e, st) {
@@ -173,51 +172,29 @@ class VoiceNotifier extends _$VoiceNotifier {
     state = state.copyWith(flowState: VoiceFlowState.idle, amplitude: 0);
   }
 
-  /// Configure one shared playAndRecord session so the mic and just_audio
-  /// playback coexist on iOS, routed to the loudspeaker. No-op-safe on failure.
-  Future<void> _configureAudioSession() async {
-    try {
-      final session = await AudioSession.instance;
-      await session.configure(
-        const AudioSessionConfiguration(
-          avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
-          avAudioSessionCategoryOptions:
-              AVAudioSessionCategoryOptions.defaultToSpeaker,
-          avAudioSessionMode: AVAudioSessionMode.spokenAudio,
-          androidAudioAttributes: AndroidAudioAttributes(
-            contentType: AndroidAudioContentType.speech,
-            usage: AndroidAudioUsage.voiceCommunication,
-          ),
-        ),
-      );
-      await session.setActive(true);
-    } catch (e, st) {
-      AppLogger.e('audio session config failed', e, st);
-    }
-  }
-
   void _onWsMessage(dynamic msg) {
     if (_isDisposed) return;
     if (msg is Uint8List) {
-      AppLogger.i('[VOICE] enqueue audio clause: ${msg.length} bytes');
+      state = state.copyWith(debug: 'rx ◂ audio ${msg.length}b');
       _enqueueClause(msg); // one frame == one complete clause MP3
       return;
     }
     if (msg is! Map<String, dynamic>) {
-      AppLogger.w('[VOICE] unknown WS message type: ${msg.runtimeType}');
       return;
     }
 
     final event = msg['event'] as String? ?? '';
-    AppLogger.i('[VOICE] WS event: $event payload=$msg');
     switch (event) {
       case 'state':
+        state = state.copyWith(debug: 'rx ◂ state:${msg['state']}');
         _applyServerState(msg['state'] as String? ?? 'idle');
       case 'transcript':
         final text = msg['text'] as String? ?? '';
         if (text.isNotEmpty) {
-          state = state.copyWith(lastTranscript: text);
-          AppLogger.i('[VOICE] transcript updated: $text');
+          state = state.copyWith(
+            lastTranscript: text,
+            debug: 'rx ◂ you: $text',
+          );
         }
       case 'audio_begin':
         // New turn: log the user's line and reset the play queue.
@@ -230,6 +207,7 @@ class VoiceNotifier extends _$VoiceNotifier {
         if (text.isNotEmpty) {
           state = state.copyWith(
             lastResponseText: text,
+            debug: 'rx ◂ kai: $text',
             transcriptEvents: [
               ...state.transcriptEvents,
               KaiTranscriptEvent(

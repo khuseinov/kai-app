@@ -107,6 +107,27 @@ class VoicePage extends HookConsumerWidget {
 
               // Top and Bottom overlays
               const VoiceHomeIndicator(),
+
+              // DEBUG panel — live voice diagnostics on-screen (no Xcode needed).
+              // Remove once voice is verified end-to-end.
+              if (state.debug.isNotEmpty)
+                Positioned(
+                  left: 12,
+                  right: 12,
+                  bottom: 36,
+                  child: IgnorePointer(
+                    child: Text(
+                      state.debug,
+                      textAlign: TextAlign.center,
+                      maxLines: 3,
+                      style: const TextStyle(
+                        fontFamily: 'JetBrainsMono',
+                        fontSize: 11,
+                        color: Color(0xFF8AE234),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
