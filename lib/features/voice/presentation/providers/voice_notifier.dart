@@ -209,20 +209,25 @@ class VoiceNotifier extends _$VoiceNotifier {
   /// Configure AVAudioSession for duplex voice on iOS.
   ///
   /// - Category playAndRecord lets us capture mic and play TTS.
-  /// - Mode voiceChat optimises the built-in mic + receiver path.
-  /// - defaultToSpeaker routes playback to the loudspeaker (AI companion style).
+  /// - Mode videoChat uses the loudspeaker + main mic (AI companion style);
+  ///   voiceChat would force the receiver/bottom mic and is too quiet at arm's
+  ///   length.
+  /// - defaultToSpeaker routes playback to the loudspeaker.
   /// - allowBluetooth lets the user use a headset.
   Future<void> _configureAudioSession() async {
     try {
       final session = await AudioSession.instance;
+      final categoryOptions = AVAudioSessionCategoryOptions.defaultToSpeaker |
+          AVAudioSessionCategoryOptions.allowBluetooth;
       await session.configure(
-        const AudioSessionConfiguration(
+        AudioSessionConfiguration(
           avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
-          avAudioSessionMode: AVAudioSessionMode.voiceChat,
+          avAudioSessionCategoryOptions: categoryOptions,
+          avAudioSessionMode: AVAudioSessionMode.videoChat,
           avAudioSessionRouteSharingPolicy:
               AVAudioSessionRouteSharingPolicy.defaultPolicy,
           avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
-          androidAudioAttributes: AndroidAudioAttributes(
+          androidAudioAttributes: const AndroidAudioAttributes(
             contentType: AndroidAudioContentType.speech,
             usage: AndroidAudioUsage.voiceCommunication,
           ),
@@ -231,9 +236,28 @@ class VoiceNotifier extends _$VoiceNotifier {
       );
       final activated = await session.setActive(true);
       AppLogger.i('[VOICE] AudioSession setActive(true) -> $activated');
+      await _logAudioRoute();
     } catch (e, st) {
       AppLogger.e('[VOICE] AudioSession configuration failed', e, st);
       // Don't fail the whole session if AudioSession is unavailable on a platform.
+    }
+  }
+
+  /// Log the active audio route so we can diagnose silent mic / low RMS issues.
+  Future<void> _logAudioRoute() async {
+    try {
+      final avSession = AVAudioSession();
+      final route = await avSession.currentRoute;
+      final inputs = route.inputs.map((p) => '${p.portType}:${p.portName}').join(', ');
+      final outputs = route.outputs.map((p) => '${p.portType}:${p.portName}').join(', ');
+      final gainSettable = await avSession.inputGainSettable;
+      final gain = await avSession.inputGain;
+      AppLogger.i(
+        '[VOICE] route inputs=[$inputs] outputs=[$outputs] '
+        'inputGainSettable=$gainSettable inputGain=$gain',
+      );
+    } catch (e, st) {
+      AppLogger.e('[VOICE] Failed to log audio route', e, st);
     }
   }
 
