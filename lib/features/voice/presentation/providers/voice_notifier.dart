@@ -33,6 +33,7 @@ class VoiceNotifier extends _$VoiceNotifier {
   bool _isActive = false; // WS session open
   bool _starting = false; // guards the start window before _isActive flips
   bool _isDisposed = false; // set in onDispose; gates state writes from async cbs
+  int _pcmChunkCount = 0; // DEBUG: count PCM chunks sent to server
 
   @override
   VoiceStateData build() {
@@ -137,12 +138,22 @@ class VoiceNotifier extends _$VoiceNotifier {
       );
 
       // Start streaming PCM to server
+      _pcmChunkCount = 0;
       final pcmStream = await _recorder.startStream();
       _pcmSub = pcmStream.listen((chunk) {
         if (_isDisposed) return;
         _wsClient?.sendPcm(chunk);
+        _pcmChunkCount++;
         // RMS amplitude for KaiTideLarge
         final amp = _rms(chunk).clamp(0.0, 1.0);
+        // DEBUG: log first chunk and every 50th so we can verify the mic is
+        // actually producing data and it is being forwarded to the backend.
+        if (_pcmChunkCount == 1 || _pcmChunkCount % 50 == 0) {
+          AppLogger.i(
+            '[VOICE] PCM chunk #$_pcmChunkCount sent: ${chunk.length} bytes, '
+            'rms=${amp.toStringAsFixed(4)}',
+          );
+        }
         if ((amp - state.amplitude).abs() > 0.02) {
           state = state.copyWith(amplitude: amp);
         }
@@ -279,6 +290,7 @@ class VoiceNotifier extends _$VoiceNotifier {
 
   Future<void> _cleanup() async {
     _isActive = false;
+    _pcmChunkCount = 0;
     // Each step guarded so a failure (e.g. recorder.stop PlatformException)
     // doesn't leak the WS socket / subscriptions left after it.
     try {

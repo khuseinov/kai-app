@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:kai_app/core/logger/app_logger.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -60,19 +61,29 @@ class WsVoiceClient {
       _channel = WebSocketChannel.connect(uri);
     }
     await _channel!.ready;
+    AppLogger.i('[VOICE] WebSocket connected to $wsUrl');
 
     _sub = _channel!.stream.listen(
       (msg) {
         if (msg is String) {
           try {
-            _eventsController.add(json.decode(msg) as Map<String, dynamic>);
+            final decoded = json.decode(msg) as Map<String, dynamic>;
+            // DEBUG: log control events from server.
+            AppLogger.i('[VOICE] WS text event: ${decoded['event']}');
+            _eventsController.add(decoded);
           } catch (_) {}
         } else if (msg is List<int>) {
-          _eventsController.add(Uint8List.fromList(msg));
+          final bytes = Uint8List.fromList(msg);
+          AppLogger.i('[VOICE] WS binary audio frame: ${bytes.length} bytes');
+          _eventsController.add(bytes);
         }
       },
-      onError: _eventsController.addError,
+      onError: (Object e) {
+        AppLogger.e('[VOICE] WS error', e);
+        _eventsController.addError(e);
+      },
       onDone: () {
+        AppLogger.i('[VOICE] WS connection closed');
         if (!_eventsController.isClosed) {
           _eventsController.add({'event': 'disconnected'});
         }
