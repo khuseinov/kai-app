@@ -34,7 +34,11 @@ class _FakePlayer implements AudioPlayerService {
   @override
   Future<bool> isPlaying() async => false;
   @override
-  Future<void> playBytes(Uint8List bytes) async {}
+  Future<void> startStream() async {}
+  @override
+  void feed(Uint8List chunk) {}
+  @override
+  Future<void> endStream() async {}
   @override
   Future<void> stop() async {}
 }

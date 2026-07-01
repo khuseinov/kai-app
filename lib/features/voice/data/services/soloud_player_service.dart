@@ -4,20 +4,20 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:kai_app/core/logger/app_logger.dart';
 import 'package:kai_app/features/voice/domain/services/audio_player_service.dart';
 
-/// Audio player implementation using `flutter_soloud`.
+/// Audio player implementation using `flutter_soloud`'s continuous buffer
+/// stream — one persistent [AudioSource] per assistant turn, fed directly
+/// from incoming WS binary frames as they arrive. Replaces the discrete
+/// per-clause loadMem-and-await-completion queue: gapless cross-clause
+/// playback instead of a stop/reload between each one.
 ///
-/// Replaces the prior just_audio-backed service's per-clause temp-file write
-/// + AVPlayer reload (file I/O + player-init latency on every clause) with
-/// `loadMem` —
-/// soloud decodes MP3/WAV straight from the in-memory buffer, no disk round
-/// trip. `setBufferStream`/`addAudioDataStream` (true continuous streaming
-/// across clauses, replacing voice_notifier's discrete clause queue) is a
-/// further step, not done here — this is the in-memory-playback swap only.
+/// `BufferType.auto` autodetects MP3/OGG/Vorbis, so the server's wire format
+/// (whole-clause MP3 blobs) doesn't need to change for this to work.
 class SoloudPlayerService implements AudioPlayerService {
   SoloudPlayerService({SoLoud? soloud}) : _soloud = soloud ?? SoLoud.instance;
 
   final SoLoud _soloud;
   bool _initialized = false;
+  AudioSource? _activeSource;
   SoundHandle? _activeHandle;
 
   Future<void> _ensureInitialized() async {
@@ -27,34 +27,61 @@ class SoloudPlayerService implements AudioPlayerService {
   }
 
   @override
-  Future<void> playBytes(Uint8List bytes) async {
+  Future<void> startStream() async {
     await _ensureInitialized();
-    final source = await _soloud.loadMem(
-      'kai-voice-clause-${DateTime.now().microsecondsSinceEpoch}',
-      bytes,
-      autoDispose: true,
-    );
-    final handle = _soloud.play(source);
-    _activeHandle = handle;
-    AppLogger.i('[VOICE] soloud playing ${bytes.length} bytes from memory');
+    await _disposeActive(); // safety: clear any leftover stream from a prior turn
 
-    // Resolve on natural end OR on stop() — a barge-in stop() must not hang
-    // the caller's await forever, stalling the progressive play queue.
-    await source.soundEvents.firstWhere(
-      (e) => e.event == SoundEventType.handleIsNoMoreValid,
+    final source = _soloud.setBufferStream(
+      format: BufferType.auto,
+      // ponytail: each feed() call already delivers a whole clause (several
+      // seconds of audio), not small continuous chunks, so a large buffering
+      // margin only adds startup latency here. Re-tune on-device if underrun
+      // stutter shows up once clauses get genuinely chunked server-side.
+      bufferingTimeNeeds: 0.2,
     );
-    if (identical(_activeHandle, handle)) {
-      _activeHandle = null;
+    _activeSource = source;
+    _activeHandle = _soloud.play(source);
+  }
+
+  @override
+  void feed(Uint8List chunk) {
+    final source = _activeSource;
+    if (source == null || chunk.isEmpty) return;
+    try {
+      _soloud.addAudioDataStream(source, chunk);
+    } catch (e, st) {
+      // Stream may already have been torn down by a concurrent stop()
+      // (barge-in racing an in-flight WS frame) — drop the frame, not fatal.
+      AppLogger.e('[VOICE] soloud feed failed', e, st);
     }
   }
 
   @override
+  Future<void> endStream() async {
+    final source = _activeSource;
+    if (source == null) return;
+    _soloud.setDataIsEnded(source);
+  }
+
+  @override
   Future<void> stop() async {
+    await _disposeActive();
+  }
+
+  /// Hard-stops the active handle (resetBufferStream alone does NOT do this —
+  /// per its docs it only resets the buffer for *future* addAudioDataStream
+  /// calls; already-playing audio keeps playing) and disposes the source so
+  /// the next startStream() begins clean.
+  Future<void> _disposeActive() async {
     final handle = _activeHandle;
+    final source = _activeSource;
     _activeHandle = null;
-    if (handle == null) return;
-    if (_soloud.getIsValidVoiceHandle(handle)) {
+    _activeSource = null;
+    if (handle != null && _soloud.getIsValidVoiceHandle(handle)) {
       await _soloud.stop(handle);
+    }
+    if (source != null) {
+      await _soloud.disposeSource(source);
     }
   }
 

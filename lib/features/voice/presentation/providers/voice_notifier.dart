@@ -32,10 +32,6 @@ class VoiceNotifier extends _$VoiceNotifier {
   StreamSubscription<AudioDevicesChangedEvent>? _devicesSub;
   StreamSubscription<void>? _vadSub;
 
-  // Progressive playback: each server binary frame is a complete clause MP3.
-  // Queue them and play sequentially so long replies stream sentence-by-sentence.
-  final _playQueue = <Uint8List>[];
-  bool _draining = false;
   bool _isActive = false; // WS session open
   bool _starting = false; // guards the start window before _isActive flips
   bool _isDisposed = false; // set in onDispose; gates state writes from async cbs
@@ -350,7 +346,7 @@ class VoiceNotifier extends _$VoiceNotifier {
     if (msg is Uint8List) {
       AppLogger.i('[VOICE] WS binary rx ${msg.length}b');
       state = state.copyWith(debug: 'rx ◂ audio ${msg.length}b');
-      _enqueueClause(msg); // one frame == one complete clause MP3
+      _player.feed(msg);
       return;
     }
     if (msg is! Map<String, dynamic>) {
@@ -373,11 +369,11 @@ class VoiceNotifier extends _$VoiceNotifier {
           );
         }
       case 'audio_begin':
-        // New turn: log the user's line, reset the play queue and VAD state
-        // (a fresh reply shouldn't inherit leftover detector buffer/redemption
-        // counters from the previous turn).
+        // New turn: log the user's line, start a fresh playback stream, and
+        // reset VAD state (a new reply shouldn't inherit leftover detector
+        // buffer/redemption counters from the previous turn).
         _appendUserTranscript(state.lastTranscript);
-        _playQueue.clear();
+        unawaited(_player.startStream());
         _vad.reset();
       case 'response_text':
         // Assistant reply text: show on screen AND append to the conversation
@@ -397,9 +393,11 @@ class VoiceNotifier extends _$VoiceNotifier {
             ],
           );
         }
-      case 'clear': // barge-in: drop queued clauses and stop current playback
-        _playQueue.clear();
-        _player.stop();
+      case 'audio_end':
+        // No more clauses coming for this turn; let buffered audio drain.
+        unawaited(_player.endStream());
+      case 'clear': // barge-in: stop current playback immediately
+        unawaited(_player.stop());
       case 'error':
         _setError(msg['code'] as String? ?? 'error');
       case 'ping':
@@ -434,33 +432,6 @@ class VoiceNotifier extends _$VoiceNotifier {
       return;
     }
     state = state.copyWith(flowState: flowState);
-  }
-
-  void _enqueueClause(Uint8List mp3) {
-    if (mp3.isEmpty) return;
-    _playQueue.add(mp3);
-    unawaited(_drainQueue());
-  }
-
-  /// Plays queued clauses one after another. A single drain loop runs at a time;
-  /// new clauses appended mid-turn are picked up by the running loop.
-  Future<void> _drainQueue() async {
-    if (_draining) return;
-    _draining = true;
-    try {
-      while (_playQueue.isNotEmpty) {
-        if (_isDisposed) break;
-        final clause = _playQueue.removeAt(0);
-        try {
-          await _player.playBytes(clause);
-        } catch (e, st) {
-          AppLogger.e('Clause playback failed', e, st);
-        }
-      }
-    } finally {
-      _draining = false;
-      if (!_isDisposed) state = state.copyWith(amplitude: 0);
-    }
   }
 
   void _appendUserTranscript(String text) {
@@ -524,7 +495,6 @@ class VoiceNotifier extends _$VoiceNotifier {
       AppLogger.e('wsClient close failed', e, st);
     }
     _wsClient = null;
-    _playQueue.clear();
     try {
       await _player.stop();
     } catch (e, st) {
