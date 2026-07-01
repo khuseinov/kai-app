@@ -9,14 +9,15 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// Real-time duplex voice client over WebSocket.
 ///
-/// Binary frames → outgoing PCM16 audio chunks to server.
+/// Binary frames → outgoing Opus-encoded audio packets to server (matches
+/// the `?codec=opus` query param set in [connect]).
 /// Text frames → JSON control events (both directions).
 ///
 /// Usage:
 ///   final client = WsVoiceClient(wsUrl: '...', apiKey: '...');
 ///   await client.connect(userId: '...', sessionId: '...', language: 'ru');
 ///   client.events.listen((event) { ... });
-///   client.sendPcm(pcmBytes);
+///   client.sendAudio(opusPacketBytes);
 ///   await client.close();
 class WsVoiceClient {
   WsVoiceClient({required this.wsUrl, required this.apiKey, this.hfToken});
@@ -49,6 +50,7 @@ class WsVoiceClient {
       'user_id': userId,
       'session_id': sessionId,
       'language': language,
+      'codec': 'opus',
     };
     // Browsers cannot set WebSocket headers, so on web pass the HF token via
     // query (best effort). Native sends it as an Authorization header below.
@@ -106,8 +108,8 @@ class WsVoiceClient {
     );
   }
 
-  void sendPcm(Uint8List pcm) {
-    _channel?.sink.add(pcm);
+  void sendAudio(Uint8List packet) {
+    _channel?.sink.add(packet);
   }
 
   void sendEvent(Map<String, dynamic> event) {

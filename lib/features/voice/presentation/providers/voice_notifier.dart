@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:kai_app/core/logger/app_logger.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/features/room/presentation/providers/room_state.dart';
+import 'package:kai_app/features/voice/data/services/opus_encoder_service.dart';
 import 'package:kai_app/features/voice/data/services/streaming_recorder_service.dart';
 import 'package:kai_app/features/voice/data/services/ws_voice_client.dart';
 import 'package:kai_app/features/voice/domain/services/audio_player_service.dart';
@@ -26,6 +27,7 @@ class VoiceNotifier extends _$VoiceNotifier {
   late final String _userId;
 
   WsVoiceClient? _wsClient;
+  OpusEncoderService? _opusEncoder;
   StreamSubscription<dynamic>? _eventSub;
   StreamSubscription<Uint8List>? _pcmSub;
   StreamSubscription<AudioInterruptionEvent>? _interruptionSub;
@@ -160,7 +162,10 @@ class VoiceNotifier extends _$VoiceNotifier {
         _vad.reset();
       });
 
-      // Start streaming PCM to server
+      // Start streaming PCM to server, encoded as Opus (20ms frames) — the
+      // server's ?codec=opus (set in ws_voice_client.dart's connect URL)
+      // must match this.
+      _opusEncoder = await createOpusEncoderService();
       _pcmChunkCount = 0;
       _pcmProducedCount = 0; // DEBUG: chunks produced by the recorder plugin
       final pcmStream = await _recorder.startStream();
@@ -169,9 +174,12 @@ class VoiceNotifier extends _$VoiceNotifier {
         (chunk) {
           if (_isDisposed) return;
           _pcmProducedCount++;
-          _wsClient?.sendPcm(chunk);
+          for (final packet in _opusEncoder!.encode(chunk)) {
+            _wsClient?.sendAudio(packet);
+          }
           // Only run barge-in detection while Kai is actually speaking — no
           // point spending CPU/battery on VAD inference the rest of the turn.
+          // VAD needs raw PCM, not Opus, so it feeds off the pre-encode chunk.
           if (state.flowState == VoiceFlowState.speaking) {
             _vad.feed(chunk);
           }
@@ -478,6 +486,12 @@ class VoiceNotifier extends _$VoiceNotifier {
       AppLogger.e('pcmSub cancel failed', e, st);
     }
     _pcmSub = null;
+    try {
+      _opusEncoder?.dispose();
+    } catch (e, st) {
+      AppLogger.e('opusEncoder dispose failed', e, st);
+    }
+    _opusEncoder = null;
     try {
       await _recorder.stop();
     } catch (e, st) {
