@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:audio_session/audio_session.dart';
-import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/foundation.dart' show kDebugMode, visibleForTesting;
 import 'package:kai_app/core/logger/app_logger.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/features/room/presentation/providers/room_state.dart';
@@ -20,14 +21,27 @@ part 'voice_notifier.g.dart';
 
 @riverpod
 class VoiceNotifier extends _$VoiceNotifier {
+  /// Delays between automatic reconnect attempts after an unexpected
+  /// disconnect. Mutable so tests can zero it out.
+  @visibleForTesting
+  static List<Duration> reconnectBackoff = const [
+    Duration(milliseconds: 500),
+    Duration(seconds: 1),
+    Duration(seconds: 2),
+  ];
+
   late final AudioPlayerService _player;
   late final StreamingRecorderService _recorder;
   late final VoiceVadService _vad;
+  late final WsVoiceClientFactory _wsFactory;
+  late final OpusEncoderFactory _opusFactory;
   late final String _sessionId;
   late final String _userId;
 
   WsVoiceClient? _wsClient;
   OpusEncoderService? _opusEncoder;
+  bool _userStopped = false; // intentional stop — never auto-reconnect
+  bool _reconnectInProgress = false;
   StreamSubscription<dynamic>? _eventSub;
   StreamSubscription<Uint8List>? _pcmSub;
   StreamSubscription<AudioInterruptionEvent>? _interruptionSub;
@@ -38,14 +52,14 @@ class VoiceNotifier extends _$VoiceNotifier {
   bool _starting = false; // guards the start window before _isActive flips
   bool _isDisposed = false; // set in onDispose; gates state writes from async cbs
   bool _resumeAfterInterruption = false; // auto-resume when interruption ends
-  int _pcmChunkCount = 0; // DEBUG: count PCM chunks sent to server
-  int _pcmProducedCount = 0; // DEBUG: count PCM chunks produced by recorder
 
   @override
   VoiceStateData build() {
     _player = ref.read(audioPlayerServiceProvider);
     _recorder = ref.read(streamingRecorderServiceProvider);
     _vad = ref.read(voiceVadServiceProvider);
+    _wsFactory = ref.read(wsVoiceClientFactoryProvider);
+    _opusFactory = ref.read(opusEncoderFactoryProvider);
     _userId = ref.read(userIdProvider);
     _sessionId = ref.read(roomNotifierProvider).activeSessionId ?? 'voice-$_userId';
 
@@ -102,11 +116,12 @@ class VoiceNotifier extends _$VoiceNotifier {
     // second tap during that window would start a duplicate session.
     if (_isActive || _starting) return;
     _starting = true;
+    _userStopped = false;
     try {
       final env = ref.read(envProvider);
       final baseUrl = env.voiceGatewayBaseUrl ?? '';
       if (baseUrl.isEmpty) {
-        _setError('Voice gateway URL not configured');
+        _setError(VoiceError.noGateway);
         return;
       }
 
@@ -116,7 +131,7 @@ class VoiceNotifier extends _$VoiceNotifier {
 
       final hasPermission = await _recorder.hasPermission();
       if (!hasPermission) {
-        _setError('Microphone permission denied');
+        _setError(VoiceError.micPermission);
         return;
       }
 
@@ -127,25 +142,27 @@ class VoiceNotifier extends _$VoiceNotifier {
       await _configureAudioSession();
       await _listenToAudioSessionEvents();
 
-      _wsClient = WsVoiceClient(wsUrl: wsUrl, apiKey: apiKey, hfToken: env.hfToken);
+      _wsClient = _wsFactory(wsUrl: wsUrl, apiKey: apiKey, hfToken: env.hfToken);
       await _wsClient!.connect(
         userId: _userId,
         sessionId: _sessionId,
         language: language,
       );
       _isActive = true;
-      // Immediate feedback: the mic is hot — show "listening" without waiting for
-      // the server's speech-onset event so the user knows to start talking.
+      // Immediate feedback: the mic is hot — show "listening" without waiting
+      // for the server's speech-onset event. A fresh session always clears any
+      // stale error from the previous one.
       state = state.copyWith(
         flowState: VoiceFlowState.listening,
-        debug: 'WS connected ✓ — speak now',
+        error: null,
       );
+      _setDebug('WS connected ✓ — speak now');
 
       _eventSub = _wsClient!.events.listen(
         _onWsMessage,
         onError: (Object e) {
           AppLogger.e('WS error', e, StackTrace.current);
-          _setError('Connection error');
+          _setError(VoiceError.connection);
         },
       );
 
@@ -165,15 +182,12 @@ class VoiceNotifier extends _$VoiceNotifier {
       // Start streaming PCM to server, encoded as Opus (20ms frames) — the
       // server's ?codec=opus (set in ws_voice_client.dart's connect URL)
       // must match this.
-      _opusEncoder = await createOpusEncoderService();
-      _pcmChunkCount = 0;
-      _pcmProducedCount = 0; // DEBUG: chunks produced by the recorder plugin
+      _opusEncoder = await _opusFactory();
       final pcmStream = await _recorder.startStream();
       AppLogger.i('[VOICE] Recorder stream started');
       _pcmSub = pcmStream.listen(
         (chunk) {
           if (_isDisposed) return;
-          _pcmProducedCount++;
           for (final packet in _opusEncoder!.encode(chunk)) {
             _wsClient?.sendAudio(packet);
           }
@@ -183,44 +197,31 @@ class VoiceNotifier extends _$VoiceNotifier {
           if (state.flowState == VoiceFlowState.speaking) {
             _vad.feed(chunk);
           }
-          _pcmChunkCount++;
           // RMS amplitude for KaiTideLarge
           final amp = _rms(chunk).clamp(0.0, 1.0);
-          // DEBUG: log first chunk and every 50th so we can verify the mic is
-          // actually producing data and it is being forwarded to the backend.
-          final ampChanged = (amp - state.amplitude).abs() > 0.02;
-          if (_pcmChunkCount <= 5 ||
-              _pcmChunkCount % 50 == 0 ||
-              ampChanged ||
-              _pcmProducedCount != _pcmChunkCount) {
-            AppLogger.i(
-              '[VOICE] pcm produced=$_pcmProducedCount sent=$_pcmChunkCount '
-              'bytes=${chunk.length} rms=${amp.toStringAsFixed(3)}',
-            );
-            state = state.copyWith(
-              amplitude: ampChanged ? amp : null,
-              debug: 'mic ▸ produced $_pcmProducedCount · sent $_pcmChunkCount · rms ${amp.toStringAsFixed(3)}',
-            );
+          if ((amp - state.amplitude).abs() > 0.02) {
+            state = state.copyWith(amplitude: amp);
+            _setDebug('mic ▸ rms ${amp.toStringAsFixed(3)}');
           }
         },
         onError: (Object e, StackTrace st) {
           AppLogger.e('[VOICE] Recorder stream error', e, st);
           if (_isActive && !_isDisposed) {
             unawaited(_cleanup());
-            _setError('Microphone stream error');
+            _setError(VoiceError.micStream);
           }
         },
         onDone: () {
-          AppLogger.i('[VOICE] Recorder stream done (produced=$_pcmProducedCount sent=$_pcmChunkCount)');
+          AppLogger.i('[VOICE] Recorder stream done');
           if (_isActive && !_isDisposed) {
             unawaited(_cleanup());
-            _setError('Microphone stopped unexpectedly');
+            _setError(VoiceError.micStream);
           }
         },
       );
     } catch (e, st) {
       AppLogger.e('Failed to start voice session', e, st);
-      _setError('Failed to start: $e');
+      _setError(VoiceError.startFailed);
       await _cleanup();
     } finally {
       _starting = false;
@@ -228,6 +229,7 @@ class VoiceNotifier extends _$VoiceNotifier {
   }
 
   Future<void> _stopSession() async {
+    _userStopped = true;
     _wsClient?.sendEvent({'event': 'stop'});
     await _cleanup();
     state = state.copyWith(flowState: VoiceFlowState.idle, amplitude: 0);
@@ -316,10 +318,8 @@ class VoiceNotifier extends _$VoiceNotifier {
       if (_isActive) {
         _resumeAfterInterruption = true;
         _cleanup();
-        state = state.copyWith(
-          flowState: VoiceFlowState.idle,
-          debug: 'Audio interrupted — paused',
-        );
+        state = state.copyWith(flowState: VoiceFlowState.idle);
+        _setDebug('Audio interrupted — paused');
       }
     } else {
       // Interruption ended. For pause-type interruptions the OS tells us if we
@@ -343,38 +343,35 @@ class VoiceNotifier extends _$VoiceNotifier {
       '[VOICE] Audio devices added=${event.devicesAdded} '
       'removed=${event.devicesRemoved}',
     );
-    state = state.copyWith(
-      debug: 'audio route changed ▸ +${event.devicesAdded.length} '
-          '-${event.devicesRemoved.length}',
+    _setDebug(
+      'audio route changed ▸ +${event.devicesAdded.length} '
+      '-${event.devicesRemoved.length}',
     );
   }
 
   void _onWsMessage(dynamic msg) {
     if (_isDisposed) return;
     if (msg is Uint8List) {
-      AppLogger.i('[VOICE] WS binary rx ${msg.length}b');
-      state = state.copyWith(debug: 'rx ◂ audio ${msg.length}b');
+      _setDebug('rx ◂ audio ${msg.length}b');
       _player.feed(msg);
       return;
     }
     if (msg is! Map<String, dynamic>) {
-      AppLogger.i('[VOICE] WS unknown msg type: ${msg.runtimeType}');
+      AppLogger.d('[VOICE] WS unknown msg type: ${msg.runtimeType}');
       return;
     }
 
     final event = msg['event'] as String? ?? '';
-    AppLogger.i('[VOICE] WS event: $event payload=$msg');
+    AppLogger.d('[VOICE] WS event: $event');
     switch (event) {
       case 'state':
-        state = state.copyWith(debug: 'rx ◂ state:${msg['state']}');
+        _setDebug('rx ◂ state:${msg['state']}');
         _applyServerState(msg['state'] as String? ?? 'idle');
       case 'transcript':
         final text = msg['text'] as String? ?? '';
         if (text.isNotEmpty) {
-          state = state.copyWith(
-            lastTranscript: text,
-            debug: 'rx ◂ you: $text',
-          );
+          state = state.copyWith(lastTranscript: text);
+          _setDebug('rx ◂ you: $text');
         }
       case 'audio_begin':
         // New turn: log the user's line, start a fresh playback stream, and
@@ -388,9 +385,9 @@ class VoiceNotifier extends _$VoiceNotifier {
         // transcript (so the transcript sheet shows both 'you' and 'kai' lines).
         final text = msg['text'] as String? ?? '';
         if (text.isNotEmpty) {
+          _setDebug('rx ◂ kai: $text');
           state = state.copyWith(
             lastResponseText: text,
-            debug: 'rx ◂ kai: $text',
             transcriptEvents: [
               ...state.transcriptEvents,
               KaiTranscriptEvent(
@@ -407,7 +404,10 @@ class VoiceNotifier extends _$VoiceNotifier {
       case 'clear': // barge-in: stop current playback immediately
         unawaited(_player.stop());
       case 'error':
-        _setError(msg['code'] as String? ?? 'error');
+        _setError(switch (msg['code'] as String?) {
+          'stt_failed' => VoiceError.sttFailed,
+          _ => VoiceError.pipelineFailed,
+        });
       case 'ping':
         // Server keepalive; WsVoiceClient replies with pong automatically.
         break;
@@ -415,8 +415,54 @@ class VoiceNotifier extends _$VoiceNotifier {
         // Client should never receive its own pong; ignore.
         break;
       case 'disconnected':
-        _isActive = false;
-        state = state.copyWith(flowState: VoiceFlowState.idle, amplitude: 0);
+        unawaited(_onDisconnected(msg['code'] as int?));
+    }
+  }
+
+  /// Handles a socket drop: full resource cleanup, then bounded auto-reconnect
+  /// for unexpected disconnects (never for user stops or auth failures).
+  ///
+  /// Without the cleanup the recorder/encoder/VAD kept running into a closed
+  /// sink after any server-side drop, leaking a hot mic until the provider
+  /// was disposed.
+  Future<void> _onDisconnected(int? closeCode) async {
+    if (_isDisposed || _reconnectInProgress) return;
+    final wasActive = _isActive;
+    _isActive = false;
+    await _cleanup();
+    if (_isDisposed) return;
+
+    if (!wasActive || _userStopped) {
+      state = state.copyWith(flowState: VoiceFlowState.idle, amplitude: 0);
+      return;
+    }
+    if (closeCode == 4401) {
+      _setError(VoiceError.authFailed);
+      return;
+    }
+
+    _reconnectInProgress = true;
+    try {
+      for (final delay in reconnectBackoff) {
+        state = state.copyWith(
+          flowState: VoiceFlowState.idle,
+          reconnecting: true,
+          amplitude: 0,
+        );
+        await Future<void>.delayed(delay);
+        if (_isDisposed || _userStopped) return;
+        await _startSession();
+        if (_isActive) {
+          state = state.copyWith(reconnecting: false);
+          return;
+        }
+      }
+      _setError(VoiceError.connectionLost);
+    } finally {
+      _reconnectInProgress = false;
+      if (!_isDisposed && state.reconnecting) {
+        state = state.copyWith(reconnecting: false);
+      }
     }
   }
 
@@ -456,8 +502,6 @@ class VoiceNotifier extends _$VoiceNotifier {
   Future<void> _cleanup() async {
     _isActive = false;
     _resumeAfterInterruption = false;
-    _pcmChunkCount = 0;
-    _pcmProducedCount = 0;
     await _deactivateAudioSession();
     // Each step guarded so a failure (e.g. recorder.stop PlatformException)
     // doesn't leak the WS socket / subscriptions left after it.
@@ -516,10 +560,17 @@ class VoiceNotifier extends _$VoiceNotifier {
     }
   }
 
-  void _setError(String message) {
+  /// On-screen debug line — debug builds only; release keeps state clean.
+  void _setDebug(String message) {
+    if (!kDebugMode || _isDisposed) return;
+    state = state.copyWith(debug: message);
+  }
+
+  void _setError(VoiceError error) {
     state = state.copyWith(
       flowState: VoiceFlowState.idle,
-      errorMessage: message,
+      error: error,
+      reconnecting: false,
       amplitude: 0,
     );
   }
@@ -536,10 +587,15 @@ class VoiceNotifier extends _$VoiceNotifier {
     return math.sqrt(sum / samples); // root-mean-square (was mean-square: wave never animated)
   }
 
-  static String _detectLanguage() {
-    // ponytail: hardcoded ru for v1; read from locale in Phase 2
-    return 'ru';
-  }
+  /// Returns the current platform locale's language code. Injectable so
+  /// tests can pin the locale.
+  @visibleForTesting
+  static String Function() localeCodeGetter =
+      () => ui.PlatformDispatcher.instance.locale.languageCode;
+
+  /// Voice language follows the app locale — EN-first global default, Russian
+  /// only for ru locales.
+  static String _detectLanguage() => localeCodeGetter() == 'ru' ? 'ru' : 'en';
 
   static String _formatTime(DateTime dt) {
     final h = dt.hour.toString().padLeft(2, '0');

@@ -118,9 +118,20 @@
   "voiceStatusIdle": "Kai ожидает",
   "voiceStatusListening": "Говорите…",
   "voiceStatusProcessing": "Kai думает",
-  "voiceTtsFailed": "Kai ответил текстом",
   "voiceHintTapToSpeak": "нажмите и удерживайте, чтобы говорить",
   "voiceHintSwipeTranscript": "SWIPE ↑ · ТРАНСКРИПЦИЯ",
   "voiceTranscriptToday": "сегодня",
-  "voiceTranscriptReturnHint": "СВАЙП ↑ · ВЕРНУТЬСЯ К ГОЛОСУ"
+  "voiceTranscriptReturnHint": "СВАЙП ↑ · ВЕРНУТЬСЯ К ГОЛОСУ",
+  "voiceStatusReconnecting": "Переподключение…",
+  "voiceErrorNoGateway": "Голосовой сервис не настроен",
+  "voiceErrorMicPermission": "Нет доступа к микрофону",
+  "voiceErrorConnection": "Ошибка соединения",
+  "voiceErrorMicStream": "Микрофон неожиданно остановился",
+  "voiceErrorStartFailed": "Не удалось запустить голосовой режим",
+  "voiceErrorSttFailed": "Kai не расслышал — попробуйте ещё раз",
+  "voiceErrorPipelineFailed": "Kai не смог ответить — попробуйте ещё раз",
+  "voiceErrorConnectionLost": "Соединение потеряно",
+  "voiceErrorAuthFailed": "Ошибка авторизации голоса",
+  "voiceErrorWebUnsupported": "Голос недоступен в веб-версии",
+  "commonBack": "Назад"
 }

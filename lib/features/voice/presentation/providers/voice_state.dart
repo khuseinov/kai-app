@@ -3,13 +3,26 @@ import 'package:kai_app/features/voice/presentation/widgets/kai_transcript_view.
 enum VoiceFlowState {
   idle,
   listening,
-  processing, // kept for legacy layout_content compat
-  transcribing,
   thinking,
-  synthesizing,
   speaking,
   transcript,
 }
+
+/// Typed voice-session errors — mapped to localized text at the widget layer
+/// (the notifier has no BuildContext for AppLocalizations).
+enum VoiceError {
+  noGateway,
+  micPermission,
+  connection,
+  micStream,
+  startFailed,
+  sttFailed,
+  pipelineFailed,
+  connectionLost,
+  authFailed,
+}
+
+const _unsetError = Object();
 
 class VoiceStateData {
   const VoiceStateData({
@@ -20,8 +33,8 @@ class VoiceStateData {
     this.transcriptEvents = const [],
     this.lastTranscript = '',
     this.lastResponseText = '',
-    this.ttsFailed = false,
-    this.errorMessage,
+    this.error,
+    this.reconnecting = false,
     this.amplitude = 0.0,
     this.debug = '',
   });
@@ -33,8 +46,10 @@ class VoiceStateData {
   final List<KaiTranscriptEvent> transcriptEvents;
   final String lastTranscript;
   final String lastResponseText;
-  final bool ttsFailed;
-  final String? errorMessage;
+  final VoiceError? error;
+
+  /// True while an unexpected disconnect is being retried automatically.
+  final bool reconnecting;
 
   /// Normalised mic/playback amplitude 0..1 for KaiTideLarge animation.
   final double amplitude;
@@ -51,8 +66,10 @@ class VoiceStateData {
     List<KaiTranscriptEvent>? transcriptEvents,
     String? lastTranscript,
     String? lastResponseText,
-    bool? ttsFailed,
-    String? errorMessage,
+    // Sentinel default so `error: null` actually CLEARS the error — the
+    // plain `?? this.error` pattern made errors sticky forever.
+    Object? error = _unsetError,
+    bool? reconnecting,
     double? amplitude,
     String? debug,
   }) {
@@ -64,8 +81,8 @@ class VoiceStateData {
       transcriptEvents: transcriptEvents ?? this.transcriptEvents,
       lastTranscript: lastTranscript ?? this.lastTranscript,
       lastResponseText: lastResponseText ?? this.lastResponseText,
-      ttsFailed: ttsFailed ?? this.ttsFailed,
-      errorMessage: errorMessage ?? this.errorMessage,
+      error: identical(error, _unsetError) ? this.error : error as VoiceError?,
+      reconnecting: reconnecting ?? this.reconnecting,
       amplitude: amplitude ?? this.amplitude,
       debug: debug ?? this.debug,
     );

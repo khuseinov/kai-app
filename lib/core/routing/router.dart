@@ -6,6 +6,7 @@ import 'package:kai_app/features/room/presentation/pages/room_page.dart';
 import 'package:kai_app/features/settings/data/models/settings.dart';
 import 'package:kai_app/features/settings/presentation/pages/settings_page.dart';
 import 'package:kai_app/features/voice/presentation/pages/voice_page.dart';
+import 'package:kai_app/features/voice/presentation/pages/voice_unavailable_page.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'router.g.dart';
@@ -46,7 +47,11 @@ GoRouter router(RouterRef ref) {
       ),
       GoRoute(
         path: '/voice',
-        builder: (context, state) => const VoicePage(),
+        // Live voice is mobile-only: the mic pipeline uses dart:io + FFI
+        // (record/opus/soloud) which throw on web.
+        builder: (context, state) => VoiceUnavailablePage.voiceSupported
+            ? const VoicePage()
+            : const VoiceUnavailablePage(),
       ),
     ],
   );

@@ -15,6 +15,7 @@ import 'package:kai_app/features/room/presentation/widgets/kai_compose_island.da
 import 'package:kai_app/features/room/presentation/widgets/kai_edge_state_block.dart';
 import 'package:kai_app/features/room/presentation/widgets/kai_send_button.dart';
 import 'package:kai_app/features/room/presentation/widgets/sheets/kai_action_sheet.dart';
+import 'package:kai_app/features/voice/presentation/pages/voice_unavailable_page.dart';
 import 'package:kai_app/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
 
@@ -280,7 +281,10 @@ class _RoomPageState extends ConsumerState<RoomPage> {
                     );
                   },
                   onMicTap: _onMicTap,
-                  onVoiceTap: () => context.go('/voice'),
+                  // null hides the voice glyph — live voice is mobile-only.
+                  onVoiceTap: VoiceUnavailablePage.voiceSupported
+                      ? () => context.go('/voice')
+                      : null,
                   onStop: () => ref
                       .read(roomNotifierProvider.notifier)
                       .cancelStreaming(),

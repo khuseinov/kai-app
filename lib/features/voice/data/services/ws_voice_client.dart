@@ -78,8 +78,6 @@ class WsVoiceClient {
           try {
             final decoded = json.decode(msg) as Map<String, dynamic>;
             final event = decoded['event'] as String? ?? '';
-            // DEBUG: log control events from server.
-            AppLogger.i('[VOICE] WS text event: $event');
             if (event == 'ping') {
               // Application-level keepalive: respond immediately.
               sendEvent({'event': 'pong'});
@@ -88,9 +86,7 @@ class WsVoiceClient {
             _eventsController.add(decoded);
           } catch (_) {}
         } else if (msg is List<int>) {
-          final bytes = Uint8List.fromList(msg);
-          AppLogger.i('[VOICE] WS binary audio frame: ${bytes.length} bytes');
-          _eventsController.add(bytes);
+          _eventsController.add(Uint8List.fromList(msg));
         }
       },
       onError: (Object e) {

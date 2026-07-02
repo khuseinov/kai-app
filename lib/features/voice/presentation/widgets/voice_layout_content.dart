@@ -14,9 +14,9 @@ class VoiceLayoutContent extends StatelessWidget {
     required this.karaokeIndex,
     required this.transcript,
     required this.responseText,
-    required this.ttsFailed,
     required this.onGoToTranscript,
-    this.errorMessage,
+    this.error,
+    this.reconnecting = false,
     this.amplitude = 0.0,
     super.key,
   });
@@ -26,8 +26,8 @@ class VoiceLayoutContent extends StatelessWidget {
   final int karaokeIndex;
   final String transcript;
   final String responseText;
-  final bool ttsFailed;
-  final String? errorMessage;
+  final VoiceError? error;
+  final bool reconnecting;
   final VoidCallback onGoToTranscript;
   final double amplitude;
 
@@ -39,10 +39,7 @@ class VoiceLayoutContent extends StatelessWidget {
     final largeTideState = switch (flowState) {
       VoiceFlowState.idle => KaiTideLargeState.idle,
       VoiceFlowState.listening => KaiTideLargeState.listening,
-      VoiceFlowState.processing => KaiTideLargeState.listening,
-      VoiceFlowState.transcribing => KaiTideLargeState.listening,
       VoiceFlowState.thinking => KaiTideLargeState.listening,
-      VoiceFlowState.synthesizing => KaiTideLargeState.listening,
       VoiceFlowState.speaking => KaiTideLargeState.speaking,
       VoiceFlowState.transcript => KaiTideLargeState.idle,
     };
@@ -50,22 +47,26 @@ class VoiceLayoutContent extends StatelessWidget {
     final isIdle = flowState == VoiceFlowState.idle;
     final isSpeaking = flowState == VoiceFlowState.speaking;
     final isListening = flowState == VoiceFlowState.listening;
-    final isProcessing = switch (flowState) {
-      VoiceFlowState.processing ||
-      VoiceFlowState.transcribing ||
-      VoiceFlowState.thinking ||
-      VoiceFlowState.synthesizing => true,
-      _ => false,
-    };
+    final isProcessing = flowState == VoiceFlowState.thinking;
     final loc = AppLocalizations.of(context);
 
     String statusText() {
-      if (errorMessage != null && errorMessage!.isNotEmpty) {
-        return errorMessage!;
+      if (reconnecting) return loc.voiceStatusReconnecting;
+      if (error != null) {
+        return switch (error!) {
+          VoiceError.noGateway => loc.voiceErrorNoGateway,
+          VoiceError.micPermission => loc.voiceErrorMicPermission,
+          VoiceError.connection => loc.voiceErrorConnection,
+          VoiceError.micStream => loc.voiceErrorMicStream,
+          VoiceError.startFailed => loc.voiceErrorStartFailed,
+          VoiceError.sttFailed => loc.voiceErrorSttFailed,
+          VoiceError.pipelineFailed => loc.voiceErrorPipelineFailed,
+          VoiceError.connectionLost => loc.voiceErrorConnectionLost,
+          VoiceError.authFailed => loc.voiceErrorAuthFailed,
+        };
       }
       if (isProcessing) return loc.voiceStatusProcessing;
       if (isListening) return loc.voiceStatusListening;
-      if (isSpeaking && ttsFailed) return loc.voiceTtsFailed;
       return loc.voiceStatusIdle;
     }
 

@@ -348,9 +348,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get voiceStatusProcessing => 'Kai думает';
 
   @override
-  String get voiceTtsFailed => 'Kai ответил текстом';
-
-  @override
   String get voiceHintTapToSpeak => 'нажмите и удерживайте, чтобы говорить';
 
   @override
@@ -361,4 +358,41 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get voiceTranscriptReturnHint => 'СВАЙП ↑ · ВЕРНУТЬСЯ К ГОЛОСУ';
+
+  @override
+  String get voiceStatusReconnecting => 'Переподключение…';
+
+  @override
+  String get voiceErrorNoGateway => 'Голосовой сервис не настроен';
+
+  @override
+  String get voiceErrorMicPermission => 'Нет доступа к микрофону';
+
+  @override
+  String get voiceErrorConnection => 'Ошибка соединения';
+
+  @override
+  String get voiceErrorMicStream => 'Микрофон неожиданно остановился';
+
+  @override
+  String get voiceErrorStartFailed => 'Не удалось запустить голосовой режим';
+
+  @override
+  String get voiceErrorSttFailed => 'Kai не расслышал — попробуйте ещё раз';
+
+  @override
+  String get voiceErrorPipelineFailed =>
+      'Kai не смог ответить — попробуйте ещё раз';
+
+  @override
+  String get voiceErrorConnectionLost => 'Соединение потеряно';
+
+  @override
+  String get voiceErrorAuthFailed => 'Ошибка авторизации голоса';
+
+  @override
+  String get voiceErrorWebUnsupported => 'Голос недоступен в веб-версии';
+
+  @override
+  String get commonBack => 'Назад';
 }

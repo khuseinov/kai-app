@@ -722,12 +722,6 @@ abstract class AppLocalizations {
   /// **'Kai is thinking'**
   String get voiceStatusProcessing;
 
-  /// Voice screen status when TTS failed
-  ///
-  /// In en, this message translates to:
-  /// **'Kai responded in text'**
-  String get voiceTtsFailed;
-
   /// Voice screen hint for tap to speak
   ///
   /// In en, this message translates to:
@@ -751,6 +745,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'SWIPE ↑ · RETURN TO VOICE'**
   String get voiceTranscriptReturnHint;
+
+  /// Voice screen status while auto-reconnecting
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting…'**
+  String get voiceStatusReconnecting;
+
+  /// Voice error: gateway URL missing
+  ///
+  /// In en, this message translates to:
+  /// **'Voice service is not configured'**
+  String get voiceErrorNoGateway;
+
+  /// Voice error: mic permission
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone permission denied'**
+  String get voiceErrorMicPermission;
+
+  /// Voice error: WS stream error
+  ///
+  /// In en, this message translates to:
+  /// **'Connection error'**
+  String get voiceErrorConnection;
+
+  /// Voice error: recorder stream died
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone stopped unexpectedly'**
+  String get voiceErrorMicStream;
+
+  /// Voice error: session start failed
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t start voice session'**
+  String get voiceErrorStartFailed;
+
+  /// Voice error: server STT failed
+  ///
+  /// In en, this message translates to:
+  /// **'Kai couldn\'t hear that — try again'**
+  String get voiceErrorSttFailed;
+
+  /// Voice error: server pipeline failed
+  ///
+  /// In en, this message translates to:
+  /// **'Kai couldn\'t respond — try again'**
+  String get voiceErrorPipelineFailed;
+
+  /// Voice error: reconnect attempts exhausted
+  ///
+  /// In en, this message translates to:
+  /// **'Connection lost'**
+  String get voiceErrorConnectionLost;
+
+  /// Voice error: WS close 4401
+  ///
+  /// In en, this message translates to:
+  /// **'Voice authentication failed'**
+  String get voiceErrorAuthFailed;
+
+  /// Voice unavailable page on web builds
+  ///
+  /// In en, this message translates to:
+  /// **'Voice is not available on web'**
+  String get voiceErrorWebUnsupported;
+
+  /// Generic back navigation label
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get commonBack;
 }
 
 class _AppLocalizationsDelegate

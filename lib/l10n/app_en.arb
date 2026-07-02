@@ -1,15 +1,25 @@
 {
   "@@locale": "en",
   "appTitle": "Kai",
-  "@appTitle": {"description": "App name"},
+  "@appTitle": {
+    "description": "App name"
+  },
   "startConversation": "Start a conversation with Kai",
-  "@startConversation": {"description": "Empty state prompt"},
+  "@startConversation": {
+    "description": "Empty state prompt"
+  },
   "emptyTitle": "Where to today?",
-  "@emptyTitle": {"description": "Empty state invitation title"},
+  "@emptyTitle": {
+    "description": "Empty state invitation title"
+  },
   "emptySubtitle": "Ask about a destination, visa, or itinerary.",
-  "@emptySubtitle": {"description": "Empty state invitation subtitle"},
+  "@emptySubtitle": {
+    "description": "Empty state invitation subtitle"
+  },
   "today": "Today",
-  "@today": {"description": "Date separator in chat"},
+  "@today": {
+    "description": "Date separator in chat"
+  },
   "suggestionTrip": "Trip plans",
   "suggestionVisa": "Visa question",
   "suggestionRecommendations": "Recommendations",
@@ -22,7 +32,9 @@
   "composePlaceholder": "Message Kai…",
   "offlineTitle": "No connection",
   "offlineBody": "Will send when you're back online. Queue saved.",
-  "@offlineBody": {"description": "Offline surface body copy"},
+  "@offlineBody": {
+    "description": "Offline surface body copy"
+  },
   "retry": "retry",
   "errorTitle": "Couldn't respond",
   "errorBody": "Something went wrong. Try again or rephrase.",
@@ -31,25 +43,41 @@
   "rateLimitSecondsRemaining": "{secs} sec",
   "@rateLimitSecondsRemaining": {
     "description": "Rate limit countdown",
-    "placeholders": {"secs": {"type": "int"}}
+    "placeholders": {
+      "secs": {
+        "type": "int"
+      }
+    }
   },
   "rateLimitBodyPrefix": "Resets at",
-  "@rateLimitBodyPrefix": {"description": "Rate limit body prefix before countdown time"},
+  "@rateLimitBodyPrefix": {
+    "description": "Rate limit body prefix before countdown time"
+  },
   "rateLimitUpgradeHint": "Plan Pro removes limits.",
-  "@rateLimitUpgradeHint": {"description": "Rate limit upgrade hint"},
+  "@rateLimitUpgradeHint": {
+    "description": "Rate limit upgrade hint"
+  },
   "viewPlans": "View plans",
   "crisisHeading": "I hear you.",
   "crisisBody": "If things feel heavy right now, you are not alone. Kai is always here, and help is available.",
   "crisisResourceLabel": "Crisis helpline",
   "crisisResourceNumber": "988",
   "crisisResourceLabelPhone": "Lifeline",
-  "@crisisResourceLabelPhone": {"description": "Crisis phone resource label"},
+  "@crisisResourceLabelPhone": {
+    "description": "Crisis phone resource label"
+  },
   "crisisResourceNumberPhone": "988",
-  "@crisisResourceNumberPhone": {"description": "Crisis phone resource number"},
+  "@crisisResourceNumberPhone": {
+    "description": "Crisis phone resource number"
+  },
   "crisisResourceLabelText": "Crisis Text Line",
-  "@crisisResourceLabelText": {"description": "Crisis text resource label"},
+  "@crisisResourceLabelText": {
+    "description": "Crisis text resource label"
+  },
   "crisisResourceNumberText": "Text HOME to 741741",
-  "@crisisResourceNumberText": {"description": "Crisis text resource number/instruction"},
+  "@crisisResourceNumberText": {
+    "description": "Crisis text resource number/instruction"
+  },
   "onboardingNext": "Continue",
   "onboardingStart": "Start using Kai",
   "onboardingStep1CTA": "Got it",
@@ -97,9 +125,13 @@
   "accountFreePlan": "Free",
   "noChats": "No chats",
   "dateOlder": "OLDER",
-  "@dateOlder": {"description": "Nav panel date group label for sessions older than 7 days"},
+  "@dateOlder": {
+    "description": "Nav panel date group label for sessions older than 7 days"
+  },
   "streamingStatusThinking": "thinking",
-  "@streamingStatusThinking": {"description": "Italic status suffix shown next to KAI label while streaming"},
+  "@streamingStatusThinking": {
+    "description": "Italic status suffix shown next to KAI label while streaming"
+  },
   "memoryFactsCount": "{count, plural, =1{1 fact about you} other{{count} facts about you}}",
   "@memoryFactsCount": {
     "placeholders": {
@@ -134,19 +166,79 @@
   "memoryEditFactAction": "Edit",
   "memoryGoToSourceAction": "Go to source",
   "voiceStatusIdle": "Kai is listening",
-  "@voiceStatusIdle": {"description": "Voice screen status when idle"},
+  "@voiceStatusIdle": {
+    "description": "Voice screen status when idle"
+  },
   "voiceStatusListening": "Speak…",
-  "@voiceStatusListening": {"description": "Voice screen status while recording"},
+  "@voiceStatusListening": {
+    "description": "Voice screen status while recording"
+  },
   "voiceStatusProcessing": "Kai is thinking",
-  "@voiceStatusProcessing": {"description": "Voice screen status while processing"},
-  "voiceTtsFailed": "Kai responded in text",
-  "@voiceTtsFailed": {"description": "Voice screen status when TTS failed"},
+  "@voiceStatusProcessing": {
+    "description": "Voice screen status while processing"
+  },
   "voiceHintTapToSpeak": "tap and hold to speak",
-  "@voiceHintTapToSpeak": {"description": "Voice screen hint for tap to speak"},
+  "@voiceHintTapToSpeak": {
+    "description": "Voice screen hint for tap to speak"
+  },
   "voiceHintSwipeTranscript": "SWIPE ↑ · TRANSCRIPT",
-  "@voiceHintSwipeTranscript": {"description": "Voice screen hint to open transcript"},
+  "@voiceHintSwipeTranscript": {
+    "description": "Voice screen hint to open transcript"
+  },
   "voiceTranscriptToday": "today",
-  "@voiceTranscriptToday": {"description": "Transcript sheet date label"},
+  "@voiceTranscriptToday": {
+    "description": "Transcript sheet date label"
+  },
   "voiceTranscriptReturnHint": "SWIPE ↑ · RETURN TO VOICE",
-  "@voiceTranscriptReturnHint": {"description": "Transcript sheet return hint"}
+  "@voiceTranscriptReturnHint": {
+    "description": "Transcript sheet return hint"
+  },
+  "voiceStatusReconnecting": "Reconnecting…",
+  "@voiceStatusReconnecting": {
+    "description": "Voice screen status while auto-reconnecting"
+  },
+  "voiceErrorNoGateway": "Voice service is not configured",
+  "@voiceErrorNoGateway": {
+    "description": "Voice error: gateway URL missing"
+  },
+  "voiceErrorMicPermission": "Microphone permission denied",
+  "@voiceErrorMicPermission": {
+    "description": "Voice error: mic permission"
+  },
+  "voiceErrorConnection": "Connection error",
+  "@voiceErrorConnection": {
+    "description": "Voice error: WS stream error"
+  },
+  "voiceErrorMicStream": "Microphone stopped unexpectedly",
+  "@voiceErrorMicStream": {
+    "description": "Voice error: recorder stream died"
+  },
+  "voiceErrorStartFailed": "Couldn't start voice session",
+  "@voiceErrorStartFailed": {
+    "description": "Voice error: session start failed"
+  },
+  "voiceErrorSttFailed": "Kai couldn't hear that — try again",
+  "@voiceErrorSttFailed": {
+    "description": "Voice error: server STT failed"
+  },
+  "voiceErrorPipelineFailed": "Kai couldn't respond — try again",
+  "@voiceErrorPipelineFailed": {
+    "description": "Voice error: server pipeline failed"
+  },
+  "voiceErrorConnectionLost": "Connection lost",
+  "@voiceErrorConnectionLost": {
+    "description": "Voice error: reconnect attempts exhausted"
+  },
+  "voiceErrorAuthFailed": "Voice authentication failed",
+  "@voiceErrorAuthFailed": {
+    "description": "Voice error: WS close 4401"
+  },
+  "voiceErrorWebUnsupported": "Voice is not available on web",
+  "@voiceErrorWebUnsupported": {
+    "description": "Voice unavailable page on web builds"
+  },
+  "commonBack": "Back",
+  "@commonBack": {
+    "description": "Generic back navigation label"
+  }
 }

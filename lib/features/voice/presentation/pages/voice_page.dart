@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
@@ -85,8 +86,8 @@ class VoicePage extends HookConsumerWidget {
                 karaokeIndex: state.karaokeIndex,
                 transcript: state.lastTranscript,
                 responseText: state.lastResponseText,
-                ttsFailed: state.ttsFailed,
-                errorMessage: state.errorMessage,
+                error: state.error,
+                reconnecting: state.reconnecting,
                 onGoToTranscript: notifier.goToTranscript,
                 amplitude: state.amplitude,
               ),
@@ -108,9 +109,9 @@ class VoicePage extends HookConsumerWidget {
               // Top and Bottom overlays
               const VoiceHomeIndicator(),
 
-              // DEBUG panel — live voice diagnostics on-screen (no Xcode needed).
-              // Remove once voice is verified end-to-end.
-              if (state.debug.isNotEmpty)
+              // Debug panel — live voice diagnostics on-screen (no Xcode
+              // needed). Debug builds only; state.debug stays empty in release.
+              if (kDebugMode && state.debug.isNotEmpty)
                 Positioned(
                   left: 12,
                   right: 12,

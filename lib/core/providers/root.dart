@@ -25,14 +25,12 @@ import 'package:kai_app/features/room/data/repositories/chat_repository_impl.dar
 import 'package:kai_app/features/room/data/repositories/mock_chat_repository.dart';
 import 'package:kai_app/features/room/domain/repositories/chat_repository.dart';
 import 'package:kai_app/features/settings/data/models/settings.dart';
-import 'package:kai_app/features/voice/data/repositories/voice_repository_impl.dart';
-import 'package:kai_app/features/voice/data/services/record_audio_recorder_service.dart';
+import 'package:kai_app/features/voice/data/services/opus_encoder_service.dart';
 import 'package:kai_app/features/voice/data/services/soloud_player_service.dart';
 import 'package:kai_app/features/voice/data/services/streaming_recorder_service.dart';
+import 'package:kai_app/features/voice/data/services/ws_voice_client.dart';
 import 'package:kai_app/features/voice/data/services/voice_vad_service.dart' show VoiceVadServiceImpl;
-import 'package:kai_app/features/voice/domain/repositories/voice_repository.dart';
 import 'package:kai_app/features/voice/domain/services/audio_player_service.dart';
-import 'package:kai_app/features/voice/domain/services/audio_recorder_service.dart';
 import 'package:kai_app/features/voice/domain/services/voice_vad_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
@@ -264,29 +262,6 @@ MemoryRepository memoryRepository(MemoryRepositoryRef ref) {
   return MockMemoryRepository();
 }
 
-/// Voice repository.
-///
-/// Uses [EnvConfig.voiceGatewayBaseUrl] when set. If it is empty, falls back
-/// to [EnvConfig.apiBaseUrl] so voice traffic is routed through kai-core's
-/// `/voice/*` proxy instead of requiring a separate public voice-gateway URL.
-@Riverpod(keepAlive: true)
-VoiceRepository voiceRepository(VoiceRepositoryRef ref) {
-  final env = ref.watch(envProvider);
-  final baseUrl = env.voiceGatewayBaseUrl?.isNotEmpty ?? false
-      ? env.voiceGatewayBaseUrl!
-      : env.apiBaseUrl;
-  return VoiceRepositoryImpl(
-    dio: ref.watch(dioProvider),
-    baseUrl: baseUrl,
-  );
-}
-
-/// Audio recorder service.
-@Riverpod(keepAlive: true)
-AudioRecorderService audioRecorderService(AudioRecorderServiceRef ref) {
-  return RecordAudioRecorderService();
-}
-
 /// Audio player service.
 @Riverpod(keepAlive: true)
 AudioPlayerService audioPlayerService(AudioPlayerServiceRef ref) {
@@ -303,4 +278,29 @@ StreamingRecorderService streamingRecorderService(StreamingRecorderServiceRef re
 @Riverpod(keepAlive: true)
 VoiceVadService voiceVadService(VoiceVadServiceRef ref) {
   return VoiceVadServiceImpl();
+}
+
+/// Constructs the Opus encoder for a live-voice session (loads native
+/// libopus via FFI). Seam so tests can inject a pure-Dart fake.
+typedef OpusEncoderFactory = Future<OpusEncoderService> Function();
+
+/// Factory seam for [OpusEncoderService].
+@Riverpod(keepAlive: true)
+OpusEncoderFactory opusEncoderFactory(OpusEncoderFactoryRef ref) {
+  return createOpusEncoderService;
+}
+
+/// Constructs a [WsVoiceClient] per live-voice connection attempt.
+typedef WsVoiceClientFactory = WsVoiceClient Function({
+  required String wsUrl,
+  required String apiKey,
+  String? hfToken,
+});
+
+/// Factory seam for [WsVoiceClient] so VoiceNotifier's WS event handling and
+/// reconnect logic are testable with an injected fake client.
+@Riverpod(keepAlive: true)
+WsVoiceClientFactory wsVoiceClientFactory(WsVoiceClientFactoryRef ref) {
+  return ({required String wsUrl, required String apiKey, String? hfToken}) =>
+      WsVoiceClient(wsUrl: wsUrl, apiKey: apiKey, hfToken: hfToken);
 }

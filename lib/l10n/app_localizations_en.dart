@@ -343,9 +343,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voiceStatusProcessing => 'Kai is thinking';
 
   @override
-  String get voiceTtsFailed => 'Kai responded in text';
-
-  @override
   String get voiceHintTapToSpeak => 'tap and hold to speak';
 
   @override
@@ -356,4 +353,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get voiceTranscriptReturnHint => 'SWIPE ↑ · RETURN TO VOICE';
+
+  @override
+  String get voiceStatusReconnecting => 'Reconnecting…';
+
+  @override
+  String get voiceErrorNoGateway => 'Voice service is not configured';
+
+  @override
+  String get voiceErrorMicPermission => 'Microphone permission denied';
+
+  @override
+  String get voiceErrorConnection => 'Connection error';
+
+  @override
+  String get voiceErrorMicStream => 'Microphone stopped unexpectedly';
+
+  @override
+  String get voiceErrorStartFailed => 'Couldn\'t start voice session';
+
+  @override
+  String get voiceErrorSttFailed => 'Kai couldn\'t hear that — try again';
+
+  @override
+  String get voiceErrorPipelineFailed => 'Kai couldn\'t respond — try again';
+
+  @override
+  String get voiceErrorConnectionLost => 'Connection lost';
+
+  @override
+  String get voiceErrorAuthFailed => 'Voice authentication failed';
+
+  @override
+  String get voiceErrorWebUnsupported => 'Voice is not available on web';
+
+  @override
+  String get commonBack => 'Back';
 }
