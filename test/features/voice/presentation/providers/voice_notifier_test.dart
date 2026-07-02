@@ -39,6 +39,10 @@ class _FakeRecorder extends StreamingRecorderService {
 
 class _FakePlayer implements AudioPlayerService {
   final calls = <String>[];
+  Duration positionValue = Duration.zero;
+
+  @override
+  Duration get position => positionValue;
 
   @override
   Future<bool> isPlaying() async => false;
@@ -187,6 +191,7 @@ void main() {
   setUp(() {
     VoiceNotifier.reconnectBackoff = const [Duration.zero, Duration.zero, Duration.zero];
     VoiceNotifier.localeCodeGetter = () => 'en';
+    VoiceNotifier.karaokeTickInterval = const Duration(milliseconds: 1);
   });
 
   test('no voice gateway URL → idle + "not configured" error', () async {
@@ -389,6 +394,160 @@ void main() {
     await m.container.read(voiceNotifierProvider.notifier).handleTap();
 
     expect(m.clients.single.lastLanguage, 'en');
+  });
+
+  test('clause_words accumulates karaoke words across clauses', () async {
+    final m = _make();
+    addTearDown(m.container.dispose);
+    m.container.listen(voiceNotifierProvider, (_, __) {});
+    final notifier = m.container.read(voiceNotifierProvider.notifier);
+
+    await notifier.handleTap();
+    final ws = m.clients.single;
+    ws.emit({'event': 'audio_begin', 'turn_id': 't1'});
+    await _pump();
+    ws.emit({
+      'event': 'clause_words',
+      'turn_id': 't1',
+      'clause_index': 0,
+      'duration_ms': 1000,
+      'text': 'Привет мир.',
+      'words': [
+        {'w': 'Привет', 't_ms': 0, 'd_ms': 300},
+        {'w': 'мир.', 't_ms': 350, 'd_ms': 300},
+      ],
+    });
+    await _pump();
+    ws.emit({
+      'event': 'clause_words',
+      'turn_id': 't1',
+      'clause_index': 1,
+      'duration_ms': 800,
+      'text': 'Как дела?',
+      'words': [
+        {'w': 'Как', 't_ms': 0, 'd_ms': 200},
+        {'w': 'дела?', 't_ms': 250, 'd_ms': 300},
+      ],
+    });
+    await _pump();
+
+    expect(m.container.read(voiceNotifierProvider).karaokeWords,
+        ['Привет', 'мир.', 'Как', 'дела?']);
+  });
+
+  test('karaokeIndex follows player position across clause offsets', () async {
+    final m = _make();
+    addTearDown(m.container.dispose);
+    m.container.listen(voiceNotifierProvider, (_, __) {});
+    final notifier = m.container.read(voiceNotifierProvider.notifier);
+
+    await notifier.handleTap();
+    final ws = m.clients.single;
+    ws.emit({'event': 'audio_begin', 'turn_id': 't1'});
+    await _pump();
+    ws.emit({
+      'event': 'clause_words',
+      'turn_id': 't1',
+      'clause_index': 0,
+      'duration_ms': 1000,
+      'text': 'a b',
+      'words': [
+        {'w': 'a', 't_ms': 0, 'd_ms': 300},
+        {'w': 'b', 't_ms': 500, 'd_ms': 300},
+      ],
+    });
+    ws.emit({
+      'event': 'clause_words',
+      'turn_id': 't1',
+      'clause_index': 1,
+      'duration_ms': 1000,
+      'text': 'c',
+      'words': [
+        {'w': 'c', 't_ms': 100, 'd_ms': 300},
+      ],
+    });
+    await _pump();
+
+    // position 0 -> first word highlighted
+    m.player.positionValue = Duration.zero;
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(m.container.read(voiceNotifierProvider).karaokeIndex, 0);
+
+    // 600ms -> second word of clause 0
+    m.player.positionValue = const Duration(milliseconds: 600);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(m.container.read(voiceNotifierProvider).karaokeIndex, 1);
+
+    // 1200ms -> clause 1 started (offset 1000) + its word at +100ms
+    m.player.positionValue = const Duration(milliseconds: 1200);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(m.container.read(voiceNotifierProvider).karaokeIndex, 2);
+  });
+
+  test('clause_words without word stamps paces uniformly over duration',
+      () async {
+    final m = _make();
+    addTearDown(m.container.dispose);
+    m.container.listen(voiceNotifierProvider, (_, __) {});
+    final notifier = m.container.read(voiceNotifierProvider.notifier);
+
+    await notifier.handleTap();
+    final ws = m.clients.single;
+    ws.emit({'event': 'audio_begin', 'turn_id': 't1'});
+    await _pump();
+    ws.emit({
+      'event': 'clause_words',
+      'turn_id': 't1',
+      'clause_index': 0,
+      'duration_ms': 400,
+      'text': 'one two three four',
+      'words': <Map<String, Object>>[],
+    });
+    await _pump();
+
+    expect(m.container.read(voiceNotifierProvider).karaokeWords,
+        ['one', 'two', 'three', 'four']);
+
+    m.player.positionValue = const Duration(milliseconds: 250);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    // 400ms / 4 words = 100ms per word -> at 250ms word index 2 is current
+    expect(m.container.read(voiceNotifierProvider).karaokeIndex, 2);
+  });
+
+  test('karaoke resets on clear (barge-in) and on a new turn', () async {
+    final m = _make();
+    addTearDown(m.container.dispose);
+    m.container.listen(voiceNotifierProvider, (_, __) {});
+    final notifier = m.container.read(voiceNotifierProvider.notifier);
+
+    await notifier.handleTap();
+    final ws = m.clients.single;
+    ws.emit({'event': 'audio_begin', 'turn_id': 't1'});
+    await _pump();
+    ws.emit({
+      'event': 'clause_words',
+      'turn_id': 't1',
+      'clause_index': 0,
+      'duration_ms': 500,
+      'text': 'x y',
+      'words': [
+        {'w': 'x', 't_ms': 0, 'd_ms': 100},
+        {'w': 'y', 't_ms': 200, 'd_ms': 100},
+      ],
+    });
+    await _pump();
+    expect(
+        m.container.read(voiceNotifierProvider).karaokeWords, isNotEmpty);
+
+    ws.emit({'event': 'clear'});
+    await _pump();
+    expect(m.container.read(voiceNotifierProvider).karaokeWords, isEmpty);
+    expect(m.container.read(voiceNotifierProvider).karaokeIndex, 0);
+
+    // New turn also starts clean.
+    ws.emit({'event': 'audio_begin', 'turn_id': 't2'});
+    await _pump();
+    expect(m.container.read(voiceNotifierProvider).karaokeWords, isEmpty);
   });
 
   test(

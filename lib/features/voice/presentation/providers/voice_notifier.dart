@@ -30,6 +30,10 @@ class VoiceNotifier extends _$VoiceNotifier {
     Duration(seconds: 2),
   ];
 
+  /// Karaoke index refresh cadence. Mutable so tests can speed it up.
+  @visibleForTesting
+  static Duration karaokeTickInterval = const Duration(milliseconds: 100);
+
   late final AudioPlayerService _player;
   late final StreamingRecorderService _recorder;
   late final VoiceVadService _vad;
@@ -42,6 +46,10 @@ class VoiceNotifier extends _$VoiceNotifier {
   OpusEncoderService? _opusEncoder;
   bool _userStopped = false; // intentional stop — never auto-reconnect
   bool _reconnectInProgress = false;
+  Timer? _karaokeTimer;
+  final List<int> _karaokeStartsMs = []; // absolute word starts, turn-relative
+  int _karaokeOffsetMs = 0; // cumulative duration of prior clauses
+  DateTime? _turnAudioStartedAt; // wall-clock fallback when position unknown
   StreamSubscription<dynamic>? _eventSub;
   StreamSubscription<Uint8List>? _pcmSub;
   StreamSubscription<AudioInterruptionEvent>? _interruptionSub;
@@ -375,11 +383,14 @@ class VoiceNotifier extends _$VoiceNotifier {
         }
       case 'audio_begin':
         // New turn: log the user's line, start a fresh playback stream, and
-        // reset VAD state (a new reply shouldn't inherit leftover detector
-        // buffer/redemption counters from the previous turn).
+        // reset VAD + karaoke state (a new reply shouldn't inherit leftover
+        // detector counters or word timings from the previous turn).
         _appendUserTranscript(state.lastTranscript);
+        _resetKaraoke();
         unawaited(_player.startStream());
         _vad.reset();
+      case 'clause_words':
+        _appendKaraokeClause(msg);
       case 'response_text':
         // Assistant reply text: show on screen AND append to the conversation
         // transcript (so the transcript sheet shows both 'you' and 'kai' lines).
@@ -402,6 +413,7 @@ class VoiceNotifier extends _$VoiceNotifier {
         // No more clauses coming for this turn; let buffered audio drain.
         unawaited(_player.endStream());
       case 'clear': // barge-in: stop current playback immediately
+        _resetKaraoke();
         unawaited(_player.stop());
       case 'error':
         _setError(switch (msg['code'] as String?) {
@@ -488,6 +500,79 @@ class VoiceNotifier extends _$VoiceNotifier {
     state = state.copyWith(flowState: flowState);
   }
 
+  /// Ingest one clause's word timings ("clause_words" protocol event —
+  /// always arrives right before that clause's MP3 binary frame). When the
+  /// server has no per-word stamps (Piper fallback), words are paced
+  /// uniformly across the clause duration.
+  void _appendKaraokeClause(Map<String, dynamic> msg) {
+    final text = msg['text'] as String? ?? '';
+    final durationMs = (msg['duration_ms'] as num?)?.toInt() ?? 0;
+    final stamps = (msg['words'] as List<dynamic>?) ?? const [];
+
+    final words = <String>[];
+    final starts = <int>[];
+    if (stamps.isNotEmpty) {
+      for (final raw in stamps) {
+        final stamp = raw as Map<String, dynamic>;
+        words.add(stamp['w'] as String? ?? '');
+        starts.add(_karaokeOffsetMs + ((stamp['t_ms'] as num?)?.toInt() ?? 0));
+      }
+    } else {
+      final split =
+          text.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+      if (split.isEmpty) {
+        _karaokeOffsetMs += durationMs;
+        return;
+      }
+      // ponytail: 350ms/word estimate when duration is unknown too; real
+      // per-word boundaries come from edge-tts on the primary path anyway.
+      final perWordMs = durationMs > 0 ? durationMs ~/ split.length : 350;
+      for (var i = 0; i < split.length; i++) {
+        words.add(split[i]);
+        starts.add(_karaokeOffsetMs + i * perWordMs);
+      }
+    }
+    _karaokeOffsetMs += durationMs > 0 ? durationMs : words.length * 350;
+    _karaokeStartsMs.addAll(starts);
+    _turnAudioStartedAt ??= DateTime.now();
+    state = state.copyWith(karaokeWords: [...state.karaokeWords, ...words]);
+    _karaokeTimer ??= Timer.periodic(karaokeTickInterval, (_) => _tickKaraoke());
+  }
+
+  void _tickKaraoke() {
+    if (_isDisposed) {
+      _karaokeTimer?.cancel();
+      _karaokeTimer = null;
+      return;
+    }
+    final startedAt = _turnAudioStartedAt;
+    if (startedAt == null || _karaokeStartsMs.isEmpty) return;
+    final playerMs = _player.position.inMilliseconds;
+    final posMs = playerMs > 0
+        ? playerMs
+        : DateTime.now().difference(startedAt).inMilliseconds;
+    var passed = 0;
+    while (passed < _karaokeStartsMs.length && _karaokeStartsMs[passed] <= posMs) {
+      passed++;
+    }
+    final index = passed > 0 ? passed - 1 : 0;
+    if (index != state.karaokeIndex) {
+      state = state.copyWith(karaokeIndex: index);
+    }
+  }
+
+  void _resetKaraoke() {
+    _karaokeTimer?.cancel();
+    _karaokeTimer = null;
+    _karaokeStartsMs.clear();
+    _karaokeOffsetMs = 0;
+    _turnAudioStartedAt = null;
+    if (!_isDisposed &&
+        (state.karaokeWords.isNotEmpty || state.karaokeIndex != 0)) {
+      state = state.copyWith(karaokeWords: const [], karaokeIndex: 0);
+    }
+  }
+
   void _appendUserTranscript(String text) {
     if (text.isEmpty) return;
     final now = _formatTime(DateTime.now());
@@ -524,6 +609,8 @@ class VoiceNotifier extends _$VoiceNotifier {
     }
     _vadSub = null;
     _vad.reset();
+    _karaokeTimer?.cancel();
+    _karaokeTimer = null;
     try {
       await _pcmSub?.cancel();
     } catch (e, st) {

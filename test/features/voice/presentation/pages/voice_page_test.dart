@@ -29,6 +29,9 @@ GoRouter _makeTestRouter() {
 
 class _MockAudioPlayer implements AudioPlayerService {
   @override
+  Duration get position => Duration.zero;
+
+  @override
   Future<bool> isPlaying() async => false;
 
   @override

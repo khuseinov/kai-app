@@ -89,26 +89,27 @@ class VoiceLayoutContent extends StatelessWidget {
                 Container(
                   constraints: const BoxConstraints(minHeight: 48),
                   alignment: Alignment.center,
-                  // Speaking: show Kai's reply text. karaokeWords is never
-                  // populated yet, so fall back to responseText (the actual reply).
-                  child: isSpeaking && responseText.isNotEmpty
-                      ? Text(
-                          responseText,
-                          textAlign: TextAlign.center,
-                          maxLines: 6,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontFamily: 'Manrope',
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            height: 1.4,
-                            color: isDark ? Colors.white : c.ink1,
-                          ),
+                  // Speaking: karaoke word-reveal when clause_words timings
+                  // arrived (canon "03 SPEAKING + karaoke reveal"); responseText
+                  // is the fallback when no timings exist for this turn.
+                  child: isSpeaking && karaokeWords.isNotEmpty
+                      ? KaiKaraokeText(
+                          words: karaokeWords,
+                          currentIndex: karaokeIndex,
                         )
-                      : isSpeaking
-                          ? KaiKaraokeText(
-                              words: karaokeWords,
-                              currentIndex: karaokeIndex,
+                      : isSpeaking && responseText.isNotEmpty
+                          ? Text(
+                              responseText,
+                              textAlign: TextAlign.center,
+                              maxLines: 6,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontFamily: 'Manrope',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                height: 1.4,
+                                color: isDark ? Colors.white : c.ink1,
+                              ),
                             )
                           : Text(
                               statusText(),

@@ -23,4 +23,9 @@ abstract class AudioPlayerService {
 
   /// Whether audio is currently audible.
   Future<bool> isPlaying();
+
+  /// Current playback position within the active turn's stream
+  /// ([Duration.zero] when nothing is playing or position is unknown —
+  /// callers fall back to wall-clock pacing).
+  Duration get position;
 }

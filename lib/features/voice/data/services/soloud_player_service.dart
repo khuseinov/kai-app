@@ -91,4 +91,18 @@ class SoloudPlayerService implements AudioPlayerService {
     if (handle == null) return false;
     return _soloud.getIsValidVoiceHandle(handle);
   }
+
+  @override
+  Duration get position {
+    final handle = _activeHandle;
+    if (handle == null) return Duration.zero;
+    try {
+      if (!_soloud.getIsValidVoiceHandle(handle)) return Duration.zero;
+      return _soloud.getPosition(handle);
+    } catch (_) {
+      // getPosition on a buffer stream is unverified on-device (plan flag);
+      // Duration.zero makes callers fall back to wall-clock pacing.
+      return Duration.zero;
+    }
+  }
 }
