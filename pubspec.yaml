@@ -54,6 +54,7 @@ dependencies:
   flutter_soloud: ^4.0.12
   opus_dart: ^3.0.1
   opus_flutter: ^3.0.3
+  livekit_client: ^2.3.1+hotfix.1
 
   # Gate 3 — uncomment when needed:
   # firebase_core: ^3.3.0

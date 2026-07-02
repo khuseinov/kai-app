@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart' show kDebugMode, visibleForTesting;
 import 'package:kai_app/core/logger/app_logger.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/features/room/presentation/providers/room_state.dart';
+import 'package:kai_app/features/voice/data/services/livekit_voice_session.dart';
 import 'package:kai_app/features/voice/data/services/opus_encoder_service.dart';
 import 'package:kai_app/features/voice/data/services/streaming_recorder_service.dart';
 import 'package:kai_app/features/voice/data/services/ws_voice_client.dart';
@@ -39,10 +40,12 @@ class VoiceNotifier extends _$VoiceNotifier {
   late final VoiceVadService _vad;
   late final WsVoiceClientFactory _wsFactory;
   late final OpusEncoderFactory _opusFactory;
+  late final LivekitSessionFactory _lkFactory;
   late final String _sessionId;
   late final String _userId;
 
   WsVoiceClient? _wsClient;
+  LivekitVoiceSession? _lkSession;
   OpusEncoderService? _opusEncoder;
   bool _userStopped = false; // intentional stop — never auto-reconnect
   bool _reconnectInProgress = false;
@@ -68,6 +71,7 @@ class VoiceNotifier extends _$VoiceNotifier {
     _vad = ref.read(voiceVadServiceProvider);
     _wsFactory = ref.read(wsVoiceClientFactoryProvider);
     _opusFactory = ref.read(opusEncoderFactoryProvider);
+    _lkFactory = ref.read(livekitSessionFactoryProvider);
     _userId = ref.read(userIdProvider);
     _sessionId = ref.read(roomNotifierProvider).activeSessionId ?? 'voice-$_userId';
 
@@ -130,6 +134,13 @@ class VoiceNotifier extends _$VoiceNotifier {
       final baseUrl = env.voiceGatewayBaseUrl ?? '';
       if (baseUrl.isEmpty) {
         _setError(VoiceError.noGateway);
+        return;
+      }
+
+      // LiveKit transport (VOICE_TRANSPORT=livekit): the WebRTC stack owns
+      // mic/playback/AEC natively, so none of the WS pipeline below runs.
+      // Any unavailability falls straight through to the WS baseline.
+      if (env.voiceTransport == 'livekit' && await _startLivekitSession()) {
         return;
       }
 
@@ -241,6 +252,65 @@ class VoiceNotifier extends _$VoiceNotifier {
     _wsClient?.sendEvent({'event': 'stop'});
     await _cleanup();
     state = state.copyWith(flowState: VoiceFlowState.idle, amplitude: 0);
+  }
+
+  /// Try to start a LiveKit session. Returns false when the transport is
+  /// unavailable (token 503, config missing, connect failure) — the caller
+  /// then runs the WS pipeline instead. Never surfaces an error itself.
+  Future<bool> _startLivekitSession() async {
+    try {
+      final session = await _lkFactory(userId: _userId, sessionId: _sessionId);
+      _lkSession = session;
+      _isActive = true;
+      state = state.copyWith(flowState: VoiceFlowState.listening, error: null);
+      _setDebug('LiveKit connected ✓ — speak now');
+      _eventSub = session.events.listen(
+        _onLivekitEvent,
+        onError: (Object e) {
+          AppLogger.e('[VOICE] LiveKit session error', e, StackTrace.current);
+          _setError(VoiceError.connection);
+        },
+      );
+      return true;
+    } on LivekitUnavailableException catch (e) {
+      AppLogger.i('[VOICE] LiveKit unavailable (${e.reason}) — WS fallback');
+      return false;
+    } catch (e, st) {
+      AppLogger.e('[VOICE] LiveKit start failed — WS fallback', e, st);
+      await _lkSession?.close();
+      _lkSession = null;
+      _isActive = false;
+      return false;
+    }
+  }
+
+  void _onLivekitEvent(LivekitSessionEvent event) {
+    if (_isDisposed) return;
+    switch (event) {
+      case LkAgentState(:final state):
+        // initializing → default branch → idle → shown as listening while
+        // the session is active (same rule as the WS server states).
+        _applyServerState(state);
+      case LkUserTranscript(:final text, :final isFinal):
+        state = state.copyWith(lastTranscript: text);
+        if (isFinal) _appendUserTranscript(text);
+      case LkAgentTranscript(:final text, :final isFinal):
+        state = state.copyWith(lastResponseText: text);
+        if (isFinal) {
+          state = state.copyWith(
+            transcriptEvents: [
+              ...state.transcriptEvents,
+              KaiTranscriptEvent(
+                who: 'kai',
+                text: text,
+                timestamp: _formatTime(DateTime.now()),
+              ),
+            ],
+          );
+        }
+      case LkDisconnected():
+        unawaited(_onDisconnected(null));
+    }
   }
 
   /// Shared AVAudioSession config for duplex voice, applied on every platform.
@@ -640,6 +710,12 @@ class VoiceNotifier extends _$VoiceNotifier {
       AppLogger.e('wsClient close failed', e, st);
     }
     _wsClient = null;
+    try {
+      await _lkSession?.close();
+    } catch (e, st) {
+      AppLogger.e('livekit session close failed', e, st);
+    }
+    _lkSession = null;
     try {
       await _player.stop();
     } catch (e, st) {

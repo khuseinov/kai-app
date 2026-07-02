@@ -25,11 +25,12 @@ import 'package:kai_app/features/room/data/repositories/chat_repository_impl.dar
 import 'package:kai_app/features/room/data/repositories/mock_chat_repository.dart';
 import 'package:kai_app/features/room/domain/repositories/chat_repository.dart';
 import 'package:kai_app/features/settings/data/models/settings.dart';
+import 'package:kai_app/features/voice/data/services/livekit_voice_session.dart';
 import 'package:kai_app/features/voice/data/services/opus_encoder_service.dart';
 import 'package:kai_app/features/voice/data/services/soloud_player_service.dart';
 import 'package:kai_app/features/voice/data/services/streaming_recorder_service.dart';
-import 'package:kai_app/features/voice/data/services/ws_voice_client.dart';
 import 'package:kai_app/features/voice/data/services/voice_vad_service.dart' show VoiceVadServiceImpl;
+import 'package:kai_app/features/voice/data/services/ws_voice_client.dart';
 import 'package:kai_app/features/voice/domain/services/audio_player_service.dart';
 import 'package:kai_app/features/voice/domain/services/voice_vad_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -43,6 +44,7 @@ class EnvConfig {
     required this.apiBaseUrl,
     this.voiceGatewayBaseUrl,
     this.voiceGatewayApiKey,
+    this.voiceTransport = 'ws',
     this.useRealChat = true,
     this.internalHealthToken,
     this.hfToken,
@@ -56,6 +58,7 @@ class EnvConfig {
       final url = dotenv.maybeGet('API_BASE_URL') ?? 'https://rustamkhuseinov-kai.hf.space';
       final voiceGatewayUrl = dotenv.maybeGet('VOICE_GATEWAY_BASE_URL');
       final voiceGatewayKey = dotenv.maybeGet('VOICE_GATEWAY_API_KEY')?.trim();
+      final voiceTransport = dotenv.maybeGet('VOICE_TRANSPORT')?.trim() ?? 'ws';
       final useReal = dotenv.maybeGet('USE_REAL_CHAT') != null
           ? dotenv.maybeGet('USE_REAL_CHAT') == 'true'
           : defaultUseReal;
@@ -81,6 +84,7 @@ class EnvConfig {
         apiBaseUrl: url,
         voiceGatewayBaseUrl: voiceGatewayUrl,
         voiceGatewayApiKey: voiceGatewayKey,
+        voiceTransport: voiceTransport,
         useRealChat: useReal,
         internalHealthToken: internalToken,
         hfToken: hfToken,
@@ -107,6 +111,11 @@ class EnvConfig {
 
   /// API key for voice-gateway endpoints (`X-Internal-API-Key`).
   final String? voiceGatewayApiKey;
+
+  /// Voice transport: `ws` (baseline duplex WebSocket) or `livekit`
+  /// (WebRTC via LiveKit; auto-falls back to `ws` when the token endpoint
+  /// answers 503 — LIVEKIT_ENABLED off server-side).
+  final String voiceTransport;
 
   /// When `true`, `chatRepositoryProvider` and `sessionRepositoryProvider`
   /// use the real Hive/Dio-backed implementations instead of mocks.
@@ -303,4 +312,30 @@ typedef WsVoiceClientFactory = WsVoiceClient Function({
 WsVoiceClientFactory wsVoiceClientFactory(WsVoiceClientFactoryRef ref) {
   return ({required String wsUrl, required String apiKey, String? hfToken}) =>
       WsVoiceClient(wsUrl: wsUrl, apiKey: apiKey, hfToken: hfToken);
+}
+
+typedef LivekitSessionFactory = Future<LivekitVoiceSession> Function({
+  required String userId,
+  required String sessionId,
+});
+
+/// Factory seam for [LivekitVoiceSession] — tests inject a fake so the
+/// native WebRTC stack is never touched. Throws [LivekitUnavailableException]
+/// when the gateway's token endpoint is disabled; VoiceNotifier then falls
+/// back to the WS transport.
+@Riverpod(keepAlive: true)
+LivekitSessionFactory livekitSessionFactory(LivekitSessionFactoryRef ref) {
+  return ({required String userId, required String sessionId}) {
+    final env = ref.read(envProvider);
+    return LivekitVoiceSessionImpl.connect(
+      // Plain Dio: the voice gateway lives on its own base URL, outside the
+      // app-API client's interceptor chain.
+      dio: Dio(),
+      gatewayBaseUrl: env.voiceGatewayBaseUrl ?? '',
+      apiKey: env.voiceGatewayApiKey ?? '',
+      userId: userId,
+      sessionId: sessionId,
+      hfToken: env.hfToken,
+    );
+  };
 }

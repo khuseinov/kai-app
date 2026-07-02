@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/features/room/presentation/providers/room_state.dart';
+import 'package:kai_app/features/voice/data/services/livekit_voice_session.dart';
 import 'package:kai_app/features/voice/data/services/opus_encoder_service.dart';
 import 'package:kai_app/features/voice/data/services/streaming_recorder_service.dart';
 import 'package:kai_app/features/voice/data/services/ws_voice_client.dart';
@@ -129,6 +130,22 @@ class FakeWsVoiceClient implements WsVoiceClient {
   void emit(dynamic msg) => events_.add(msg);
 }
 
+class _FakeLivekitSession implements LivekitVoiceSession {
+  final events_ = StreamController<LivekitSessionEvent>.broadcast();
+  bool closed = false;
+
+  @override
+  Stream<LivekitSessionEvent> get events => events_.stream;
+
+  @override
+  Future<void> close() async {
+    closed = true;
+    await events_.close();
+  }
+
+  void emit(LivekitSessionEvent event) => events_.add(event);
+}
+
 class _MockRoomNotifier extends RoomNotifier {
   _MockRoomNotifier(this._initial);
   final RoomStateData _initial;
@@ -138,14 +155,17 @@ class _MockRoomNotifier extends RoomNotifier {
 
 // ─────────────────────────── container factory ────────────────────────────────
 
-typedef _Made = ({ProviderContainer container, List<FakeWsVoiceClient> clients, _FakeRecorder recorder, _FakePlayer player});
+typedef _Made = ({ProviderContainer container, List<FakeWsVoiceClient> clients, List<_FakeLivekitSession> lkSessions, _FakeRecorder recorder, _FakePlayer player});
 
 _Made _make({
   bool permissionResult = true,
   String voiceUrl = 'http://mock-voice',
+  String transport = 'ws',
+  bool livekitUnavailable = false,
   bool Function(int attempt)? connectFails,
 }) {
   final clients = <FakeWsVoiceClient>[];
+  final lkSessions = <_FakeLivekitSession>[];
   final recorder = _FakeRecorder(permissionResult: permissionResult);
   final player = _FakePlayer();
   final container = ProviderContainer(
@@ -155,7 +175,18 @@ _Made _make({
           apiBaseUrl: 'http://mock-api',
           voiceGatewayBaseUrl: voiceUrl,
           useRealChat: false,
+          voiceTransport: transport,
         ),
+      ),
+      livekitSessionFactoryProvider.overrideWithValue(
+        ({required String userId, required String sessionId}) async {
+          if (livekitUnavailable) {
+            throw LivekitUnavailableException('test: 503');
+          }
+          final session = _FakeLivekitSession();
+          lkSessions.add(session);
+          return session;
+        },
       ),
       streamingRecorderServiceProvider.overrideWithValue(recorder),
       audioPlayerServiceProvider.overrideWithValue(player),
@@ -178,7 +209,7 @@ _Made _make({
       userIdProvider.overrideWithValue('u-1'),
     ],
   );
-  return (container: container, clients: clients, recorder: recorder, player: player);
+  return (container: container, clients: clients, lkSessions: lkSessions, recorder: recorder, player: player);
 }
 
 Future<void> _pump() => Future<void>.delayed(Duration.zero);
@@ -573,4 +604,101 @@ void main() {
       );
     },
   );
+
+  group('LiveKit transport (VOICE_TRANSPORT=livekit)', () {
+    test('start goes through LiveKit — no WS client, no local recorder', () async {
+      final m = _make(transport: 'livekit');
+      addTearDown(m.container.dispose);
+      m.container.listen(voiceNotifierProvider, (_, __) {});
+
+      await m.container.read(voiceNotifierProvider.notifier).handleTap();
+
+      expect(m.lkSessions, hasLength(1));
+      expect(m.clients, isEmpty);
+      expect(
+        m.container.read(voiceNotifierProvider).flowState,
+        VoiceFlowState.listening,
+      );
+    });
+
+    test('token 503 / unavailable → silent fallback to the WS pipeline', () async {
+      final m = _make(transport: 'livekit', livekitUnavailable: true);
+      addTearDown(m.container.dispose);
+      m.container.listen(voiceNotifierProvider, (_, __) {});
+
+      await m.container.read(voiceNotifierProvider.notifier).handleTap();
+
+      expect(m.lkSessions, isEmpty);
+      expect(m.clients, hasLength(1));
+      expect(m.clients.single.connected, isTrue);
+      final state = m.container.read(voiceNotifierProvider);
+      expect(state.flowState, VoiceFlowState.listening);
+      expect(state.error, isNull);
+    });
+
+    test('agent state + transcripts map onto the same state machine', () async {
+      final m = _make(transport: 'livekit');
+      addTearDown(m.container.dispose);
+      m.container.listen(voiceNotifierProvider, (_, __) {});
+      await m.container.read(voiceNotifierProvider.notifier).handleTap();
+      final session = m.lkSessions.single;
+
+      session.emit(const LkAgentState('thinking'));
+      await _pump();
+      expect(
+        m.container.read(voiceNotifierProvider).flowState,
+        VoiceFlowState.thinking,
+      );
+
+      session.emit(const LkAgentState('speaking'));
+      await _pump();
+      expect(
+        m.container.read(voiceNotifierProvider).flowState,
+        VoiceFlowState.speaking,
+      );
+
+      session.emit(const LkUserTranscript('привет кай', isFinal: true));
+      session.emit(const LkAgentTranscript('Привет!', isFinal: true));
+      await _pump();
+      final state = m.container.read(voiceNotifierProvider);
+      expect(state.lastTranscript, 'привет кай');
+      expect(state.lastResponseText, 'Привет!');
+      expect(state.transcriptEvents.map((e) => e.who), ['you', 'kai']);
+
+      // Turn over: agent back to listening.
+      session.emit(const LkAgentState('listening'));
+      await _pump();
+      expect(
+        m.container.read(voiceNotifierProvider).flowState,
+        VoiceFlowState.listening,
+      );
+    });
+
+    test('user stop closes the LiveKit session and returns to idle', () async {
+      final m = _make(transport: 'livekit');
+      addTearDown(m.container.dispose);
+      m.container.listen(voiceNotifierProvider, (_, __) {});
+      final notifier = m.container.read(voiceNotifierProvider.notifier);
+
+      await notifier.handleTap(); // start
+      await notifier.handleTap(); // stop
+
+      expect(m.lkSessions.single.closed, isTrue);
+      expect(
+        m.container.read(voiceNotifierProvider).flowState,
+        VoiceFlowState.idle,
+      );
+    });
+
+    test('ws transport (default) never touches the LiveKit factory', () async {
+      final m = _make();
+      addTearDown(m.container.dispose);
+      m.container.listen(voiceNotifierProvider, (_, __) {});
+
+      await m.container.read(voiceNotifierProvider.notifier).handleTap();
+
+      expect(m.lkSessions, isEmpty);
+      expect(m.clients, hasLength(1));
+    });
+  });
 }
