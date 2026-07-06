@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:kai_app/core/network/session_token_store.dart';
 
 /// Handles auth headers for private Hugging Face Spaces and backend admin endpoints.
 ///
@@ -18,15 +19,20 @@ class AuthInterceptor extends Interceptor {
     String? internalToken,
     String? voiceGatewayApiKey,
     String? voiceGatewayBaseUrl,
+    SessionTokenStore? sessionTokenStore,
   })  : _hfToken = hfToken,
         _internalToken = internalToken,
         _voiceGatewayApiKey = voiceGatewayApiKey,
-        _voiceGatewayBaseUrl = voiceGatewayBaseUrl;
+        _voiceGatewayBaseUrl = voiceGatewayBaseUrl,
+        _injectedStore = sessionTokenStore;
 
   final String? _hfToken;
   final String? _internalToken;
   final String? _voiceGatewayApiKey;
   final String? _voiceGatewayBaseUrl;
+  final SessionTokenStore? _injectedStore;
+
+  SessionTokenStore get _store => _injectedStore ?? sessionTokenStore;
 
   @override
   void onRequest(
@@ -74,6 +80,17 @@ class AuthInterceptor extends Interceptor {
       options.headers['X-Internal-API-Key'] = voiceGatewayApiKey;
     }
 
+    // SEC-2 (T-03): attach the signed session token bound to this request's
+    // session, so it survives once the backend enables require_session_token.
+    // No-op until the server has issued a token for this session.
+    final sessionId = _sessionIdOf(options);
+    if (sessionId != null) {
+      final sessionToken = _store.tokenFor(sessionId);
+      if (sessionToken != null) {
+        options.headers['X-Session-Token'] = sessionToken;
+      }
+    }
+
     if (_diagnosticsEnabled) {
       debugPrint(
         '[KAI_DIAGNOSTICS] AuthInterceptor (after): '
@@ -82,6 +99,31 @@ class AuthInterceptor extends Interceptor {
     }
 
     handler.next(options);
+  }
+
+  @override
+  void onResponse(
+    Response<dynamic> response,
+    ResponseInterceptorHandler handler,
+  ) {
+    // SEC-2 (T-03): capture the token the backend minted for this session.
+    final sessionId = _sessionIdOf(response.requestOptions);
+    if (sessionId != null) {
+      _store.save(sessionId, response.headers.value('x-session-token'));
+    }
+    handler.next(response);
+  }
+
+  /// Resolve the session id a request belongs to: from the `/chat` body, or
+  /// the `/sessions/{id}/messages` path. Returns null when neither applies.
+  String? _sessionIdOf(RequestOptions options) {
+    final data = options.data;
+    if (data is Map && data['session_id'] is String) {
+      return data['session_id'] as String;
+    }
+    final match =
+        RegExp('/sessions/([^/]+)/messages').firstMatch(options.path);
+    return match?.group(1);
   }
 }
 

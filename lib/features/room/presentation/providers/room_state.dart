@@ -377,7 +377,13 @@ class RoomNotifier extends Notifier<RoomStateData> {
     if (env.useRealChat) {
       try {
         final dio = ref.read(dioProvider);
-        final response = await dio.get<List<dynamic>>('/sessions/$sessionId/messages');
+        // SEC-2 (T-03): pass user_id so the backend can verify ownership of
+        // this session's history once require_session_token is enabled. The
+        // X-Session-Token header is attached by AuthInterceptor.
+        final response = await dio.get<List<dynamic>>(
+          '/sessions/$sessionId/messages',
+          queryParameters: {'user_id': ref.read(userIdProvider)},
+        );
         if (response.data != null) {
           for (final item in response.data!) {
             final data = item as Map<String, dynamic>;
