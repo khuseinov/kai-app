@@ -17,16 +17,13 @@ class StreamingRecorderService {
 
   /// Start streaming PCM16 frames. Caller must ensure mic permission.
   Future<Stream<Uint8List>> startStream() async {
-    // iOS: measured RMS on iPhone is ~0.03-0.04 even when speaking normally,
-    // so apply a small software gain boost to bring speech comfortably above
-    // the backend VAD threshold. Android uses the platform voice processing
-    // path and does not need extra gain.
-    final applyGain = Platform.isIOS;
+    // Measured mic RMS in practice (both iOS and Android, `autoGain: true`
+    // notwithstanding) lands around 0.001-0.006 during normal speech — well
+    // under a usable VAD threshold — so apply the same software gain boost
+    // on every platform rather than assuming Android's voice-processing path
+    // covers it.
     final stream = await _recorder.startStream(buildRecordConfig());
-    if (applyGain) {
-      return stream.map(_applyGain).map(Uint8List.fromList);
-    }
-    return stream.map(Uint8List.fromList);
+    return stream.map(_applyGain).map(Uint8List.fromList);
   }
 
   /// Recorder configuration shared by both platforms.
@@ -58,9 +55,9 @@ class StreamingRecorderService {
   @visibleForTesting
   static Uint8List applyGainForTest(Uint8List pcm16) => _applyGain(pcm16);
 
-  /// Boost iOS mic signal by ~8 dB (linear gain 2.5) so speech RMS lands
-  /// above the backend energy-VAD threshold. Values are clamped to Int16
-  /// range to avoid clipping artifacts.
+  /// Boost mic signal by ~8 dB (linear gain 2.5) so speech RMS lands above
+  /// the backend energy-VAD threshold. Values are clamped to Int16 range to
+  /// avoid clipping artifacts.
   static Uint8List _applyGain(Uint8List pcm16) {
     const gain = 2.5;
     final view = ByteData.sublistView(pcm16);
