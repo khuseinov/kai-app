@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, visibleForTesting;
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:kai_app/core/logger/app_logger.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/features/room/presentation/providers/room_state.dart';
@@ -336,6 +338,15 @@ class VoiceNotifier extends _$VoiceNotifier {
     androidWillPauseWhenDucked: true,
   );
 
+  /// Native channel to AppDelegate.swift's `selectPrimaryMic` handler. Picks
+  /// the iPhone's bottom-oriented mic (the one tuned for voice at the mouth)
+  /// over the top mic next to the front camera / Dynamic Island, which iOS
+  /// can default to otherwise. Neither AVAudioSession's public Dart surface
+  /// nor the `record` plugin expose per-data-source mic selection, so this
+  /// has to go through native code — Android and web have no equivalent
+  /// platform API for picking among physical mics, so this is iOS-only.
+  static const _micInputChannel = MethodChannel('kai/mic_input');
+
   /// Configure AVAudioSession for duplex voice, before the mic opens.
   Future<void> _configureAudioSession() async {
     try {
@@ -346,6 +357,15 @@ class VoiceNotifier extends _$VoiceNotifier {
     } catch (e, st) {
       AppLogger.e('[VOICE] AudioSession configuration failed', e, st);
       // Don't fail the whole session if AudioSession is unavailable on a platform.
+    }
+    if (Platform.isIOS) {
+      try {
+        final selected = await _micInputChannel.invokeMethod<bool>('selectPrimaryMic');
+        AppLogger.i('[VOICE] selectPrimaryMic -> $selected');
+      } catch (e, st) {
+        AppLogger.e('[VOICE] selectPrimaryMic failed', e, st);
+        // Best-effort tuning knob — fall back to the OS-chosen mic.
+      }
     }
   }
 
