@@ -15,8 +15,12 @@ import 'package:kai_app/core/network/interceptors/error_interceptor.dart';
 import 'package:kai_app/core/network/interceptors/logging_interceptor.dart';
 import 'package:kai_app/core/network/interceptors/retry_interceptor.dart';
 import 'package:kai_app/core/storage/hive_setup.dart';
+import 'package:kai_app/features/auth/data/datasources/auth_remote_source.dart';
+import 'package:kai_app/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:kai_app/features/auth/data/repositories/mock_session_repository.dart';
+import 'package:kai_app/features/auth/data/repositories/secure_token_storage.dart';
 import 'package:kai_app/features/auth/data/repositories/session_repository_impl.dart';
+import 'package:kai_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:kai_app/features/auth/domain/repositories/session_repository.dart';
 import 'package:kai_app/features/memory/data/repositories/memory_repository_impl.dart';
 import 'package:kai_app/features/memory/data/repositories/mock_memory_repository.dart';
@@ -48,6 +52,8 @@ class EnvConfig {
     this.useRealChat = true,
     this.hfToken,
     this.hfTokenProvided = false,
+    this.googleServerClientId,
+    this.googleIosClientId,
   });
 
   factory EnvConfig.fromDotenv() {
@@ -64,6 +70,8 @@ class EnvConfig {
       final rawHfToken = dotenv.maybeGet('HF_TOKEN')?.trim();
       final hfToken = (rawHfToken != null && rawHfToken.isNotEmpty) ? rawHfToken : null;
       final hfTokenProvided = hfToken != null;
+      final googleServerClientId = _nonEmpty(dotenv.maybeGet('GOOGLE_SERVER_CLIENT_ID'));
+      final googleIosClientId = _nonEmpty(dotenv.maybeGet('GOOGLE_IOS_CLIENT_ID'));
 
       if (EnvConfig.diagnosticsEnabled) {
         debugPrint(
@@ -72,7 +80,8 @@ class EnvConfig {
           'voiceGatewayBaseUrl=$voiceGatewayUrl, '
           'voiceGatewayApiKeyEmpty=${voiceGatewayKey == null || voiceGatewayKey.isEmpty}, '
           'hfTokenProvided=$hfTokenProvided, '
-          'hfTokenPrefix=${_sha256Prefix(hfToken)}',
+          'hfTokenPrefix=${_sha256Prefix(hfToken)}, '
+          'googleServerClientIdProvided=${googleServerClientId != null}',
         );
       }
 
@@ -84,6 +93,8 @@ class EnvConfig {
         useRealChat: useReal,
         hfToken: hfToken,
         hfTokenProvided: hfTokenProvided,
+        googleServerClientId: googleServerClientId,
+        googleIosClientId: googleIosClientId,
       );
     } catch (_) {
       return EnvConfig(
@@ -121,12 +132,26 @@ class EnvConfig {
 
   /// `true` when [hfToken] was loaded from the `HF_TOKEN` environment variable.
   final bool hfTokenProvided;
+
+  /// Web/server OAuth client id — verifies the Google id_token audience both
+  /// client-side (`GoogleSignIn.initialize`) and server-side (kai-auth's
+  /// allowlist). Null until the founder provisions a Google Cloud project.
+  final String? googleServerClientId;
+
+  /// iOS-specific OAuth client id. Optional — `google_sign_in` falls back to
+  /// reading it from Info.plist / GoogleService-Info.plist when omitted.
+  final String? googleIosClientId;
 }
 
 String _sha256Prefix(String? value) {
   if (value == null || value.isEmpty) return '<empty>';
   final hash = sha256.convert(utf8.encode(value)).toString();
   return hash.length >= 8 ? hash.substring(0, 8) : hash;
+}
+
+String? _nonEmpty(String? value) {
+  final trimmed = value?.trim();
+  return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
 }
 
 /// Env configuration. Overridden in `bootstrap` / tests as needed.
@@ -152,21 +177,24 @@ String userId(UserIdRef ref) {
 Dio dio(DioRef ref) {
   final env = ref.watch(envProvider);
   final retry = RetryInterceptor();
+  final auth = AuthInterceptor(
+    hfToken: env.hfToken,
+    voiceGatewayApiKey: env.voiceGatewayApiKey,
+    voiceGatewayBaseUrl: env.voiceGatewayBaseUrl,
+    getAccessToken: () => ref.read(authRepositoryProvider).validAccessToken(),
+  );
   final dio = buildDioClient(
     baseUrl: env.apiBaseUrl,
     interceptors: [
       ConnectivityInterceptor(),
-      AuthInterceptor(
-        hfToken: env.hfToken,
-        voiceGatewayApiKey: env.voiceGatewayApiKey,
-        voiceGatewayBaseUrl: env.voiceGatewayBaseUrl,
-      ),
+      auth,
       LoggingInterceptor(),
       retry,
       ErrorInterceptor(),
     ],
   );
   retry.attach(dio);
+  auth.attach(dio);
   return dio;
 }
 
@@ -245,6 +273,32 @@ SessionRepository sessionRepository(SessionRepositoryRef ref) {
     );
   }
   return MockSessionRepository();
+}
+
+/// Secure keystore for the kai-auth token pair.
+@Riverpod(keepAlive: true)
+SecureTokenStorage secureTokenStorage(SecureTokenStorageRef ref) {
+  return SecureTokenStorage();
+}
+
+/// kai-auth `/v1/auth/*` client — bare Dio, outside the app-API interceptor
+/// chain (see [AuthRemoteSource] doc comment for why).
+@Riverpod(keepAlive: true)
+AuthRemoteSource authRemoteSource(AuthRemoteSourceRef ref) {
+  final env = ref.watch(envProvider);
+  return AuthRemoteSource(baseUrl: env.apiBaseUrl);
+}
+
+/// Google/Apple sign-in + kai-auth token lifecycle.
+@Riverpod(keepAlive: true)
+AuthRepository authRepository(AuthRepositoryRef ref) {
+  final env = ref.watch(envProvider);
+  return AuthRepositoryImpl(
+    remote: ref.watch(authRemoteSourceProvider),
+    storage: ref.watch(secureTokenStorageProvider),
+    googleServerClientId: env.googleServerClientId,
+    googleIosClientId: env.googleIosClientId,
+  );
 }
 
 /// Memory repository. Switches between mock and real based on [EnvConfig.useRealChat].

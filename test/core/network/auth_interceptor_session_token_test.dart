@@ -17,7 +17,7 @@ void main() {
 
   group('AuthInterceptor session token (SEC-2 / T-03)', () {
     test('captures X-Session-Token from /chat response, re-attaches on next request',
-        () {
+        () async {
       final store = SessionTokenStore();
       final interceptor = AuthInterceptor(sessionTokenStore: store);
 
@@ -31,21 +31,24 @@ void main() {
       interceptor.onResponse(chatResponse, ResponseInterceptorHandler());
       expect(store.tokenFor('s1'), 'tok-abc');
 
-      // A later /chat request for s1 carries the token.
+      // A later /chat request for s1 carries the token. onRequest is async
+      // (it awaits the kai-auth access-token getter first) — await it here
+      // the same way Dio's real pipeline does before reading the headers.
       final nextChat = RequestOptions(path: '/chat', data: {'session_id': 's1'});
-      interceptor.onRequest(nextChat, RequestInterceptorHandler());
+      await interceptor.onRequest(nextChat, RequestInterceptorHandler());
       expect(nextChat.headers['X-Session-Token'], 'tok-abc');
 
       // The history endpoint for s1 (path-derived session id) also carries it.
       final messages = RequestOptions(path: '/sessions/s1/messages');
-      interceptor.onRequest(messages, RequestInterceptorHandler());
+      await interceptor.onRequest(messages, RequestInterceptorHandler());
       expect(messages.headers['X-Session-Token'], 'tok-abc');
     });
 
-    test('attaches nothing when no token has been issued for the session', () {
+    test('attaches nothing when no token has been issued for the session',
+        () async {
       final interceptor = AuthInterceptor(sessionTokenStore: SessionTokenStore());
       final req = RequestOptions(path: '/chat', data: {'session_id': 'unknown'});
-      interceptor.onRequest(req, RequestInterceptorHandler());
+      await interceptor.onRequest(req, RequestInterceptorHandler());
       expect(req.headers.containsKey('X-Session-Token'), isFalse);
     });
   });

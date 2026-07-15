@@ -5,42 +5,64 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:kai_app/core/network/session_token_store.dart';
 
-/// Handles auth headers for private Hugging Face Spaces.
+/// Access-token getter, injected so this interceptor doesn't depend on
+/// Riverpod directly. Returns null when signed out.
+typedef AccessTokenGetter = Future<String?> Function();
+
+/// Attaches per-user identity (kai-auth JWT) and HF-Space edge auth.
 ///
-/// Private HF Spaces require `Authorization: Bearer <HF_TOKEN>` on every request
-/// to pass the HF edge proxy. Per-user identity (kai-auth JWT) and voice-gateway
-/// auth are handled separately — see APP-AUTH-1 for the kai-auth Bearer token
-/// this interceptor will attach once real sign-in ships.
+/// Two distinct concerns share the `Authorization` header, in priority order:
+/// 1. kai-auth access token (per-user identity — `require_user_identity` on
+///    the backend) when [AccessTokenGetter] resolves one.
+/// 2. `hfToken` fallback, required by private Hugging Face Spaces so their
+///    edge proxy forwards the request to the container at all.
+///
+/// ponytail: these two collide if a signed-in user's request ever needs to
+/// pass through a *private* HF Space edge — that edge wants an HF PAT in the
+/// same header a kai-auth JWT now occupies. Not solved here: the real target
+/// topology is a VPS behind Caddy (ADR-0013, no such edge), and kai-auth
+/// isn't deployed on the HF Space at all yet. Revisit if/when both are true
+/// on the same host — see APP-AUTH-1.
 class AuthInterceptor extends Interceptor {
-  const AuthInterceptor({
+  AuthInterceptor({
     String? hfToken,
     String? voiceGatewayApiKey,
     String? voiceGatewayBaseUrl,
+    AccessTokenGetter? getAccessToken,
     SessionTokenStore? sessionTokenStore,
   })  : _hfToken = hfToken,
         _voiceGatewayApiKey = voiceGatewayApiKey,
         _voiceGatewayBaseUrl = voiceGatewayBaseUrl,
+        _getAccessToken = getAccessToken,
         _injectedStore = sessionTokenStore;
 
   final String? _hfToken;
   final String? _voiceGatewayApiKey;
   final String? _voiceGatewayBaseUrl;
+  final AccessTokenGetter? _getAccessToken;
   final SessionTokenStore? _injectedStore;
+
+  Dio? _dio;
 
   SessionTokenStore get _store => _injectedStore ?? sessionTokenStore;
 
+  /// Wire this interceptor to its host Dio so a 401 can be retried once
+  /// after a token refresh, re-entering the full interceptor chain — same
+  /// pattern as [RetryInterceptor.attach].
+  void attach(Dio dio) => _dio = dio;
+
+  static const _retriedKey = 'x-kai-auth-retried';
+
   @override
-  void onRequest(
+  Future<void> onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
-  ) {
+  ) async {
     // ponytail: Bypass authentication for local browser Blob URLs to avoid browser security blocking them.
     if (options.path.startsWith('blob:')) {
       handler.next(options);
       return;
     }
-
-    final hfToken = _hfToken;
 
     if (_diagnosticsEnabled) {
       debugPrint(
@@ -49,12 +71,13 @@ class AuthInterceptor extends Interceptor {
       );
     }
 
-    if (hfToken != null && hfToken.isNotEmpty) {
+    final accessToken = await _getAccessToken?.call();
+    if (accessToken != null && accessToken.isNotEmpty) {
+      options.headers['Authorization'] = 'Bearer $accessToken';
+    } else if (_hfToken != null && _hfToken.isNotEmpty) {
       // Required by Hugging Face Spaces when the Space is private.
-      options.headers['Authorization'] = 'Bearer $hfToken';
+      options.headers['Authorization'] = 'Bearer $_hfToken';
     }
-    // Per-user identity (kai-auth JWT) attaches here once APP-AUTH-1 ships —
-    // no more X-Internal-Token/shared-secret Authorization fallback.
 
     final voiceGatewayApiKey = _voiceGatewayApiKey;
     final voiceGatewayBaseUrl = _voiceGatewayBaseUrl;
@@ -98,6 +121,46 @@ class AuthInterceptor extends Interceptor {
       _store.save(sessionId, response.headers.value('x-session-token'));
     }
     handler.next(response);
+  }
+
+  @override
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
+    final dio = _dio;
+    final getAccessToken = _getAccessToken;
+    final alreadyRetried =
+        err.requestOptions.extra[_retriedKey] as bool? ?? false;
+
+    if (err.response?.statusCode != 401 ||
+        dio == null ||
+        getAccessToken == null ||
+        alreadyRetried) {
+      handler.next(err);
+      return;
+    }
+
+    // validAccessToken() refreshes when expired; if the token it returns is
+    // unchanged from what this request already sent, refresh failed (signed
+    // out) — no point retrying.
+    final priorAuth = err.requestOptions.headers['Authorization'] as String?;
+    final freshToken = await getAccessToken();
+    if (freshToken == null || priorAuth == 'Bearer $freshToken') {
+      handler.next(err);
+      return;
+    }
+
+    final next = err.requestOptions;
+    next.headers['Authorization'] = 'Bearer $freshToken';
+    next.extra[_retriedKey] = true;
+
+    try {
+      final response = await dio.fetch<dynamic>(next);
+      handler.resolve(response);
+    } on DioException catch (e) {
+      handler.next(e);
+    }
   }
 
   /// Resolve the session id a request belongs to: from the `/chat` body, or
