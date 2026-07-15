@@ -5,29 +5,24 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:kai_app/core/network/session_token_store.dart';
 
-/// Handles auth headers for private Hugging Face Spaces and backend admin endpoints.
+/// Handles auth headers for private Hugging Face Spaces.
 ///
 /// Private HF Spaces require `Authorization: Bearer <HF_TOKEN>` on every request
-/// to pass the HF edge proxy. The backend's admin/health endpoints
-/// (`/sessions`, `/user`, `/health`) authenticate via `X-Internal-Token`.
-///
-/// Both tokens can be provided at the same time: HF ingress consumes the
-/// `Authorization` header, while FastAPI checks `X-Internal-Token` first.
+/// to pass the HF edge proxy. Per-user identity (kai-auth JWT) and voice-gateway
+/// auth are handled separately — see APP-AUTH-1 for the kai-auth Bearer token
+/// this interceptor will attach once real sign-in ships.
 class AuthInterceptor extends Interceptor {
   const AuthInterceptor({
     String? hfToken,
-    String? internalToken,
     String? voiceGatewayApiKey,
     String? voiceGatewayBaseUrl,
     SessionTokenStore? sessionTokenStore,
   })  : _hfToken = hfToken,
-        _internalToken = internalToken,
         _voiceGatewayApiKey = voiceGatewayApiKey,
         _voiceGatewayBaseUrl = voiceGatewayBaseUrl,
         _injectedStore = sessionTokenStore;
 
   final String? _hfToken;
-  final String? _internalToken;
   final String? _voiceGatewayApiKey;
   final String? _voiceGatewayBaseUrl;
   final SessionTokenStore? _injectedStore;
@@ -46,7 +41,6 @@ class AuthInterceptor extends Interceptor {
     }
 
     final hfToken = _hfToken;
-    final internalToken = _internalToken;
 
     if (_diagnosticsEnabled) {
       debugPrint(
@@ -58,17 +52,9 @@ class AuthInterceptor extends Interceptor {
     if (hfToken != null && hfToken.isNotEmpty) {
       // Required by Hugging Face Spaces when the Space is private.
       options.headers['Authorization'] = 'Bearer $hfToken';
-    } else if (internalToken != null && internalToken.isNotEmpty) {
-      // Backward-compatible behaviour for public/local deployments.
-      options.headers['Authorization'] = 'Bearer $internalToken';
     }
-
-    if (internalToken != null && internalToken.isNotEmpty) {
-      // Used by FastAPI's `require_internal_auth` for admin endpoints.
-      // Sent even when HF_TOKEN is set, because HF ingress may strip or
-      // validate the Authorization header before forwarding to FastAPI.
-      options.headers['X-Internal-Token'] = internalToken;
-    }
+    // Per-user identity (kai-auth JWT) attaches here once APP-AUTH-1 ships —
+    // no more X-Internal-Token/shared-secret Authorization fallback.
 
     final voiceGatewayApiKey = _voiceGatewayApiKey;
     final voiceGatewayBaseUrl = _voiceGatewayBaseUrl;
@@ -151,9 +137,6 @@ Map<String, dynamic> _redactHeaders(Map<String, dynamic> headers) {
     final rawValue = redacted['Authorization']! as String;
     final token = rawValue.startsWith('Bearer ') ? rawValue.substring(7) : rawValue;
     redacted['Authorization'] = 'Bearer ${_sha256Prefix(token)}';
-  }
-  if (redacted.containsKey('X-Internal-Token')) {
-    redacted['X-Internal-Token'] = _sha256Prefix(redacted['X-Internal-Token']! as String);
   }
   if (redacted.containsKey('X-Internal-API-Key')) {
     redacted['X-Internal-API-Key'] = _sha256Prefix(redacted['X-Internal-API-Key']! as String);

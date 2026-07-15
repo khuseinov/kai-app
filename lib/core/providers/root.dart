@@ -46,7 +46,6 @@ class EnvConfig {
     this.voiceGatewayApiKey,
     this.voiceTransport = 'ws',
     this.useRealChat = true,
-    this.internalHealthToken,
     this.hfToken,
     this.hfTokenProvided = false,
   });
@@ -62,7 +61,6 @@ class EnvConfig {
       final useReal = dotenv.maybeGet('USE_REAL_CHAT') != null
           ? dotenv.maybeGet('USE_REAL_CHAT') == 'true'
           : defaultUseReal;
-      final internalToken = dotenv.maybeGet('INTERNAL_HEALTH_TOKEN') ?? '2ddd1306da666a79a2eb56988b5fe84c042e4ea4d7c61ff689e42e2b1e96efba';
       final rawHfToken = dotenv.maybeGet('HF_TOKEN')?.trim();
       final hfToken = (rawHfToken != null && rawHfToken.isNotEmpty) ? rawHfToken : null;
       final hfTokenProvided = hfToken != null;
@@ -74,9 +72,7 @@ class EnvConfig {
           'voiceGatewayBaseUrl=$voiceGatewayUrl, '
           'voiceGatewayApiKeyEmpty=${voiceGatewayKey == null || voiceGatewayKey.isEmpty}, '
           'hfTokenProvided=$hfTokenProvided, '
-          'hfTokenPrefix=${_sha256Prefix(hfToken)}, '
-          'internalTokenEmpty=${internalToken.isEmpty}, '
-          'internalTokenPrefix=${_sha256Prefix(internalToken)}',
+          'hfTokenPrefix=${_sha256Prefix(hfToken)}',
         );
       }
 
@@ -86,7 +82,6 @@ class EnvConfig {
         voiceGatewayApiKey: voiceGatewayKey,
         voiceTransport: voiceTransport,
         useRealChat: useReal,
-        internalHealthToken: internalToken,
         hfToken: hfToken,
         hfTokenProvided: hfTokenProvided,
       );
@@ -94,7 +89,6 @@ class EnvConfig {
       return EnvConfig(
         apiBaseUrl: 'https://rustamkhuseinov-kai.hf.space',
         useRealChat: defaultUseReal,
-        internalHealthToken: '2ddd1306da666a79a2eb56988b5fe84c042e4ea4d7c61ff689e42e2b1e96efba',
       );
     }
   }
@@ -120,9 +114,6 @@ class EnvConfig {
   /// When `true`, `chatRepositoryProvider` and `sessionRepositoryProvider`
   /// use the real Hive/Dio-backed implementations instead of mocks.
   final bool useRealChat;
-
-  /// Token for backend admin/health endpoints (e.g. INTERNAL_HEALTH_TOKEN).
-  final String? internalHealthToken;
 
   /// Hugging Face access token. Required when the Space is private so that
   /// the HF edge proxy forwards requests to the container.
@@ -167,7 +158,6 @@ Dio dio(DioRef ref) {
       ConnectivityInterceptor(),
       AuthInterceptor(
         hfToken: env.hfToken,
-        internalToken: env.internalHealthToken,
         voiceGatewayApiKey: env.voiceGatewayApiKey,
         voiceGatewayBaseUrl: env.voiceGatewayBaseUrl,
       ),
@@ -239,7 +229,6 @@ ChatRepository chatRepository(ChatRepositoryRef ref) {
       ref.watch(dioProvider),
       userId: ref.watch(userIdProvider),
       hfToken: env.hfToken,
-      internalHealthToken: env.internalHealthToken,
     );
   }
   return MockChatRepository();

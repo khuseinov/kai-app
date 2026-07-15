@@ -36,7 +36,6 @@ class RealChatRepository implements ChatRepository {
     Dio dio, {
     required String userId,
     String? hfToken,
-    String? internalHealthToken,
   }) {
     return RealChatRepository(
       streamOpener: (text, sessionId) async* {
