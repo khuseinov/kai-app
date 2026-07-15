@@ -1,7 +1,7 @@
 # Kai Design-System Reusability & Fidelity Audit — Report
 
 **Date:** 2026-05-28 · **Branch:** `master` · **Status:** Ф1 + Ф2 complete · Ф3 in progress (visual-confirm ✅ · content-audit ✅ · refactor plan pending)
-**Design/spec:** `docs/superpowers/specs/2026-05-28-design-system-audit-design.md`
+**Design/spec:** `docs/archive/superpowers/specs/2026-05-28-design-system-audit-design.md`
 
 ---
 
@@ -196,6 +196,6 @@ tables; full variant×state matrices are reserved for interactive components (bu
    retry-pill tones (chat_list coral / edge_state_block warning), NavItem production-
    scope, stale status header.
 3. ✅ `writing-plans` → refactor plan at
-   `docs/superpowers/plans/2026-05-28-design-system-refactor.md` (W0–W4, 22 tasks; D1–D3
+   `docs/archive/superpowers/plans/2026-05-28-design-system-refactor.md` (W0–W4, 22 tasks; D1–D3
    as decisions with defaults). **Report + plan delivered — endpoint reached; no code
    changes this session.**

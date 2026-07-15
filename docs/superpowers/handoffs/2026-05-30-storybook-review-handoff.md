@@ -116,7 +116,7 @@ transcript/timeline: `.tr-view`, `.tr-event`, `.tr-rail`, `.you`, `.kai`, `.ts` 
 
 ## 3. Guardrails
 - Do NOT touch the pre-existing unrelated dirty files in the tree
-  (`docs/superpowers/plans/2026-05-28-design-system-refactor.md`, deleted
+  (`docs/archive/superpowers/plans/2026-05-28-design-system-refactor.md`, deleted
   `new-design/review.html` / `new-design/roadmap.html`).
 - `new-design/` is READ-ONLY source of truth.
 - Always-dark voice widgets use fixed white/tide literals by design — not a token violation.

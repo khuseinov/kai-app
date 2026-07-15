@@ -21,7 +21,7 @@
 - **Hard rules**: `new-design/CLAUDE.md § 3`
 - **Spec rebuild v3**: `docs/superpowers/specs/2026-05-26-kai-app-rebuild-v3-design.md`
 - **Implementation plan**: `docs/superpowers/plans/2026-05-26-kai-app-rebuild-v3-implementation.md`
-- **Phase 6 handoff**: `docs/superpowers/handoffs/2026-05-27-design-system-review.md`
+- **Phase 6 handoff**: `docs/archive/superpowers/handoffs/2026-05-27-design-system-review.md`
 
 ---
 
@@ -31,12 +31,12 @@
 
 | Bucket | Файлы | Главные фиксы | Severity coverage | Est. effort |
 |---|---|---|---|---|
-| **A** [ChatList overhaul](./tasks/bucket-a-chatlist-overhaul.md) | `organisms/chat_list.dart`, `atoms/kai_bubble.dart`, `molecules/source_card.dart` | C1 streaming partial bubble, C2 error embed, C6 .who row + SourceCard, D1 hardcode, empty chip cards, day header em-dashes | 4 CRITICAL + 8 HIGH + 5 MEDIUM | 6–10h |
-| **B** [NavPanel reconstruction](./tasks/bucket-b-navpanel-reconstruction.md) | `organisms/nav_panel.dart`, `molecules/nav_item.dart` | C3 pin-trip + trips + dates, top bar center, search-box r-9 + mono, sec-label mono 8.5, account tide-avatar, NavItem padding 14×6/7 | 1 CRITICAL + 5 HIGH + 6 MEDIUM | 4–6h |
-| **C** [Compose + Buttons polish](./tasks/bucket-c-compose-buttons-polish.md) | `molecules/compose_island.dart`, `atoms/kai_button.dart`, `atoms/kai_button_send.dart` | C4 mic transparent, button.ghost border `line`, send-size 30 default for pill, padding 5×16, send icon 12-13 | 1 CRITICAL + 3 HIGH + 4 MEDIUM | 2–3h |
-| **D** [AlertCard + EdgeStateBlock](./tasks/bucket-d-alertcard-edge-states.md) | `molecules/alert_card.dart`, `organisms/edge_state_block.dart`, `molecules/care_block.dart` | C5 neutral palette, H2-H4 (no duplicate tide, offline warning-wash + wifi-off, rateLimit clock, crisis border-left) | 1 CRITICAL + 4 HIGH + 6 MEDIUM | 3–4h |
-| **E** [Screen positioning + Tide wiring](./tasks/bucket-e-screen-positioning.md) | `features/room/room_screen.dart`, `features/onboarding/onboarding_screen.dart` | tide curve height 16 vs 48, 4px gap from safe area, onboarding step 2 tide = responding (не idle) | 2 MEDIUM + 2 LOW | 1–2h |
-| **F** [Type tokens polish](./tasks/bucket-f-type-tokens.md) | `tokens/kai_type.dart` | font-feature-settings `ss03`, `cv11` (Manrope friendly 'a' alternates) | 1 LOW | 30min |
+| **A** [ChatList overhaul](../../archive/superpowers/plans/tasks/bucket-a-chatlist-overhaul.md) | `organisms/chat_list.dart`, `atoms/kai_bubble.dart`, `molecules/source_card.dart` | C1 streaming partial bubble, C2 error embed, C6 .who row + SourceCard, D1 hardcode, empty chip cards, day header em-dashes | 4 CRITICAL + 8 HIGH + 5 MEDIUM | 6–10h |
+| **B** [NavPanel reconstruction](../../archive/superpowers/plans/tasks/bucket-b-navpanel-reconstruction.md) | `organisms/nav_panel.dart`, `molecules/nav_item.dart` | C3 pin-trip + trips + dates, top bar center, search-box r-9 + mono, sec-label mono 8.5, account tide-avatar, NavItem padding 14×6/7 | 1 CRITICAL + 5 HIGH + 6 MEDIUM | 4–6h |
+| **C** [Compose + Buttons polish](../../archive/superpowers/plans/tasks/bucket-c-compose-buttons-polish.md) | `molecules/compose_island.dart`, `atoms/kai_button.dart`, `atoms/kai_button_send.dart` | C4 mic transparent, button.ghost border `line`, send-size 30 default for pill, padding 5×16, send icon 12-13 | 1 CRITICAL + 3 HIGH + 4 MEDIUM | 2–3h |
+| **D** [AlertCard + EdgeStateBlock](../../archive/superpowers/plans/tasks/bucket-d-alertcard-edge-states.md) | `molecules/alert_card.dart`, `organisms/edge_state_block.dart`, `molecules/care_block.dart` | C5 neutral palette, H2-H4 (no duplicate tide, offline warning-wash + wifi-off, rateLimit clock, crisis border-left) | 1 CRITICAL + 4 HIGH + 6 MEDIUM | 3–4h |
+| **E** [Screen positioning + Tide wiring](../../archive/superpowers/plans/tasks/bucket-e-screen-positioning.md) | `features/room/room_screen.dart`, `features/onboarding/onboarding_screen.dart` | tide curve height 16 vs 48, 4px gap from safe area, onboarding step 2 tide = responding (не idle) | 2 MEDIUM + 2 LOW | 1–2h |
+| **F** [Type tokens polish](../../archive/superpowers/plans/tasks/bucket-f-type-tokens.md) | `tokens/kai_type.dart` | font-feature-settings `ss03`, `cv11` (Manrope friendly 'a' alternates) | 1 LOW | 30min |
 
 **Total estimated effort**: 16–25 hours of focused work across 6 parallel agents.
 
@@ -143,9 +143,9 @@ Round 2 (parallel): A, B
 
 ## 10 · Index of bucket task-docs
 
-- 📄 [Bucket A — ChatList overhaul](./tasks/bucket-a-chatlist-overhaul.md)
-- 📄 [Bucket B — NavPanel reconstruction](./tasks/bucket-b-navpanel-reconstruction.md)
-- 📄 [Bucket C — Compose + Buttons polish](./tasks/bucket-c-compose-buttons-polish.md)
-- 📄 [Bucket D — AlertCard + EdgeStateBlock](./tasks/bucket-d-alertcard-edge-states.md)
-- 📄 [Bucket E — Screen positioning + Tide wiring](./tasks/bucket-e-screen-positioning.md)
-- 📄 [Bucket F — Type tokens polish](./tasks/bucket-f-type-tokens.md)
+- 📄 [Bucket A — ChatList overhaul](../../archive/superpowers/plans/tasks/bucket-a-chatlist-overhaul.md)
+- 📄 [Bucket B — NavPanel reconstruction](../../archive/superpowers/plans/tasks/bucket-b-navpanel-reconstruction.md)
+- 📄 [Bucket C — Compose + Buttons polish](../../archive/superpowers/plans/tasks/bucket-c-compose-buttons-polish.md)
+- 📄 [Bucket D — AlertCard + EdgeStateBlock](../../archive/superpowers/plans/tasks/bucket-d-alertcard-edge-states.md)
+- 📄 [Bucket E — Screen positioning + Tide wiring](../../archive/superpowers/plans/tasks/bucket-e-screen-positioning.md)
+- 📄 [Bucket F — Type tokens polish](../../archive/superpowers/plans/tasks/bucket-f-type-tokens.md)

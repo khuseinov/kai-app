@@ -51,20 +51,21 @@ lib/
     network/                      — Dio client + interceptor chain
     repositories/                 — mock + real chat / session
     telemetry/                    — NoOp service (swap before launch)
-  design_system/                  — clean atomic library (v3), flat structure
+  design_system/                  — clean atomic library (v3), flat structure. No organisms/ here — see below (moved feature-local 2026-06-17)
     tokens/                       — kai_colors / kai_type / kai_space / kai_radius / kai_shadow / kai_motion / kai_tide / kai_tokens
     theme/                        — KaiTheme InheritedWidget + Material bridge
     primitives/ (3)               — KaiIcon (single SVG source), KaiSurface, KaiGradientBar — sub-atom layer; atoms MAY import these
     atoms/ (17)                   — KaiText (+tideWord), KaiButton (tide/ink/ghost/text · sm/md/lg · tideAnim onInteraction[default]/onState · ink fg=surface for dark), KaiIconButton (surface/transparent/bare/toggle · sizes), KaiSendButton (streaming→stop glyph), KaiInput, KaiToggle, KaiChip (sm/md · semantic tones), KaiBadge (dot tones/count/tide), KaiAvatar (.user/.kai · sm/md/lg · breathing), KaiTideCurve (8 states · demoLoop), KaiDivider, KaiSheetShell, KaiStepIndicator (animated), KaiForkChip, KaiForkScoreDots, KaiBudgetBar, KaiKaraokeText (dark-only)
     molecules/ (18)               — KaiUserBubble / KaiKaiBubble / KaiSystemBubble, KaiComposeIsland (standard/voice/offline), SourceCard, CareBlock, AlertCard, KaiToast (+ KaiToastController · countdown/undo), KaiActionSheet, KaiMessageDetailSheet, KaiSegmentedControl, KaiSettingsRow, KaiSettingsGroup, KaiAccountHero (full/compact), NavItem, KaiForkCard, KaiTranscriptView (dark-only)
-    organisms/ (4)                — chat_list, nav_panel (no chrome — swipe-close), edge_state_block, onboarding_card (KaiStepIndicator + step-0 ink→tide-flash)
   features/
     boot/                         — SplashScreen + BootingApp
-    onboarding/                   — OnboardingScreen (4 steps)
-    room/                         — RoomScreen (chat, 6 frames)
-    nav/                          — NavScreen + side panel (+ session_groups.dart — pure date-bucketing presenter)
+    onboarding/                   — OnboardingScreen (4 steps) + presentation/widgets/kai_onboarding_card.dart (organism)
+    room/                         — RoomScreen (chat, 6 frames) + presentation/widgets/kai_chat_list.dart, kai_edge_state_block.dart (organisms)
+    nav/                          — NavScreen + side panel + presentation/widgets/kai_nav_panel.dart (organism, no chrome — swipe-close) (+ session_groups.dart — pure date-bucketing presenter)
     settings/                     — SettingsScreen (7 sections)
     dev/                          — Storybook shell (sidebar + canvas + knobs) + theme showcase
+
+**Organisms (4)** — chat_list, edge_state_block, nav_panel, onboarding_card — live feature-local under `lib/features/<feature>/presentation/widgets/`, not in `design_system/`, per the `2026-06-17-unified-architecture-design.md` Feature-First + Clean Architecture pass (each feature gets its own `data/domain/presentation` layers).
 new-design/                       — HTML mockups (22 files) — source of truth, READ-ONLY
 brand/                            — SVG masters + generated PNG masters for icon/splash
 tool/                             — Dart scripts (e.g. PNG generator)
@@ -210,7 +211,7 @@ adding a field, manually update the adapter's `read()` / `write()`.
   `docs/superpowers/plans/2026-05-28-kai-ui-atomic-library-v3.md`
 - **Design-system audit (reusability + fidelity)**:
   `docs/superpowers/audits/2026-05-28-design-system-audit.md`
-- **Latest session handoff**: `docs/superpowers/handoffs/2026-05-28-design-fidelity-v2-session.md`
+- **Latest session handoff**: `docs/superpowers/handoffs/2026-05-30-storybook-review-handoff.md` (corrected 2026-07-15 — this is later than and a closer match to current state than the 2026-05-28 handoff previously linked here; component/test counts match this file exactly). Neither handoff fully reflects current state (voice screen shipped after both) — treat `lib/design_system/COMPONENTS.md` as the actual single source of truth, not any dated handoff.
 - **Rebuild v3 spec (original)**: `docs/superpowers/specs/2026-05-26-kai-app-rebuild-v3-design.md`
 - **Design fidelity plan (with bucket task-docs)**: `docs/superpowers/plans/2026-05-27-design-fidelity-fixes.md`
 - **Brand pipeline**: `brand/BRAND_README.md`
