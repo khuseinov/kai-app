@@ -74,5 +74,19 @@
 			<string>audio</string>
 			<string>voip</string>
 		</array>
+		<!-- Google Sign-In (AUTH-GOOGLE-KEYS-1): OAuth callback URL scheme =
+		     the iOS client id reversed. Must match GOOGLE_IOS_CLIENT_ID in
+		     .env (644878196364-0lh66pdcv7ds7c07ges9stua5hhad71k). -->
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.644878196364-0lh66pdcv7ds7c07ges9stua5hhad71k</string>
+				</array>
+			</dict>
+		</array>
 	</dict>
 </plist>

@@ -33,25 +33,32 @@ jobs:
       - name: Create .env from secrets
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          INTERNAL_HEALTH_TOKEN: ${{ secrets.INTERNAL_HEALTH_TOKEN }}
           VOICE_GATEWAY_BASE_URL: ${{ secrets.VOICE_GATEWAY_BASE_URL }}
           VOICE_GATEWAY_API_KEY: ${{ secrets.VOICE_GATEWAY_API_KEY }}
+          # kai-auth (APP-AUTH-1): the Google *web/server* client id — it is the
+          # `aud` of the id_token, and must match kai-auth's
+          # AUTH_GOOGLE_CLIENT_IDS allowlist or every sign-in 401s. Not
+          # required: builds before the founder provisions it simply ship
+          # without Google sign-in rather than failing CI.
+          GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+          GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
         run: |
           if [ -z "$HF_TOKEN" ]; then
             echo "::error::HF_TOKEN secret is not set" >&2
             exit 1
           fi
-          if [ -z "$INTERNAL_HEALTH_TOKEN" ]; then
-            echo "::error::INTERNAL_HEALTH_TOKEN secret is not set" >&2
-            exit 1
-          fi
+          # INTERNAL_HEALTH_TOKEN is gone (kai-auth replaced it as the per-user
+          # gate); nothing in lib/ reads it. It is deliberately NOT required
+          # here anymore — keeping the guard would hard-fail this build the
+          # moment the now-meaningless secret is deleted.
           printf '%s\n' \
             "API_BASE_URL=https://rustamkhuseinov-kai.hf.space" \
             "USE_REAL_CHAT=true" \
-            "INTERNAL_HEALTH_TOKEN=${INTERNAL_HEALTH_TOKEN}" \
             "HF_TOKEN=${HF_TOKEN}" \
             "VOICE_GATEWAY_BASE_URL=${VOICE_GATEWAY_BASE_URL}" \
             "VOICE_GATEWAY_API_KEY=${VOICE_GATEWAY_API_KEY}" \
+            "GOOGLE_SERVER_CLIENT_ID=${GOOGLE_SERVER_CLIENT_ID}" \
+            "GOOGLE_IOS_CLIENT_ID=${GOOGLE_IOS_CLIENT_ID}" \
             > .env
 
       # SIGNING NOTES (do not remove these env vars):

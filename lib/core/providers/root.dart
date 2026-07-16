@@ -15,9 +15,14 @@ import 'package:kai_app/core/network/interceptors/error_interceptor.dart';
 import 'package:kai_app/core/network/interceptors/logging_interceptor.dart';
 import 'package:kai_app/core/network/interceptors/retry_interceptor.dart';
 import 'package:kai_app/core/storage/hive_setup.dart';
+import 'package:kai_app/features/auth/data/datasources/auth_remote_source.dart';
+import 'package:kai_app/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:kai_app/features/auth/data/repositories/mock_session_repository.dart';
+import 'package:kai_app/features/auth/data/repositories/secure_token_storage.dart';
 import 'package:kai_app/features/auth/data/repositories/session_repository_impl.dart';
+import 'package:kai_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:kai_app/features/auth/domain/repositories/session_repository.dart';
+import 'package:kai_app/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:kai_app/features/memory/data/repositories/memory_repository_impl.dart';
 import 'package:kai_app/features/memory/data/repositories/mock_memory_repository.dart';
 import 'package:kai_app/features/memory/domain/repositories/memory_repository.dart';
@@ -46,9 +51,10 @@ class EnvConfig {
     this.voiceGatewayApiKey,
     this.voiceTransport = 'ws',
     this.useRealChat = true,
-    this.internalHealthToken,
     this.hfToken,
     this.hfTokenProvided = false,
+    this.googleServerClientId,
+    this.googleIosClientId,
   });
 
   factory EnvConfig.fromDotenv() {
@@ -62,10 +68,11 @@ class EnvConfig {
       final useReal = dotenv.maybeGet('USE_REAL_CHAT') != null
           ? dotenv.maybeGet('USE_REAL_CHAT') == 'true'
           : defaultUseReal;
-      final internalToken = dotenv.maybeGet('INTERNAL_HEALTH_TOKEN') ?? '2ddd1306da666a79a2eb56988b5fe84c042e4ea4d7c61ff689e42e2b1e96efba';
       final rawHfToken = dotenv.maybeGet('HF_TOKEN')?.trim();
       final hfToken = (rawHfToken != null && rawHfToken.isNotEmpty) ? rawHfToken : null;
       final hfTokenProvided = hfToken != null;
+      final googleServerClientId = _nonEmpty(dotenv.maybeGet('GOOGLE_SERVER_CLIENT_ID'));
+      final googleIosClientId = _nonEmpty(dotenv.maybeGet('GOOGLE_IOS_CLIENT_ID'));
 
       if (EnvConfig.diagnosticsEnabled) {
         debugPrint(
@@ -75,8 +82,7 @@ class EnvConfig {
           'voiceGatewayApiKeyEmpty=${voiceGatewayKey == null || voiceGatewayKey.isEmpty}, '
           'hfTokenProvided=$hfTokenProvided, '
           'hfTokenPrefix=${_sha256Prefix(hfToken)}, '
-          'internalTokenEmpty=${internalToken.isEmpty}, '
-          'internalTokenPrefix=${_sha256Prefix(internalToken)}',
+          'googleServerClientIdProvided=${googleServerClientId != null}',
         );
       }
 
@@ -86,15 +92,15 @@ class EnvConfig {
         voiceGatewayApiKey: voiceGatewayKey,
         voiceTransport: voiceTransport,
         useRealChat: useReal,
-        internalHealthToken: internalToken,
         hfToken: hfToken,
         hfTokenProvided: hfTokenProvided,
+        googleServerClientId: googleServerClientId,
+        googleIosClientId: googleIosClientId,
       );
     } catch (_) {
       return EnvConfig(
         apiBaseUrl: 'https://rustamkhuseinov-kai.hf.space',
         useRealChat: defaultUseReal,
-        internalHealthToken: '2ddd1306da666a79a2eb56988b5fe84c042e4ea4d7c61ff689e42e2b1e96efba',
       );
     }
   }
@@ -121,15 +127,21 @@ class EnvConfig {
   /// use the real Hive/Dio-backed implementations instead of mocks.
   final bool useRealChat;
 
-  /// Token for backend admin/health endpoints (e.g. INTERNAL_HEALTH_TOKEN).
-  final String? internalHealthToken;
-
   /// Hugging Face access token. Required when the Space is private so that
   /// the HF edge proxy forwards requests to the container.
   final String? hfToken;
 
   /// `true` when [hfToken] was loaded from the `HF_TOKEN` environment variable.
   final bool hfTokenProvided;
+
+  /// Web/server OAuth client id — verifies the Google id_token audience both
+  /// client-side (`GoogleSignIn.initialize`) and server-side (kai-auth's
+  /// allowlist). Null until the founder provisions a Google Cloud project.
+  final String? googleServerClientId;
+
+  /// iOS-specific OAuth client id. Optional — `google_sign_in` falls back to
+  /// reading it from Info.plist / GoogleService-Info.plist when omitted.
+  final String? googleIosClientId;
 }
 
 String _sha256Prefix(String? value) {
@@ -138,15 +150,40 @@ String _sha256Prefix(String? value) {
   return hash.length >= 8 ? hash.substring(0, 8) : hash;
 }
 
+String? _nonEmpty(String? value) {
+  final trimmed = value?.trim();
+  return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
+}
+
 /// Env configuration. Overridden in `bootstrap` / tests as needed.
 @Riverpod(keepAlive: true)
 EnvConfig env(EnvRef ref) {
   return EnvConfig.fromDotenv();
 }
 
-/// Stable anonymous user id. Generated once and persisted in Hive.
+/// The id kai-core knows this caller by — the one every `user_id` we send must
+/// carry.
+///
+/// Signed in, this MUST be the kai-auth account id, because it is exactly the
+/// `sub` of the JWT [AuthInterceptor] puts on the same request, and kai-core's
+/// `require_user_identity` compares the two and 403s on any mismatch. Sending
+/// the anonymous id below while holding a real token therefore fails *every*
+/// /sessions, /user/* and /schedules call.
+///
+/// Signed out, it is the anonymous id: those routes reject it with 401 anyway
+/// (no bearer token), but /chat still identifies the caller by it.
 @Riverpod(keepAlive: true)
 String userId(UserIdRef ref) {
+  final account = ref.watch(authNotifierProvider).valueOrNull;
+  if (account != null) return account.id;
+  return ref.watch(anonymousUserIdProvider);
+}
+
+/// Stable anonymous id. Generated once and persisted in Hive. Identifies the
+/// caller before sign-in (and on `/chat`, which is still body-identity), so it
+/// stays readable on its own, independent of [userId] above.
+@Riverpod(keepAlive: true)
+String anonymousUserId(AnonymousUserIdRef ref) {
   final box = HiveSetup.userIds;
   var uid = box.get(HiveSetup.userIdKey);
   if (uid == null || uid.isEmpty) {
@@ -161,22 +198,24 @@ String userId(UserIdRef ref) {
 Dio dio(DioRef ref) {
   final env = ref.watch(envProvider);
   final retry = RetryInterceptor();
+  final auth = AuthInterceptor(
+    hfToken: env.hfToken,
+    voiceGatewayApiKey: env.voiceGatewayApiKey,
+    voiceGatewayBaseUrl: env.voiceGatewayBaseUrl,
+    getAccessToken: () => ref.read(authRepositoryProvider).validAccessToken(),
+  );
   final dio = buildDioClient(
     baseUrl: env.apiBaseUrl,
     interceptors: [
       ConnectivityInterceptor(),
-      AuthInterceptor(
-        hfToken: env.hfToken,
-        internalToken: env.internalHealthToken,
-        voiceGatewayApiKey: env.voiceGatewayApiKey,
-        voiceGatewayBaseUrl: env.voiceGatewayBaseUrl,
-      ),
+      auth,
       LoggingInterceptor(),
       retry,
       ErrorInterceptor(),
     ],
   );
   retry.attach(dio);
+  auth.attach(dio);
   return dio;
 }
 
@@ -239,7 +278,6 @@ ChatRepository chatRepository(ChatRepositoryRef ref) {
       ref.watch(dioProvider),
       userId: ref.watch(userIdProvider),
       hfToken: env.hfToken,
-      internalHealthToken: env.internalHealthToken,
     );
   }
   return MockChatRepository();
@@ -256,6 +294,34 @@ SessionRepository sessionRepository(SessionRepositoryRef ref) {
     );
   }
   return MockSessionRepository();
+}
+
+/// Secure keystore for the kai-auth token pair.
+@Riverpod(keepAlive: true)
+SecureTokenStorage secureTokenStorage(SecureTokenStorageRef ref) {
+  return SecureTokenStorage();
+}
+
+/// kai-auth `/v1/auth/*` client — bare Dio, outside the app-API interceptor
+/// chain (see [AuthRemoteSource] doc comment for why).
+@Riverpod(keepAlive: true)
+AuthRemoteSource authRemoteSource(AuthRemoteSourceRef ref) {
+  final env = ref.watch(envProvider);
+  return AuthRemoteSource(baseUrl: env.apiBaseUrl, hfToken: env.hfToken);
+}
+
+/// Google/Apple sign-in + kai-auth token lifecycle.
+@Riverpod(keepAlive: true)
+AuthRepository authRepository(AuthRepositoryRef ref) {
+  final env = ref.watch(envProvider);
+  return AuthRepositoryImpl(
+    remote: ref.watch(authRemoteSourceProvider),
+    storage: ref.watch(secureTokenStorageProvider),
+    googleServerClientId: env.googleServerClientId,
+    googleIosClientId: env.googleIosClientId,
+    onSessionLost: () =>
+        ref.read(authNotifierProvider.notifier).onSessionLost(),
+  );
 }
 
 /// Memory repository. Switches between mock and real based on [EnvConfig.useRealChat].

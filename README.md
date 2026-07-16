@@ -58,14 +58,24 @@ Configuration is loaded from the bundled `.env` asset at startup:
 ```text
 API_BASE_URL=https://<username>-<space>.hf.space
 USE_REAL_CHAT=true
-HF_TOKEN=hf_...          # Required when the HF Space is private
-INTERNAL_HEALTH_TOKEN=... # Used by backend admin/health endpoints
+HF_TOKEN=hf_...              # Required when the HF Space is private
+GOOGLE_SERVER_CLIENT_ID=...  # Google *web* client id — kai-auth sign-in
+GOOGLE_IOS_CLIENT_ID=...     # Google iOS client id
 ```
 
 - `API_BASE_URL` — base URL of the kai-core backend.
 - `USE_REAL_CHAT=true` — switches from mock chat to the real Dio-backed repository.
 - `HF_TOKEN` — Hugging Face access token. Required when the Space is private so HF ingress forwards requests to the container.
-- `INTERNAL_HEALTH_TOKEN` — backend internal token for `/sessions`, `/user`, `/health`, `/admin` endpoints.
+- `GOOGLE_SERVER_CLIENT_ID` — the **web/server** OAuth client id from Google Cloud. Counter-intuitively this is the one that matters on Android too: with `google_sign_in` v7 + Credential Manager it is the `aud` of the issued id_token, so it must appear in kai-auth's `AUTH_GOOGLE_CLIENT_IDS` allowlist or every sign-in is rejected. Blank → no Google sign-in.
+- `GOOGLE_IOS_CLIENT_ID` — the iOS OAuth client id; also the source of the reversed-client-id URL scheme in `Info.plist`.
+
+`INTERNAL_HEALTH_TOKEN` is **retired** (APP-AUTH-1, 2026-07-16). It was a single
+shared secret that proved "a legitimate app instance", never *which* user — so
+any holder could read or delete any user's data by changing a `user_id`. Per-user
+identity is now a kai-auth JWT (`Authorization: Bearer`), and `/sessions`,
+`/user/*` and `/schedules` require one. The secret still guards kai-core's
+`/admin/*` and `/health/*`, which are operator tooling with no per-user concept —
+that is a backend-side variable, nothing the app sends.
 
 If `.env` is missing, the app falls back to `https://api.wize.travel` (non-functional placeholder).
 

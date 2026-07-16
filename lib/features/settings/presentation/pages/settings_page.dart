@@ -1,11 +1,19 @@
+import 'dart:io' as io;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kai_app/core/logger/app_logger.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/design_system/atoms/atoms.dart';
 import 'package:kai_app/design_system/molecules/molecules.dart';
 import 'package:kai_app/design_system/primitives/primitives.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/design_system/tokens/kai_tokens.dart';
+import 'package:kai_app/features/auth/domain/entities/auth_user.dart';
+import 'package:kai_app/features/auth/domain/repositories/auth_repository.dart';
+import 'package:kai_app/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:kai_app/features/room/presentation/providers/room_state.dart';
 
 /// Settings screen. Canon: `new-design/settings.html`.
@@ -51,6 +59,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget build(BuildContext context) {
     final c = KaiTheme.of(context).colors;
     final themeMode = ref.watch(themeModeProvider);
+    final authState = ref.watch(authNotifierProvider);
+
+    ref.listen(authNotifierProvider, (previous, next) {
+      final error = next.error;
+      if (error == null) return;
+      final message =
+          error is AuthException ? error.message : 'Ошибка входа';
+      KaiToastController.show(
+        context,
+        type: KaiToastType.negative,
+        label: message,
+      );
+      AppLogger.e('auth failed', error, next.stackTrace);
+    });
 
     final scale = context.scale;
     final textScale = context.textScale;
@@ -66,13 +88,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               child: ListView(
                 padding: EdgeInsets.fromLTRB(14 * scale, 16 * scale, 14 * scale, 24 * scale),
                 children: [
-                  // 1. Account hero
-                  const KaiAccountHero(
-                    name: 'Aibek',
-                    email: 'aibek@wize.ai',
-                    initial: 'A',
-                    planLabel: 'plus',
-                  ),
+                  // 1. Account hero — signed-in user, or a sign-in prompt.
+                  _AccountSection(authState: authState),
                   SizedBox(height: 12 * scale),
 
                   // 2. Внешний вид
@@ -214,12 +231,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         trailing: const _ChevTrail(),
                         onTap: () {},
                       ),
-                      KaiSettingsRow(
-                        icon: KaiIconName.logout,
-                        title: 'Выйти',
-                        danger: true,
-                        onTap: () {},
-                      ),
+                      if (authState.valueOrNull != null)
+                        KaiSettingsRow(
+                          icon: KaiIconName.logout,
+                          title: 'Выйти',
+                          danger: true,
+                          onTap: () =>
+                              ref.read(authNotifierProvider.notifier).signOut(),
+                        ),
                     ],
                   ),
                   SizedBox(height: 12 * scale),
@@ -248,6 +267,83 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─── Account section — signed-in hero or sign-in prompt ─────────────────────
+
+/// Renders [KaiAccountHero] for a signed-in user, or [_SignInPrompt]
+/// otherwise (signed-out, restoring, or a failed attempt — errors surface
+/// via the toast in [_SettingsPageState.build] instead of blocking this row).
+class _AccountSection extends ConsumerWidget {
+  const _AccountSection({required this.authState});
+
+  final AsyncValue<AuthUser?> authState;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = authState.valueOrNull;
+    if (user == null) {
+      return _SignInPrompt(busy: authState.isLoading);
+    }
+    final name = user.displayName?.trim();
+    final displayName = (name == null || name.isEmpty) ? 'Kai traveller' : name;
+    return KaiAccountHero(
+      name: displayName,
+      email: user.email ?? '',
+      initial: displayName[0].toUpperCase(),
+    );
+  }
+}
+
+/// Compact "Войти" card shown when signed out — same surface/radius as
+/// [KaiAccountHero] so the account section doesn't jump in height on
+/// sign-in/out.
+class _SignInPrompt extends ConsumerWidget {
+  const _SignInPrompt({required this.busy});
+
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = KaiTheme.of(context).colors;
+    final scale = context.scale;
+    final notifier = ref.read(authNotifierProvider.notifier);
+
+    return Container(
+      padding: EdgeInsets.all(KaiSpace.s3 * scale),
+      decoration: BoxDecoration(
+        color: c.surface2,
+        borderRadius: KaiRadius.br12,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Войдите, чтобы синхронизировать историю между устройствами',
+            style: TextStyle(
+              fontFamily: 'Manrope',
+              fontSize: 13 * context.textScale,
+              fontWeight: FontWeight.w500,
+              color: c.ink2,
+            ),
+          ),
+          SizedBox(height: 10 * scale),
+          KaiButton.ink(
+            label: 'Войти через Google',
+            onPressed: busy ? null : notifier.signInWithGoogle,
+            fullWidth: true,
+          ),
+          if (!kIsWeb && io.Platform.isIOS) ...[
+            SizedBox(height: 8 * scale),
+            KaiButton.ghost(
+              label: 'Войти через Apple',
+              onPressed: busy ? null : notifier.signInWithApple,
+            ),
+          ],
+        ],
       ),
     );
   }

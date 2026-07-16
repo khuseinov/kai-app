@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/core/providers/root.dart';
 import 'package:kai_app/design_system/theme/kai_theme.dart';
+import 'package:kai_app/features/auth/domain/entities/auth_user.dart';
+import 'package:kai_app/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:kai_app/features/settings/presentation/pages/settings_page.dart';
 
 Future<ProviderContainer> _pump(
   WidgetTester tester, {
   ThemeMode initial = ThemeMode.light,
+  AuthUser? signedInAs,
 }) async {
   // Tall surface so the full settings list renders without scrolling —
   // ListView is lazy, so off-screen rows don't materialise and find.text
@@ -17,6 +20,7 @@ Future<ProviderContainer> _pump(
   final container = ProviderContainer(
     overrides: [
       themeModeProvider.overrideWith(() => _MockThemeModeNotifier(initial)),
+      authNotifierProvider.overrideWith(() => _MockAuthNotifier(signedInAs)),
     ],
   );
   await tester.pumpWidget(
@@ -33,12 +37,24 @@ Future<ProviderContainer> _pump(
 
 void main() {
   group('SettingsPage', () {
-    testWidgets('renders top bar title + account hero', (tester) async {
+    testWidgets('renders top bar title + sign-in prompt when signed out',
+        (tester) async {
       await _pump(tester);
       expect(find.text('Настройки'), findsOneWidget);
+      expect(find.text('Войти через Google'), findsOneWidget);
+    });
+
+    testWidgets('renders account hero when signed in', (tester) async {
+      await _pump(
+        tester,
+        signedInAs: const AuthUser(
+          id: 'u1',
+          displayName: 'Aibek',
+          email: 'aibek@wize.ai',
+        ),
+      );
       expect(find.text('Aibek'), findsOneWidget);
       expect(find.text('aibek@wize.ai'), findsOneWidget);
-      expect(find.text('PLUS'), findsOneWidget);
     });
 
     testWidgets('renders all 6 section labels', (tester) async {
@@ -94,4 +110,11 @@ class _MockThemeModeNotifier extends ThemeModeNotifier {
   final ThemeMode _initialMode;
   @override
   ThemeMode build() => _initialMode;
+}
+
+class _MockAuthNotifier extends AuthNotifier {
+  _MockAuthNotifier(this._user);
+  final AuthUser? _user;
+  @override
+  Future<AuthUser?> build() async => _user;
 }
