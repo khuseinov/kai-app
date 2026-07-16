@@ -83,11 +83,20 @@ class AuthInterceptor extends Interceptor {
     } catch (_) {
       accessToken = null;
     }
-    if (accessToken != null && accessToken.isNotEmpty) {
-      options.headers['Authorization'] = 'Bearer $accessToken';
-    } else if (_hfToken != null && _hfToken.isNotEmpty) {
-      // Required by Hugging Face Spaces when the Space is private.
+    // Two separate concerns, two separate headers (APP-AUTH-1):
+    //  - Authorization = how to get PAST the front door. On a private HF Space
+    //    the HF edge proxy demands the HF PAT here or it drops the request
+    //    before it reaches the container. On a VPS (behind Caddy, no edge)
+    //    hfToken is empty and this is simply absent.
+    //  - X-Kai-Access-Token = WHO the user is (the kai-auth JWT). A dedicated
+    //    header so it never fights the edge for Authorization on HF. kai-core
+    //    reads this (raw, no "Bearer "), falling back to Authorization on a
+    //    VPS where that carries the JWT.
+    if (_hfToken != null && _hfToken.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $_hfToken';
+    }
+    if (accessToken != null && accessToken.isNotEmpty) {
+      options.headers['X-Kai-Access-Token'] = accessToken;
     }
 
     final voiceGatewayApiKey = _voiceGatewayApiKey;
@@ -152,10 +161,12 @@ class AuthInterceptor extends Interceptor {
       return;
     }
 
+    // Identity now rides in X-Kai-Access-Token (see onRequest), so refresh and
+    // compare THAT — not Authorization (which carries the static HF edge PAT).
     // validAccessToken() refreshes when expired; if the token it returns is
     // unchanged from what this request already sent, refresh failed (signed
     // out) — no point retrying.
-    final priorAuth = err.requestOptions.headers['Authorization'] as String?;
+    final priorToken = err.requestOptions.headers['X-Kai-Access-Token'] as String?;
     final String? freshToken;
     try {
       freshToken = await getAccessToken();
@@ -165,13 +176,13 @@ class AuthInterceptor extends Interceptor {
       handler.next(err);
       return;
     }
-    if (freshToken == null || priorAuth == 'Bearer $freshToken') {
+    if (freshToken == null || priorToken == freshToken) {
       handler.next(err);
       return;
     }
 
     final next = err.requestOptions;
-    next.headers['Authorization'] = 'Bearer $freshToken';
+    next.headers['X-Kai-Access-Token'] = freshToken;
     next.extra[_retriedKey] = true;
 
     try {
@@ -219,6 +230,10 @@ Map<String, dynamic> _redactHeaders(Map<String, dynamic> headers) {
     final rawValue = redacted['Authorization']! as String;
     final token = rawValue.startsWith('Bearer ') ? rawValue.substring(7) : rawValue;
     redacted['Authorization'] = 'Bearer ${_sha256Prefix(token)}';
+  }
+  if (redacted.containsKey('X-Kai-Access-Token')) {
+    redacted['X-Kai-Access-Token'] =
+        _sha256Prefix(redacted['X-Kai-Access-Token']! as String);
   }
   if (redacted.containsKey('X-Internal-API-Key')) {
     redacted['X-Internal-API-Key'] = _sha256Prefix(redacted['X-Internal-API-Key']! as String);

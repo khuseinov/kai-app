@@ -10,9 +10,22 @@ import 'package:kai_app/features/auth/domain/repositories/auth_repository.dart';
 /// same reasoning as `LivekitSessionFactory` in root.dart: the token exchange
 /// itself must not depend on `AuthInterceptor`, which in turn depends on this
 /// repository's output.
+///
+/// [hfToken] is attached as `Authorization: Bearer` so these pre-auth calls get
+/// PAST a private Hugging Face Space edge (which drops any request without the
+/// HF PAT before it reaches kai-auth). kai-auth ignores Authorization on the
+/// sign-in endpoints, so on a VPS (no edge, blank hfToken) this is simply
+/// absent and harmless.
 class AuthRemoteSource {
-  AuthRemoteSource({required String baseUrl})
-      : _dio = Dio(BaseOptions(baseUrl: baseUrl));
+  AuthRemoteSource({required String baseUrl, String? hfToken})
+      : _dio = Dio(
+          BaseOptions(
+            baseUrl: baseUrl,
+            headers: (hfToken != null && hfToken.isNotEmpty)
+                ? {'Authorization': 'Bearer $hfToken'}
+                : null,
+          ),
+        );
 
   final Dio _dio;
 
@@ -51,24 +64,6 @@ class AuthRemoteSource {
     } on DioException catch (_) {
       // Best-effort: kai-auth treats an unknown/expired token as a no-op 204
       // too. Local storage is cleared by the caller regardless of outcome.
-    }
-  }
-
-  /// Binds [legacyUserId] to the account owning [accessToken]. Returns the
-  /// authenticated user_id it was aliased to (per `ClaimResponse`).
-  Future<String> claimLegacyUser(
-    String legacyUserId,
-    String accessToken,
-  ) async {
-    try {
-      final response = await _dio.post<Map<String, dynamic>>(
-        '/v1/auth/claim',
-        data: {'legacy_user_id': legacyUserId},
-        options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
-      );
-      return response.data!['user_id'] as String;
-    } on DioException catch (e) {
-      throw AuthException(_detailOf(e) ?? 'claim failed');
     }
   }
 

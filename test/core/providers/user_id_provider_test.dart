@@ -72,7 +72,7 @@ void main() {
     expect(container.read(userIdProvider), 'account-after-sign-in');
   });
 
-  test('the anonymous id is stable across reads (it is the claim key)', () {
+  test('the anonymous id is stable across reads', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
 

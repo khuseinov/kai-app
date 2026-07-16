@@ -121,13 +121,6 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> claimLegacyUser(String legacyUserId) async {
-    final tokens = _tokens;
-    if (tokens == null) return;
-    await _remote.claimLegacyUser(legacyUserId, tokens.accessToken);
-  }
-
-  @override
   Future<void> signOut() async {
     final tokens = _tokens;
     _tokens = null;

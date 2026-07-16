@@ -1,100 +1,138 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kai_app/core/network/interceptors/auth_interceptor.dart';
 
-/// Dio types onRequest/onError as `void Function(...)` and calls them
-/// fire-and-forget (`cb(options, handler); return handler.future;`). The
-/// returned future — and any error in it — is discarded, while `handler.future`
-/// is backed by a Completer that only ever completes via next/resolve/reject.
+/// Drives requests through a REAL Dio pipeline against a stub adapter, so the
+/// tests exercise the interceptor exactly as production does — no reaching into
+/// protected handler internals.
 ///
-/// So an async throw out of these callbacks is not merely an unhandled error:
-/// the request never completes. No timeout rescues it either — connect/receive
-/// timeouts live inside _dispatchRequest, which is never reached. The symptom
-/// is a spinner that hangs forever with no error, e.g. every parallel call at
-/// launch after the 30-day refresh token has expired.
-///
-/// These tests assert the handler is always driven to completion.
+/// Two things under test:
+///  1. onRequest/onError must never hang. dio types them as `void Function(...)`
+///     and calls them fire-and-forget, so an async throw out of the token
+///     getter would leave the handler's completer uncompleted and the request
+///     pending forever (connect/receive timeouts never arm). Driving a real
+///     request means a hang shows up as a timeout the test fails on.
+///  2. The header split: kai-auth JWT rides in X-Kai-Access-Token (identity),
+///     the HF edge PAT rides in Authorization (front door). They must not
+///     collide.
+class _CapturingAdapter implements HttpClientAdapter {
+  _CapturingAdapter(this.status);
+
+  final int status;
+  RequestOptions? last;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    last = options;
+    return ResponseBody.fromString(
+      '{}',
+      status,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+Dio _dioWith(AuthInterceptor interceptor, _CapturingAdapter adapter) {
+  final dio = Dio(BaseOptions(baseUrl: 'http://test.local'))
+    ..httpClientAdapter = adapter;
+  interceptor.attach(dio);
+  dio.interceptors.add(interceptor);
+  return dio;
+}
+
 void main() {
   group('AuthInterceptor never hangs the request', () {
-    test('onRequest completes even when the token getter throws', () async {
-      final interceptor = AuthInterceptor(
-        getAccessToken: () async => throw Exception('refresh failed'),
+    test('onRequest completes when the token getter throws', () async {
+      final adapter = _CapturingAdapter(200);
+      final dio = _dioWith(
+        AuthInterceptor(getAccessToken: () async => throw Exception('boom')),
+        adapter,
       );
 
-      final options = RequestOptions(path: '/sessions');
-      final handler = RequestInterceptorHandler();
-      final settled = _watch(handler.future);
+      // If onRequest hung, this await would never return — the timeout turns
+      // that into a test failure instead of an infinite pending future.
+      final resp = await dio
+          .get<dynamic>('/sessions')
+          .timeout(const Duration(seconds: 3));
 
-      await interceptor.onRequest(options, handler);
-      await Future<void>.delayed(Duration.zero);
-
-      expect(settled.value, isTrue, reason: 'handler.next was never called');
-      // Treated as signed out: no bearer, so the server answers 401 — a normal,
-      // visible error instead of a silent stall.
-      expect(options.headers.containsKey('Authorization'), isFalse);
+      expect(resp.statusCode, 200);
+      // Treated as signed out: no identity header, no edge header.
+      expect(adapter.last!.headers.containsKey('X-Kai-Access-Token'), isFalse);
+      expect(adapter.last!.headers.containsKey('Authorization'), isFalse);
     });
 
-    test('onRequest still attaches a good token (control)', () async {
-      final interceptor = AuthInterceptor(
-        getAccessToken: () async => 'live-token',
+    test('a good token goes out in X-Kai-Access-Token, not Authorization',
+        () async {
+      final adapter = _CapturingAdapter(200);
+      final dio = _dioWith(
+        AuthInterceptor(getAccessToken: () async => 'live-jwt'),
+        adapter,
       );
 
-      final options = RequestOptions(path: '/sessions');
-      await interceptor.onRequest(options, RequestInterceptorHandler());
+      await dio.get<dynamic>('/sessions');
 
-      expect(options.headers['Authorization'], 'Bearer live-token');
+      expect(adapter.last!.headers['X-Kai-Access-Token'], 'live-jwt');
+      expect(adapter.last!.headers.containsKey('Authorization'), isFalse);
     });
 
-    test('onRequest falls back to hfToken when the getter throws', () async {
-      final interceptor = AuthInterceptor(
-        hfToken: 'hf-pat',
-        getAccessToken: () async => throw Exception('boom'),
-      );
-
-      final options = RequestOptions(path: '/sessions');
-      await interceptor.onRequest(options, RequestInterceptorHandler());
-
-      expect(options.headers['Authorization'], 'Bearer hf-pat');
-    });
-
-    test('onError completes when the refresh throws on a 401', () async {
-      final dio = Dio();
-      final interceptor = AuthInterceptor(
-        getAccessToken: () async => throw Exception('refresh failed'),
-      )..attach(dio);
-
-      final requestOptions = RequestOptions(path: '/sessions');
-      final err = DioException(
-        requestOptions: requestOptions,
-        response: Response<dynamic>(
-          requestOptions: requestOptions,
-          statusCode: 401,
+    test('hfToken rides Authorization for the edge, JWT rides its own header',
+        () async {
+      final adapter = _CapturingAdapter(200);
+      final dio = _dioWith(
+        AuthInterceptor(
+          hfToken: 'hf-pat',
+          getAccessToken: () async => 'live-jwt',
         ),
+        adapter,
       );
 
-      final handler = ErrorInterceptorHandler();
-      final settled = _watch(handler.future);
+      await dio.get<dynamic>('/sessions');
 
-      await interceptor.onError(err, handler);
-      await Future<void>.delayed(Duration.zero);
+      // Edge PAT and identity token coexist without collision.
+      expect(adapter.last!.headers['Authorization'], 'Bearer hf-pat');
+      expect(adapter.last!.headers['X-Kai-Access-Token'], 'live-jwt');
+    });
 
-      expect(settled.value, isTrue, reason: 'the original 401 must still surface');
+    test('hfToken still attaches when the getter throws (signed out)', () async {
+      final adapter = _CapturingAdapter(200);
+      final dio = _dioWith(
+        AuthInterceptor(
+          hfToken: 'hf-pat',
+          getAccessToken: () async => throw Exception('boom'),
+        ),
+        adapter,
+      );
+
+      await dio.get<dynamic>('/sessions');
+
+      expect(adapter.last!.headers['Authorization'], 'Bearer hf-pat');
+      expect(adapter.last!.headers.containsKey('X-Kai-Access-Token'), isFalse);
+    });
+
+    test('onError completes (does not hang) when refresh throws on a 401',
+        () async {
+      final adapter = _CapturingAdapter(401);
+      final dio = _dioWith(
+        AuthInterceptor(getAccessToken: () async => throw Exception('boom')),
+        adapter,
+      );
+
+      // The 401 must surface as a normal error, not stall forever.
+      await expectLater(
+        dio.get<dynamic>('/sessions').timeout(const Duration(seconds: 3)),
+        throwsA(isA<DioException>()),
+      );
     });
   });
-}
-
-/// Flips to true once [future] settles, either way. These handler futures
-/// complete with an error by design (that IS the 401 being propagated) — the
-/// bug under test is them never completing at all, so both outcomes count.
-_Flag _watch(Future<dynamic> future) {
-  final flag = _Flag();
-  future.then(
-    (_) => flag.value = true,
-    onError: (Object _) => flag.value = true,
-  );
-  return flag;
-}
-
-class _Flag {
-  bool value = false;
 }

@@ -180,9 +180,8 @@ String userId(UserIdRef ref) {
 }
 
 /// Stable anonymous id. Generated once and persisted in Hive. Identifies the
-/// caller before sign-in, and is what gets handed to `/v1/auth/claim` as
-/// `legacy_user_id` afterwards — so it stays readable on its own, independent
-/// of [userId] above.
+/// caller before sign-in (and on `/chat`, which is still body-identity), so it
+/// stays readable on its own, independent of [userId] above.
 @Riverpod(keepAlive: true)
 String anonymousUserId(AnonymousUserIdRef ref) {
   final box = HiveSetup.userIds;
@@ -308,7 +307,7 @@ SecureTokenStorage secureTokenStorage(SecureTokenStorageRef ref) {
 @Riverpod(keepAlive: true)
 AuthRemoteSource authRemoteSource(AuthRemoteSourceRef ref) {
   final env = ref.watch(envProvider);
-  return AuthRemoteSource(baseUrl: env.apiBaseUrl);
+  return AuthRemoteSource(baseUrl: env.apiBaseUrl, hfToken: env.hfToken);
 }
 
 /// Google/Apple sign-in + kai-auth token lifecycle.
