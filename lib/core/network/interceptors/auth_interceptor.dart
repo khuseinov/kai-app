@@ -71,7 +71,18 @@ class AuthInterceptor extends Interceptor {
       );
     }
 
-    final accessToken = await _getAccessToken?.call();
+    // Never let this throw: dio types onRequest as `void Function(...)` and
+    // calls it fire-and-forget, so an async throw escapes into the zone and
+    // the handler's completer is never completed — the request then hangs
+    // forever (connect/receive timeouts live further down the chain and never
+    // arm). A getter that blows up is treated as signed out: the request goes
+    // out unauthenticated and comes back 401, which is a normal, visible error.
+    String? accessToken;
+    try {
+      accessToken = await _getAccessToken?.call();
+    } catch (_) {
+      accessToken = null;
+    }
     if (accessToken != null && accessToken.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $accessToken';
     } else if (_hfToken != null && _hfToken.isNotEmpty) {
@@ -145,7 +156,15 @@ class AuthInterceptor extends Interceptor {
     // unchanged from what this request already sent, refresh failed (signed
     // out) — no point retrying.
     final priorAuth = err.requestOptions.headers['Authorization'] as String?;
-    final freshToken = await getAccessToken();
+    final String? freshToken;
+    try {
+      freshToken = await getAccessToken();
+    } catch (_) {
+      // Same hang risk as onRequest — see there. A refresh that throws means
+      // we cannot retry, so surface the original 401 rather than stall.
+      handler.next(err);
+      return;
+    }
     if (freshToken == null || priorAuth == 'Bearer $freshToken') {
       handler.next(err);
       return;

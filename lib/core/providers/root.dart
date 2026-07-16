@@ -22,6 +22,7 @@ import 'package:kai_app/features/auth/data/repositories/secure_token_storage.dar
 import 'package:kai_app/features/auth/data/repositories/session_repository_impl.dart';
 import 'package:kai_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:kai_app/features/auth/domain/repositories/session_repository.dart';
+import 'package:kai_app/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:kai_app/features/memory/data/repositories/memory_repository_impl.dart';
 import 'package:kai_app/features/memory/data/repositories/mock_memory_repository.dart';
 import 'package:kai_app/features/memory/domain/repositories/memory_repository.dart';
@@ -160,9 +161,30 @@ EnvConfig env(EnvRef ref) {
   return EnvConfig.fromDotenv();
 }
 
-/// Stable anonymous user id. Generated once and persisted in Hive.
+/// The id kai-core knows this caller by — the one every `user_id` we send must
+/// carry.
+///
+/// Signed in, this MUST be the kai-auth account id, because it is exactly the
+/// `sub` of the JWT [AuthInterceptor] puts on the same request, and kai-core's
+/// `require_user_identity` compares the two and 403s on any mismatch. Sending
+/// the anonymous id below while holding a real token therefore fails *every*
+/// /sessions, /user/* and /schedules call.
+///
+/// Signed out, it is the anonymous id: those routes reject it with 401 anyway
+/// (no bearer token), but /chat still identifies the caller by it.
 @Riverpod(keepAlive: true)
 String userId(UserIdRef ref) {
+  final account = ref.watch(authNotifierProvider).valueOrNull;
+  if (account != null) return account.id;
+  return ref.watch(anonymousUserIdProvider);
+}
+
+/// Stable anonymous id. Generated once and persisted in Hive. Identifies the
+/// caller before sign-in, and is what gets handed to `/v1/auth/claim` as
+/// `legacy_user_id` afterwards — so it stays readable on its own, independent
+/// of [userId] above.
+@Riverpod(keepAlive: true)
+String anonymousUserId(AnonymousUserIdRef ref) {
   final box = HiveSetup.userIds;
   var uid = box.get(HiveSetup.userIdKey);
   if (uid == null || uid.isEmpty) {
@@ -298,6 +320,8 @@ AuthRepository authRepository(AuthRepositoryRef ref) {
     storage: ref.watch(secureTokenStorageProvider),
     googleServerClientId: env.googleServerClientId,
     googleIosClientId: env.googleIosClientId,
+    onSessionLost: () =>
+        ref.read(authNotifierProvider.notifier).onSessionLost(),
   );
 }
 

@@ -22,14 +22,19 @@ workflows:
       - name: Generate .env
         script: |
           : "${HF_TOKEN:?HF_TOKEN environment variable is not set}"
-          : "${INTERNAL_HEALTH_TOKEN:?INTERNAL_HEALTH_TOKEN environment variable is not set}"
+          # INTERNAL_HEALTH_TOKEN is retired (kai-auth replaced it as the
+          # per-user gate) — nothing in lib/ reads it, so requiring it here
+          # would break this build the moment the dead secret is deleted.
+          # GOOGLE_* are optional until the founder provisions them; a build
+          # without them just ships without Google sign-in.
           cat > .env <<EOF
           API_BASE_URL=${API_BASE_URL:-https://rustamkhuseinov-kai.hf.space}
           USE_REAL_CHAT=${USE_REAL_CHAT:-true}
           HF_TOKEN=$HF_TOKEN
-          INTERNAL_HEALTH_TOKEN=$INTERNAL_HEALTH_TOKEN
           VOICE_GATEWAY_BASE_URL=$VOICE_GATEWAY_BASE_URL
           VOICE_GATEWAY_API_KEY=$VOICE_GATEWAY_API_KEY
+          GOOGLE_SERVER_CLIENT_ID=$GOOGLE_SERVER_CLIENT_ID
+          GOOGLE_IOS_CLIENT_ID=$GOOGLE_IOS_CLIENT_ID
           EOF
       - name: Analyze
         script: flutter analyze --no-fatal-infos
@@ -74,14 +79,19 @@ workflows:
       - name: Generate .env
         script: |
           : "${HF_TOKEN:?HF_TOKEN environment variable is not set}"
-          : "${INTERNAL_HEALTH_TOKEN:?INTERNAL_HEALTH_TOKEN environment variable is not set}"
+          # INTERNAL_HEALTH_TOKEN is retired (kai-auth replaced it as the
+          # per-user gate) — nothing in lib/ reads it, so requiring it here
+          # would break this build the moment the dead secret is deleted.
+          # GOOGLE_* are optional until the founder provisions them; a build
+          # without them just ships without Google sign-in.
           cat > .env <<EOF
           API_BASE_URL=${API_BASE_URL:-https://rustamkhuseinov-kai.hf.space}
           USE_REAL_CHAT=${USE_REAL_CHAT:-true}
           HF_TOKEN=$HF_TOKEN
-          INTERNAL_HEALTH_TOKEN=$INTERNAL_HEALTH_TOKEN
           VOICE_GATEWAY_BASE_URL=$VOICE_GATEWAY_BASE_URL
           VOICE_GATEWAY_API_KEY=$VOICE_GATEWAY_API_KEY
+          GOOGLE_SERVER_CLIENT_ID=$GOOGLE_SERVER_CLIENT_ID
+          GOOGLE_IOS_CLIENT_ID=$GOOGLE_IOS_CLIENT_ID
           EOF
       - name: Analyze
         script: flutter analyze --no-fatal-infos

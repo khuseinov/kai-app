@@ -18,15 +18,24 @@ class AuthRepositoryImpl implements AuthRepository {
     required SecureTokenStorage storage,
     String? googleServerClientId,
     String? googleIosClientId,
+    void Function()? onSessionLost,
   })  : _remote = remote,
         _storage = storage,
         _googleServerClientId = googleServerClientId,
-        _googleIosClientId = googleIosClientId;
+        _googleIosClientId = googleIosClientId,
+        _onSessionLost = onSessionLost;
 
   final AuthRemoteSource _remote;
   final SecureTokenStorage _storage;
   final String? _googleServerClientId;
   final String? _googleIosClientId;
+
+  /// Called when a refresh fails and the session is torn down from under the
+  /// app (expired refresh token, or kai-auth revoked the family). Without it
+  /// the teardown is invisible: AuthNotifier keeps reporting the old user, so
+  /// the UI still shows the account and never offers sign-in again, while
+  /// every request goes out unauthenticated until the app is restarted.
+  final void Function()? _onSessionLost;
 
   TokenPair? _tokens;
   bool _googleInitialized = false;
@@ -140,8 +149,16 @@ class AuthRepositoryImpl implements AuthRepository {
     // kai-auth as reuse and revoke the whole family.
     final inFlight = _refreshInFlight;
     if (inFlight != null) {
-      final refreshed = await inFlight;
-      return refreshed.accessToken;
+      try {
+        final refreshed = await inFlight;
+        return refreshed.accessToken;
+      } catch (_) {
+        // The refresh we're riding on failed; its owner below already tore the
+        // session down. Contract (AuthRepository.validAccessToken) is null on
+        // failure — and this await had no guard at all, so the error escaped
+        // into AuthInterceptor's fire-and-forget callback and hung the request.
+        return null;
+      }
     }
 
     final future = _remote.refresh(tokens.refreshToken);
@@ -151,9 +168,19 @@ class AuthRepositoryImpl implements AuthRepository {
       _tokens = refreshed;
       await _storage.save(refreshed);
       return refreshed.accessToken;
-    } on AuthException {
+    } catch (_) {
+      // Deliberately not `on AuthException`: the keystore write above can
+      // fail, and a malformed 200 throws TypeError out of AuthRemoteSource.
+      // Either way the contract here is null, never a throw.
       _tokens = null;
-      await _storage.clear();
+      try {
+        await _storage.clear();
+      } catch (_) {
+        // Best-effort: the in-memory session is already gone, which is what
+        // matters. A stale pair left on disk fails the same way next launch
+        // and gets cleared then.
+      }
+      _onSessionLost?.call();
       return null;
     } finally {
       _refreshInFlight = null;

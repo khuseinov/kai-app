@@ -5,6 +5,7 @@ import 'package:kai_app/features/auth/data/datasources/auth_remote_source.dart';
 import 'package:kai_app/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:kai_app/features/auth/data/repositories/secure_token_storage.dart';
 import 'package:kai_app/features/auth/domain/entities/token_pair.dart';
+import 'package:kai_app/features/auth/domain/repositories/auth_repository.dart';
 
 /// Counts refresh calls and returns a fresh canned [TokenPair] each time —
 /// exercises [AuthRepositoryImpl]'s expiry/single-flight logic without a real
@@ -16,9 +17,14 @@ class _CountingAuthRemoteSource extends AuthRemoteSource {
 
   int refreshCalls = 0;
 
+  /// When set, [refresh] throws this instead of returning a pair.
+  Object? refreshError;
+
   @override
   Future<TokenPair> refresh(String refreshToken) async {
     refreshCalls++;
+    final error = refreshError;
+    if (error != null) throw error;
     return TokenPair(
       accessToken: 'new-access-$refreshCalls',
       refreshToken: 'new-refresh-$refreshCalls',
@@ -26,6 +32,19 @@ class _CountingAuthRemoteSource extends AuthRemoteSource {
       userId: 'user-1',
     );
   }
+}
+
+/// Fails every write — stands in for a keystore that rejects us mid-refresh.
+class _FailingStorage implements SecureTokenStorage {
+  @override
+  Future<void> save(TokenPair tokens) async =>
+      throw Exception('keystore write failed');
+
+  @override
+  Future<TokenPair?> read() async => null;
+
+  @override
+  Future<void> clear() async {}
 }
 
 void main() {
@@ -98,6 +117,89 @@ void main() {
       final token = await repo.validAccessToken();
 
       expect(token, isNull);
+    });
+
+    // The contract is "null when signed out or refresh fails" — never a throw.
+    // AuthInterceptor calls this from dio's fire-and-forget async callback, so
+    // an escaping error is not just an error: the handler is never completed
+    // and the request hangs forever with no timeout to rescue it.
+    test('returns null (never throws) when refresh is rejected', () async {
+      await seed(expired: true);
+      remote.refreshError = const AuthException('invalid refresh token');
+
+      await expectLater(repo.validAccessToken(), completion(isNull));
+    });
+
+    test('concurrent caller also gets null when the shared refresh fails',
+        () async {
+      await seed(expired: true);
+      remote.refreshError = const AuthException('invalid refresh token');
+
+      // The second caller awaits the first's in-flight future — that await is
+      // the one that used to rethrow with no guard at all.
+      final results = await Future.wait([
+        repo.validAccessToken(),
+        repo.validAccessToken(),
+      ]);
+
+      expect(results, [null, null]);
+      expect(remote.refreshCalls, 1);
+    });
+
+    test('returns null when a non-AuthException escapes the refresh', () async {
+      await seed(expired: true);
+      remote.refreshError = TypeError();
+
+      await expectLater(repo.validAccessToken(), completion(isNull));
+    });
+
+    test('returns null when persisting the refreshed pair throws', () async {
+      final failing = AuthRepositoryImpl(
+        remote: remote,
+        storage: _FailingStorage(),
+      );
+      await storage.save(
+        TokenPair(
+          accessToken: 'seed-access',
+          refreshToken: 'seed-refresh',
+          expiresAt: DateTime.now().subtract(const Duration(minutes: 1)),
+          userId: 'user-1',
+        ),
+      );
+      // Restore through the real storage, then let the failing one break save().
+      final restored = await AuthRepositoryImpl(
+        remote: remote,
+        storage: storage,
+      ).restoreSession();
+      expect(restored, isNotNull);
+
+      await failing.restoreSession();
+      await expectLater(failing.validAccessToken(), completion(isNull));
+    });
+
+    test('a failed refresh reports the session as lost exactly once', () async {
+      var lost = 0;
+      final watched = AuthRepositoryImpl(
+        remote: remote,
+        storage: storage,
+        onSessionLost: () => lost++,
+      );
+      await storage.save(
+        TokenPair(
+          accessToken: 'seed-access',
+          refreshToken: 'seed-refresh',
+          expiresAt: DateTime.now().subtract(const Duration(minutes: 1)),
+          userId: 'user-1',
+        ),
+      );
+      await watched.restoreSession();
+      remote.refreshError = const AuthException('refresh token expired');
+
+      expect(await watched.validAccessToken(), isNull);
+
+      // Without this callback the teardown is invisible to AuthNotifier: the
+      // UI keeps showing the account and never offers sign-in again.
+      expect(lost, 1);
     });
   });
 }
