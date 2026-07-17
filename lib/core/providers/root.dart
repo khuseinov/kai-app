@@ -47,6 +47,7 @@ part 'root.g.dart';
 class EnvConfig {
   const EnvConfig({
     required this.apiBaseUrl,
+    this.authBaseUrl,
     this.voiceGatewayBaseUrl,
     this.voiceGatewayApiKey,
     this.voiceTransport = 'ws',
@@ -62,6 +63,7 @@ class EnvConfig {
     final defaultUseReal = !isTest;
     try {
       final url = dotenv.maybeGet('API_BASE_URL') ?? 'https://rustamkhuseinov-kai.hf.space';
+      final authBaseUrl = _nonEmpty(dotenv.maybeGet('AUTH_BASE_URL'));
       final voiceGatewayUrl = dotenv.maybeGet('VOICE_GATEWAY_BASE_URL');
       final voiceGatewayKey = dotenv.maybeGet('VOICE_GATEWAY_API_KEY')?.trim();
       final voiceTransport = dotenv.maybeGet('VOICE_TRANSPORT')?.trim() ?? 'ws';
@@ -88,6 +90,7 @@ class EnvConfig {
 
       return EnvConfig(
         apiBaseUrl: url,
+        authBaseUrl: authBaseUrl,
         voiceGatewayBaseUrl: voiceGatewayUrl,
         voiceGatewayApiKey: voiceGatewayKey,
         voiceTransport: voiceTransport,
@@ -110,6 +113,12 @@ class EnvConfig {
       !kReleaseMode || const bool.fromEnvironment('KAI_DIAGNOSTICS');
 
   final String apiBaseUrl;
+
+  /// Base URL of the kai-auth service. When set (e.g. a Render deploy at
+  /// `https://kai-auth-xxx.onrender.com`), sign-in goes there directly instead
+  /// of the main API host. Null → falls back to [apiBaseUrl] (kai-auth
+  /// co-located on the HF Space).
+  final String? authBaseUrl;
 
   /// Base URL of the voice-gateway microservice.
   /// When omitted, voice features are unavailable.
@@ -307,7 +316,12 @@ SecureTokenStorage secureTokenStorage(SecureTokenStorageRef ref) {
 @Riverpod(keepAlive: true)
 AuthRemoteSource authRemoteSource(AuthRemoteSourceRef ref) {
   final env = ref.watch(envProvider);
-  return AuthRemoteSource(baseUrl: env.apiBaseUrl, hfToken: env.hfToken);
+  final authBase = env.authBaseUrl ?? env.apiBaseUrl;
+  // The HF edge PAT is only for getting past a private HF Space edge. A
+  // separate public auth host (Render) neither needs it nor should receive it
+  // (don't leak the HF token to a third-party host's logs).
+  final hfToken = authBase == env.apiBaseUrl ? env.hfToken : null;
+  return AuthRemoteSource(baseUrl: authBase, hfToken: hfToken);
 }
 
 /// Google/Apple sign-in + kai-auth token lifecycle.
